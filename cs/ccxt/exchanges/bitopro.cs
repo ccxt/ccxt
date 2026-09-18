@@ -2124,7 +2124,7 @@ public partial class bitopro : Exchange
         {
             return null;
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         string? error = this.safeString(response, "error");
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);

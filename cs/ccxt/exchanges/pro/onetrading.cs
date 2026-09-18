@@ -155,7 +155,7 @@ public partial class onetrading : ccxt.onetrading
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string subscriptionHash = "MARKET_TICKER";
-        string messageHash = add("ticker.", symbolVar);
+        string messageHash = ("ticker." + (symbolVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "channels", new List<object>() {new Dictionary<string, object>() {
@@ -297,7 +297,7 @@ public partial class onetrading : ccxt.onetrading
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         await this.authenticate(parameters);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -345,7 +345,7 @@ public partial class onetrading : ccxt.onetrading
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("book:", symbolVar);
+        string messageHash = ("book:" + (symbolVar));
         string subscriptionHash = "ORDER_BOOK";
         object depth = 0;
         if (!isEqual(limit, null))
@@ -484,7 +484,7 @@ public partial class onetrading : ccxt.onetrading
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         await this.authenticate(parameters);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -566,7 +566,7 @@ public partial class onetrading : ccxt.onetrading
         object order = this.parseTradingOrder(message);
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {order});
-        (client as WebSocketClient).resolve(this.orders, add("orders:", getValue(order, "symbol")));
+        (client as WebSocketClient).resolve(this.orders, ("orders:" + (getValue(order, "symbol"))));
         (client as WebSocketClient).resolve(this.orders, "orders");
     }
 
@@ -1055,7 +1055,7 @@ public partial class onetrading : ccxt.onetrading
             symbol = this.safeString(parsed, "symbol", "");
             callDynamically(orders, "append", new object[] {parsed});
         }
-        (client as WebSocketClient).resolve(this.orders, add("orders:", symbol));
+        (client as WebSocketClient).resolve(this.orders, ("orders:" + (symbol)));
         (client as WebSocketClient).resolve(this.orders, "orders");
         // update balance
         List<object> balanceKeys = new List<object>() {"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"};
@@ -1075,7 +1075,7 @@ public partial class onetrading : ccxt.onetrading
             symbol = this.safeString(parsed, "symbol", "");
             object myTrades = this.myTrades;
             callDynamically(myTrades, "append", new object[] {parsed});
-            (client as WebSocketClient).resolve(this.myTrades, add("myTrades:", symbol));
+            (client as WebSocketClient).resolve(this.myTrades, ("myTrades:" + (symbol)));
             (client as WebSocketClient).resolve(this.myTrades, "myTrades");
         }
     }
@@ -1145,7 +1145,7 @@ public partial class onetrading : ccxt.onetrading
         {
             throw new NotSupported ((string)(this.id + " this interval is not supported, please provide one of the supported timeframes")) ;
         }
-        string messageHash = add((add("ohlcv.", symbolVar) + "."), timeframeVar);
+        string messageHash = ((("ohlcv." + (symbolVar)) + ".") + (timeframeVar));
         string subscriptionHash = "CANDLESTICKS";
         var client = this.safeValue(this.clients, url);
         string type = "SUBSCRIBE";

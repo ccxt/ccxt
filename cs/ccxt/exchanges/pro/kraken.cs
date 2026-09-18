@@ -1109,7 +1109,7 @@ public partial class kraken : ccxt.kraken
             Int64 localChecksum = this.crc32(payload, false);
             if (!isEqual(localChecksum, c))
             {
-                var error = new ChecksumError(add((this.id + " "), this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1260,7 +1260,7 @@ public partial class kraken : ccxt.kraken
         if (!isEqual(symbol, null))
         {
             symbol = this.symbol(symbol);
-            messageHash = add(messageHash, add(":", symbol));
+            messageHash = add(messageHash, (":" + (symbol)));
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         Int64 requestId = ((Int64)this.requestId());
@@ -1359,7 +1359,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
-                string messageHash = add((name + ":"), getValue(keys, i));
+                string messageHash = ((name + ":") + (getValue(keys, i)));
                 (client as WebSocketClient).resolve(this.myTrades, messageHash);
             }
         }
@@ -1518,7 +1518,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
-                string messageHash = add((name + ":"), getValue(keys, i));
+                string messageHash = ((name + ":") + (getValue(keys, i)));
                 (client as WebSocketClient).resolve(this.orders, messageHash);
             }
         }
@@ -1716,11 +1716,11 @@ public partial class kraken : ccxt.kraken
             messageHash = add(messageHash, "s");
         } else
         {
-            messageHash = add(messageHash, add("@", symbol));
+            messageHash = add(messageHash, ("@" + (symbol)));
         }
         if (!isEqual(subChannelName, null))
         {
-            messageHash = add(messageHash, add("#", subChannelName));
+            messageHash = add(messageHash, ("#" + (subChannelName)));
         }
         return messageHash;
     }

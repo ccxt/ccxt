@@ -631,7 +631,7 @@ public partial class lighter : Exchange
             }
             if ((walletAddress == null) || isEqual(walletAddress, ""))
             {
-                throw new ArgumentsRequired ((string)(add((add((add((this.id + " "), methodName1) + "() requires an "), optionName1) + "/"), optionName2) + " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
+                throw new ArgumentsRequired ((string)(((((((this.id + " ") + (methodName1)) + "() requires an ") + (optionName1)) + "/") + (optionName2)) + " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
             }
             Dictionary<string, object> res = await this.publicGetAccountsByL1Address(new Dictionary<string, object>() {
                 { "l1_address", walletAddress },
@@ -665,7 +665,7 @@ public partial class lighter : Exchange
                 IDictionary<string, object> account = this.safeDict(subAccounts, 0);
                 if ((account == null))
                 {
-                    throw new ArgumentsRequired ((string)(add((add((add((this.id + " "), methodName1) + "() requires an "), optionName1) + " or "), optionName2) + " parameter")) ;
+                    throw new ArgumentsRequired ((string)(((((((this.id + " ") + (methodName1)) + "() requires an ") + (optionName1)) + " or ") + (optionName2)) + " parameter")) ;
                 }
                 accountIndex = getValue(account, "index");
                 ((IDictionary<string,object>)this.options)["accountIndex"] = accountIndex;
@@ -774,7 +774,7 @@ public partial class lighter : Exchange
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+        return ("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -784,7 +784,7 @@ public partial class lighter : Exchange
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return (add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
+        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
     public virtual string? signL1AndPrepareTxInfo(object txInfo, object message, object privateKey)
@@ -3627,7 +3627,7 @@ public partial class lighter : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), method) + " requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (method)) + " requires a symbol argument")) ;
         }
         object apiKeyIndex = null;
         IList<object> apiKeyIndexparametersVariable = (IList<object>)this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
@@ -3658,7 +3658,7 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)signRaw)["order_index"] = this.parseToInt(id);
         } else
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), method) + " requires order id or client order id")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (method)) + " requires order id or client order id")) ;
         }
         var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, parameters));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
@@ -3924,7 +3924,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
         } else
         {
-            url = add((add((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/api/"), this.version) + "/"), path);
+            url = ((((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/api/") + (this.version)) + "/") + (path));
         }
         if (isEqual(api, "private"))
         {
@@ -3969,7 +3969,7 @@ public partial class lighter : Exchange
         string? message = this.safeString(response, "msg");
         if ((code != null) && (code != "0") && (code != "200"))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             throw new ExchangeError ((string)feedback) ;

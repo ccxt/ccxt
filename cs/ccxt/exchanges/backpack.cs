@@ -1219,7 +1219,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(getValue(market, "spot"), true))
         {
-            throw new BadRequest ((string)add((this.id + " fetchFundingRate() symbol does not support market "), symbol)) ;
+            throw new BadRequest ((string)((this.id + " fetchFundingRate() symbol does not support market ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1285,7 +1285,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(getValue(market, "spot"), true))
         {
-            throw new BadRequest ((string)add((this.id + " fetchOpenInterest() symbol does not support market "), symbol)) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2665,7 +2665,7 @@ public partial class backpack : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = add("/", path);
+        string endpoint = ("/" + (path));
         object url = getValue(getValue(this.urls, "api"), api);
         object sortedParams = ((bool) ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? parameters : this.keysort(parameters);
         if (isEqual(api, "private"))
@@ -2730,10 +2730,10 @@ public partial class backpack : Exchange
             IDictionary<string, object> order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);
             string orderQuery = this.urlencode(sortedOrder);
-            payload = payload + (((add("instruction=", instruction) + "&") + orderQuery) + "&");
+            payload = payload + (((("instruction=" + (instruction)) + "&") + orderQuery) + "&");
             if (isEqual(i, ((getArrayLength(parameters) - 1))))
             {
-                payload = payload + add((add("timestamp=", ts) + "&window="), recvWindow);
+                payload = payload + ((("timestamp=" + (ts)) + "&window=") + (recvWindow));
             }
         }
         return payload;
@@ -2753,7 +2753,7 @@ public partial class backpack : Exchange
         string? message = this.safeString(response, "message");
         if ((errorCode != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

@@ -1531,7 +1531,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(getValue(market, "spot"), true))
         {
-            throw new BadRequest ((string)add((this.id + " fetchOpenInterest() symbol does not support market "), symbol)) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2182,7 +2182,7 @@ public partial class btse : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for "), type) + " orders")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for ") + (type)) + " orders")) ;
             }
         }
         // market and trailing buys are denominated in the quote currency while
@@ -2443,7 +2443,7 @@ public partial class btse : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for "), type) + " orders")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for ") + (type)) + " orders")) ;
             }
         }
         // here we handling with attached take profit and stop loss orders
@@ -3192,7 +3192,7 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
         } else if ((walletType == "SPOT"))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a code argument for the spot wallet history")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a code argument for the spot wallet history")) ;
         }
         if (!isEqual(since, null))
         {
@@ -4126,7 +4126,7 @@ public partial class btse : Exchange
         {
             string? spotErrorCode = this.safeString(response, "code");
             string? spotMessage = this.safeString(response, "msg");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), spotErrorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), spotMessage, feedback);
             throw new ExchangeError ((string)feedback) ;
@@ -4135,7 +4135,7 @@ public partial class btse : Exchange
         if ((errorCode != null))
         {
             string? message = this.safeString(response, "message");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;
@@ -4157,7 +4157,7 @@ public partial class btse : Exchange
         if (((legacyErrorText != null)) && ((legacyEnumCode != null)))
         {
             string? legacyMessage = this.safeString(response, "message");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), legacyEnumCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), legacyMessage, feedback);
             throw new ExchangeError ((string)feedback) ;
@@ -4182,7 +4182,7 @@ public partial class btse : Exchange
                 {
                     message = this.safeString(embedded, "default_msg", message);
                 }
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), status, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             }
@@ -4231,7 +4231,7 @@ public partial class btse : Exchange
             object signPath = null;
             if ((((string)path).StartsWith(((string)"public-api/")) == true))
             {
-                signPath = add("/", path);
+                signPath = ("/" + (path));
             } else
             {
                 signPath = this.cleanPath(path);

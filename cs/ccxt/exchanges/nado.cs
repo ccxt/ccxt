@@ -1469,7 +1469,7 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.walletAddress, null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires walletAddress")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires walletAddress")) ;
         }
         await this.loadMarkets();
         IDictionary<string, object> currency = null;
@@ -1955,7 +1955,7 @@ public partial class nado : Exchange
         IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
         if ((ticker == null))
         {
-            throw new BadSymbol ((string)add((this.id + " fetchTicker() ticker not found for "), symbolVar)) ;
+            throw new BadSymbol ((string)((this.id + " fetchTicker() ticker not found for ") + (symbolVar))) ;
         }
         return ccxt.BaseExchange.ToTicker(ticker);
     }
@@ -3243,7 +3243,7 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((string)(this.id + " padHex() requires length")) ;
         }
         string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        object padded = ((bool) isTrue(left)) ? (add(zeros, value)) : (add(value, zeros));
+        object padded = ((bool) isTrue(left)) ? ((zeros + (value))) : (add(value, zeros));
         if (isTrue(left))
         {
             object start = subtract(((string)padded).Length, length);
@@ -3282,7 +3282,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        string hash = add("0x", this.hash(encoded, keccak, "hex"));
+        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
         return this.signHash(hash, this.privateKey);
     }
 
@@ -3310,7 +3310,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        string hash = add("0x", this.hash(encoded, keccak, "hex"));
+        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
         return this.signHash(hash, this.privateKey);
     }
 
@@ -3335,7 +3335,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        string hash = add("0x", this.hash(encoded, keccak, "hex"));
+        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
         return this.signHash(hash, this.privateKey);
     }
 
@@ -3357,7 +3357,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        string hash = add("0x", this.hash(encoded, keccak, "hex"));
+        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
         return this.signHash(hash, this.privateKey);
     }
 
@@ -3447,7 +3447,7 @@ public partial class nado : Exchange
         string? error = this.safeString(response, "error");
         if (((status == "failure")) || ((errorCode != null)) || ((error != null)))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError ((string)feedback) ;

@@ -154,7 +154,7 @@ public partial class cex : ccxt.cex
         symbolVar = getValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string messageHash = "trades";
-        string subscriptionHash = add("old:", symbolVar);
+        string subscriptionHash = ("old:" + (symbolVar));
         var client = this.safeValue(this.clients, url);
         if ((client != null))
         {
@@ -175,7 +175,7 @@ public partial class cex : ccxt.cex
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "subscribe" },
-            { "rooms", new List<object>() {add((add("pair-", getValue(market, "base")) + "-"), getValue(market, "quote"))} },
+            { "rooms", new List<object>() {((("pair-" + (getValue(market, "base"))) + "-") + (getValue(market, "quote")))} },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, subscriptionHash);
@@ -295,7 +295,7 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + (symbolVar));
         string? method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
         object message = ((object)new Dictionary<string, object>() {
             { "e", "subscribe" },
@@ -310,7 +310,7 @@ public partial class cex : ccxt.cex
                 { "data", new List<object>() {getValue(market, "baseId"), getValue(market, "quoteId")} },
                 { "oid", this.requestId() },
             };
-            subscriptionHash = add("ticker:", symbolVar);
+            subscriptionHash = ("ticker:" + (symbolVar));
         }
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, subscriptionHash));
@@ -404,7 +404,7 @@ public partial class cex : ccxt.cex
             return;
         }
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        string? messageHash = add("ticker:", symbol);
+        string? messageHash = ("ticker:" + (symbol));
         (client as WebSocketClient).resolve(ticker, messageHash);
         (client as WebSocketClient).resolve(ticker, "tickers");
         messageHash = this.safeString(message, "oid");
@@ -535,7 +535,7 @@ public partial class cex : ccxt.cex
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("orders:", symbolVar);
+        string messageHash = ("orders:" + (symbolVar));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "open-orders" },
             { "data", new Dictionary<string, object>() {
@@ -577,8 +577,8 @@ public partial class cex : ccxt.cex
         await this.authenticate(parameters);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("myTrades:", getValue(market, "symbol"));
-        string subscriptionHash = add("orders:", getValue(market, "symbol"));
+        string messageHash = ("myTrades:" + (getValue(market, "symbol")));
+        string subscriptionHash = ("orders:" + (getValue(market, "symbol")));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "open-orders" },
             { "data", new Dictionary<string, object>() {
@@ -657,7 +657,7 @@ public partial class cex : ccxt.cex
         }
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("myTrades:", getValue(trade, "symbol"));
+        string messageHash = ("myTrades:" + (getValue(trade, "symbol")));
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -850,7 +850,7 @@ public partial class cex : ccxt.cex
         ((IDictionary<string,object>)order)["datetime"] = this.iso8601(timestamp);
         order = this.safeOrder(order);
         callDynamically(storedOrders, "append", new object[] {order});
-        string messageHash = add("orders:", symbol);
+        string messageHash = ("orders:" + (symbol));
         (client as WebSocketClient).resolve(storedOrders, messageHash);
     }
 
@@ -1060,7 +1060,7 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("orderbook:", symbolVar);
+        string messageHash = ("orderbook:" + (symbolVar));
         object depth = ((bool) (isEqual(limit, null))) ? 0 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "order-book-subscribe" },
@@ -1206,12 +1206,12 @@ public partial class cex : ccxt.cex
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("ohlcv:", symbolVar);
+        string messageHash = ("ohlcv:" + (symbolVar));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "init-ohlcv" },
             { "i", timeframeVar },
-            { "rooms", new List<object>() {add((add("pair-", getValue(market, "baseId")) + "-"), getValue(market, "quoteId"))} },
+            { "rooms", new List<object>() {((("pair-" + (getValue(market, "baseId"))) + "-") + (getValue(market, "quoteId")))} },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
@@ -1252,7 +1252,7 @@ public partial class cex : ccxt.cex
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         Dictionary<string, object> market = this.safeMarket(symbol);
-        string messageHash = add("ohlcv:", symbol);
+        string messageHash = ("ohlcv:" + (symbol));
         object data = this.safeValue(message, "data", new List<object>() {});
         Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
         var stored = new ArrayCacheByTimestamp(limit);
@@ -1719,7 +1719,7 @@ public partial class cex : ccxt.cex
         {
             this.checkRequiredCredentials();
             string nonce = ((object)this.seconds()).ToString();
-            object auth = add(nonce, this.apiKey);
+            object auth = (nonce + (this.apiKey));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "e", "auth" },

@@ -130,7 +130,7 @@ public partial class coinbase : ccxt.coinbase
         ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
         IDictionary<string, object> market = null;
         object watchMessageHash = name;
-        object unWatchMessageHash = add("unsubscribe:", name);
+        object unWatchMessageHash = ("unsubscribe:" + (name));
         IList<object> productIds = new List<object>() {};
         if (((symbol is IList<object>) || (symbol.GetType().IsGenericType && symbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -254,7 +254,7 @@ public partial class coinbase : ccxt.coinbase
             string? marketId = ((string)getValue(market, "id"));
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
-            ((IList<object>)unWatchMessageHashes).Add(add((add("unsubscribe:", name) + "::"), symbol));
+            ((IList<object>)unWatchMessageHashes).Add(((("unsubscribe:" + (name)) + "::") + (symbol)));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {

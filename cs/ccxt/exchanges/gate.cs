@@ -5725,7 +5725,7 @@ public partial class gate : Exchange
         bool isMarketOrder = (isEqual(type, "market"));
         if (isLimitOrder && isEqual(price, null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " createOrder () requires a price argument for "), type) + " orders")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
         }
         if (isMarketOrder)
         {
@@ -6038,7 +6038,7 @@ public partial class gate : Exchange
         {
             if (!isLimitOrder)
             {
-                throw new InvalidOrder ((string)(((add((this.id + " editOrder() does not support "), type) + " orders for ") + marketType) + " markets")) ;
+                throw new InvalidOrder ((string)(((((this.id + " editOrder() does not support ") + (type)) + " orders for ") + marketType) + " markets")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -8582,8 +8582,8 @@ public partial class gate : Exchange
         {
             path = this.implodeParams(path, parameters);
         }
-        string endPart = ((bool) (isEqual(path, ""))) ? "" : (add("/", path));
-        string entirePath = (add("/", type) + endPart);
+        string endPart = ((bool) (isEqual(path, ""))) ? "" : (("/" + (path)));
+        string entirePath = (("/" + (type)) + endPart);
         if ((isEqual(type, "subAccounts")) || (isEqual(type, "withdrawals")))
         {
             entirePath = endPart;
@@ -8591,7 +8591,7 @@ public partial class gate : Exchange
         object url = getValue(getValue(getValue(this.urls, "api"), authentication), type);
         if ((url == null))
         {
-            throw new NotSupported ((string)(add((this.id + " does not have a testnet for the "), type) + " market type.")) ;
+            throw new NotSupported ((string)(((this.id + " does not have a testnet for the ") + (type)) + " market type.")) ;
         }
         url = add(url, entirePath);
         if (isEqual(authentication, "public"))
@@ -8646,7 +8646,7 @@ public partial class gate : Exchange
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt((nonce / 1000));
             string timestampString = ((object)timestamp).ToString();
-            string signaturePath = (add("/api/", this.version) + entirePath);
+            string signaturePath = (("/api/" + (this.version)) + entirePath);
             List<object> payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
             string payload = String.Join("\n", ((IList<object>)payloadArray).ToArray());
@@ -9586,7 +9586,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetPositionClose(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchMyLiquidations() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " fetchMyLiquidations() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         //
         // swap and future
@@ -9769,7 +9769,7 @@ public partial class gate : Exchange
                 return ccxt.BaseExchange.ToGreeks(this.parseGreeks(entry, market));
             }
         }
-        throw new NullResponse ((string)add((this.id + " fetchGreeks() could not find greeks for "), symbol)) ;
+        throw new NullResponse ((string)((this.id + " fetchGreeks() could not find greeks for ") + (symbol))) ;
     }
 
     public override object parseGreeks(object greeks, object market = null)
@@ -10254,7 +10254,7 @@ public partial class gate : Exchange
         string? label = this.safeString(response, "label");
         if ((label != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), label, feedback);
             throw new ExchangeError ((string)feedback) ;
         }

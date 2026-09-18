@@ -90,7 +90,7 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = ((bool) isGenerationTwo) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", getValue(market, "symbol"));
+        string messageHash = ("ticker:" + (getValue(market, "symbol")));
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
         object request = new Dictionary<string, object>() {
@@ -163,7 +163,7 @@ public partial class bithumb : ccxt.bithumb
                 streamMarketId = (add(add(getValue(market, "base"), "_"), getValue(market, "quote")));
             }
             ((IList<object>)streamMarketIds).Add(streamMarketId);
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("ticker:" + (getValue(market, "symbol"))));
         }
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
@@ -420,7 +420,7 @@ public partial class bithumb : ccxt.bithumb
         object url = ((bool) isGenerationTwo) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add(("orderbook" + ":"), symbolVar);
+        string messageHash = (("orderbook" + ":") + (symbolVar));
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
             { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },
@@ -627,7 +627,7 @@ public partial class bithumb : ccxt.bithumb
         object url = ((bool) isGenerationTwo) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("trade:", symbolVar);
+        string messageHash = ("trade:" + (symbolVar));
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },
             { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },

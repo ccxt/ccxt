@@ -2761,7 +2761,7 @@ public partial class hitbtc : Exchange
         {
             if ((!isEqual(getValue(market, "type"), "swap")) && (!isEqual(getValue(market, "type"), "margin")))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() does not support reduce_only for "), getValue(market, "type")) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() does not support reduce_only for ") + (getValue(market, "type"))) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
             }
         }
         if (isEqual(reduceOnly, true))
@@ -4093,7 +4093,7 @@ public partial class hitbtc : Exchange
         }
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, maxLeverage)))
         {
-            throw new BadRequest ((string)add((((this.id + " setLeverage() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for "), symbol)) ;
+            throw new BadRequest ((string)((((this.id + " setLeverage() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -4301,7 +4301,7 @@ public partial class hitbtc : Exchange
         string? errorCode = this.safeString(error, "code");
         if ((errorCode != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             string? message = this.safeString2(error, "message", "description");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

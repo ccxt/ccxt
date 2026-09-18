@@ -144,7 +144,7 @@ public partial class bullish : ccxt.bullish
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trades::", getValue(market, "symbol"));
+        string messageHash = ("trades::" + (getValue(market, "symbol")));
         string url = "/trading-api/v1/market-data/trades";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "anonymousTrades" },
@@ -202,7 +202,7 @@ public partial class bullish : ccxt.bullish
             callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
-        string messageHash = add("trades::", getValue(market, "symbol"));
+        string messageHash = ("trades::" + (getValue(market, "symbol")));
         (client as WebSocketClient).resolve(tradesArray, messageHash);
     }
 
@@ -226,7 +226,7 @@ public partial class bullish : ccxt.bullish
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), getValue(market, "id"));
-        string messageHash = add("ticker::", symbolVar);
+        string messageHash = ("ticker::" + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, parameters, messageHash));  // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
@@ -313,7 +313,7 @@ public partial class bullish : ccxt.bullish
         }
         Dictionary<string, object> market = this.market(symbol);
         string url = "/trading-api/v1/market-data/orderbook";
-        string messageHash = add("orderbook::", getValue(market, "symbol"));
+        string messageHash = ("orderbook::" + (getValue(market, "symbol")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "l2Orderbook" },
             { "symbol", getValue(market, "id") },
@@ -553,7 +553,7 @@ public partial class bullish : ccxt.bullish
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = messageHash + add("::", symbolVar);
+            messageHash = messageHash + ("::" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "trades" },

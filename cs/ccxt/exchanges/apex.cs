@@ -1436,7 +1436,7 @@ public partial class apex : Exchange
     {
         bool hasAccountId = (!isEqual(_accountId, null)) && (!isEqual(_accountId, ""));
         object accountId = ((bool) hasAccountId) ? _accountId : ((object)this.randNumber(12)).ToString();
-        return ((((add("apexomni-", accountId) + "-") + ((object)this.milliseconds()).ToString()) + "-") + ((object)this.randNumber(6)).ToString());
+        return ((((("apexomni-" + (accountId)) + "-") + ((object)this.milliseconds()).ToString()) + "-") + ((object)this.randNumber(6)).ToString());
     }
 
     public virtual object addHyphenBeforeUsdt(object symbol)
@@ -2209,13 +2209,13 @@ public partial class apex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = add((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/"), path);
+        string url = ((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/") + (path));
         headers = new Dictionary<string, object>() {
             { "User-Agent", "apex-CCXT" },
             { "Accept", "application/json" },
             { "Content-Type", "application/x-www-form-urlencoded" },
         };
-        string signPath = add("/api/", path);
+        string signPath = ("/api/" + (path));
         object signBody = body;
         if ((((string)method).ToUpper() != "POST"))
         {
@@ -2265,7 +2265,7 @@ public partial class apex : Exchange
         Int64? errorCode = this.safeInteger(response, "code");
         if (!isEqual(errorCode, null) && (errorCode != 0))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             string? message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             string status = ((object)code).ToString();

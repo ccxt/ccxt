@@ -1048,7 +1048,7 @@ public partial class foxbit : Exchange
         typeVar = ((string)typeVar).ToUpper();
         if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "STOP_LIMIT") && !isEqual(typeVar, "INSTANT"))
         {
-            throw new InvalidOrder ((string)(add("Invalid order type: ", typeVar) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
+            throw new InvalidOrder ((string)(("Invalid order type: " + (typeVar)) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
@@ -1066,7 +1066,7 @@ public partial class foxbit : Exchange
         {
             if (isEqual(triggerPrice, null))
             {
-                throw new InvalidOrder ((string)(add("Invalid order type: ", typeVar) + ". Must have triggerPrice.")) ;
+                throw new InvalidOrder ((string)(("Invalid order type: " + (typeVar)) + ". Must have triggerPrice.")) ;
             }
         }
         if ((timeInForce != null))
@@ -1706,7 +1706,7 @@ public partial class foxbit : Exchange
         typeVar = ((string)typeVar).ToUpper();
         if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "INSTANT"))
         {
-            throw new InvalidOrder ((string)(add("Invalid order type: ", typeVar) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
+            throw new InvalidOrder ((string)(("Invalid order type: " + (typeVar)) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2255,7 +2255,7 @@ public partial class foxbit : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = getValue(api, 0);
         object urlPath = getValue(api, 1);
-        string fullPath = ((add("/rest/", version) + "/") + this.implodeParams(path, parameters));
+        string fullPath = ((("/rest/" + (version)) + "/") + this.implodeParams(path, parameters));
         if (isEqual(version, "status"))
         {
             fullPath = "/status";
@@ -2306,7 +2306,7 @@ public partial class foxbit : Exchange
         if (isEqual(urlPath, "private"))
         {
             this.checkRequiredCredentials();
-            string preHash = add(add((add(this.numberToString(timestamp), method) + fullPath), signatureQuery), bodyToSignature);
+            string preHash = ((((this.numberToString(timestamp) + (method)) + fullPath) + (signatureQuery)) + (bodyToSignature));
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);
@@ -2340,7 +2340,7 @@ public partial class foxbit : Exchange
         }
         if ((error != null))
         {
-            string feedback = add((((this.id + " ") + message) + " details: "), detailsString);
+            string feedback = ((((this.id + " ") + message) + " details: ") + (detailsString));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), detailsString, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);

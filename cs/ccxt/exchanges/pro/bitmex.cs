@@ -101,9 +101,9 @@ public partial class bitmex : ccxt.bitmex
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                string subscription = add((name + ":"), getValue(market, "id"));
+                string subscription = ((name + ":") + (getValue(market, "id")));
                 ((IList<object>)rawSubscriptions).Add(subscription);
-                string messageHash = add("ticker:", symbol);
+                string messageHash = ("ticker:" + (symbol));
                 ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
@@ -423,8 +423,8 @@ public partial class bitmex : ccxt.bitmex
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)subscriptionHashes).Add(add("liquidation:", getValue(market, "id")));
-                ((IList<object>)messageHashes).Add(add("liquidations::", symbol));
+                ((IList<object>)subscriptionHashes).Add(("liquidation:" + (getValue(market, "id"))));
+                ((IList<object>)messageHashes).Add(("liquidations::" + (symbol)));
             }
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -1040,7 +1040,7 @@ public partial class bitmex : ccxt.bitmex
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1271,7 +1271,7 @@ public partial class bitmex : ccxt.bitmex
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1471,9 +1471,9 @@ public partial class bitmex : ccxt.bitmex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = add((table + ":"), getValue(market, "id"));
+            string topic = ((table + ":") + (getValue(market, "id")));
             ((IList<object>)topics).Add(topic);
-            string messageHash = add((table + ":"), symbol);
+            string messageHash = ((table + ":") + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -1517,7 +1517,7 @@ public partial class bitmex : ccxt.bitmex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string table = ("tradeBin" + this.safeString(this.timeframes, timeframeVar, timeframeVar));
-        string messageHash = add((table + ":"), getValue(market, "id"));
+        string messageHash = ((table + ":") + (getValue(market, "id")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },

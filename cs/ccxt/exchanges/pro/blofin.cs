@@ -213,7 +213,7 @@ public partial class blofin : ccxt.blofin
         // due to some problem, temporarily disable other channels
         if (!isEqual(channelName, "books"))
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + callerMethodName) + "() at this moment "), channelName) + " is not supported, coming soon")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + callerMethodName) + "() at this moment ") + (channelName)) + " is not supported, coming soon")) ;
         }
         object orderbook = await this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -379,7 +379,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < getArrayLength(symbolsList); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbolsList, i));
-            ((IList<object>)messageHashes).Add(add("bidask:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("bidask:" + (getValue(market, "symbol"))));
             ((IList<object>)args).Add(new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", getValue(market, "id") },
@@ -403,7 +403,7 @@ public partial class blofin : ccxt.blofin
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, i)));
             object symbol = getValue(ticker, "symbol");
-            string messageHash = add("bidask:", symbol);
+            string messageHash = ("bidask:" + (symbol));
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             (client as WebSocketClient).resolve(ticker, messageHash);
         }
@@ -757,7 +757,7 @@ public partial class blofin : ccxt.blofin
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        string messageHash = add("fundingRate:", getValue(market, "symbol"));
+        string messageHash = ("fundingRate:" + (getValue(market, "symbol")));
         Dictionary<string, object> requestParams = new Dictionary<string, object>() {
             { "channel", "funding-rate" },
             { "instId", getValue(market, "id") },
@@ -789,7 +789,7 @@ public partial class blofin : ccxt.blofin
         object fundingRate = this.parseFundingRate(first);
         object symbol = getValue(fundingRate, "symbol");
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
-        string messageHash = add("fundingRate:", symbol);
+        string messageHash = ("fundingRate:" + (symbol));
         (client as WebSocketClient).resolve(fundingRate, messageHash);
     }
 
@@ -820,7 +820,7 @@ public partial class blofin : ccxt.blofin
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (!isEqual(marketType, "swap"))
         {
-            throw new NotSupported ((string)(((add((this.id + " "), callerMethodName) + "() does not support ") + marketType) + " markets yet")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + (callerMethodName)) + "() does not support ") + marketType) + " markets yet")) ;
         }
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};

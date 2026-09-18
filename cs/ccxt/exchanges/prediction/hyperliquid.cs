@@ -323,16 +323,16 @@ public partial class hyperliquid : PredictionExchange
                         object bucketLabel = null;
                         if (isLessThanOrEqual(index, 0))
                         {
-                            bucketLabel = add("BELOW_", getValue(thresholds, 0));
+                            bucketLabel = ("BELOW_" + (getValue(thresholds, 0)));
                         } else if (isGreaterThanOrEqual(index, thresholdsLength))
                         {
                             object lastIdx = (thresholdsLength - 1);
-                            bucketLabel = add("ABOVE_", getValue(thresholds, lastIdx));
+                            bucketLabel = ("ABOVE_" + (getValue(thresholds, lastIdx)));
                         } else
                         {
-                            bucketLabel = add((add("BETWEEN_", getValue(thresholds, subtract(index, 1))) + "_"), getValue(thresholds, index));
+                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, subtract(index, 1)))) + "_") + (getValue(thresholds, index)));
                         }
-                        object bs = add((((string)questionUnderlying).ToUpper() + "_"), bucketLabel);
+                        object bs = ((((string)questionUnderlying).ToUpper() + "_") + (bucketLabel));
                         if (((expiryDate != null)) && (!isEqual(expiryDate, "")))
                         {
                             bs = add(add(bs, "_"), expiryDate);
@@ -1307,7 +1307,7 @@ public partial class hyperliquid : PredictionExchange
         }
         if (isNumericInput)
         {
-            ((IList<object>)candidates).Add(add("#", outcomeInput)); // encoding id without #
+            ((IList<object>)candidates).Add(("#" + (outcomeInput))); // encoding id without #
             Int64? numeric = this.parseToInt(outcomeInput);
             if (!isEqual(numeric, null))
             {
@@ -1337,7 +1337,7 @@ public partial class hyperliquid : PredictionExchange
                 return found;
             }
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " cannot resolve outcome from input: "), outcomeInput) + ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " cannot resolve outcome from input: ") + (outcomeInput)) + ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
     }
 
     /**
@@ -1791,7 +1791,7 @@ public partial class hyperliquid : PredictionExchange
             string? expected = this.safeString(outcomeObj, "outcome");
             if ((this.safeString(parsed, "outcome") != expected))
             {
-                throw new OrderNotFound ((string)((add((this.id + " fetchOrder() order "), id) + " is not in outcome ") + expected)) ;
+                throw new OrderNotFound ((string)((((this.id + " fetchOrder() order ") + (id)) + " is not in outcome ") + expected)) ;
             }
         }
         return ccxt.BaseExchange.ToPredictionOrder(parsed);
@@ -2324,7 +2324,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -2337,8 +2337,8 @@ public partial class hyperliquid : PredictionExchange
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
-            { "r", add("0x", r) },
-            { "s", add("0x", s) },
+            { "r", ("0x" + (r)) },
+            { "s", ("0x" + (s)) },
             { "v", this.sum(27, getValue(signature, "v")) },
         };
     }
@@ -2521,7 +2521,7 @@ public partial class hyperliquid : PredictionExchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a user parameter or walletAddress to be set")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a user parameter or walletAddress to be set")) ;
     }
 
     public virtual object formatVaultAddress(object address = null)
@@ -2581,7 +2581,7 @@ public partial class hyperliquid : PredictionExchange
         if ((status == "err"))
         {
             string? message = this.safeString(response, "response", body);
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;
@@ -2595,7 +2595,7 @@ public partial class hyperliquid : PredictionExchange
             string? message = this.safeString(getValue(statuses, i), "error");
             if ((message != null))
             {
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                 throw new ExchangeError ((string)feedback) ;

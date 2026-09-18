@@ -84,7 +84,7 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? add("/", this.uid) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -97,10 +97,10 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> unwatchPublic(object subHash, object symbol, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? add("/", this.uid) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
-        string unsubHash = add("unsubscribe::", subHash);
+        string unsubHash = ("unsubscribe::" + (subHash));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", requestId },
             { "event", "unsubscribe" },
@@ -148,7 +148,7 @@ public partial class woo : ccxt.woo
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         object topic = add(add(getValue(market, "id"), "@"), method);
-        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? add("/", this.uid) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? ("/" + (this.uid)) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1108,7 +1108,7 @@ public partial class woo : ccxt.woo
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1153,7 +1153,7 @@ public partial class woo : ccxt.woo
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1425,7 +1425,7 @@ public partial class woo : ccxt.woo
         }
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
         callDynamically(myTrades, "append", new object[] {trade});
-        string messageHash = add("myTrades:", getValue(trade, "symbol"));
+        string messageHash = ("myTrades:" + (getValue(trade, "symbol")));
         (client as WebSocketClient).resolve(myTrades, messageHash);
         messageHash = "myTrades";
         (client as WebSocketClient).resolve(myTrades, messageHash);
@@ -1464,7 +1464,7 @@ public partial class woo : ccxt.woo
                     throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
                 }
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add("positions::", symbol));
+                ((IList<object>)messageHashes).Add(("positions::" + (symbol)));
             }
         } else
         {
@@ -1576,7 +1576,7 @@ public partial class woo : ccxt.woo
             Dictionary<string, object> position = this.parsePosition(rawPosition, market);
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
-            string messageHash = add("positions::", getValue(market, "symbol"));
+            string messageHash = ("positions::" + (getValue(market, "symbol")));
             (client as WebSocketClient).resolve(position, messageHash);
         }
         (client as WebSocketClient).resolve(newPositions, "positions");

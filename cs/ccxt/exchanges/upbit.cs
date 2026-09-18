@@ -2603,7 +2603,7 @@ public partial class upbit : Exchange
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
-            throw new AddressPending ((string)(add((this.id + " is generating "), code) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
+            throw new AddressPending ((string)(((this.id + " is generating ") + (code)) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response));
     }
@@ -2690,7 +2690,7 @@ public partial class upbit : Exchange
         object url = this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
-        url = add(url, ((add("/", this.version) + "/") + this.implodeParams(path, parameters)));
+        url = add(url, ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters)));
         object query = this.omit(parameters, this.extractParams(path));
         if (!isEqual(method, "POST"))
         {
@@ -2758,7 +2758,7 @@ public partial class upbit : Exchange
         {
             string? message = this.safeString(error, "message");
             string? name = this.safeString(error, "name");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), name, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

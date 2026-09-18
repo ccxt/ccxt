@@ -3300,7 +3300,7 @@ public partial class bitstamp : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.isFiat(code)))
         {
-            throw new NotSupported ((string)(add((this.id + " fiat fetchDepositAddress() for "), code) + " is not supported!")) ;
+            throw new NotSupported ((string)(((this.id + " fiat fetchDepositAddress() for ") + (code)) + " is not supported!")) ;
         }
         object name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
@@ -3478,7 +3478,7 @@ public partial class bitstamp : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object xAuth = add("BITSTAMP ", this.apiKey);
+            object xAuth = ("BITSTAMP " + (this.apiKey));
             string xAuthNonce = this.uuid();
             string xAuthTimestamp = ((object)this.milliseconds()).ToString();
             string xAuthVersion = "v2";
@@ -3574,7 +3574,7 @@ public partial class bitstamp : Exchange
             {
                 throw new AuthenticationError ((string)(this.id + " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             for (int i = 0; i < getArrayLength(errors); postFixIncrement(ref i))
             {
                 object value = getValue(errors, i);

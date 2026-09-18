@@ -7102,7 +7102,7 @@ public partial class bingx : Exchange
                         }
                     }
                 }
-                adjustedValue = (add("[", arrStr) + "]");
+                adjustedValue = (("[" + (arrStr)) + "]");
                 value = adjustedValue;
             }
             if (isEqual(i, 0))
@@ -7110,7 +7110,7 @@ public partial class bingx : Exchange
                 result = add(add(key, "="), value);
             } else
             {
-                result = add(result, add((add("&", key) + "="), value));
+                result = add(result, ((("&" + (key)) + "=") + (value)));
             }
         }
         return result;
@@ -7214,7 +7214,7 @@ public partial class bingx : Exchange
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
         if (((isSandbox == true)) && (url == null))
         {
-            throw new NotSupported ((string)(add((this.id + " does not have a testnet/sandbox URL for "), type) + " endpoints")) ;
+            throw new NotSupported ((string)(((this.id + " does not have a testnet/sandbox URL for ") + (type)) + " endpoints")) ;
         }
         path = this.implodeParams(path, parameters);
         bool versionIsTransfer = (isEqual(version, "transfer"));
@@ -7239,10 +7239,10 @@ public partial class bingx : Exchange
                 url = add(url, "/api");
             } else
             {
-                url = add(url, add("/", type));
+                url = add(url, ("/" + (type)));
             }
         }
-        url = add(url, add((add("/", version) + "/"), path));
+        url = add(url, ((("/" + (version)) + "/") + (path)));
         parameters = this.omit(parameters, this.extractParams(path));
         ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
         parameters = this.keysort(parameters);
@@ -7325,7 +7325,7 @@ public partial class bingx : Exchange
             {
                 message = transferErrorMsg;
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

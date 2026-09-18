@@ -203,9 +203,9 @@ public partial class upbit : ccxt.upbit
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(timeframeVar, "1s"))
         {
-            throw new NotSupported ((string)(add((this.id + " watchOHLCV does not support"), timeframeVar) + " candle.")) ;
+            throw new NotSupported ((string)(((this.id + " watchOHLCV does not support") + (timeframeVar)) + " candle.")) ;
         }
-        string timeFrameOHLCV = add("candle.", timeframeVar);
+        string timeFrameOHLCV = ("candle." + (timeframeVar));
         return ccxt.BaseExchange.ToOHLCVList(await this.watchPublicMultiple(new List<object>() {symbol}, timeFrameOHLCV));
     }
 
@@ -253,7 +253,7 @@ public partial class upbit : ccxt.upbit
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + (symbol));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -345,7 +345,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + (symbol));
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -667,7 +667,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(myTrades, "append", new object[] {trade});
         string messageHash = "myTrades";
         (client as WebSocketClient).resolve(myTrades, messageHash);
-        messageHash = add("myTrades:", getValue(trade, "symbol"));
+        messageHash = ("myTrades:" + (getValue(trade, "symbol")));
         (client as WebSocketClient).resolve(myTrades, messageHash);
     }
 

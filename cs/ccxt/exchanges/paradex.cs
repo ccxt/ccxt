@@ -1373,7 +1373,7 @@ public partial class paradex : Exchange
         IDictionary<string, object> rate = this.safeDict(rates, getValue(market, "symbol"));
         if ((rate == null))
         {
-            throw new BadSymbol ((string)add((this.id + " fetchFundingRate() could not find a funding rate for "), symbol)) ;
+            throw new BadSymbol ((string)((this.id + " fetchFundingRate() could not find a funding rate for ") + (symbol))) ;
         }
         return ccxt.BaseExchange.ToFundingRate(rate);
     }
@@ -1709,7 +1709,7 @@ public partial class paradex : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -1718,7 +1718,7 @@ public partial class paradex : Exchange
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return (add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
+        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -4054,7 +4054,7 @@ public partial class paradex : Exchange
             } else
             {
                 object token = getValue(this.options, "authToken");
-                ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
+                ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + (token));
                 if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || ((isEqual(method, "DELETE")) && (isEqual(path, "orders/batch"))))
                 {
                     ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
@@ -4089,7 +4089,7 @@ public partial class paradex : Exchange
         string? errorCode = this.safeString(response, "error");
         if ((errorCode != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;

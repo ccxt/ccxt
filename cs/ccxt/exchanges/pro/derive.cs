@@ -94,7 +94,7 @@ public partial class derive : ccxt.derive
             limitVar = 10;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = ((add("orderbook.", getValue(market, "id")) + ".10.") + this.numberToString(limitVar));
+        string topic = ((("orderbook." + (getValue(market, "id"))) + ".10.") + this.numberToString(limitVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -165,7 +165,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = (add("ticker_slim.", getValue(market, "id")) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
+        string topic = (("ticker_slim." + (getValue(market, "id"))) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -311,7 +311,7 @@ public partial class derive : ccxt.derive
             limit = 10;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = ((add("orderbook.", getValue(market, "id")) + ".10.") + this.numberToString(limit));
+        string topic = ((("orderbook." + (getValue(market, "id"))) + ".10.") + this.numberToString(limit));
         string messageHash = ("unwatch" + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -341,7 +341,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = add("trades.", getValue(market, "id"));
+        string topic = ("trades." + (getValue(market, "id")));
         string messageHah = ("unwatch" + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -385,7 +385,7 @@ public partial class derive : ccxt.derive
         }
         var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
         ((WebSocketClient)client).reject(error, topic);
-        (client as WebSocketClient).resolve(error, add("unwatch", topic));
+        (client as WebSocketClient).resolve(error, ("unwatch" + (topic)));
     }
 
     public virtual void handleTradesUnSubscription(WebSocketClient client, object topic)
@@ -404,7 +404,7 @@ public partial class derive : ccxt.derive
         }
         var error = new UnsubscribeError(((this.id + " trades ") + symbol));
         ((WebSocketClient)client).reject(error, topic);
-        (client as WebSocketClient).resolve(error, add("unwatch", topic));
+        (client as WebSocketClient).resolve(error, ("unwatch" + (topic)));
     }
 
     public virtual object handleUnSubscribe(WebSocketClient client, object message)
@@ -458,7 +458,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = add("trades.", getValue(market, "id"));
+        string topic = ("trades." + (getValue(market, "id")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -585,7 +585,7 @@ public partial class derive : ccxt.derive
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -723,7 +723,7 @@ public partial class derive : ccxt.derive
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },

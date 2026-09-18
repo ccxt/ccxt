@@ -191,7 +191,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (add("order_book.", getValue(market, "id")) + ".snapshot@15@100ms");
+        string messageHash = (("order_book." + (getValue(market, "id"))) + ".snapshot@15@100ms");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -299,7 +299,7 @@ public partial class paradex : ccxt.paradex
                 { "channel", channel },
             } },
         };
-        string messageHash = add((channel + "."), symbolVar);
+        string messageHash = ((channel + ".") + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -334,7 +334,7 @@ public partial class paradex : ccxt.paradex
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
-                string messageHash = add((channel + "."), getValue(symbols, i));
+                string messageHash = ((channel + ".") + (getValue(symbols, i)));
                 ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
@@ -379,7 +379,7 @@ public partial class paradex : ccxt.paradex
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             channel = add(channel, getValue(market, "id"));
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         } else
         {
             channel = add(channel, "ALL");
@@ -515,7 +515,7 @@ public partial class paradex : ccxt.paradex
                 { "channel", channel },
             } },
         };
-        string messageHash = add((channel + "."), symbolVar);
+        string messageHash = ((channel + ".") + (symbolVar));
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -553,7 +553,7 @@ public partial class paradex : ccxt.paradex
             {
                 for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
                 {
-                    string messageHash = add((channel + "."), getValue(symbols, i));
+                    string messageHash = ((channel + ".") + (getValue(symbols, i)));
                     ((IList<object>)messageHashes).Add(messageHash);
                 }
             } else

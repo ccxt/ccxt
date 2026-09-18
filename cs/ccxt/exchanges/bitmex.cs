@@ -1451,7 +1451,7 @@ public partial class bitmex : Exchange
         {
             return ccxt.BaseExchange.ToOrder(getValue(response, 0));
         }
-        throw new OrderNotFound ((string)(add((this.id + ": The order "), id) + " not found.")) ;
+        throw new OrderNotFound ((string)(((this.id + ": The order ") + (id)) + " not found.")) ;
     }
 
     /**
@@ -2004,7 +2004,7 @@ public partial class bitmex : Exchange
         object ticker = this.safeValue(response, 0);
         if ((ticker == null))
         {
-            throw new BadSymbol ((string)(add((this.id + " fetchTicker() symbol "), symbol) + " not found")) ;
+            throw new BadSymbol ((string)(((this.id + " fetchTicker() symbol ") + (symbol)) + " not found")) ;
         }
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
@@ -2559,7 +2559,7 @@ public partial class bitmex : Exchange
         {
             if ((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "future"), true)))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() does not support reduceOnly for "), getValue(market, "type")) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() does not support reduceOnly for ") + (getValue(market, "type"))) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
         }
         bool? postOnly = this.safeBool(parameters, "postOnly");
@@ -4272,13 +4272,13 @@ public partial class bitmex : Exchange
         }
         if (isEqual(code, 429))
         {
-            throw new DDoSProtection ((string)add((this.id + " "), body)) ;
+            throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
         }
         if (isGreaterThanOrEqual(code, 400))
         {
             object error = this.safeValue(response, "error", new Dictionary<string, object>() {});
             string? message = this.safeString(error, "message");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             if (isEqual(code, 400))
@@ -4300,7 +4300,7 @@ public partial class bitmex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string query = add((add("/api/", this.version) + "/"), path);
+        string query = ((("/api/" + (this.version)) + "/") + (path));
         if (isEqual(method, "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)

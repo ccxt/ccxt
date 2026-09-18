@@ -987,7 +987,7 @@ public partial class coinbase : Exchange
         }
         if ((accountId == null))
         {
-            throw new ExchangeError ((string)(add((this.id + " createDepositAddress() could not find the account with matching currency code "), code) + ", specify an `account_id` extra param to target specific wallet")) ;
+            throw new ExchangeError ((string)(((this.id + " createDepositAddress() could not find the account with matching currency code ") + (code)) + ", specify an `account_id` extra param to target specific wallet")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
@@ -3343,7 +3343,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)(add((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for "), code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
+                throw new ExchangeError ((string)(((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + (code)) + ". You might try to generate the deposit address in the website for that coin first.")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4756,7 +4756,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)add((this.id + " withdraw() could not find account id for "), code)) ;
+                throw new ExchangeError ((string)((this.id + " withdraw() could not find account id for ") + (code))) ;
             }
             ((IDictionary<string,object>)request)["account_id"] = accountId;
         } else
@@ -5018,7 +5018,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)add((this.id + " deposit() could not find account id for "), code)) ;
+                throw new ExchangeError ((string)((this.id + " deposit() could not find account id for ") + (code))) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5099,7 +5099,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError ((string)add((this.id + " fetchDeposit() could not find account id for "), code)) ;
+                throw new ExchangeError ((string)((this.id + " fetchDeposit() could not find account id for ") + (code))) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5947,7 +5947,7 @@ public partial class coinbase : Exchange
                 authorizationString = authorization;
             } else if ((!isEqual(this.token, "")) && !isTrue(this.checkRequiredCredentials(false)))
             {
-                authorizationString = add("Bearer ", this.token);
+                authorizationString = ("Bearer " + (this.token));
             } else
             {
                 this.checkRequiredCredentials();
@@ -6009,7 +6009,7 @@ public partial class coinbase : Exchange
                     Int64 nonce = this.nonce();
                     Int64? timestamp = this.parseToInt((nonce / 1000));
                     string timestampString = ((object)timestamp).ToString();
-                    object auth = add(add(add(timestampString, method), savedPath), payload);
+                    object auth = (((timestampString + (method)) + savedPath) + (payload));
                     string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "CB-ACCESS-KEY", this.apiKey },
@@ -6048,7 +6048,7 @@ public partial class coinbase : Exchange
         {
             return null;  // fallback to default error handler
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         //
         //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
         //

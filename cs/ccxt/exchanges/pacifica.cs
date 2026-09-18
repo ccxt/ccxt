@@ -1997,7 +1997,7 @@ public partial class pacifica : Exchange
         {
             if (isGreaterThan(lenActions, maxLen))
             {
-                throw new ExchangeError ((string)add((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
+                throw new ExchangeError ((string)((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + (maxLen))) ;
             }
         }
         return new Dictionary<string, object>() {
@@ -3435,7 +3435,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> oi = this.safeDict(ois, symbolVar);
         if ((oi == null))
         {
-            throw new BadSymbol ((string)add((this.id + " fetchOpenInterest() could not find open interest for "), symbolVar)) ;
+            throw new BadSymbol ((string)((this.id + " fetchOpenInterest() could not find open interest for ") + (symbolVar))) ;
         }
         return ccxt.BaseExchange.ToOpenInterest(oi);
     }
@@ -3954,7 +3954,7 @@ public partial class pacifica : Exchange
         {
             return new List<object>() {address1, parameters};
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
@@ -3981,7 +3981,7 @@ public partial class pacifica : Exchange
         bool nonEmptyMessage = (((message != null)) && ((message != "")));
         if (isTrue(error) || nonEmptyMessage)
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback); // Try deeper catch first
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), inCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
@@ -4099,7 +4099,7 @@ public partial class pacifica : Exchange
         this.checkRequiredCredentials(); // check credentials every post action
         if (isEqual(operationType, "undefined"))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " action: "), operationType) + " postActionRequest() requires \"operationType\"")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " action: ") + (operationType)) + " postActionRequest() requires \"operationType\"")) ;
         }
         if (!isTrue(this.isSandboxModeEnabled))
         {
@@ -4140,7 +4140,7 @@ public partial class pacifica : Exchange
         parameters = ((IList<object>)originAddressparametersVariable)[1];
         if ((originAddress == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " action: "), operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " action: ") + (operationType)) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
         }
         ((IDictionary<string,object>)finalHeaders)["account"] = originAddress;
         if ((agentAddress != null))

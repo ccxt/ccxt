@@ -216,7 +216,7 @@ public partial class xt : ccxt.xt
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
-        string id = add(this.numberToString(this.milliseconds()), name); // call back ID
+        string id = (this.numberToString(this.milliseconds()) + (name)); // call back ID
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", ((bool) isContract) ? "SUBSCRIBE" : "subscribe" },
             { "id", id },
@@ -283,7 +283,7 @@ public partial class xt : ccxt.xt
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
-        string id = add(this.numberToString(this.milliseconds()), name); // call back ID
+        string id = (this.numberToString(this.milliseconds()) + (name)); // call back ID
         Dictionary<string, object> unsubscribe = new Dictionary<string, object>() {
             { "method", ((bool) isContract) ? "UNSUBSCRIBE" : "unsubscribe" },
             { "id", id },
@@ -379,7 +379,7 @@ public partial class xt : ccxt.xt
         string? defaultMethod = this.safeString(options, "method", "ticker");
         object method = this.safeString(parameters, "method", defaultMethod);
         object name = add(add(method, "@"), getValue(market, "id"));
-        string messageHash = add("unsubscribe::", name);
+        string messageHash = ("unsubscribe::" + (name));
         return await this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters);
     }
 
@@ -475,7 +475,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add((add("kline@", getValue(market, "id")) + ","), timeframeVar);
+        string name = ((("kline@" + (getValue(market, "id"))) + ",") + (timeframeVar));
         object ohlcv = await this.subscribe(name, "public", "watchOHLCV", market, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -505,7 +505,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add((add("kline@", getValue(market, "id")) + ","), timeframeVar);
+        string name = ((("kline@" + (getValue(market, "id"))) + ",") + (timeframeVar));
         string messageHash = ("unsubscribe::" + name);
         List<object> symbolsAndTimeframes = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframeVar}};
         return await this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new List<object>() {symbol}, parameters, new Dictionary<string, object>() {
@@ -534,7 +534,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add("trade@", getValue(market, "id"));
+        string name = ("trade@" + (getValue(market, "id")));
         object trades = await this.subscribe(name, "public", "watchTrades", market, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -561,7 +561,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add("trade@", getValue(market, "id"));
+        string name = ("trade@" + (getValue(market, "id")));
         string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, new List<object>() {symbol}, parameters);
     }
@@ -590,10 +590,10 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
-        string name = add("depth_update@", getValue(market, "id"));
+        string name = ("depth_update@" + (getValue(market, "id")));
         if ((levels != null))
         {
-            name = ((add("depth@", getValue(market, "id")) + ",") + levels);
+            name = ((("depth@" + (getValue(market, "id"))) + ",") + levels);
         }
         object orderbook = await this.subscribe(name, "public", "watchOrderBook", market, null, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -622,10 +622,10 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
-        string name = add("depth_update@", getValue(market, "id"));
+        string name = ("depth_update@" + (getValue(market, "id")));
         if ((levels != null))
         {
-            name = ((add("depth@", getValue(market, "id")) + ",") + levels);
+            name = ((("depth@" + (getValue(market, "id"))) + ",") + levels);
         }
         string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new List<object>() {symbol}, parameters);
@@ -778,7 +778,7 @@ public partial class xt : ccxt.xt
         {
             throw new NotSupported ((string)(this.id + " watchFundingRate() supports swap contracts only")) ;
         }
-        string name = add("fund_rate@", getValue(market, "id"));
+        string name = ("fund_rate@" + (getValue(market, "id")));
         return ccxt.BaseExchange.ToFundingRate(await this.subscribe(name, "public", "watchFundingRate", market, null, parameters));
     }
 
@@ -803,7 +803,7 @@ public partial class xt : ccxt.xt
         {
             throw new NotSupported ((string)(this.id + " unWatchFundingRate() supports swap contracts only")) ;
         }
-        string name = add("fund_rate@", getValue(market, "id"));
+        string name = ("fund_rate@" + (getValue(market, "id")));
         string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters);
     }

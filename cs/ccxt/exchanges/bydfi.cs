@@ -1489,7 +1489,7 @@ public partial class bydfi : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             if (isStopLossOrder)
@@ -3384,7 +3384,7 @@ public partial class bydfi : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), api);
-        string endpoint = add("/", path);
+        string endpoint = ("/" + (path));
         string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);
         if (isEqual(method, "GET"))
@@ -3446,7 +3446,7 @@ public partial class bydfi : Exchange
         string? message = this.safeString(response, "message");
         if ((code != "200"))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);

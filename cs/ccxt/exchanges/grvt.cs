@@ -2185,7 +2185,7 @@ public partial class grvt : Exchange
             bool isFromFundingAccount = isEqual(fromAccountVar, "funding");
             if (isFromFundingAccount && (getIndexOf(msg, "You are not authorized") >= 0))
             {
-                throw new PermissionDenied ((string)add((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)) ;
+                throw new PermissionDenied ((string)((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + (msg))) ;
             }
             throw error;
         }
@@ -3722,7 +3722,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> domainData = this.eipDomainData();
         Dictionary<string, object> definitions = this.eipDefinitions();
         byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
-        string ethEncodedMessageHashed = add("0x", this.hash(ethEncodedMessage, keccak, "hex"));
+        string ethEncodedMessageHashed = ("0x" + (this.hash(ethEncodedMessage, keccak, "hex")));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         string? secretOrPrivkey = ((bool) isTrue(usesPrivKey)) ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
@@ -3730,7 +3730,7 @@ public partial class grvt : Exchange
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(getValue(signature, "r"));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(getValue(signature, "s"));
         ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, getValue(signature, "v"));
-        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((bool) (isEqual(signerAddress, null))) ? this.ethGetAddressFromPrivateKey(add("0x", privateKeyWithoutZero)) : signerAddress;
+        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((bool) (isEqual(signerAddress, null))) ? this.ethGetAddressFromPrivateKey(("0x" + (privateKeyWithoutZero))) : signerAddress;
         return request;
     }
 
@@ -3742,7 +3742,7 @@ public partial class grvt : Exchange
             return padded;
         } else
         {
-            return add("0x", padded);
+            return ("0x" + (padded));
         }
     }
 
@@ -3868,7 +3868,7 @@ public partial class grvt : Exchange
             string? errorCode = this.safeString(response, "code");
             if ((errorCode != null))
             {
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                 throw new ExchangeError ((string)feedback) ;
             } else
@@ -3876,7 +3876,7 @@ public partial class grvt : Exchange
                 string? message = this.safeString(response, "message");
                 if ((message != null))
                 {
-                    string feedback = add((this.id + " "), body);
+                    string feedback = ((this.id + " ") + (body));
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                     throw new ExchangeError ((string)feedback) ;
                 } else
@@ -3884,7 +3884,7 @@ public partial class grvt : Exchange
                     string? status = this.safeString(response, "status");
                     if ((status != null) && (status != "success"))
                     {
-                        string feedback = add((this.id + " "), body);
+                        string feedback = ((this.id + " ") + (body));
                         throw new ExchangeError ((string)feedback) ;
                     }
                 }

@@ -108,11 +108,11 @@ public partial class p2b : ccxt.p2b
         Int64? channel = this.safeInteger(timeframes, timeframeVar);
         if (isEqual(channel, null))
         {
-            throw new BadRequest ((string)add((this.id + " watchOHLCV cannot take a timeframe of "), timeframeVar)) ;
+            throw new BadRequest ((string)((this.id + " watchOHLCV cannot take a timeframe of ") + (timeframeVar))) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> request = new List<object>() {getValue(market, "id"), channel};
-        string messageHash = add("kline::", getValue(market, "symbol"));
+        string messageHash = ("kline::" + (getValue(market, "symbol")));
         object ohlcv = await this.subscribe("kline.subscribe", messageHash, request, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -238,7 +238,7 @@ public partial class p2b : ccxt.p2b
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
+                ((IList<object>)messageHashes).Add(("deals::" + (getValue(symbols, i))));
             }
         }
         IList<object> marketIds = this.marketIds(symbols);
@@ -280,7 +280,7 @@ public partial class p2b : ccxt.p2b
         }
         Dictionary<string, object> market = this.market(symbol);
         string name = "depth.subscribe";
-        string messageHash = add("orderbook::", getValue(market, "symbol"));
+        string messageHash = ("orderbook::" + (getValue(market, "symbol")));
         string? interval = this.safeString(parameters, "interval", "0.001");
         if (isEqual(limitVar, null))
         {
@@ -472,7 +472,7 @@ public partial class p2b : ccxt.p2b
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
-        string messageHash = add("orderbook::", getValue(market, "symbol"));
+        string messageHash = ("orderbook::" + (getValue(market, "symbol")));
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);

@@ -57,12 +57,12 @@ public partial class luno : ccxt.luno
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string subscriptionHash = add("/stream/", getValue(market, "id"));
+        string subscriptionHash = ("/stream/" + (getValue(market, "id")));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
         object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
@@ -101,7 +101,7 @@ public partial class luno : ccxt.luno
         }
         object symbol = getValue(subscription, "symbol");
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + (symbol));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -172,12 +172,12 @@ public partial class luno : ccxt.luno
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string subscriptionHash = add("/stream/", getValue(market, "id"));
+        string subscriptionHash = ("/stream/" + (getValue(market, "id")));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
         object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
-        string messageHash = add("orderbook:", symbolVar);
+        string messageHash = ("orderbook:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
@@ -222,7 +222,7 @@ public partial class luno : ccxt.luno
         //     }
         //
         object symbol = getValue(subscription, "symbol");
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + (symbol));
         Int64? timestamp = this.safeInteger(message, "timestamp");
         if (!(inOp(this.orderbooks, symbol)))
         {

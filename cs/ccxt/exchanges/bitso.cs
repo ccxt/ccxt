@@ -1577,7 +1577,7 @@ public partial class bitso : Exchange
                 return ccxt.BaseExchange.ToOrder(this.parseOrder(getValue(payload, 0)));
             }
         }
-        throw new OrderNotFound ((string)(add((this.id + ": The order "), id) + " not found.")) ;
+        throw new OrderNotFound ((string)(((this.id + ": The order ") + (id)) + " not found.")) ;
     }
 
     /**
@@ -2038,14 +2038,14 @@ public partial class bitso : Exchange
         object method = ((bool) (inOp(methods, code))) ? getValue(methods, code) : null;
         if ((method == null))
         {
-            throw new ExchangeError ((string)add((this.id + " not valid withdraw coin: "), code)) ;
+            throw new ExchangeError ((string)((this.id + " not valid withdraw coin: ") + (code))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
             { "address", address },
             { "destination_tag", tagVar },
         };
-        string classMethod = (add("privatePost", method) + "Withdrawal");
+        string classMethod = (("privatePost" + (method)) + "Withdrawal");
         object response = await ((Task<object>)callDynamically(this, classMethod, new object[] { this.extend(request, parameters) }));
         //
         //     {
@@ -2165,7 +2165,7 @@ public partial class bitso : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = ((add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        string endpoint = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(method, "GET") || isEqual(method, "DELETE"))
         {
@@ -2193,7 +2193,7 @@ public partial class bitso : Exchange
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
             object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
-                { "Authorization", add("Bitso ", auth) },
+                { "Authorization", ("Bitso " + (auth)) },
             };
         }
         return new Dictionary<string, object>() {

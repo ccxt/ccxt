@@ -66,7 +66,7 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = ("orderbook:" + (getValue(market, "symbol")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -157,7 +157,7 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", getValue(market, "symbol"));
+        string messageHash = ("ticker:" + (getValue(market, "symbol")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -206,7 +206,7 @@ public partial class coinone : ccxt.coinone
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data));
         object symbol = getValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + (symbol));
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
     }
 
@@ -288,7 +288,7 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", getValue(market, "symbol"));
+        string messageHash = ("trade:" + (getValue(market, "symbol")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -335,7 +335,7 @@ public partial class coinone : ccxt.coinone
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + (symbol));
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 

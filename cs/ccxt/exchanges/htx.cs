@@ -2679,7 +2679,7 @@ public partial class htx : Exchange
             {
                 if (isEqual(inverse, true))
                 {
-                    symbol = add(symbol, add(":", bs));
+                    symbol = add(symbol, (":" + (bs)));
                 } else if (isEqual(linear, true))
                 {
                     symbol = add(symbol, (":" + quote));
@@ -4003,7 +4003,7 @@ public partial class htx : Exchange
                     response = await this.contractPublicGetIndexMarketHistoryIndex(this.extend(request, parameters));
                 } else if ((priceType == "premiumIndex"))
                 {
-                    throw new BadRequest ((string)(((add((this.id + " "), getValue(market, "type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                    throw new BadRequest ((string)(((((this.id + " ") + (getValue(market, "type"))) + " has no api endpoint for ") + priceType) + " kline data")) ;
                 } else
                 {
                     response = await this.contractPublicGetMarketHistoryKline(this.extend(request, parameters));
@@ -4016,7 +4016,7 @@ public partial class htx : Exchange
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, parameters));
                 } else if ((priceType == "index"))
                 {
-                    throw new BadRequest ((string)(((add((this.id + " "), getValue(market, "type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                    throw new BadRequest ((string)(((((this.id + " ") + (getValue(market, "type"))) + " has no api endpoint for ") + priceType) + " kline data")) ;
                 } else if ((priceType == "premiumIndex"))
                 {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, parameters));
@@ -4035,7 +4035,7 @@ public partial class htx : Exchange
                     response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline(this.extend(request, parameters));
                 } else if ((priceType == "index"))
                 {
-                    throw new BadRequest ((string)(((add((this.id + " "), getValue(market, "type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                    throw new BadRequest ((string)(((((this.id + " ") + (getValue(market, "type"))) + " has no api endpoint for ") + priceType) + " kline data")) ;
                 } else if ((priceType == "premiumIndex"))
                 {
                     response = await this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(this.extend(request, parameters));
@@ -4050,7 +4050,7 @@ public partial class htx : Exchange
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, parameters));
                 } else if ((priceType == "index"))
                 {
-                    throw new BadRequest ((string)(((add((this.id + " "), getValue(market, "type")) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                    throw new BadRequest ((string)(((((this.id + " ") + (getValue(market, "type"))) + " has no api endpoint for ") + priceType) + " kline data")) ;
                 } else if ((priceType == "premiumIndex"))
                 {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, parameters));
@@ -6279,7 +6279,7 @@ public partial class htx : Exchange
                 orderType = ("stop-" + orderType);
             } else if ((!isEqual(orderType, "stop-limit")) && (!isEqual(orderType, "stop-limit-fok")))
             {
-                throw new NotSupported ((string)(add((this.id + " createOrder() does not support "), type) + " orders")) ;
+                throw new NotSupported ((string)(((this.id + " createOrder() does not support ") + (type)) + " orders")) ;
             }
         }
         bool postOnly = false;
@@ -8300,7 +8300,7 @@ public partial class htx : Exchange
         bool toSpot = isEqual(toAccountId, "pro");
         if (fromSpot && toSpot)
         {
-            throw new BadRequest ((string)add((add((this.id + " transfer () cannot make a transfer between "), fromAccount) + " and "), toAccount)) ;
+            throw new BadRequest ((string)((((this.id + " transfer () cannot make a transfer between ") + (fromAccount)) + " and ") + (toAccount))) ;
         }
         bool fromOrToFuturesAccount = (isEqual(fromAccountId, "futures")) || (isEqual(toAccountId, "futures"));
         Dictionary<string, object> response = null;
@@ -9038,9 +9038,9 @@ public partial class htx : Exchange
                     url = add(url, ("?" + this.urlencode(query)));
                 }
             }
-            url = add(this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
+            url = (this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
     { "hostname", this.hostname },
-}), url);
+}) + (url));
         } else
         {
             // signing implementation for the new endpoints
@@ -9144,9 +9144,9 @@ public partial class htx : Exchange
                 }
             }
             object finalHostname = hostname; // java req
-            url = add(this.implodeParams(getValue(getValue(this.urls, "api"), ((string)type)), new Dictionary<string, object>() {
+            url = (this.implodeParams(getValue(getValue(this.urls, "api"), ((string)type)), new Dictionary<string, object>() {
     { "hostname", finalHostname },
-}), url);
+}) + (url));
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -9172,7 +9172,7 @@ public partial class htx : Exchange
             if ((status == "error"))
             {
                 string? code = this.safeString2(response, "err-code", "err_code");
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 string? message = this.safeString2(response, "err-msg", "err_msg");
@@ -9183,7 +9183,7 @@ public partial class htx : Exchange
         if (inOp(response, "code"))
         {
             // {code: '1003', message: 'invalid signature'}
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             string? code = this.safeString(response, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
         }
@@ -9194,7 +9194,7 @@ public partial class htx : Exchange
             IDictionary<string, object> first = this.safeDict(errorsList, 0);
             string? errcode = this.safeString(first, "err_code");
             string? errmessage = this.safeString(first, "err_msg");
-            string feedBack = add((this.id + " "), body);
+            string feedBack = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errcode, feedBack);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errmessage, feedBack);
         }
@@ -10976,7 +10976,7 @@ public partial class htx : Exchange
             response = await this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchLiquidations() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " fetchLiquidations() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         //
         //     {

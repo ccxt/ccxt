@@ -759,7 +759,7 @@ public partial class woofipro : ccxt.woofipro
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -804,7 +804,7 @@ public partial class woofipro : ccxt.woofipro
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1119,7 +1119,7 @@ public partial class woofipro : ccxt.woofipro
                     throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
                 }
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add("positions::", symbol));
+                ((IList<object>)messageHashes).Add(("positions::" + (symbol)));
             }
         } else
         {
@@ -1237,7 +1237,7 @@ public partial class woofipro : ccxt.woofipro
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition, market));
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
-            string messageHash = add("positions::", getValue(market, "symbol"));
+            string messageHash = ("positions::" + (getValue(market, "symbol")));
             (client as WebSocketClient).resolve(position, messageHash);
         }
         (client as WebSocketClient).resolve(newPositions, "positions");

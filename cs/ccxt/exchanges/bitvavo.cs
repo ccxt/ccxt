@@ -2971,7 +2971,7 @@ public partial class bitvavo : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = ((add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        object url = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         bool getOrDelete = (isEqual(method, "GET")) || (isEqual(method, "DELETE"));
         if (getOrDelete)
         {
@@ -2993,7 +2993,7 @@ public partial class bitvavo : Exchange
                 }
             }
             string timestamp = ((object)this.milliseconds()).ToString();
-            object auth = add(add(add(timestamp, method), url), payload);
+            object auth = (((timestamp + (method)) + (url)) + (payload));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
@@ -3031,7 +3031,7 @@ public partial class bitvavo : Exchange
         string? error = this.safeString(response, "error");
         if ((errorCode != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;

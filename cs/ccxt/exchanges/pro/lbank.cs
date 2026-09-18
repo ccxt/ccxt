@@ -68,7 +68,7 @@ public partial class lbank : ccxt.lbank
         // see https://github.com/ccxt/ccxt/issues/26864
         if ((!isEqual(market, null)) && (isEqual(getValue(market, "contract"), true)))
         {
-            throw new NotSupported ((string)(add((add((this.id + " "), methodName) + "() does not support "), getValue(market, "type")) + " markets yet")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + (methodName)) + "() does not support ") + (getValue(market, "type"))) + " markets yet")) ;
         }
     }
 
@@ -99,7 +99,7 @@ public partial class lbank : ccxt.lbank
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((add("fetchOHLCV:", getValue(market, "symbol")) + ":") + timeframeId);
+        string messageHash = ((("fetchOHLCV:" + (getValue(market, "symbol"))) + ":") + timeframeId);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "kbar" },
@@ -146,7 +146,7 @@ public partial class lbank : ccxt.lbank
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((add("ohlcv:", getValue(market, "symbol")) + ":") + timeframeId);
+        string messageHash = ((("ohlcv:" + (getValue(market, "symbol"))) + ":") + timeframeId);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -278,7 +278,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchTickerWs");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("fetchTicker:", getValue(market, "symbol"));
+        string messageHash = ("fetchTicker:" + (getValue(market, "symbol")));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "tick" },
@@ -308,7 +308,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchTicker");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("ticker:", getValue(market, "symbol"));
+        string messageHash = ("ticker:" + (getValue(market, "symbol")));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "tick" },
@@ -424,7 +424,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchTradesWs");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("fetchTrades:", getValue(market, "symbol"));
+        string messageHash = ("fetchTrades:" + (getValue(market, "symbol")));
         if (isEqual(limit, null))
         {
             limit = 10;
@@ -461,7 +461,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchTrades");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("trades:", getValue(market, "symbol"));
+        string messageHash = ("trades:" + (getValue(market, "symbol")));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "trade" },
@@ -603,7 +603,7 @@ public partial class lbank : ccxt.lbank
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = this.symbol(symbolVar);
-            messageHash = add("orders:", getValue(market, "symbol"));
+            messageHash = ("orders:" + (getValue(market, "symbol")));
             pair = ((string)getValue(market, "id"));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -840,7 +840,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchOrderBookWs");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("fetchOrderbook:", getValue(market, "symbol"));
+        string messageHash = ("fetchOrderbook:" + (getValue(market, "symbol")));
         if (isEqual(limit, null))
         {
             limit = 100;
@@ -877,7 +877,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchOrderBook");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = ("orderbook:" + (getValue(market, "symbol")));
         parameters = this.omit(parameters, "aggregation");
         if (isEqual(limitVar, null))
         {

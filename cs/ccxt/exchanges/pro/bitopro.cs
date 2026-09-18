@@ -78,7 +78,7 @@ public partial class bitopro : ccxt.bitopro
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add(("ORDER_BOOK" + ":"), symbolVar);
+        string messageHash = (("ORDER_BOOK" + ":") + (symbolVar));
         object endPart = null;
         if (isEqual(limit, null))
         {
@@ -152,7 +152,7 @@ public partial class bitopro : ccxt.bitopro
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add(("TRADE" + ":"), symbolVar);
+        string messageHash = (("TRADE" + ":") + (symbolVar));
         object trades = await this.watchPublic("trades", messageHash, getValue(market, "id"));
         if (isTrue(this.newUpdates))
         {
@@ -385,7 +385,7 @@ public partial class bitopro : ccxt.bitopro
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add(("TICKER" + ":"), symbolVar);
+        string messageHash = (("TICKER" + ":") + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, getValue(market, "id")));
     }
 

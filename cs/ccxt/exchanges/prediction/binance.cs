@@ -1799,7 +1799,7 @@ public partial class binance : PredictionExchange
         }
         if ((cachedWallet == null))
         {
-            throw new NotSupported ((string)add((this.id + "fetchWallet could'n find wallet "), walletAddress)) ;
+            throw new NotSupported ((string)((this.id + "fetchWallet could'n find wallet ") + (walletAddress))) ;
         }
         ((IDictionary<string,object>)this.options)["wallet"] = cachedWallet;
         return ccxt.BaseExchange.ToDict(cachedWallet);
@@ -1948,7 +1948,7 @@ public partial class binance : PredictionExchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new ArgumentsRequired ((string)(add((this.id + " createOrder requires price for "), side) + " order")) ;
+                        throw new ArgumentsRequired ((string)(((this.id + " createOrder requires price for ") + (side)) + " order")) ;
                     }
                 }
                 string? feeRate = Precise.stringDiv(feeRateBps, "10000");
@@ -2080,7 +2080,7 @@ public partial class binance : PredictionExchange
                 }
                 failedDetails = add(add(add(failedDetails, failedOrderId), ": "), failedReason);
             }
-            throw new OrderNotFound ((string)add((this.id + " cancelOrders() failed for "), failedDetails)) ;
+            throw new OrderNotFound ((string)((this.id + " cancelOrders() failed for ") + (failedDetails))) ;
         }
         List<object> orders = new List<object>() {};
         int canceledOrdersLength = canceledOrders.Count;
@@ -2114,7 +2114,7 @@ public partial class binance : PredictionExchange
         if (((errorCode != null)) && isTrue(Precise.stringLt(errorCode, "0")))
         {
             string? message = this.safeString(response, "msg", "");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;

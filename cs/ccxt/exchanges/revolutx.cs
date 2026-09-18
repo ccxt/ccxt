@@ -242,7 +242,7 @@ public partial class revolutx : Exchange
             {
                 bodyString = body;
             }
-            string message = add((((timestamp + ((string)method).ToUpper()) + requestPath) + queryString), bodyString);
+            string message = ((((timestamp + ((string)method).ToUpper()) + requestPath) + queryString) + (bodyString));
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
             headers = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
@@ -653,7 +653,7 @@ public partial class revolutx : Exchange
         IDictionary<string, object> ticker = this.safeDict(tickers, symbol);
         if ((ticker == null))
         {
-            throw new ExchangeError ((string)add((this.id + " fetchTicker() could not find ticker for symbol "), symbol)) ;
+            throw new ExchangeError ((string)((this.id + " fetchTicker() could not find ticker for symbol ") + (symbol))) ;
         }
         return ccxt.BaseExchange.ToTicker(ticker);
     }
@@ -1121,7 +1121,7 @@ public partial class revolutx : Exchange
             ((IDictionary<string,object>)orderConfiguration)["market"] = marketConfig;
         } else
         {
-            throw new InvalidOrder ((string)add((this.id + " createOrder() does not support order type "), type)) ;
+            throw new InvalidOrder ((string)((this.id + " createOrder() does not support order type ") + (type))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
@@ -1607,7 +1607,7 @@ public partial class revolutx : Exchange
             {
                 return null;
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             string? errorMessage = null;
             if ((response is IDictionary<string, object>))
             {

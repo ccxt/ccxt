@@ -5030,7 +5030,7 @@ public partial class weex : Exchange
             bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (((sandboxMode == true)) && ((getIndexOf(path, "capi/v3/sim/") != 0)))
             {
-                throw new NotSupported ((string)(add((this.id + " "), path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
+                throw new NotSupported ((string)(((this.id + " ") + (path)) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
@@ -5078,11 +5078,11 @@ public partial class weex : Exchange
         if ((message != null))
         {
             string? errorCode = this.safeString(response, "code");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            throw new ExchangeError ((string)add((this.id + " "), body)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;
     }

@@ -1983,7 +1983,7 @@ public partial class limitless : PredictionExchange
         IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)add((this.id + " fetchOrder() could not find order "), id)) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order ") + (id))) ;
         }
         return ccxt.BaseExchange.ToPredictionOrder(order);
     }
@@ -2540,7 +2540,7 @@ public partial class limitless : PredictionExchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -2551,7 +2551,7 @@ public partial class limitless : PredictionExchange
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         object rPadded = (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object sPadded = (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        string result = (add(add("0x", rPadded), sPadded) + v);
+        string result = ((("0x" + (rPadded)) + (sPadded)) + v);
         return ((string)result).ToLower();
     }
 
@@ -2565,7 +2565,7 @@ public partial class limitless : PredictionExchange
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         object accessList = this.rlpEncodeList(new List<object>() {});
         List<object> fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
-        string payload = add("02", this.rlpEncodeList(fields));
+        string payload = ("02" + (this.rlpEncodeList(fields)));
         object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
         object rHex = this.safeString(signature, "r");
@@ -2581,7 +2581,7 @@ public partial class limitless : PredictionExchange
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(rHex));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(sHex));
-        return add("0x02", this.rlpEncodeList(signedFields));
+        return ("0x02" + (this.rlpEncodeList(signedFields)));
     }
 
     /**
@@ -2628,7 +2628,7 @@ public partial class limitless : PredictionExchange
             amountHex = (amountBase16 as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         }
         // approve(spender, amount) -> selector 0x095ea7b3
-        string approveData = add(add("0x095ea7b3", this.padHexAddress(spender)), amountHex);
+        string approveData = (("0x095ea7b3" + (this.padHexAddress(spender))) + (amountHex));
         object txHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit);
         return await this.waitForTransactionReceipt(rpcUrl, txHash);
     }
@@ -3631,7 +3631,7 @@ public partial class limitless : PredictionExchange
         {
             return null;
         }
-        string feedback = add((this.id + " "), responseBody);
+        string feedback = ((this.id + " ") + (responseBody));
         // the API returns either a string message or an array of field-validation errors
         string? message = this.safeString(response, "message");
         if ((message != null))

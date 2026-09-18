@@ -517,7 +517,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = messageHash + add(":", getValue(market, "symbol"));
+            messageHash = messageHash + (":" + (getValue(market, "symbol")));
         }
         object orders = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -551,7 +551,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = messageHash + add(":", getValue(market, "symbol"));
+            messageHash = messageHash + (":" + (getValue(market, "symbol")));
         }
         object trades = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -589,7 +589,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchBalance account must be either 'futures' or 'flex_futures'")) ;
             }
-            messageHash = messageHash + add(":", account);
+            messageHash = messageHash + (":" + (account));
         }
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, messageHash, parameters));
     }
@@ -954,7 +954,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                             { "info", info },
                         });
                         (client as WebSocketClient).resolve(orders, messageHash);
-                        (client as WebSocketClient).resolve(orders, add((messageHash + ":"), getValue(currentOrder, "symbol")));
+                        (client as WebSocketClient).resolve(orders, ((messageHash + ":") + (getValue(currentOrder, "symbol"))));
                         break;
                     }
                 }
@@ -1789,11 +1789,11 @@ public partial class krakenfutures : ccxt.krakenfutures
             messageHash = add(messageHash, "s");
         } else
         {
-            messageHash = add(messageHash, add(":", symbol));
+            messageHash = add(messageHash, (":" + (symbol)));
         }
         if (!isEqual(subChannelName, null))
         {
-            messageHash = add(messageHash, add("#", subChannelName));
+            messageHash = add(messageHash, ("#" + (subChannelName)));
         }
         return messageHash;
     }

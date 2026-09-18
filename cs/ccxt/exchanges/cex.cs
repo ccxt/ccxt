@@ -2078,13 +2078,13 @@ public partial class cex : Exchange
                 response = this.parseJson(fixedVar);
             } else
             {
-                throw new NullResponse ((string)add((this.id + " returned unparsed response: "), body)) ;
+                throw new NullResponse ((string)((this.id + " returned unparsed response: ") + (body))) ;
             }
         }
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError ((string)feedback) ;

@@ -1524,7 +1524,7 @@ public partial class onetrading : Exchange
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "trigger_price", "stopPrice"});
         } else if ((uppercaseType == "STOP"))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a triggerPrice param for "), type) + " orders")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice param for ") + (type)) + " orders")) ;
         }
         if (priceIsRequired)
         {
@@ -2034,7 +2034,7 @@ public partial class onetrading : Exchange
             this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
-                { "Authorization", add("Bearer ", this.apiKey) },
+                { "Authorization", ("Bearer " + (this.apiKey)) },
             };
             if (isEqual(method, "POST"))
             {
@@ -2070,7 +2070,7 @@ public partial class onetrading : Exchange
         string? message = this.safeString(response, "error");
         if ((message != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;

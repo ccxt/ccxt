@@ -2602,7 +2602,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(getValue(market, "spot"), true))
         {
-            throw new NotSupported ((string)(add((this.id + " editOrder() does not support "), getValue(market, "type")) + " orders, only spot orders are accepted")) ;
+            throw new NotSupported ((string)(((this.id + " editOrder() does not support ") + (getValue(market, "type"))) + " orders, only spot orders are accepted")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "txid", id },
@@ -2727,7 +2727,7 @@ public partial class kraken : Exchange
         object result = this.safeValue(response, "result", new List<object>() {});
         if (!(inOp(result, id)))
         {
-            throw new OrderNotFound ((string)add((this.id + " fetchOrder() could not find order id "), id)) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + (id))) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "id", id },         }, getValue(result, id))));
     }
@@ -2984,7 +2984,7 @@ public partial class kraken : Exchange
             {
                 if (getIndexOf(this.last_http_response, "EOrder:Unknown order") >= 0)
                 {
-                    throw new OrderNotFound ((string)add((this.id + " cancelOrder() error "), this.last_http_response)) ;
+                    throw new OrderNotFound ((string)((this.id + " cancelOrder() error ") + (this.last_http_response))) ;
                 }
             }
             throw e;
@@ -3771,7 +3771,7 @@ public partial class kraken : Exchange
         object firstResult = this.safeValue(result, 0, new Dictionary<string, object>() {});
         if ((firstResult == null))
         {
-            throw new InvalidAddress ((string)add((this.id + " privatePostDepositAddresses() returned no addresses for "), codeVar)) ;
+            throw new InvalidAddress ((string)((this.id + " privatePostDepositAddresses() returned no addresses for ") + (codeVar))) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(firstResult, currency));
     }
@@ -4072,7 +4072,7 @@ public partial class kraken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add((add((add("/", this.version) + "/"), api) + "/"), path);
+        object url = ((((("/" + (this.version)) + "/") + (api)) + "/") + (path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -4104,7 +4104,7 @@ public partial class kraken : Exchange
                     { "nonce", nonce },
                 }, parameters));
             }
-            string? auth = this.encode(add(nonce, body));
+            string? auth = this.encode((nonce + (body)));
             object hash = this.hash(auth, sha256, "binary");
             string? binary = this.encode(url);
             object binhash = this.binaryConcat(binary, hash);
@@ -4123,7 +4123,7 @@ public partial class kraken : Exchange
             }
         } else
         {
-            url = add("/", path);
+            url = ("/" + (path));
         }
         url = add(getValue(getValue(this.urls, "api"), api), url);
         return new Dictionary<string, object>() {
@@ -4143,7 +4143,7 @@ public partial class kraken : Exchange
     {
         if (isEqual(code, 520))
         {
-            throw new ExchangeNotAvailable ((string)add((((this.id + " ") + ((object)code).ToString()) + " "), reason)) ;
+            throw new ExchangeNotAvailable ((string)((((this.id + " ") + ((object)code).ToString()) + " ") + (reason))) ;
         }
         if (isEqual(response, null))
         {
@@ -4153,7 +4153,7 @@ public partial class kraken : Exchange
         {
             if (!(response is string))
             {
-                string message = add((this.id + " "), body);
+                string message = ((this.id + " ") + (body));
                 if (inOp(response, "error"))
                 {
                     int numErrors = getArrayLength(getValue(response, "error"));

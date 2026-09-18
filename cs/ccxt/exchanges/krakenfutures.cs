@@ -1504,7 +1504,7 @@ public partial class krakenfutures : Exchange
         string? limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
         if (isLimitOrder && (isEqual(price, null)) && ((limitPriceParam == null)))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " createOrder () requires a price argument for "), type) + " orders")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
         }
         bool isMarketOrder = (isEqual(type, "mkt"));
         if ((!isEqual(price, null)) && !isMarketOrder)
@@ -2000,7 +2000,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)add((this.id + " fetchOrder could not find order id "), id)) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder could not find order id ") + (id))) ;
         }
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2197,7 +2197,7 @@ public partial class krakenfutures : Exchange
         };
         if ((inOp(errors, status)) && !this.inArray(status, omit))
         {
-            throwDynamicException(getValue(errors, status), add((add((this.id + ": "), method) + " failed due to "), status));
+            throwDynamicException(getValue(errors, status), ((((this.id + ": ") + (method)) + " failed due to ") + (status)));
         }
     }
 
@@ -3236,7 +3236,7 @@ public partial class krakenfutures : Exchange
         {
             type = ((bool) ((type == null))) ? "" : type;
             symbol = ((bool) ((symbol == null))) ? "" : symbol;
-            throw new BadRequest ((string)add((this.id + " fetchBalance has no account for "), type)) ;
+            throw new BadRequest ((string)((this.id + " fetchBalance has no account for ") + (type))) ;
         }
         object balance = this.parseBalance(account);
         ((IDictionary<string,object>)balance)["info"] = response;
@@ -3889,7 +3889,7 @@ public partial class krakenfutures : Exchange
         {
             if (!isEqual(this.parseAccount(fromAccount), "cash"))
             {
-                throw new BadRequest ((string)add((add((this.id + " transfer cannot transfer from "), fromAccount) + " to "), toAccount)) ;
+                throw new BadRequest ((string)((((this.id + " transfer cannot transfer from ") + (fromAccount)) + " to ") + (toAccount))) ;
             }
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             response = await this.privatePostWithdrawal(this.extend(request, parameters));
@@ -4042,7 +4042,7 @@ public partial class krakenfutures : Exchange
         }
         if (isEqual(code, 429))
         {
-            throw new DDoSProtection ((string)add((this.id + " "), body)) ;
+            throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
         }
         object errors = this.safeValue(response, "errors");
         object firstError = this.safeValue(errors, 0);
@@ -4052,7 +4052,7 @@ public partial class krakenfutures : Exchange
         {
             return null;
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         if (isEqual(code, 400))

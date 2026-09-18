@@ -406,7 +406,7 @@ public partial class poloniex : ccxt.poloniex
         string? channel = this.safeString(timeframes, timeframeVar, timeframeVar);
         if ((channel == null))
         {
-            throw new BadRequest ((string)add((this.id + " watchOHLCV cannot take a timeframe of "), timeframeVar)) ;
+            throw new BadRequest ((string)((this.id + " watchOHLCV cannot take a timeframe of ") + (timeframeVar))) ;
         }
         object ohlcv = await this.subscribe(channel, channel, false, new List<object>() {symbol}, parameters);
         if (isTrue(this.newUpdates))
@@ -515,7 +515,7 @@ public partial class poloniex : ccxt.poloniex
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add((name + "::"), getValue(symbols, i)));
+                ((IList<object>)messageHashes).Add(((name + "::") + (getValue(symbols, i))));
             }
         }
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
@@ -745,7 +745,7 @@ public partial class poloniex : ccxt.poloniex
                 Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(item));
                 object symbol = getValue(trade, "symbol");
                 string type = "trades";
-                string messageHash = add((type + "::"), symbol);
+                string messageHash = ((type + "::") + (symbol));
                 object tradesArray = ((bool) ((symbol == null))) ? null : this.safeValue(this.trades, symbol);
                 if ((tradesArray == null))
                 {
@@ -1359,7 +1359,7 @@ public partial class poloniex : ccxt.poloniex
         object trades = this.myTrades;
         callDynamically(trades, "append", new object[] {parsedTrade});
         (client as WebSocketClient).resolve(trades, messageHash);
-        string symbolMessageHash = add((messageHash + ":"), symbol);
+        string symbolMessageHash = ((messageHash + ":") + (symbol));
         (client as WebSocketClient).resolve(trades, symbolMessageHash);
     }
 

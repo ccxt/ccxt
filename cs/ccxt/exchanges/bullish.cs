@@ -1511,7 +1511,7 @@ public partial class bullish : Exchange
         parameters = ((IList<object>)maxRetriesparametersVariable)[1];
         if ((!isEqual(method, "fetchOHLCV")) && (!isEqual(method, "fetchFundingRateHistory")) && (!isEqual(method, "fetchTrades")))
         {
-            throw new NotSupported ((string)(add((this.id + " safeDeterministicCall() does not support the "), method) + " method")) ;
+            throw new NotSupported ((string)(((this.id + " safeDeterministicCall() does not support the ") + (method)) + " method")) ;
         }
         object errors = 0;
         parameters = this.omit(parameters, "until");
@@ -1804,7 +1804,7 @@ public partial class bullish : Exchange
         Int64 allowedSince = (now - ninetyDays);
         if ((!isEqual(since, null)) && (isLessThan(since, allowedSince)))
         {
-            throw new BadRequest ((string)(add((this.id + " "), method) + "() only allows fetching entries up to 90 days in the past")) ;
+            throw new BadRequest ((string)(((this.id + " ") + (method)) + "() only allows fetching entries up to 90 days in the past")) ;
         }
         parameters = this.omit(parameters, "paginate");
         parameters = this.extend(parameters, new Dictionary<string, object>() {
@@ -3366,7 +3366,7 @@ public partial class bullish : Exchange
             string timestamp = ((object)this.getTimestamp()).ToString();
             if (isEqual(method, "GET"))
             {
-                string payload = add((add((timestamp + nonce), method) + "/trading-api/"), path);
+                string payload = ((((timestamp + nonce) + (method)) + "/trading-api/") + (path));
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
@@ -3376,7 +3376,7 @@ public partial class bullish : Exchange
             } else if (isEqual(method, "POST"))
             {
                 body = this.json(parameters);
-                string payload = add(add((add((timestamp + nonce), method) + "/trading-api/"), path), body);
+                string payload = (((((timestamp + nonce) + (method)) + "/trading-api/") + (path)) + (body));
                 object digest = this.hash(this.encode(payload), sha256, "hex");
                 string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
@@ -3404,7 +3404,7 @@ public partial class bullish : Exchange
                     throw new AuthenticationError ((string)(this.id + " requires a token, please call signIn() first")) ;
                 }
                 headers = ((bool) (isEqual(headers, null))) ? new Dictionary<string, object>() {} : headers;
-                ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
+                ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + (token));
             }
         }
         if (isEqual(method, "GET"))
@@ -3497,7 +3497,7 @@ public partial class bullish : Exchange
             {
                 message = ((string)type);
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);

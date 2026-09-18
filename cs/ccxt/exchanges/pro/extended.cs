@@ -64,7 +64,7 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("orderbook:", symbolVar);
+        string messageHash = ("orderbook:" + (symbolVar));
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbooks/"), getValue(market, "id"));
         if (((string)query).Length > 0)
@@ -206,7 +206,7 @@ public partial class extended : ccxt.extended
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         object orders = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -327,7 +327,7 @@ public partial class extended : ccxt.extended
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         object trades = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -392,7 +392,7 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string messageHash = add("myTrades:", getValue(keys, i));
+            string messageHash = ("myTrades:" + (getValue(keys, i)));
             (client as WebSocketClient).resolve(stored, messageHash);
         }
         (client as WebSocketClient).resolve(stored, "myTrades");
@@ -564,7 +564,7 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string messageHash = add("orders:", getValue(keys, i));
+            string messageHash = ("orders:" + (getValue(keys, i)));
             (client as WebSocketClient).resolve(orders, messageHash);
         }
         (client as WebSocketClient).resolve(orders, "orders");
@@ -598,7 +598,7 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("fundingRate:", symbolVar);
+        string messageHash = ("fundingRate:" + (symbolVar));
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/funding/"), getValue(market, "id"));
         if (((string)query).Length > 0)
@@ -676,7 +676,7 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("markPrice:", symbolVar);
+        string messageHash = ("markPrice:" + (symbolVar));
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/prices/mark/"), getValue(market, "id"));
         if (((string)query).Length > 0)
@@ -743,7 +743,7 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + (symbolVar));
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/publicTrades/"), getValue(market, "id"));
         if (((string)query).Length > 0)
@@ -858,7 +858,7 @@ public partial class extended : ccxt.extended
         }
         parameters = this.omit(parameters, new List<object>() {"candleType", "price"});
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((add((add("ohlcv:", symbolVar) + ":"), timeframeVar) + ":") + candleType);
+        string messageHash = ((((("ohlcv:" + (symbolVar)) + ":") + (timeframeVar)) + ":") + candleType);
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, parameters));

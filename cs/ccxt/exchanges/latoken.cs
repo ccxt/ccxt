@@ -2065,7 +2065,7 @@ public partial class latoken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = ((add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        string request = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
         string urlencodedQuery = this.urlencode(query);
@@ -2114,7 +2114,7 @@ public partial class latoken : Exchange
         // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         string? message = this.safeString(response, "message");
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         if ((message != null))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

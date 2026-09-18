@@ -54,7 +54,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", getValue(market, "symbol"));
+        string messageHash = ("trade:" + (getValue(market, "symbol")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_trades" },
@@ -86,7 +86,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", getValue(market, "symbol"));
+        string messageHash = ("trade:" + (getValue(market, "symbol")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_trades" },
@@ -191,7 +191,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = ("orderbook:" + (getValue(market, "symbol")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_orderbook" },
@@ -219,7 +219,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = ("orderbook:" + (getValue(market, "symbol")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_orderbook" },
@@ -311,7 +311,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ohlcv:", getValue(market, "symbol"));
+        string messageHash = ("ohlcv:" + (getValue(market, "symbol")));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -348,7 +348,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ohlcv:", getValue(market, "symbol"));
+        string messageHash = ("ohlcv:" + (getValue(market, "symbol")));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },

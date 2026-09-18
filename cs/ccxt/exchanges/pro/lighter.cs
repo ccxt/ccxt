@@ -64,14 +64,14 @@ public partial class lighter : ccxt.lighter
         object hash = unifiedChannel;
         if (!isEqual(symbol, null))
         {
-            hash = add(hash, add("::", symbol));
+            hash = add(hash, ("::" + (symbol)));
         } else
         {
             hash = add(hash, "s"); // tickers, orderbooks, ohlcvs ...
         }
         if (!isEqual(extra, null))
         {
-            hash = add(hash, add("::", extra));
+            hash = add(hash, ("::" + (extra)));
         }
         return hash;
     }
@@ -227,7 +227,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "channel", add("order_book/", getValue(market, "id")) },
+            { "channel", ("order_book/" + (getValue(market, "id"))) },
         };
         string? messageHash = ((string)this.getMessageHash("orderbook", symbolVar));
         object orderbook = await this.subscribePublic(messageHash, this.extend(request, parameters));
@@ -253,7 +253,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> market = this.market(symbol);
         symbol = getValue(market, "symbol");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "channel", add("order_book/", getValue(market, "id")) },
+            { "channel", ("order_book/" + (getValue(market, "id"))) },
         };
         string? subMessageHash = ((string)this.getMessageHash("orderbook", symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
@@ -359,7 +359,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "channel", add("market_stats/", getValue(market, "id")) },
+            { "channel", ("market_stats/" + (getValue(market, "id"))) },
         };
         string? messageHash = ((string)this.getMessageHash("ticker", symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.subscribePublic(messageHash, this.extend(request, parameters)));
@@ -384,7 +384,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> market = this.market(symbol);
         symbol = getValue(market, "symbol");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "channel", add("market_stats/", getValue(market, "id")) },
+            { "channel", ("market_stats/" + (getValue(market, "id"))) },
         };
         string? subMessageHash = ((string)this.getMessageHash("ticker", symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
@@ -664,7 +664,7 @@ public partial class lighter : ccxt.lighter
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "channel", add("trade/", getValue(market, "id")) },
+            { "channel", ("trade/" + (getValue(market, "id"))) },
         };
         string? messageHash = ((string)this.getMessageHash("trade", getValue(market, "symbol")));
         object trades = await this.subscribePublic(messageHash, this.extend(request, parameters));
@@ -689,7 +689,7 @@ public partial class lighter : ccxt.lighter
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "channel", add("trade/", getValue(market, "id")) },
+            { "channel", ("trade/" + (getValue(market, "id"))) },
         };
         string? subMessageHash = ((string)this.getMessageHash("trade", getValue(market, "symbol")));
         string messageHash = ("unsubscribe:" + subMessageHash);
@@ -1074,7 +1074,7 @@ public partial class lighter : ccxt.lighter
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "channel", add("trade/", getValue(market, "id")) },
+            { "channel", ("trade/" + (getValue(market, "id"))) },
         };
         string? messageHash = ((string)this.getMessageHash("liquidations", symbol));
         return ccxt.BaseExchange.ToLiquidationList(await this.subscribePublic(messageHash, this.extend(request, parameters)));
@@ -1245,7 +1245,7 @@ public partial class lighter : ccxt.lighter
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHash = this.getMessageHash("orders", getValue(market, "symbol"));
-            ((IDictionary<string,object>)request)["channel"] = ((add("account_orders/", getValue(market, "id")) + "/") + this.numberToString(accountIndex));
+            ((IDictionary<string,object>)request)["channel"] = ((("account_orders/" + (getValue(market, "id"))) + "/") + this.numberToString(accountIndex));
         } else
         {
             messageHash = this.getMessageHash("orders");
@@ -1285,13 +1285,13 @@ public partial class lighter : ccxt.lighter
         {
             Dictionary<string, object> market = this.market(symbol);
             subMessageHash = this.getMessageHash("orders", getValue(market, "symbol"));
-            ((IDictionary<string,object>)request)["channel"] = ((add("account_orders/", getValue(market, "id")) + "/") + this.numberToString(accountIndex));
+            ((IDictionary<string,object>)request)["channel"] = ((("account_orders/" + (getValue(market, "id"))) + "/") + this.numberToString(accountIndex));
         } else
         {
             subMessageHash = this.getMessageHash("orders");
             ((IDictionary<string,object>)request)["channel"] = ("account_all_orders/" + this.numberToString(accountIndex));
         }
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string messageHash = ("unsubscribe:" + (subMessageHash));
         return await this.unsubscribe(messageHash, this.extend(request, parameters));
     }
 
@@ -1703,7 +1703,7 @@ public partial class lighter : ccxt.lighter
                     }
                 }
             }
-            string allMessageHash = add("unsubscribe:", this.getMessageHash("ticker"));
+            string allMessageHash = ("unsubscribe:" + (this.getMessageHash("ticker")));
             if (inOp(((WebSocketClient)client).subscriptions, allMessageHash))
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)allMessageHash);
@@ -1740,7 +1740,7 @@ public partial class lighter : ccxt.lighter
     public virtual void handleMyTradesUnSubscription(WebSocketClient client)
     {
         // one account-wide channel feeds the plural hash and every per-symbol hash
-        string messageHash = add("unsubscribe:", this.getMessageHash("myTrades"));
+        string messageHash = ("unsubscribe:" + (this.getMessageHash("myTrades")));
         this.cleanUnsubscription(client as WebSocketClient, "myTrades", messageHash, true);
         Dictionary<string, object> myTradesStructure = new Dictionary<string, object>() {
             { "topic", "myTrades" },

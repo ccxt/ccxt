@@ -3648,7 +3648,7 @@ public partial class blofin : Exchange
         //
         string? code = this.safeString(response, "code");
         string? message = this.safeString(response, "msg");
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         if ((code != null) && (code != "0"))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
@@ -3682,7 +3682,7 @@ public partial class blofin : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = ((add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
+        object request = ((("/api/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
         // const type = this.getPathAuthenticationType (path);

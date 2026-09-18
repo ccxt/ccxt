@@ -102,7 +102,7 @@ public partial class hashkey : ccxt.hashkey
         symbolVar = getValue(market, "symbol");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string topic = ("kline_" + interval);
-        string messageHash = add((add("ohlcv:", symbolVar) + ":"), timeframeVar);
+        string messageHash = ((("ohlcv:" + (symbolVar)) + ":") + (timeframeVar));
         object ohlcv = await this.wathPublic(market, topic, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -204,7 +204,7 @@ public partial class hashkey : ccxt.hashkey
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string topic = "realtimes";
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.wathPublic(market, topic, messageHash, parameters));
     }
 
@@ -241,7 +241,7 @@ public partial class hashkey : ccxt.hashkey
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0));
         object symbol = getValue(ticker, "symbol");
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + (symbol));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
     }
@@ -270,7 +270,7 @@ public partial class hashkey : ccxt.hashkey
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string topic = "trade";
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + (symbolVar));
         object trades = await this.wathPublic(market, topic, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -350,7 +350,7 @@ public partial class hashkey : ccxt.hashkey
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string topic = "depth";
-        string messageHash = add("orderbook:", symbolVar);
+        string messageHash = ("orderbook:" + (symbolVar));
         object orderbook = await this.wathPublic(market, topic, messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -486,7 +486,7 @@ public partial class hashkey : ccxt.hashkey
         string messageHash = "orders";
         (client as WebSocketClient).resolve(orders, messageHash);
         object symbol = getValue(parsed, "symbol");
-        string symbolSpecificMessageHash = add((messageHash + ":"), symbol);
+        string symbolSpecificMessageHash = ((messageHash + ":") + (symbol));
         (client as WebSocketClient).resolve(orders, symbolSpecificMessageHash);
     }
 
@@ -568,7 +568,7 @@ public partial class hashkey : ccxt.hashkey
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         object trades = await this.watchPrivate(messageHash);
         if (isTrue(this.newUpdates))
@@ -609,7 +609,7 @@ public partial class hashkey : ccxt.hashkey
         string messageHash = "myTrades";
         (client as WebSocketClient).resolve(tradesArray, messageHash);
         object symbol = getValue(parsed, "symbol");
-        string symbolSpecificMessageHash = add((messageHash + ":"), symbol);
+        string symbolSpecificMessageHash = ((messageHash + ":") + (symbol));
         (client as WebSocketClient).resolve(tradesArray, symbolSpecificMessageHash);
     }
 
@@ -707,7 +707,7 @@ public partial class hashkey : ccxt.hashkey
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add((messageHash + ":"), symbol));
+                ((IList<object>)messageHashes).Add(((messageHash + ":") + (symbol)));
             }
         }
         object url = this.getPrivateUrl(listenKey);
@@ -752,7 +752,7 @@ public partial class hashkey : ccxt.hashkey
         string messageHash = "positions";
         (client as WebSocketClient).resolve(parsed, messageHash);
         object symbol = getValue(parsed, "symbol");
-        (client as WebSocketClient).resolve(parsed, add((messageHash + ":"), symbol));
+        (client as WebSocketClient).resolve(parsed, ((messageHash + ":") + (symbol)));
     }
 
     public virtual object parseWsPosition(object position, object market = null)
@@ -813,7 +813,7 @@ public partial class hashkey : ccxt.hashkey
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        string messageHash = add("balance:", type);
+        string messageHash = ("balance:" + (type));
         object url = this.getPrivateUrl(listenKey);
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, messageHash);
@@ -861,7 +861,7 @@ public partial class hashkey : ccxt.hashkey
         {
             var future = getValue(client.futures, messageHash);
             (future as Future).resolve();
-            (client as WebSocketClient).resolve(getValue(this.balance, type), add("balance:", type));
+            (client as WebSocketClient).resolve(getValue(this.balance, type), ("balance:" + (type)));
         }
     }
 

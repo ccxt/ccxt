@@ -220,8 +220,8 @@ public partial class backpack : ccxt.backpack
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string topic = add(("ticker" + "."), getValue(market, "id"));
-        string messageHash = add(("ticker" + ":"), symbolVar);
+        string topic = (("ticker" + ".") + (getValue(market, "id")));
+        string messageHash = (("ticker" + ":") + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {topic}, new List<object>() {messageHash}, parameters));
     }
 
@@ -263,8 +263,8 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
-            ((IList<object>)messageHashes).Add(add("ticker:", symbol));
-            ((IList<object>)topics).Add(add("ticker.", marketId));
+            ((IList<object>)messageHashes).Add(("ticker:" + (symbol)));
+            ((IList<object>)topics).Add(("ticker." + (marketId)));
         }
         await this.watchPublic(topics, messageHashes, parameters);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
@@ -293,8 +293,8 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
-            ((IList<object>)topics).Add(add("ticker.", marketId));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            ((IList<object>)topics).Add(("ticker." + (marketId)));
+            ((IList<object>)messageHashes).Add(("unsubscribe:ticker:" + (symbol)));
         }
         return await this.watchPublic(topics, messageHashes, parameters, true);
     }
@@ -398,8 +398,8 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
-            ((IList<object>)topics).Add(add("bookTicker.", marketId));
-            ((IList<object>)messageHashes).Add(add("bidask:", symbol));
+            ((IList<object>)topics).Add(("bookTicker." + (marketId)));
+            ((IList<object>)messageHashes).Add(("bidask:" + (symbol)));
         }
         await this.watchPublic(topics, messageHashes, parameters);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));
@@ -427,8 +427,8 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
-            ((IList<object>)topics).Add(add("bookTicker.", marketId));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", symbol));
+            ((IList<object>)topics).Add(("bookTicker." + (marketId)));
+            ((IList<object>)messageHashes).Add(("unsubscribe:bidask:" + (symbol)));
         }
         return await this.watchPublic(topics, messageHashes, parameters, true);
     }
@@ -567,8 +567,8 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            ((IList<object>)topics).Add(add((("kline." + interval) + "."), getValue(market, "id")));
-            ((IList<object>)messageHashes).Add(((add("candles:", getValue(market, "symbol")) + ":") + interval));
+            ((IList<object>)topics).Add(((("kline." + interval) + ".") + (getValue(market, "id"))));
+            ((IList<object>)messageHashes).Add(((("candles:" + (getValue(market, "symbol"))) + ":") + interval));
         }
         var symboltimeframecandlesVariable = await this.watchPublic(topics, messageHashes, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
@@ -612,8 +612,8 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            ((IList<object>)topics).Add(add((("kline." + interval) + "."), getValue(market, "id")));
-            ((IList<object>)messageHashes).Add(((add("unsubscribe:candles:", getValue(market, "symbol")) + ":") + interval));
+            ((IList<object>)topics).Add(((("kline." + interval) + ".") + (getValue(market, "id"))));
+            ((IList<object>)messageHashes).Add(((("unsubscribe:candles:" + (getValue(market, "symbol"))) + ":") + interval));
         }
         return await this.watchPublic(topics, messageHashes, parameters, true);
     }
@@ -747,8 +747,8 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
-            ((IList<object>)topics).Add(add("trade.", marketId));
-            ((IList<object>)messageHashes).Add(add("trades:", symbol));
+            ((IList<object>)topics).Add(("trade." + (marketId)));
+            ((IList<object>)messageHashes).Add(("trades:" + (symbol)));
         }
         object trades = await this.watchPublic(topics, messageHashes, parameters);
         if (isTrue(this.newUpdates))
@@ -789,8 +789,8 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
-            ((IList<object>)topics).Add(add("trade.", marketId));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
+            ((IList<object>)topics).Add(("trade." + (marketId)));
+            ((IList<object>)messageHashes).Add(("unsubscribe:trades:" + (symbol)));
         }
         return await this.watchPublic(topics, messageHashes, parameters, true);
     }
@@ -938,9 +938,9 @@ public partial class backpack : ccxt.backpack
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
+            ((IList<object>)messageHashes).Add(("orderbook:" + (symbol)));
             object marketId = getValue(marketIds, i);
-            string topic = add("depth.", marketId);
+            string topic = ("depth." + (marketId));
             ((IList<object>)topics).Add(topic);
         }
         object orderbook = await this.watchPublic(topics, messageHashes, parameters);
@@ -984,9 +984,9 @@ public partial class backpack : ccxt.backpack
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
+            ((IList<object>)messageHashes).Add(("unsubscribe:orderbook:" + (symbol)));
             object marketId = getValue(marketIds, i);
-            string topic = add("depth.", marketId);
+            string topic = ("depth." + (marketId));
             ((IList<object>)topics).Add(topic);
         }
         return await this.watchPublic(topics, messageHashes, parameters, true);
@@ -1132,8 +1132,8 @@ public partial class backpack : ccxt.backpack
         string messageHash = "orders";
         if ((market != null))
         {
-            topic = add("account.orderUpdate.", getValue(market, "id"));
-            messageHash = add("orders:", symbolVar);
+            topic = ("account.orderUpdate." + (getValue(market, "id")));
+            messageHash = ("orders:" + (symbolVar));
         }
         object orders = await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters);
         if (isTrue(this.newUpdates))
@@ -1169,8 +1169,8 @@ public partial class backpack : ccxt.backpack
         string messageHash = "unsubscribe:orders";
         if ((market != null))
         {
-            topic = add("account.orderUpdate.", getValue(market, "id"));
-            messageHash = add("unsubscribe:orders:", symbol);
+            topic = ("account.orderUpdate." + (getValue(market, "id")));
+            messageHash = ("unsubscribe:orders:" + (symbol));
         }
         return await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters, true);
     }
@@ -1347,8 +1347,8 @@ public partial class backpack : ccxt.backpack
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add(("positions" + ":"), symbol));
-                ((IList<object>)topics).Add(add("account.positionUpdate.", this.marketId(symbol)));
+                ((IList<object>)messageHashes).Add((("positions" + ":") + (symbol)));
+                ((IList<object>)topics).Add(("account.positionUpdate." + (this.marketId(symbol))));
             }
         } else
         {
@@ -1387,8 +1387,8 @@ public partial class backpack : ccxt.backpack
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add(("unsubscribe:positions" + ":"), symbol));
-                ((IList<object>)topics).Add(add("account.positionUpdate.", this.marketId(symbol)));
+                ((IList<object>)messageHashes).Add((("unsubscribe:positions" + ":") + (symbol)));
+                ((IList<object>)topics).Add(("account.positionUpdate." + (this.marketId(symbol))));
             }
         } else
         {
@@ -1436,7 +1436,7 @@ public partial class backpack : ccxt.backpack
         ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
         callDynamically(cache, "append", new object[] {parsedPosition});
-        string symbolSpecificMessageHash = add((messageHash + ":"), getValue(parsedPosition, "symbol"));
+        string symbolSpecificMessageHash = ((messageHash + ":") + (getValue(parsedPosition, "symbol")));
         (client as WebSocketClient).resolve(new List<object>() {parsedPosition}, messageHash);
         (client as WebSocketClient).resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);
     }

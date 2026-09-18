@@ -1851,7 +1851,7 @@ public partial class whitebit : Exchange
                 }
             }
         }
-        throw new OrderNotFound ((string)add((this.id + " fetchOrder() order not found: "), id)) ;
+        throw new OrderNotFound ((string)((this.id + " fetchOrder() order not found: ") + (id))) ;
     }
 
     /**
@@ -4897,7 +4897,7 @@ public partial class whitebit : Exchange
         {
             headers = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)headers)["User-Agent"] = add((("ccxt/" + this.id) + "-"), this.version);
+        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + (this.version));
         string pathWithParams = ("/" + this.implodeParams(path, parameters));
         object url = add(getValue(getValue(getValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (isEqual(accessibility, "public"))
@@ -4912,7 +4912,7 @@ public partial class whitebit : Exchange
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
             string? secret = this.encode(this.secret);
-            string request = (add((("/" + "api") + "/"), version) + pathWithParams);
+            string request = (((("/" + "api") + "/") + (version)) + pathWithParams);
             IList<object> nonceWindowrequestParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((IList<object>) nonceWindowrequestParamsVariable)[0];
             var requestParams = ((IList<object>) nonceWindowrequestParamsVariable)[1];
@@ -4942,7 +4942,7 @@ public partial class whitebit : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)add((add((((this.id + " ") + ((object)code).ToString()) + " "), reason) + " "), body)) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + (reason)) + " ") + (body))) ;
         }
         if (isEqual(code, 404))
         {
@@ -4962,7 +4962,7 @@ public partial class whitebit : Exchange
             bool hasErrorStatus = (status != null) && (status != "200") && (errors != null);
             if (hasErrorStatus || !isEqual(codeNew, null))
             {
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 object errorInfo = message;
                 if (hasErrorStatus)
                 {
@@ -4999,7 +4999,7 @@ public partial class whitebit : Exchange
                     int errorMessageLength = errorMessageArray.Count;
                     errorInfo = ((bool) (errorMessageLength > 0)) ? getValue(errorMessageArray, 0) : body;
                 }
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 throw new ExchangeError ((string)feedback) ;

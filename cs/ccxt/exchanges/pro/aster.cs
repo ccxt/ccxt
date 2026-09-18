@@ -191,7 +191,7 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add((this.safeStringLower(market, "id") + "@ticker"));
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("ticker:" + (getValue(market, "symbol"))));
         }
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -251,7 +251,7 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add((this.safeStringLower(market, "id") + "@ticker"));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("unsubscribe:ticker:" + (getValue(market, "symbol"))));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -348,7 +348,7 @@ public partial class aster : ccxt.aster
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((bool) ((use1sFreq == true))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@markPrice") + suffix));
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("ticker:" + (getValue(market, "symbol"))));
         }
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -409,7 +409,7 @@ public partial class aster : ccxt.aster
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((bool) ((use1sFreq == true))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@markPrice") + suffix));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("unsubscribe:ticker:" + (getValue(market, "symbol"))));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -452,7 +452,7 @@ public partial class aster : ccxt.aster
         object ticker = message;
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(ticker, marketType));
         object symbol = getValue(parsed, "symbol");
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + (symbol));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
@@ -545,7 +545,7 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add((this.safeStringLower(market, "id") + "@bookTicker"));
-            ((IList<object>)messageHashes).Add(add("bidask:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("bidask:" + (getValue(market, "symbol"))));
         }
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -600,7 +600,7 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add((this.safeStringLower(market, "id") + "@bookTicker"));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("unsubscribe:bidask:" + (getValue(market, "symbol"))));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -630,7 +630,7 @@ public partial class aster : ccxt.aster
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         }
-        string messageHash = add("bidask:", symbol);
+        string messageHash = ("bidask:" + (symbol));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -736,7 +736,7 @@ public partial class aster : ccxt.aster
             Dictionary<string, object> market = this.market(symbol);
             object marketId = this.safeStringLower(market, "id");
             ((IList<object>)subscriptionArgs).Add(add(marketId, "@aggTrade"));
-            ((IList<object>)messageHashes).Add(add("trade::", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("trade::" + (getValue(market, "symbol"))));
         }
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -790,7 +790,7 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add((this.safeStringLower(market, "id") + "@aggTrade"));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("unsubscribe:trade:" + (getValue(market, "symbol"))));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -828,7 +828,7 @@ public partial class aster : ccxt.aster
         }
         object stored = getValue(this.trades, symbol);
         callDynamically(stored, "append", new object[] {parsed});
-        (client as WebSocketClient).resolve(stored, add("trade::", symbol));
+        (client as WebSocketClient).resolve(stored, ("trade::" + (symbol)));
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -1078,7 +1078,7 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@depth") + ((object)limitVar).ToString()));
-            ((IList<object>)messageHashes).Add(add("orderbook:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("orderbook:" + (getValue(market, "symbol"))));
         }
         object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -1134,8 +1134,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add((this.safeStringLower(market, "id") + "@depth"), limit));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", getValue(market, "symbol")));
+            ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@depth") + (limit)));
+            ((IList<object>)messageHashes).Add(("unsubscribe:orderbook:" + (getValue(market, "symbol"))));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -1285,7 +1285,7 @@ public partial class aster : ccxt.aster
             string? unfiedTimeframe = this.safeString(data, 1);
             string? timeframeId = ((bool) ((unfiedTimeframe == null))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));
-            ((IList<object>)messageHashes).Add(((add("ohlcv:", getValue(market, "symbol")) + ":") + unfiedTimeframe));
+            ((IList<object>)messageHashes).Add(((("ohlcv:" + (getValue(market, "symbol"))) + ":") + unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -1350,7 +1350,7 @@ public partial class aster : ccxt.aster
             string? unfiedTimeframe = this.safeString(data, 1);
             string? timeframeId = ((bool) ((unfiedTimeframe == null))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));
-            ((IList<object>)messageHashes).Add(((add("unsubscribe:ohlcv:", getValue(market, "symbol")) + ":") + unfiedTimeframe));
+            ((IList<object>)messageHashes).Add(((("unsubscribe:ohlcv:" + (getValue(market, "symbol"))) + ":") + unfiedTimeframe));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -1438,7 +1438,7 @@ public partial class aster : ccxt.aster
             // client.future () is the atomic check-and-insert and
             // client.resolve () / ((WebSocketClient)client).reject () settle and remove the entry
             // under the same lock in every port
-            string messageHash = add("authenticate:", type);
+            string messageHash = ("authenticate:" + (type));
             var client = this.client("authenticationFlights");
             if (inOp(client.futures, messageHash))
             {
@@ -1729,7 +1729,7 @@ public partial class aster : ccxt.aster
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add((messageHash + "::"), symbol));
+                ((IList<object>)messageHashes).Add(((messageHash + "::") + (symbol)));
             }
         }
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1851,7 +1851,7 @@ public partial class aster : ccxt.aster
             {
                 object position = getValue(newPositions, i);
                 object symbol = getValue(position, "symbol");
-                string symbolMessageHash = add((messageHash + "::"), symbol);
+                string symbolMessageHash = ((messageHash + "::") + (symbol));
                 (client as WebSocketClient).resolve(position, symbolMessageHash);
             }
             (client as WebSocketClient).resolve(newPositions, "positions");
@@ -1954,7 +1954,7 @@ public partial class aster : ccxt.aster
         await this.authenticate(type, parameters);
         if ((market != null))
         {
-            messageHash = messageHash + add("::", symbolVar);
+            messageHash = messageHash + ("::" + (symbolVar));
         }
         object url = this.getPrivateUrl(type);
         var client = this.client(url);
@@ -2003,7 +2003,7 @@ public partial class aster : ccxt.aster
         await this.authenticate(type, parameters);
         if ((market != null))
         {
-            messageHash = messageHash + add("::", symbolVar);
+            messageHash = messageHash + ("::" + (symbolVar));
         }
         object url = this.getPrivateUrl(type);
         var client = this.client(url);
@@ -2204,7 +2204,7 @@ public partial class aster : ccxt.aster
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
-            string symbolMessageHash = add((messageHash + "::"), symbol);
+            string symbolMessageHash = ((messageHash + "::") + (symbol));
             (client as WebSocketClient).resolve(cache, symbolMessageHash);
             (client as WebSocketClient).resolve(cache, messageHash);
         }

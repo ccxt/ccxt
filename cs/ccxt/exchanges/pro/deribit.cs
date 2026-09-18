@@ -91,7 +91,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < currencies.Count; postFixIncrement(ref i))
         {
             object currencyCode = getValue(currencies, i);
-            ((IList<object>)channels).Add(add("user.portfolio.", currencyCode));
+            ((IList<object>)channels).Add(("user.portfolio." + (currencyCode)));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -193,12 +193,12 @@ public partial class deribit : ccxt.deribit
         {
             await this.authenticate();
         }
-        string channel = ((add("ticker.", getValue(market, "id")) + ".") + interval);
+        string channel = ((("ticker." + (getValue(market, "id"))) + ".") + interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "public/subscribe" },
             { "params", new Dictionary<string, object>() {
-                { "channels", new List<object>() {((add("ticker.", getValue(market, "id")) + ".") + interval)} },
+                { "channels", new List<object>() {((("ticker." + (getValue(market, "id"))) + ".") + interval)} },
             } },
             { "id", this.requestId() },
         };
@@ -239,7 +239,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(((add("ticker.", getValue(market, "id")) + ".") + interval));
+            ((IList<object>)channels).Add(((("ticker." + (getValue(market, "id"))) + ".") + interval));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -323,7 +323,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(add("quote.", getValue(market, "id")));
+            ((IList<object>)channels).Add(("quote." + (getValue(market, "id"))));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -729,7 +729,7 @@ public partial class deribit : ccxt.deribit
         ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)storedOrderBook)["symbol"] = symbol;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = storedOrderBook;
-        string messageHash = add((("book|" + symbol) + "|"), descriptor);
+        string messageHash = ((("book|" + symbol) + "|") + (descriptor));
         (client as WebSocketClient).resolve(storedOrderBook, messageHash);
     }
 

@@ -873,7 +873,7 @@ public partial class cryptomus : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a price parameter for a "), type) + " order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price parameter for a ") + (type)) + " order")) ;
             }
             ((IDictionary<string,object>)request)["quantity"] = amountToString;
             ((IDictionary<string,object>)request)["price"] = price;
@@ -1353,7 +1353,7 @@ public partial class cryptomus : Exchange
         if (inOp(response, "code"))
         {
             string? code = this.safeString(response, "code");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             throw new ExchangeError ((string)feedback) ;
         } else if (inOp(response, "message"))
@@ -1362,7 +1362,7 @@ public partial class cryptomus : Exchange
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
             string? message = this.safeString(response, "message");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;

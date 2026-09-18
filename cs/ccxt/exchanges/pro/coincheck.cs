@@ -62,7 +62,7 @@ public partial class coincheck : ccxt.coincheck
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = ("orderbook:" + (getValue(market, "symbol")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -135,7 +135,7 @@ public partial class coincheck : ccxt.coincheck
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("trade:", getValue(market, "symbol"));
+        string messageHash = ("trade:" + (getValue(market, "symbol")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },

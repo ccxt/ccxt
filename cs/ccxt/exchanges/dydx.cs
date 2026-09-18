@@ -999,7 +999,7 @@ public partial class dydx : Exchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)

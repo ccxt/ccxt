@@ -70,7 +70,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            messageHash = add(messageHash, add(":", getValue(market, "id")));
+            messageHash = add(messageHash, (":" + (getValue(market, "id"))));
             ((IList<object>)productIds).Add(getValue(market, "id"));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -400,7 +400,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         for (int i = 0; i < symbolsLength; postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            ((IList<object>)messageHashes).Add(add((name + ":"), marketId));
+            ((IList<object>)messageHashes).Add(((name + ":") + (marketId)));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -440,7 +440,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = ((name + ":") + (getValue(market, "id")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -904,7 +904,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
-            string messageHash = add("ticker:", symbol);
+            string messageHash = ("ticker:" + (symbol));
             string idMessageHash = ("ticker:" + marketId);
             (client as WebSocketClient).resolve(ticker, messageHash);
             (client as WebSocketClient).resolve(ticker, idMessageHash);

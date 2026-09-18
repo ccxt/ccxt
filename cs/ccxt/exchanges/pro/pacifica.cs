@@ -465,7 +465,7 @@ public partial class pacifica : ccxt.pacifica
         IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + (symbol));
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
@@ -504,7 +504,7 @@ public partial class pacifica : ccxt.pacifica
         IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
-        string subMessageHash = add("orderbook:", symbol);
+        string subMessageHash = ("orderbook:" + (symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -695,7 +695,7 @@ public partial class pacifica : ccxt.pacifica
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -853,7 +853,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string currentMessageHash = add("myTrades:", getValue(keys, i));
+            string currentMessageHash = ("myTrades:" + (getValue(keys, i)));
             (client as WebSocketClient).resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -883,7 +883,7 @@ public partial class pacifica : ccxt.pacifica
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("trade:", symbolVar);
+        string messageHash = ("trade:" + (symbolVar));
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
@@ -921,7 +921,7 @@ public partial class pacifica : ccxt.pacifica
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        string subMessageHash = add("trade:", symbol);
+        string subMessageHash = ("trade:" + (symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -1105,7 +1105,7 @@ public partial class pacifica : ccxt.pacifica
                 { "interval", parsedTf },
             } },
         };
-        string messageHash = add((("candles:" + parsedTf) + ":"), symbolVar);
+        string messageHash = ((("candles:" + parsedTf) + ":") + (symbolVar));
         Dictionary<string, object> message = this.extend(request, parameters);
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
@@ -1147,7 +1147,7 @@ public partial class pacifica : ccxt.pacifica
                 { "interval", timeframeVar },
             } },
         };
-        string subMessageHash = add((add("candles:", timeframeVar) + ":"), symbol);
+        string subMessageHash = ((("candles:" + (timeframeVar)) + ":") + (symbol));
         string messagehash = ("unsubscribe:" + subMessageHash);
         Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messagehash, message, messagehash);

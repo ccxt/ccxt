@@ -55,7 +55,7 @@ public partial class ndax : ccxt.ndax
         }
         Dictionary<string, object> market = this.market(symbol);
         string name = "SubscribeLevel1";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = ((name + ":") + (getValue(market, "id")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -108,7 +108,7 @@ public partial class ndax : ccxt.ndax
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
         string name = "SubscribeLevel1";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = ((name + ":") + (getValue(market, "id")));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -136,7 +136,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "SubscribeTrades";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = ((name + ":") + (getValue(market, "id")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -208,7 +208,7 @@ public partial class ndax : ccxt.ndax
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add((name + ":"), getValue(market, "id"));
+            string messageHash = ((name + ":") + (getValue(market, "id")));
             object tradesArray = this.safeValue(this.trades, symbol);
             (client as WebSocketClient).resolve(tradesArray, messageHash);
         }
@@ -241,7 +241,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "SubscribeTicker";
-        string messageHash = add((add((name + ":"), timeframeVar) + ":"), getValue(market, "id"));
+        string messageHash = ((((name + ":") + (timeframeVar)) + ":") + (getValue(market, "id")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -405,7 +405,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "SubscribeLevel2";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = ((name + ":") + (getValue(market, "id")));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar;

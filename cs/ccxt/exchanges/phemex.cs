@@ -3139,7 +3139,7 @@ public partial class phemex : Exchange
                         cost = this.parseNumber(quoteAmount);
                     } else if (isEqual(cost, null))
                     {
-                        throw new ArgumentsRequired ((string)(add((this.id + " createOrder() "), qtyType) + " requires a price argument or a cost parameter")) ;
+                        throw new ArgumentsRequired ((string)(((this.id + " createOrder() ") + (qtyType)) + " requires a price argument or a cost parameter")) ;
                     }
                 }
                 cost = ((bool) (isEqual(cost, null))) ? amount : cost;
@@ -3641,10 +3641,10 @@ public partial class phemex : Exchange
             {
                 if ((clientOrderId != null))
                 {
-                    throw new OrderNotFound ((string)(((add((this.id + " fetchOrder() "), symbol) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
                 } else
                 {
-                    throw new OrderNotFound ((string)(add((add((this.id + " fetchOrder() "), symbol) + " order with id "), id) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with id ") + (id)) + " not found")) ;
                 }
             }
             order = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -3656,10 +3656,10 @@ public partial class phemex : Exchange
             {
                 if ((clientOrderId != null))
                 {
-                    throw new OrderNotFound ((string)(((add((this.id + " fetchOrder() "), symbol) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
                 } else
                 {
-                    throw new OrderNotFound ((string)(add((add((this.id + " fetchOrder() "), symbol) + " order with id "), id) + " not found")) ;
+                    throw new OrderNotFound ((string)(((((this.id + " fetchOrder() ") + (symbol)) + " order with id ") + (id)) + " not found")) ;
                 }
             }
             order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
@@ -5695,10 +5695,10 @@ public partial class phemex : Exchange
         string? customSymbol = null;
         if (isUsdtSettled)
         {
-            customSymbol = (add(".", getValue(market, "id")) + "FR8H"); // phemex requires a custom symbol for funding rate history
+            customSymbol = (("." + (getValue(market, "id"))) + "FR8H"); // phemex requires a custom symbol for funding rate history
         } else
         {
-            customSymbol = (add(".", getValue(market, "baseId")) + "FR8H");
+            customSymbol = (("." + (getValue(market, "baseId"))) + "FR8H");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", customSymbol },
@@ -6406,7 +6406,7 @@ public partial class phemex : Exchange
         string? message = this.safeString(error, "msg");
         if (((errorCode != null)) && ((errorCode != "0")))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;

@@ -847,7 +847,7 @@ public partial class zaif : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         if (isEqual(code, "JPY"))
         {
-            throw new ExchangeError ((string)(add((this.id + " withdraw() does not allow "), code) + " withdrawals")) ;
+            throw new ExchangeError ((string)(((this.id + " withdraw() does not allow ") + (code)) + " withdrawals")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -943,10 +943,10 @@ public partial class zaif : Exchange
         object url = add(getValue(getValue(this.urls, "api"), "rest"), "/");
         if (isEqual(api, "public"))
         {
-            url = add(url, ((add("api/", this.version) + "/") + this.implodeParams(path, parameters)));
+            url = add(url, ((("api/" + (this.version)) + "/") + this.implodeParams(path, parameters)));
         } else if (isEqual(api, "fapi"))
         {
-            url = add(url, ((add("fapi/", this.version) + "/") + this.implodeParams(path, parameters)));
+            url = add(url, ((("fapi/" + (this.version)) + "/") + this.implodeParams(path, parameters)));
         } else
         {
             this.checkRequiredCredentials();
@@ -988,7 +988,7 @@ public partial class zaif : Exchange
         //
         //     {"error": "unsupported currency_pair"}
         //
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         string? error = this.safeString(response, "error");
         if ((error != null))
         {

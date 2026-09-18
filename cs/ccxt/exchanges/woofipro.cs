@@ -3446,7 +3446,7 @@ public partial class woofipro : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -3455,7 +3455,7 @@ public partial class woofipro : Exchange
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return (add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
+        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -3639,7 +3639,7 @@ public partial class woofipro : Exchange
         IDictionary<string, object> marginMode = this.safeDict(marginModes, getValue(market, "symbol"));
         if ((marginMode == null))
         {
-            throw new BadSymbol ((string)add((this.id + " fetchMarginMode() did not return a margin mode for "), getValue(market, "symbol"))) ;
+            throw new BadSymbol ((string)((this.id + " fetchMarginMode() did not return a margin mode for ") + (getValue(market, "symbol")))) ;
         }
         return ccxt.BaseExchange.ToMarginMode(marginMode);
     }
@@ -4104,14 +4104,14 @@ public partial class woofipro : Exchange
             object apiKey = this.apiKey;
             if (getIndexOf(apiKey, "ed25519:") < 0)
             {
-                apiKey = add("ed25519:", apiKey);
+                apiKey = ("ed25519:" + (apiKey));
             }
             headers = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);
+            auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
             if (isEqual(method, "POST") || isEqual(method, "PUT"))
             {
                 body = this.json(parameters);

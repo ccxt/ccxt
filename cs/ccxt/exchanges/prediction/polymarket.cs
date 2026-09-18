@@ -1649,7 +1649,7 @@ public partial class polymarket : PredictionExchange
         if (!(inOp(this.timeframes, timeframeVar)))
         {
             List<object> supportedKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
-            throw new BadRequest ((string)((add((this.id + " fetchOHLCV() unsupported timeframe "), timeframeVar) + ", supported timeframes are ") + String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
+            throw new BadRequest ((string)((((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar)) + ", supported timeframes are ") + String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
         }
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         object tokenId = getValue(outcomeObj, "outcomeId");
@@ -1822,7 +1822,7 @@ public partial class polymarket : PredictionExchange
         string? conditionId = this.safeString(outcomeInfo, "conditionId");
         if ((conditionId == null))
         {
-            throw new BadRequest ((string)add((this.id + " fetchOpenInterest() requires outcome.info.conditionId for "), outcome)) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() requires outcome.info.conditionId for ") + (outcome))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", conditionId },
@@ -1904,7 +1904,7 @@ public partial class polymarket : PredictionExchange
         string? conditionId = this.safeString(outcomeInfo, "conditionId");
         if ((conditionId == null))
         {
-            throw new BadRequest ((string)add((this.id + " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
+            throw new BadRequest ((string)((this.id + " fetchTrades() requires outcome.info.conditionId for an outcome ") + (tokenId))) ;
         }
         // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
         // to the requested token client-side below. applying the user's `limit` to this request and
@@ -2583,7 +2583,7 @@ public partial class polymarket : PredictionExchange
             {
                 builderHex = (builderHex as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
             }
-            builderBytes32 = add("0x", builderHex);
+            builderBytes32 = ("0x" + (builderHex));
         }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
@@ -2794,7 +2794,7 @@ public partial class polymarket : PredictionExchange
             object eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            string eoaSignature = (add(add("0x", this.remove0xPrefix(getValue(eoaSig, "r"))), this.remove0xPrefix(getValue(eoaSig, "s"))) + this.intToBase16(getValue(eoaSig, "v")));
+            string eoaSignature = ((("0x" + (this.remove0xPrefix(getValue(eoaSig, "r")))) + (this.remove0xPrefix(getValue(eoaSig, "s")))) + this.intToBase16(getValue(eoaSig, "v")));
             return ((string)eoaSignature).ToLower();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -2802,12 +2802,12 @@ public partial class polymarket : PredictionExchange
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         object orderTypeHash = this.hash(this.encode(orderTypeString), keccak, "binary");
         object contentsData = this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, new List<object>() {orderTypeHash, this.convertToBigInt(getValue(message, "salt")), getValue(message, "maker"), getValue(message, "signer"), this.convertToBigInt(getValue(message, "tokenId")), this.convertToBigInt(getValue(message, "makerAmount")), this.convertToBigInt(getValue(message, "takerAmount")), getValue(message, "side"), getValue(message, "signatureType"), this.convertToBigInt(getValue(message, "timestamp")), this.base16ToBinary(this.remove0xPrefix(getValue(message, "metadata"))), this.base16ToBinary(this.remove0xPrefix(getValue(message, "builder")))});
-        string contentsHash = add("0x", this.hash(contentsData, keccak, "hex"));
+        string contentsHash = ("0x" + (this.hash(contentsData, keccak, "hex")));
         object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary");
         object nameHash = this.hash(this.encode(domainName), keccak, "binary");
         object versionHash = this.hash(this.encode(domainVersion), keccak, "binary");
         object appDomainData = this.ethAbiEncode(new List<object>() {"bytes32", "bytes32", "bytes32", "uint256", "address"}, new List<object>() {domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress});
-        string appDomainSep = add("0x", this.hash(appDomainData, keccak, "hex"));
+        string appDomainSep = ("0x" + (this.hash(appDomainData, keccak, "hex")));
         List<object> typedDataSignStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "contents" },
     { "type", "Order" },
@@ -2850,7 +2850,7 @@ public partial class polymarket : PredictionExchange
         // simple identifier) picks it up instead of leaking a padStart() function call
         object lenHex = (ctLenHex as String).PadLeft(Convert.ToInt32(4), Convert.ToChar("0"));
         object orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
-        string wrappedSignature = add(add(add(add(add("0x", innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex);
+        string wrappedSignature = ((((("0x" + (innerSig)) + (this.remove0xPrefix(appDomainSep))) + (this.remove0xPrefix(contentsHash))) + (orderTypeStringHex)) + (lenHex));
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         // uppercase hex in some targets); the signature is case-insensitive bytes
         return ((string)wrappedSignature).ToLower();
@@ -3256,7 +3256,7 @@ public partial class polymarket : PredictionExchange
         string? errorMessage = this.safeString2(response, "error", "errorMsg");
         if ((errorMessage != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
         }
@@ -3350,7 +3350,7 @@ public partial class polymarket : PredictionExchange
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (isEqual(this.privateKey, null))
                 {
-                    throw new ArgumentsRequired ((string)(add((this.id + " "), path) + " requires a privateKey")) ;
+                    throw new ArgumentsRequired ((string)(((this.id + " ") + (path)) + " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
@@ -3377,7 +3377,7 @@ public partial class polymarket : PredictionExchange
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 string requestPath = ("/" + this.implodeParams(path, parameters));
-                object auth = add(add(timestamp, method), requestPath);
+                object auth = ((timestamp + (method)) + requestPath);
                 if (!isEqual(body, null))
                 {
                     auth = add(auth, body);
@@ -3412,7 +3412,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object ethChecksumAddress(object address)
@@ -3436,7 +3436,7 @@ public partial class polymarket : PredictionExchange
                 result = add(result, ch);
             }
         }
-        return add("0x", result);
+        return ("0x" + (result));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -3448,8 +3448,8 @@ public partial class polymarket : PredictionExchange
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
-            { "r", add("0x", r) },
-            { "s", add("0x", s) },
+            { "r", ("0x" + (r)) },
+            { "s", ("0x" + (s)) },
             { "v", this.sum(27, getValue(signature, "v")) },
         };
     }
@@ -3490,7 +3490,7 @@ public partial class polymarket : PredictionExchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         object sig = this.signMessage(encoded, this.privateKey);
-        return (add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
+        return ((("0x" + (this.remove0xPrefix(getValue(sig, "r")))) + (this.remove0xPrefix(getValue(sig, "s")))) + this.intToBase16(getValue(sig, "v")));
     }
 
     /**
@@ -3785,7 +3785,7 @@ public partial class polymarket : PredictionExchange
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
-        string messageHash = add("orderbook::", outcomeVar);
+        string messageHash = ("orderbook::" + (outcomeVar));
         string subscribeHash = ("subscribe::" + tokenId);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "assets_ids", new List<object>() {tokenId} },
@@ -3813,7 +3813,7 @@ public partial class polymarket : PredictionExchange
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
-        string messageHash = add("trades::", outcomeVar);
+        string messageHash = ("trades::" + (outcomeVar));
         string subscribeHash = ("subscribe::" + tokenId);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "assets_ids", new List<object>() {tokenId} },
@@ -3839,7 +3839,7 @@ public partial class polymarket : PredictionExchange
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
-        string messageHash = add("ticker::", outcomeVar);
+        string messageHash = ("ticker::" + (outcomeVar));
         string subscribeHash = ("subscribe::" + tokenId);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "assets_ids", new List<object>() {tokenId} },
@@ -3923,7 +3923,7 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
             outcomeVar = this.safeString(outcomeObj, "outcome");
-            messageHash = add("orders::", outcomeVar);
+            messageHash = ("orders::" + (outcomeVar));
         }
         object orders = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -3955,7 +3955,7 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
             outcomeVar = this.safeString(outcomeObj, "outcome");
-            messageHash = add("myTrades::", outcomeVar);
+            messageHash = ("myTrades::" + (outcomeVar));
         }
         object trades = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))

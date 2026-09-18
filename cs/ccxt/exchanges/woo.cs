@@ -2687,7 +2687,7 @@ public partial class woo : Exchange
         IDictionary<string, object> first = this.safeDict(rows, 0);
         if ((first == null))
         {
-            throw new BadSymbol ((string)add((this.id + " fetchTicker() could not find ticker data for "), symbol)) ;
+            throw new BadSymbol ((string)((this.id + " fetchTicker() could not find ticker data for ") + (symbol))) ;
         }
         Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
             { "timestamp", this.safeInteger(response, "timestamp") },
@@ -3756,7 +3756,7 @@ public partial class woo : Exchange
         string? network = this.safeString(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired ((string)add((this.id + " withdraw() requires a network parameter for "), code)) ;
+            throw new ArgumentsRequired ((string)((this.id + " withdraw() requires a network parameter for ") + (code))) ;
         }
         parameters = this.omit(parameters, "network");
         ((IDictionary<string,object>)request)["token"] = getValue(currency, "id");
@@ -3857,7 +3857,7 @@ public partial class woo : Exchange
         object access = getValue(section, 1);
         string? pathWithParams = this.implodeParams(path, parameters);
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), access));
-        url = add(url, (add("/", version) + "/"));
+        url = add(url, (("/" + (version)) + "/"));
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (isEqual(access, "public"))
@@ -3904,7 +3904,7 @@ public partial class woo : Exchange
             };
             if (isEqual(version, "v3"))
             {
-                auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);
+                auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
                 if (isEqual(method, "POST") || isEqual(method, "PUT"))
                 {
                     body = this.json(parameters);
@@ -3929,7 +3929,7 @@ public partial class woo : Exchange
                 {
                     if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                     {
-                        url = add(url, add("?", auth));
+                        url = add(url, ("?" + (auth)));
                     }
                 }
                 auth = add(auth, ("|" + ts));
@@ -4403,7 +4403,7 @@ public partial class woo : Exchange
             response = await this.v3PrivateGetFuturesLeverage(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchLeverage() is not supported for "), getValue(market, "type")) + " markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchLeverage() is not supported for ") + (getValue(market, "type"))) + " markets")) ;
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));

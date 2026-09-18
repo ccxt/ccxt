@@ -1489,7 +1489,7 @@ public partial class bithumb : Exchange
                 Int64? timeframeInteger = this.safeInteger(this.timeframes, timeframeVar);
                 if (isEqual(timeframeInteger, null))
                 {
-                    throw new BadRequest ((string)add((this.id + " fetchOHLCV() unsupported timeframe "), timeframeVar)) ;
+                    throw new BadRequest ((string)((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar))) ;
                 }
                 ((IDictionary<string,object>)request)["unit"] = timeframeInteger;
                 response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, parameters));
@@ -1883,7 +1883,7 @@ public partial class bithumb : Exchange
             sideRequest = "ask";
         } else
         {
-            throw new InvalidOrder ((string)add((this.id + " createOrder() invalid side "), side)) ;
+            throw new InvalidOrder ((string)((this.id + " createOrder() invalid side ") + (side))) ;
         }
         ((IDictionary<string,object>)request)["side"] = sideRequest;
         string? timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
@@ -2983,7 +2983,7 @@ public partial class bithumb : Exchange
             parameters = this.omit(parameters, new List<object>() {"destination", "secondary_address"});
             if ((isEqual(tagVar, null)) && ((destination == null)))
             {
-                throw new ArgumentsRequired ((string)(add((this.id + " "), code) + " withdraw() requires a tag argument or an extra destination param")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " withdraw() requires a tag argument or an extra destination param")) ;
             } else if (!isEqual(tagVar, null))
             {
                 destinationRequest = tagVar;
@@ -3001,7 +3001,7 @@ public partial class bithumb : Exchange
                 string? twoFactorType = this.safeString(parameters, "two_factor_type");
                 if ((twoFactorType == null))
                 {
-                    throw new ArgumentsRequired ((string)(add((this.id + " "), code) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
+                    throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
                 }
                 Dictionary<string, object> krwRequest = new Dictionary<string, object>() {
                     { "amount", this.numberToString(amount) },
@@ -3011,7 +3011,7 @@ public partial class bithumb : Exchange
             {
                 if ((network == null))
                 {
-                    throw new ArgumentsRequired ((string)(add((this.id + " "), code) + " withdraw() requires a network parameter")) ;
+                    throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " withdraw() requires a network parameter")) ;
                 }
                 ((IDictionary<string,object>)request)["address"] = address;
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
@@ -3490,7 +3490,7 @@ public partial class bithumb : Exchange
         parameters = this.omit(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), code) + " createDepositAddress() requires a network parameter")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " createDepositAddress() requires a network parameter")) ;
         }
         ((IDictionary<string,object>)request)["net_type"] = network;
         Dictionary<string, object> response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters));
@@ -3539,7 +3539,7 @@ public partial class bithumb : Exchange
         parameters = this.omit(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), code) + " fetchDepositAddress() requires a network parameter")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (code)) + " fetchDepositAddress() requires a network parameter")) ;
         }
         ((IDictionary<string,object>)request)["net_type"] = network;
         Dictionary<string, object> response = await this.privateGetV1DepositsCoinAddress(this.extend(request, parameters));
@@ -3729,7 +3729,7 @@ public partial class bithumb : Exchange
                 } else if (hasQuery)
                 {
                     auth = this.urlencodeWithArrayBrackets(query);
-                    url = url + add("?", auth);
+                    url = url + ("?" + (auth));
                 }
                 if (hasQuery)
                 {
@@ -3748,7 +3748,7 @@ public partial class bithumb : Exchange
                 List<object> bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
                 body = String.Join("+", ((IList<object>)bodyParts).ToArray());
                 string nonce = ((object)this.nonce()).ToString();
-                string auth = ((add((endpoint + "\\"), body) + "\\") + nonce); // eslint-disable-line quotes
+                string auth = ((((endpoint + "\\") + (body)) + "\\") + nonce); // eslint-disable-line quotes
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
                 string signature64 = this.stringToBase64(signature);
                 headers = new Dictionary<string, object>() {

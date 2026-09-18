@@ -950,7 +950,7 @@ public partial class btcbox : Exchange
             return null;  // either public API (no error codes expected) or success
         }
         object code = this.safeValue(response, "code");
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
@@ -968,7 +968,7 @@ public partial class btcbox : Exchange
             response = this.strip(response);
             if (!isTrue(this.isJsonEncodedObject(response)))
             {
-                throw new ExchangeError ((string)add((this.id + " "), response)) ;
+                throw new ExchangeError ((string)((this.id + " ") + (response))) ;
             }
             response = parseJson(response);
         }

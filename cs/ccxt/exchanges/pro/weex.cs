@@ -231,7 +231,7 @@ public partial class weex : ccxt.weex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            string messageHash = ((topic + "::") + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
         }
@@ -290,7 +290,7 @@ public partial class weex : ccxt.weex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            string messageHash = ((topic + "::") + (symbol));
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -342,7 +342,7 @@ public partial class weex : ccxt.weex
         IDictionary<string, object> data = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data, market));
         object symbol = getValue(market, "symbol");
-        string messageHash = add("ticker::", symbol);
+        string messageHash = ("ticker::" + (symbol));
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, symbol), messageHash);
     }
@@ -445,7 +445,7 @@ public partial class weex : ccxt.weex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            string messageHash = ((topic + "::") + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
         }
@@ -504,7 +504,7 @@ public partial class weex : ccxt.weex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            string messageHash = ((topic + "::") + (symbol));
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -545,7 +545,7 @@ public partial class weex : ccxt.weex
             return;
         }
         object symbol = getValue(market, "symbol");
-        string messageHash = add("trade::", symbol);
+        string messageHash = ("trade::" + (symbol));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -681,7 +681,7 @@ public partial class weex : ccxt.weex
             string? unifiedTimeframe = this.safeString(data, 1, "1");
             string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
             object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
-            string messageHash = ((add("ohlcv::", symbolString) + "::") + unifiedTimeframe);
+            string messageHash = ((("ohlcv::" + (symbolString)) + "::") + unifiedTimeframe);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)messageHashes).Add(messageHash);
         }
@@ -763,7 +763,7 @@ public partial class weex : ccxt.weex
             string? unifiedTimeframe = this.safeString(data, 1, "1");
             string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
             object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
-            string messageHash = ((add("ohlcv::", symbolString) + "::") + unifiedTimeframe);
+            string messageHash = ((("ohlcv::" + (symbolString)) + "::") + unifiedTimeframe);
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)subHashes).Add(messageHash);
@@ -836,7 +836,7 @@ public partial class weex : ccxt.weex
             object parsed = this.parseWsOHLCV(entry);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = ((add("ohlcv::", symbol) + "::") + timeframe);
+        string messageHash = ((("ohlcv::" + (symbol)) + "::") + timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
         (client as WebSocketClient).resolve(resolveData, messageHash);
     }
@@ -916,7 +916,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add("orderbook::", symbol);
+            string messageHash = ("orderbook::" + (symbol));
             object channel = add(add(getValue(market, "id"), "@depth"), depth);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channel);
@@ -980,7 +980,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add("orderbook::", symbol);
+            string messageHash = ("orderbook::" + (symbol));
             object channel = add(add(getValue(market, "id"), "@depth"), depth);
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
@@ -1018,7 +1018,7 @@ public partial class weex : ccxt.weex
             return;
         }
         object symbol = getValue(market, "symbol");
-        string messageHash = add("orderbook::", symbol);
+        string messageHash = ("orderbook::" + (symbol));
         if (!(inOp(this.orderbooks, symbol)))
         {
             IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -1088,7 +1088,7 @@ public partial class weex : ccxt.weex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), "bookTicker");
-            string messageHash = add("bidask::", symbol);
+            string messageHash = ("bidask::" + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
         }
@@ -1132,7 +1132,7 @@ public partial class weex : ccxt.weex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), "bookTicker");
-            string messageHash = add("bidask::", symbol);
+            string messageHash = ("bidask::" + (symbol));
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -1173,7 +1173,7 @@ public partial class weex : ccxt.weex
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         }
-        string messageHash = add("bidask::", symbol);
+        string messageHash = ("bidask::" + (symbol));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -1230,7 +1230,7 @@ public partial class weex : ccxt.weex
         string subscriptionHash = messageHash;
         if (!isEqual(symbolVar, null))
         {
-            messageHash = messageHash + add("::", symbolVar);
+            messageHash = messageHash + ("::" + (symbolVar));
         }
         string channel = "fill";
         object trades = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters);
@@ -1354,7 +1354,7 @@ public partial class weex : ccxt.weex
         for (int j = 0; j < symbolKeys.Count; postFixIncrement(ref j))
         {
             object symbol = getValue(symbolKeys, j);
-            string symbolMessageHash = add((messageHash + "::"), symbol);
+            string symbolMessageHash = ((messageHash + "::") + (symbol));
             (client as WebSocketClient).resolve(trades, symbolMessageHash);
         }
         (client as WebSocketClient).resolve(trades, messageHash);
@@ -1465,7 +1465,7 @@ public partial class weex : ccxt.weex
         string subscriptionHash = messageHash;
         if (!isEqual(symbolVar, null))
         {
-            messageHash = messageHash + add("::", symbolVar);
+            messageHash = messageHash + ("::" + (symbolVar));
         }
         string channel = "orders";
         object orders = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters);
@@ -1589,7 +1589,7 @@ public partial class weex : ccxt.weex
         for (int i = 0; i < symbolKeys.Count; postFixIncrement(ref i))
         {
             object symbol = getValue(symbolKeys, i);
-            string symbolMessageHash = add((messageHash + "::"), symbol);
+            string symbolMessageHash = ((messageHash + "::") + (symbol));
             (client as WebSocketClient).resolve(orders, symbolMessageHash);
         }
         (client as WebSocketClient).resolve(this.orders, messageHash);

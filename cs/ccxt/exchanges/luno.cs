@@ -1559,7 +1559,7 @@ public partial class luno : Exchange
             object account = this.safeValue(accountsByCurrencyCode, code);
             if ((account == null))
             {
-                throw new ExchangeError ((string)add((this.id + " fetchLedger() could not find account id for "), code)) ;
+                throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
             }
             id = getValue(account, "id");
         }

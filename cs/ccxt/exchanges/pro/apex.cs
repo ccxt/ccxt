@@ -101,9 +101,9 @@ public partial class apex : ccxt.apex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = add("recentlyTrade.H.", getValue(market, "id2"));
+            string topic = ("recentlyTrade.H." + (getValue(market, "id2")));
             ((IList<object>)topics).Add(topic);
-            string messageHash = add("trade:", symbol);
+            string messageHash = ("trade:" + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -254,9 +254,9 @@ public partial class apex : ccxt.apex
             {
                 limitVar = 25;
             }
-            string topic = add((("orderBook" + ((object)limitVar).ToString()) + ".H."), getValue(market, "id2"));
+            string topic = ((("orderBook" + ((object)limitVar).ToString()) + ".H.") + (getValue(market, "id2")));
             ((IList<object>)topics).Add(topic);
-            string messageHash = add("orderbook:", symbol);
+            string messageHash = ("orderbook:" + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object orderbook = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -421,8 +421,8 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object url = this.getWsPublicUrl();
-        string messageHash = add("ticker:", symbolVar);
-        string topic = add(("instrumentInfo" + ".H."), getValue(market, "id2"));
+        string messageHash = ("ticker:" + (symbolVar));
+        string topic = (("instrumentInfo" + ".H.") + (getValue(market, "id2")));
         List<object> topics = new List<object>() {topic};
         return ccxt.BaseExchange.ToTicker(await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
     }
@@ -451,9 +451,9 @@ public partial class apex : ccxt.apex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = add(("instrumentInfo" + ".H."), getValue(market, "id2"));
+            string topic = (("instrumentInfo" + ".H.") + (getValue(market, "id2")));
             ((IList<object>)topics).Add(topic);
-            string messageHash = add("ticker:", symbol);
+            string messageHash = ("ticker:" + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -514,7 +514,7 @@ public partial class apex : ccxt.apex
         ((IDictionary<string,object>)parsed)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsed)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = parsed;
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + (symbol));
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
     }
 
@@ -569,8 +569,8 @@ public partial class apex : ccxt.apex
             symbolString = getValue(market, "id2");
             string? unfiedTimeframe = this.safeString(data, 1, "1");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)rawHashes).Add(add((("candle." + timeframeId) + "."), symbolString));
-            ((IList<object>)messageHashes).Add(((add("ohlcv::", getValue(market, "symbol")) + "::") + unfiedTimeframe));
+            ((IList<object>)rawHashes).Add(((("candle." + timeframeId) + ".") + (symbolString)));
+            ((IList<object>)messageHashes).Add(((("ohlcv::" + (getValue(market, "symbol"))) + "::") + unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchTopics(url, messageHashes, rawHashes, parameters);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -684,7 +684,7 @@ public partial class apex : ccxt.apex
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         object url = this.getWsPrivateUrl();
         await this.authenticate(url);
@@ -764,7 +764,7 @@ public partial class apex : ccxt.apex
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         object url = this.getWsPrivateUrl();
         await this.authenticate(url);
@@ -814,7 +814,7 @@ public partial class apex : ccxt.apex
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string currentMessageHash = add("myTrades:", getValue(keys, i));
+            string currentMessageHash = ("myTrades:" + (getValue(keys, i)));
             (client as WebSocketClient).resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -870,7 +870,7 @@ public partial class apex : ccxt.apex
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < symbolsArray.Count; postFixIncrement(ref i))
         {
-            string currentMessageHash = add("orders:", getValue(symbolsArray, i));
+            string currentMessageHash = ("orders:" + (getValue(symbolsArray, i)));
             (client as WebSocketClient).resolve(orders, currentMessageHash);
         }
         string messageHash = "orders";
@@ -1197,7 +1197,7 @@ public partial class apex : ccxt.apex
             });
         } catch(Exception e)
         {
-            var error = new NetworkError(add((this.id + " handlePing failed with error "), this.exceptionMessage(e)));
+            var error = new NetworkError(((this.id + " handlePing failed with error ") + (this.exceptionMessage(e))));
             ((WebSocketClient)client).reset(error);
         }
     }

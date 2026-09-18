@@ -77,7 +77,7 @@ public partial class mudrex : ccxt.mudrex
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + (symbolVar));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         this.setBrokerHeaders();
         object baseIdString = ((bool) (!isEqual(getValue(market, "baseId"), null))) ? getValue(market, "baseId") : "";
@@ -108,7 +108,7 @@ public partial class mudrex : ccxt.mudrex
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+                ((IList<object>)messageHashes).Add(("ticker:" + (getValue(market, "symbol"))));
                 object baseIdString = ((bool) (!isEqual(getValue(market, "baseId"), null))) ? getValue(market, "baseId") : "";
                 object quoteIdString = ((bool) (!isEqual(getValue(market, "quoteId"), null))) ? getValue(market, "quoteId") : "";
                 ((IList<object>)assets).Add((((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower()));

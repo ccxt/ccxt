@@ -996,7 +996,7 @@ public partial class bitflyer : Exchange
         {
             return ccxt.BaseExchange.ToOrder(getValue(ordersById, id));
         }
-        throw new OrderNotFound ((string)add((this.id + " No order found with id "), id)) ;
+        throw new OrderNotFound ((string)((this.id + " No order found with id ") + (id))) ;
     }
 
     /**
@@ -1114,7 +1114,7 @@ public partial class bitflyer : Exchange
         }
         if (!isEqual(code, "JPY") && !isEqual(code, "USD") && !isEqual(code, "EUR"))
         {
-            throw new ExchangeError ((string)(add((this.id + " allows withdrawing JPY, USD, EUR only, "), code) + " is not supported")) ;
+            throw new ExchangeError ((string)(((this.id + " allows withdrawing JPY, USD, EUR only, ") + (code)) + " is not supported")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1396,7 +1396,7 @@ public partial class bitflyer : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = (add("/", this.version) + "/");
+        object request = (("/" + (this.version)) + "/");
         if (isEqual(api, "private"))
         {
             request = add(request, "me/");
@@ -1446,7 +1446,7 @@ public partial class bitflyer : Exchange
         {
             return null;  // fallback to the default error handler
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         string? errorMessage = this.safeString(response, "error_message");
         Int64? statusCode = this.safeInteger(response, "status");

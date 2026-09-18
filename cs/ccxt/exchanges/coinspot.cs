@@ -1107,7 +1107,7 @@ public partial class coinspot : Exchange
         object version = ((bool) isVersionedApi) ? getValue(api, 0) : null;
         object accessType = ((bool) isVersionedApi) ? getValue(api, 1) : api;
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string fullPath = ((bool) ((version != null))) ? (add("/", version) + endpoint) : endpoint;
+        string fullPath = ((bool) ((version != null))) ? (("/" + (version)) + endpoint) : endpoint;
         object url = add(getValue(getValue(this.urls, "api"), accessType), fullPath);
         if (isEqual(accessType, "private"))
         {

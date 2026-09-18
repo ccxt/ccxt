@@ -1216,10 +1216,10 @@ public partial class btcturk : Exchange
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
         object output = ((bool) ((message == null))) ? body : message;
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add((this.id + " "), output));
+        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, ((this.id + " ") + (output)));
         if (((errorCode != "0")) && ((errorCode != "SUCCESS")))
         {
-            throw new ExchangeError ((string)add((this.id + " "), output)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (output))) ;
         }
         return null;
     }

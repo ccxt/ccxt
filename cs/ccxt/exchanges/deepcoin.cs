@@ -2247,7 +2247,7 @@ public partial class deepcoin : Exchange
         int length = getArrayLength(data);
         if ((length == 0))
         {
-            throw new OrderNotFound ((string)add((this.id + " fetchOpenOrder() could not find order id "), id)) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOpenOrder() could not find order id ") + (id))) ;
         }
         IDictionary<string, object> entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(entry, market));
@@ -2311,7 +2311,7 @@ public partial class deepcoin : Exchange
         {
             if (!isEqual(methodName, "fetchCanceledAndClosedOrders"))
             {
-                throw new BadRequest ((string)(add((this.id + " "), methodName) + "() does not support trigger orders")) ;
+                throw new BadRequest ((string)(((this.id + " ") + (methodName)) + "() does not support trigger orders")) ;
             }
             if ((market == null))
             {
@@ -3614,7 +3614,7 @@ public partial class deepcoin : Exchange
                 errorCode = this.safeString(entry, "errorCode");
             }
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         if (((sCode == null)) && ((errorCode != null)))
         {
             sCode = errorCode;

@@ -1402,7 +1402,7 @@ public partial class alpaca : Exchange
                 newType = "stop_limit";
             } else
             {
-                throw new NotSupported ((string)(add((this.id + " createOrder() does not support stop orders for "), type) + " orders, only stop_limit orders are supported")) ;
+                throw new NotSupported ((string)(((this.id + " createOrder() does not support stop orders for ") + (type)) + " orders, only stop_limit orders are supported")) ;
             }
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["type"] = newType;
@@ -2604,7 +2604,7 @@ public partial class alpaca : Exchange
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         string? errorCode = this.safeString(response, "code");
         if (!isEqual(code, null))
         {

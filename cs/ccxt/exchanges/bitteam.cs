@@ -1220,7 +1220,7 @@ public partial class bitteam : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -2626,7 +2626,7 @@ public partial class bitteam : Exchange
                     throw new BadSymbol ((string)(((this.id + " symbolId ") + symbolId) + " not found")) ;
                 }
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             string? message = this.safeString(response, "message");
             string? responseCode = this.safeString(response, "code");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

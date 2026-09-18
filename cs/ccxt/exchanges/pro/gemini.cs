@@ -55,7 +55,7 @@ public partial class gemini : ccxt.gemini
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trades:", getValue(market, "symbol"));
+        string messageHash = ("trades:" + (getValue(market, "symbol")));
         string? marketId = ((string)getValue(market, "id"));
         if ((marketId == null))
         {
@@ -68,7 +68,7 @@ public partial class gemini : ccxt.gemini
     { "symbols", new List<object> {((string)marketId).ToUpper()} },
 }} },
         };
-        string subscribeHash = add("l2:", getValue(market, "symbol"));
+        string subscribeHash = ("l2:" + (getValue(market, "symbol")));
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata");
         object trades = await this.watch(url, messageHash, request, subscribeHash);
         if (isTrue(this.newUpdates))
@@ -190,7 +190,7 @@ public partial class gemini : ccxt.gemini
             }
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + (symbol));
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -321,7 +321,7 @@ public partial class gemini : ccxt.gemini
     { "symbols", new List<object> {this.safeStringUpper(market, "id")} },
 }} },
         };
-        string messageHash = ((add("ohlcv:", getValue(market, "symbol")) + ":") + timeframeId);
+        string messageHash = ((("ohlcv:" + (getValue(market, "symbol"))) + ":") + timeframeId);
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata");
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
@@ -413,7 +413,7 @@ public partial class gemini : ccxt.gemini
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = ("orderbook:" + (getValue(market, "symbol")));
         string? marketId = ((string)getValue(market, "id"));
         if ((marketId == null))
         {
@@ -426,7 +426,7 @@ public partial class gemini : ccxt.gemini
     { "symbols", new List<object> {((string)marketId).ToUpper()} },
 }} },
         };
-        string subscribeHash = add("l2:", getValue(market, "symbol"));
+        string subscribeHash = ("l2:" + (getValue(market, "symbol")));
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata");
         object orderbook = await this.watch(url, messageHash, request, subscribeHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());

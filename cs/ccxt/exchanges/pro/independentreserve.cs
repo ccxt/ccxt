@@ -58,7 +58,7 @@ public partial class independentreserve : ccxt.independentreserve
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), getValue(market, "base")), "-"), getValue(market, "quote"));
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + (symbolVar));
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -159,7 +159,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         string? limitString = this.numberToString(limitVar);
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
-        string messageHash = ((add("orderbook:", symbolVar) + ":") + limitString);
+        string messageHash = ((("orderbook:" + (symbolVar)) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
@@ -205,7 +205,7 @@ public partial class independentreserve : ccxt.independentreserve
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
-        string messageHash = ((add("orderbook:", symbol) + ":") + depth);
+        string messageHash = ((("orderbook:" + (symbol)) + ":") + depth);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
@@ -259,7 +259,7 @@ public partial class independentreserve : ccxt.independentreserve
             Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (!isEqual(calculatedChecksum, responseChecksum))
             {
-                var error = new ChecksumError(add((this.id + " "), this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 ((WebSocketClient)client).reject(error, messageHash);

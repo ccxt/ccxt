@@ -380,14 +380,14 @@ public partial class bingx : ccxt.bingx
         object hash = unifiedChannel;
         if (!isEqual(symbol, null))
         {
-            hash = add(hash, add("::", symbol));
+            hash = add(hash, ("::" + (symbol)));
         } else
         {
             hash = add(hash, "s"); // tickers, orderbooks, ohlcvs, etc ...
         }
         if (!isEqual(extra, null))
         {
-            hash = add(hash, add("::", extra));
+            hash = add(hash, ("::" + (extra)));
         }
         return hash;
     }
@@ -433,7 +433,7 @@ public partial class bingx : ccxt.bingx
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
         object rawHash = add(getValue(market, "id"), "@trade");
-        string messageHash = add("trade::", symbolVar);
+        string messageHash = ("trade::" + (symbolVar));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -696,7 +696,7 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 100);
         object subMessageHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
-        string messageHash = add("unsubscribe::", subMessageHash);
+        string messageHash = ("unsubscribe::" + (subMessageHash));
         string topic = "orderbook";
         string methodName = "unWatchOrderBook";
         return await this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters);
@@ -1071,7 +1071,7 @@ public partial class bingx : ccxt.bingx
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
         object subMessageHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
-        string messageHash = add("unsubscribe::", subMessageHash);
+        string messageHash = ("unsubscribe::" + (subMessageHash));
         string topic = "ohlcv";
         string methodName = "unWatchOHLCV";
         List<object> symbolsAndTimeframes = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframeVar}};
@@ -1125,7 +1125,7 @@ public partial class bingx : ccxt.bingx
         string messageHash = ((bool) isSpot) ? spotMessageHash : swapMessageHash;
         if ((market != null))
         {
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         string uuid = this.uuid();
         object baseUrl = null;
@@ -1205,7 +1205,7 @@ public partial class bingx : ccxt.bingx
         string messageHash = ((bool) isSpot) ? spotMessageHash : swapMessageHash;
         if ((market != null))
         {
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         string uuid = this.uuid();
         object baseUrl = null;
@@ -1737,7 +1737,7 @@ public partial class bingx : ccxt.bingx
             }
         } catch(Exception e)
         {
-            var error = new NetworkError(add((this.id + " pong failed with error "), this.exceptionMessage(e)));
+            var error = new NetworkError(((this.id + " pong failed with error ") + (this.exceptionMessage(e))));
             ((WebSocketClient)client).reset(error);
         }
     }
@@ -1842,7 +1842,7 @@ public partial class bingx : ccxt.bingx
         string swapHash = "swap:order";
         string messageHash = ((bool) (isSpot)) ? spotHash : swapHash;
         (client as WebSocketClient).resolve(stored, messageHash);
-        (client as WebSocketClient).resolve(stored, add((messageHash + ":"), symbol));
+        (client as WebSocketClient).resolve(stored, ((messageHash + ":") + (symbol)));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -1922,7 +1922,7 @@ public partial class bingx : ccxt.bingx
         string messageHash = ((bool) isSpot) ? spotHash : swapHash;
         callDynamically(cachedTrades, "append", new object[] {parsed});
         (client as WebSocketClient).resolve(cachedTrades, messageHash);
-        (client as WebSocketClient).resolve(cachedTrades, add((messageHash + ":"), symbol));
+        (client as WebSocketClient).resolve(cachedTrades, ((messageHash + ":") + (symbol)));
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)

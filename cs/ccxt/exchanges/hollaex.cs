@@ -1283,7 +1283,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> order = response;
         if ((order == null))
         {
-            throw new OrderNotFound ((string)add((this.id + " fetchOrder() could not find order id "), id)) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + (id))) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order));
     }
@@ -2055,7 +2055,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         if (!isEqual(tagVar, null))
         {
-            addressVar = add(addressVar, add(":", tagVar));
+            addressVar = add(addressVar, (":" + (tagVar)));
         }
         string? network = this.safeString(parameters, "network");
         if ((network == null))
@@ -2220,7 +2220,7 @@ public partial class hollaex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        path = ((add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        path = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2278,7 +2278,7 @@ public partial class hollaex : Exchange
             //
             //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             string? message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             string status = ((object)code).ToString();

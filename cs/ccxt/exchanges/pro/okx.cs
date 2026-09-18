@@ -174,7 +174,7 @@ public partial class okx : ccxt.okx
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = add(messageHash, add(":", getValue(market, "id")));
+            messageHash = add(messageHash, (":" + (getValue(market, "id"))));
             ((IDictionary<string,object>)firstArgument)["instId"] = getValue(market, "id");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -295,7 +295,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add((add("unsubscribe:", channel) + ":"), symbol));
+            ((IList<object>)messageHashes).Add(((("unsubscribe:" + (channel)) + ":") + (symbol)));
             object marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
@@ -433,7 +433,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add((channel + ":"), symbol));
+            ((IList<object>)messageHashes).Add(((channel + ":") + (symbol)));
             object marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
@@ -491,7 +491,7 @@ public partial class okx : ccxt.okx
             {
                 ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
             }
-            (client as WebSocketClient).resolve(fundingRate, add(("funding-rate" + ":"), getValue(fundingRate, "symbol")));
+            (client as WebSocketClient).resolve(fundingRate, (("funding-rate" + ":") + (getValue(fundingRate, "symbol"))));
         }
     }
 
@@ -648,7 +648,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            ((IList<object>)messageHashes).Add(("unsubscribe:ticker:" + (symbol)));
             object marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
@@ -743,7 +743,7 @@ public partial class okx : ccxt.okx
                 { "instId", marketId },
             };
             ((IList<object>)args).Add(this.extend(arg, parameters));
-            ((IList<object>)messageHashes).Add(add("bidask::", getValue(symbols, i)));
+            ((IList<object>)messageHashes).Add(("bidask::" + (getValue(symbols, i))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -812,7 +812,7 @@ public partial class okx : ccxt.okx
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
         }
-        string messageHash = add("bidask::", symbol);
+        string messageHash = ("bidask::" + (symbol));
         (client as WebSocketClient).resolve(parsedTicker, messageHash);
     }
 
@@ -878,7 +878,7 @@ public partial class okx : ccxt.okx
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add((messageHash + "::"), symbol));
+                ((IList<object>)messageHashes).Add(((messageHash + "::") + (symbol)));
             }
         } else
         {
@@ -997,7 +997,7 @@ public partial class okx : ccxt.okx
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add((messageHash + "::"), symbol));
+                ((IList<object>)messageHashes).Add(((messageHash + "::") + (symbol)));
             }
         } else
         {
@@ -1257,7 +1257,7 @@ public partial class okx : ccxt.okx
                 { "instId", marketId },
             };
             ((IList<object>)topics).Add(topic);
-            ((IList<object>)messageHashes).Add(add((("multi:" + channel) + ":"), sym));
+            ((IList<object>)messageHashes).Add(((("multi:" + channel) + ":") + (sym)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -1312,7 +1312,7 @@ public partial class okx : ccxt.okx
                 { "instId", marketId },
             };
             ((IList<object>)topics).Add(topic);
-            ((IList<object>)messageHashes).Add(add((("unsubscribe:multi:" + channel) + ":"), sym));
+            ((IList<object>)messageHashes).Add(((("unsubscribe:multi:" + channel) + ":") + (sym)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
@@ -1373,7 +1373,7 @@ public partial class okx : ccxt.okx
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
             // or timeframe, thus otherwise it would be unrecognizable
-            string messageHashForMulti = ((add("multi:", channel) + ":") + symbol);
+            string messageHashForMulti = ((("multi:" + (channel)) + ":") + symbol);
             (client as WebSocketClient).resolve(new List<object>() {symbol, timeframe, stored}, messageHashForMulti);
         }
     }
@@ -1517,7 +1517,7 @@ public partial class okx : ccxt.okx
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)subMessageHashes).Add(add(add(depth, ":"), symbol));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
+            ((IList<object>)messageHashes).Add(("unsubscribe:orderbook:" + (symbol)));
             object marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", depth },
@@ -2989,7 +2989,7 @@ public partial class okx : ccxt.okx
     public virtual void handleUnSubscriptionTrades(WebSocketClient client, object symbol, object channel)
     {
         object subMessageHash = add(add(channel, ":"), symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string messageHash = ("unsubscribe:" + (subMessageHash));
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (inOp(this.trades, symbol))
         {
@@ -3000,7 +3000,7 @@ public partial class okx : ccxt.okx
     public virtual void handleUnsubscriptionOrderBook(WebSocketClient client, object symbol, object channel)
     {
         object subMessageHash = add(add(channel, ":"), symbol);
-        string messageHash = add("unsubscribe:orderbook:", symbol);
+        string messageHash = ("unsubscribe:orderbook:" + (symbol));
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (inOp(this.orderbooks, symbol))
         {
@@ -3016,7 +3016,7 @@ public partial class okx : ccxt.okx
         {
             return;
         }
-        string subMessageHash = add((add("multi:", channel) + ":"), symbol);
+        string subMessageHash = ((("multi:" + (channel)) + ":") + (symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if ((!isEqual(symbol, null)) && ((timeframe != null)) && (inOp(getValue(this.ohlcvs, symbol), timeframe)))
@@ -3028,7 +3028,7 @@ public partial class okx : ccxt.okx
     public virtual void handleUnsubscriptionTicker(WebSocketClient client, object symbol, object channel)
     {
         object subMessageHash = add(add(channel, "::"), symbol);
-        string messageHash = add("unsubscribe:ticker:", symbol);
+        string messageHash = ("unsubscribe:ticker:" + (symbol));
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (inOp(this.tickers, symbol))
         {

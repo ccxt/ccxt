@@ -210,7 +210,7 @@ public partial class toobit : ccxt.toobit
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("trade::", symbol));
+            ((IList<object>)messageHashes).Add(("trade::" + (symbol)));
             string? rawHash = ((string)getValue(market, "id"));
             ((IList<object>)subParams).Add(rawHash);
         }
@@ -488,7 +488,7 @@ public partial class toobit : ccxt.toobit
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("ticker::", symbol));
+            ((IList<object>)messageHashes).Add(("ticker::" + (symbol)));
             string? rawHash = ((string)getValue(market, "id"));
             ((IList<object>)subParams).Add(rawHash);
         }
@@ -565,7 +565,7 @@ public partial class toobit : ccxt.toobit
             {
                 ((IDictionary<string,object>)newTickers)[(string)symbol] = parsed;
             }
-            string messageHash = add("ticker::", symbol);
+            string messageHash = ("ticker::" + (symbol));
             (client as WebSocketClient).resolve(parsed, messageHash);
         }
         (client as WebSocketClient).resolve(newTickers, "tickers");
@@ -626,7 +626,7 @@ public partial class toobit : ccxt.toobit
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add((add("orderBook::", symbol) + "::"), channel));
+            ((IList<object>)messageHashes).Add(((("orderBook::" + (symbol)) + "::") + (channel)));
             string? rawHash = ((string)getValue(market, "id"));
             ((IList<object>)subParams).Add(rawHash);
         }
@@ -741,7 +741,7 @@ public partial class toobit : ccxt.toobit
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "s");
             string? symbol = this.safeSymbol(marketId);
-            string messageHash = add((("orderBook::" + symbol) + "::"), channel);
+            string messageHash = ((("orderBook::" + symbol) + "::") + (channel));
             if (!(inOp(this.orderbooks, symbol)))
             {
                 Int64? limit = this.safeInteger(getValue(this.options, "ws"), "orderBookLimit", 1000);
@@ -1090,7 +1090,7 @@ public partial class toobit : ccxt.toobit
         }
         object trade = this.parseMyTrade(message);
         callDynamically(myTrades, "append", new object[] {trade});
-        string messageHash = add("myTrades:", getValue(trade, "symbol"));
+        string messageHash = ("myTrades:" + (getValue(trade, "symbol")));
         (client as WebSocketClient).resolve(myTrades, messageHash);
         messageHash = "myTrades";
         (client as WebSocketClient).resolve(myTrades, messageHash);
@@ -1366,7 +1366,7 @@ public partial class toobit : ccxt.toobit
                 // reject the flight - waiters throw and the next caller re-leads.
                 // no rethrow here, the trailing suspension point rethrows to this
                 // caller AND attaches the handler an alone leader needs
-                var err = new AuthenticationError(add((this.id + " "), this.exceptionMessage(e)));
+                var err = new AuthenticationError(((this.id + " ") + (this.exceptionMessage(e))));
                 ((WebSocketClient)client).reject(err, messageHash);
             }
             await future;

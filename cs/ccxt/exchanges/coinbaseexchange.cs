@@ -2157,7 +2157,7 @@ public partial class coinbaseexchange : Exchange
         object account = this.safeValue(accountsByCurrencyCode, code);
         if ((account == null))
         {
-            throw new ExchangeError ((string)add((this.id + " fetchLedger() could not find account id for "), code)) ;
+            throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
@@ -2217,7 +2217,7 @@ public partial class coinbaseexchange : Exchange
                 object account = this.safeValue(accountsByCurrencyCode, code);
                 if ((account == null))
                 {
-                    throw new ExchangeError ((string)add((this.id + " fetchDepositsWithdrawals() could not find account id for "), code)) ;
+                    throw new ExchangeError ((string)((this.id + " fetchDepositsWithdrawals() could not find account id for ") + (code))) ;
                 }
                 id = getValue(account, "id");
             }
@@ -2483,7 +2483,7 @@ public partial class coinbaseexchange : Exchange
         object account = this.safeValue(getValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
         if ((account == null))
         {
-            throw new InvalidAddress ((string)(add((add((this.id + " createDepositAddress() could not find currency code "), code) + " with id = "), currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
+            throw new InvalidAddress ((string)(((((this.id + " createDepositAddress() could not find currency code ") + (code)) + " with id = ") + (currencyId)) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
@@ -2522,7 +2522,7 @@ public partial class coinbaseexchange : Exchange
                     payload = body;
                 }
             }
-            object what = add(add(add(nonce, method), request), payload);
+            object what = (((nonce + (method)) + request) + (payload));
             object secret = null;
             try
             {
@@ -2560,7 +2560,7 @@ public partial class coinbaseexchange : Exchange
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
-            throw new ExchangeError ((string)add((this.id + " "), body)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;
     }

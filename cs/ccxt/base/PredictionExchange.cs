@@ -121,7 +121,7 @@ public partial class PredictionExchange : BaseExchange
             }
             extraNames = add(add(extraNames, ", "), scopeKey);
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames) + " to scope the search")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug") + (extraNames)) + " to scope the search")) ;
     }
 
     public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
@@ -478,7 +478,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return getValue(this.events_by_slug, eventIdOrSlug);
         }
-        throw new BadSymbol ((string)(add((this.id + " has no cached event "), eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
+        throw new BadSymbol ((string)(((this.id + " has no cached event ") + (eventIdOrSlug)) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
 
     public virtual IDictionary<string, object> outcome(object outcomeSymbol)
@@ -499,7 +499,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return ((IDictionary<string, object>)((object)(getValue(this.outcomes_by_id, outcomeSymbol))));
         }
-        throw new BadSymbol ((string)(add((this.id + " does not have outcome "), outcomeSymbol) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
+        throw new BadSymbol ((string)(((this.id + " does not have outcome ") + (outcomeSymbol)) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
     public virtual bool hasOutcome(object outcomeIdOrSymbol)
@@ -1033,7 +1033,7 @@ public partial class PredictionExchange : BaseExchange
                 return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
             }
         }
-        throw new BadSymbol ((string)(add((this.id + " could not resolve outcome "), outcomeSymbol) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
+        throw new BadSymbol ((string)(((this.id + " could not resolve outcome ") + (outcomeSymbol)) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
     }
 
     /**
@@ -1946,7 +1946,7 @@ public partial class PredictionExchange : BaseExchange
         int hexLength = ((string)hex).Length;
         if (!isEqual((mod(hexLength, 2)), 0))
         {
-            return add("0", hex);
+            return ("0" + (hex));
         }
         return hex;
     }
@@ -1959,7 +1959,7 @@ public partial class PredictionExchange : BaseExchange
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         object stripped = this.remove0xPrefix(address);
-        return add("000000000000000000000000", stripped);
+        return ("000000000000000000000000" + (stripped));
     }
 
     public virtual object rlpEncodeBytes(object hex)
@@ -1980,12 +1980,12 @@ public partial class PredictionExchange : BaseExchange
         }
         if (isLessThan(byteLength, 56))
         {
-            return add(this.intToBase16(add(128, byteLength)), hex);
+            return (this.intToBase16(add(128, byteLength)) + (hex));
         }
         object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Int64? lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
-        return add(add(this.intToBase16(add(183, lengthOfLength)), lengthHex), hex);
+        return ((this.intToBase16(add(183, lengthOfLength)) + (lengthHex)) + (hex));
     }
 
     public virtual object rlpEncodeList(object items)
@@ -1998,12 +1998,12 @@ public partial class PredictionExchange : BaseExchange
         Int64? byteLength = this.parseToInt(divide(((string)concatenated).Length, 2));
         if (isLessThan(byteLength, 56))
         {
-            return add(this.intToBase16(add(192, byteLength)), concatenated);
+            return (this.intToBase16(add(192, byteLength)) + (concatenated));
         }
         object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Int64? lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
-        return add(add(this.intToBase16(add(247, lengthOfLength)), lengthHex), concatenated);
+        return ((this.intToBase16(add(247, lengthOfLength)) + (lengthHex)) + (concatenated));
     }
 
     public virtual object intToRlpHex(object value)
@@ -2067,7 +2067,7 @@ public partial class PredictionExchange : BaseExchange
         object rpcError = this.safeValue(response, "error");
         if ((rpcError != null))
         {
-            throw new ExchangeError ((string)((add((this.id + " rpc "), method) + " error: ") + this.json(rpcError))) ;
+            throw new ExchangeError ((string)((((this.id + " rpc ") + (method)) + " error: ") + this.json(rpcError))) ;
         }
         // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
         // safeString would coerce a receipt object to "[object Object]"
@@ -2105,7 +2105,7 @@ public partial class PredictionExchange : BaseExchange
             }
             await this.sleep(2000);
         }
-        throw new ExchangeError ((string)(add((this.id + " transaction "), txHash) + " not mined within timeout")) ;
+        throw new ExchangeError ((string)(((this.id + " transaction ") + (txHash)) + " not mined within timeout")) ;
     }
 }
 
