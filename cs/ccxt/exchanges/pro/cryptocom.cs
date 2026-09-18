@@ -335,7 +335,7 @@ public partial class cryptocom : ccxt.cryptocom
             object currentNonce = getValue(orderbook, "nonce");
             if (!isEqual(currentNonce, previousNonce))
             {
-                object checksum = this.handleOption("watchOrderBook", "checksum", true);
+                bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
                 if (isEqual(checksum, true))
                 {
                     throw new ChecksumError (add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
@@ -1063,8 +1063,8 @@ public partial class cryptocom : ccxt.cryptocom
         }
         var client = this.client(url);
         this.setPositionsCache(client, symbols);
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && (isEqual(this.positions, null)))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -1080,7 +1080,7 @@ public partial class cryptocom : ccxt.cryptocom
 
     public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
     {
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if (isEqual(fetchPositionsSnapshot, true))
         {
             string messageHash = "fetchPositionsSnapshot";

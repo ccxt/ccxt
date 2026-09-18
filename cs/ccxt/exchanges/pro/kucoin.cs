@@ -3158,8 +3158,8 @@ public partial class kucoin : ccxt.kucoin
         string messageHash = add("position:", GetValue(market, "symbol"));
         var client = this.client(url);
         this.setPositionCache(client, symbol);
-        object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", true);
-        object awaitPositionSnapshot = this.handleOption("watchPosition", "awaitPositionSnapshot", true);
+        bool fetchPositionSnapshot = ((bool)this.handleOption("watchPosition", "fetchPositionSnapshot", true));
+        bool awaitPositionSnapshot = ((bool)this.handleOption("watchPosition", "awaitPositionSnapshot", true));
         object currentPosition = this.getCurrentPosition(symbol);
         if ((isEqual(fetchPositionSnapshot, true)) && (isEqual(awaitPositionSnapshot, true)) && ((currentPosition == null)))
         {
@@ -3210,8 +3210,8 @@ public partial class kucoin : ccxt.kucoin
         object url = await this.getUtaUrl();
         var client = this.client(url);
         this.setPositionsCache(client, uta);
-        object fetchPositionSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        bool fetchPositionSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        bool awaitPositionSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         object cache = this.positions;
         if ((isEqual(fetchPositionSnapshot, true)) && (isEqual(awaitPositionSnapshot, true)) && ((cache == null)))
         {
@@ -3248,7 +3248,7 @@ public partial class kucoin : ccxt.kucoin
         {
             return;
         }
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if (isEqual(fetchPositionsSnapshot, true))
         {
             string messageHash = "fetchPositionsSnapshot";
@@ -3288,7 +3288,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void setPositionCache(WebSocketClient client, object symbol)
     {
-        object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", false);
+        bool fetchPositionSnapshot = ((bool)this.handleOption("watchPosition", "fetchPositionSnapshot", false));
         if (isEqual(fetchPositionSnapshot, true))
         {
             string messageHash = add("fetchPositionSnapshot:", symbol);

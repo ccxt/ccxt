@@ -736,9 +736,9 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
+        string method = ((string)this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols"));
         Dictionary<string, object> response = null;
-        if (isEqual(method, "publicGetCommonSymbols"))
+        if (method == "publicGetCommonSymbols")
         {
             response = await this.publicGetCommonSymbols(parameters);
         } else
@@ -1551,12 +1551,12 @@ public partial class bittrade : Exchange
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        object method = this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance");
+        string method = ((string)this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(getValue(this.accounts, 0), "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privateGetAccountAccountsIdBalance"))
+        if (method == "privateGetAccountAccountsIdBalance")
         {
             response = await this.privateGetAccountAccountsIdBalance(this.extend(request, parameters));
         } else
@@ -1582,9 +1582,9 @@ public partial class bittrade : Exchange
             market = this.market(symbol);
             request["symbol"] = GetValue(market, "id");
         }
-        object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
+        string method = ((string)this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders"));
         Dictionary<string, object> response = null;
-        if ((isEqual(method, "private_get_order_history")) || (isEqual(method, "privateGetOrderHistory")))
+        if ((method == "private_get_order_history") || (method == "privateGetOrderHistory"))
         {
             response = await this.privateGetOrderHistory(this.extend(request, parameters));
         } else
@@ -1965,9 +1965,9 @@ public partial class bittrade : Exchange
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        object method = this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace");
+        string method = ((string)this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace"));
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privatePostOrderOrdersPlace"))
+        if (method == "privatePostOrderOrdersPlace")
         {
             response = await this.privatePostOrderOrdersPlace(this.extend(request, parameters));
         } else

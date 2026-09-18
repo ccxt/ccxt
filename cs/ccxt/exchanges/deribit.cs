@@ -990,7 +990,7 @@ public partial class deribit : Exchange
     public virtual string? codeFromOptions(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object defaultCode = this.safeValue(this.options, "code", "BTC");
+        string defaultCode = ((string)this.safeValue(this.options, "code", "BTC"));
         object options = this.safeValue(this.options, methodName, new Dictionary<string, object>() {});
         object code = this.safeValue(options, "code", defaultCode);
         return ((string?)((object)(this.safeValue(parameters, "code", code))));

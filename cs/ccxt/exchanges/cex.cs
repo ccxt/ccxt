@@ -1835,7 +1835,7 @@ public partial class cex : Exchange
         {
             transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenMainAndSubAccount(code, amount,((string)fromAccount),((string)toAccount), parameters));
         }
-        object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
+        bool fillResponseFromRequest = ((bool)this.handleOption("transfer", "fillResponseFromRequest", true));
         if (isEqual(fillResponseFromRequest, true))
         {
             ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;

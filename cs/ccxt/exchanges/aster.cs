@@ -3296,7 +3296,7 @@ public partial class aster : Exchange
         {
             if (isEqual(GetValue(market, "spot"), true))
             {
-                object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
+                bool quoteOrderQty = ((bool)this.handleOption("createOrder", "quoteOrderQty", true));
                 if (isEqual(quoteOrderQty, true))
                 {
                     string? quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");

@@ -1239,7 +1239,7 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+                            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
                             if (isEqual(checksum, true))
                             {
                                 throw new ChecksumError (add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
@@ -1263,7 +1263,7 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+                            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
                             if (isEqual(checksum, true))
                             {
                                 throw new ChecksumError (add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
@@ -5675,8 +5675,8 @@ public partial class binance : ccxt.binance
         var client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, symbols, isPortfolioMargin);
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         object cache = this.safeValue(this.positions, type);
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((cache == null)))
         {
@@ -5706,7 +5706,7 @@ public partial class binance : ccxt.binance
         {
             return;
         }
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if (isEqual(fetchPositionsSnapshot, true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");

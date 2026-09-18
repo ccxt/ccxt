@@ -767,8 +767,8 @@ public partial class gemini : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeValue(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
-        if (isEqual(method, "fetch_markets_from_web"))
+        string method = ((string)this.safeValue(this.options, "fetchMarketsMethod", "fetch_markets_from_api"));
+        if (method == "fetch_markets_from_web")
         {
             List<object> promises = new List<object>() {};
             ((IList<object>)promises).Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
@@ -1276,12 +1276,12 @@ public partial class gemini : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeValue(this.options, "fetchTickerMethod", "fetchTickerV1");
-        if (isEqual(method, "fetchTickerV1"))
+        string method = ((string)this.safeValue(this.options, "fetchTickerMethod", "fetchTickerV1"));
+        if (method == "fetchTickerV1")
         {
             return await this.FetchTickerV1(symbol, parameters);
         }
-        if (isEqual(method, "fetchTickerV2"))
+        if (method == "fetchTickerV2")
         {
             return await this.FetchTickerV2(symbol, parameters);
         }

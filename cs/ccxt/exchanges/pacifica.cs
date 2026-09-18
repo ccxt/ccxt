@@ -4103,7 +4103,7 @@ public partial class pacifica : Exchange
         }
         if (!isTrue(this.isSandboxModeEnabled))
         {
-            object useBuilder = this.handleOption("postActionRequest", "builderFee", true);
+            bool useBuilder = ((bool)this.handleOption("postActionRequest", "builderFee", true));
             object builderCode = null;
             if (isEqual(useBuilder, true))
             {
