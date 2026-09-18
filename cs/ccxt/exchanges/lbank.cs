@@ -672,8 +672,8 @@ public partial class lbank : Exchange
             object market = getValue(data, i);
             string? marketId = this.safeString(market, "symbol");
             List<object> parts = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            string? baseId = ((string)getValue(parts, 0));
-            string? quoteId = ((string)getValue(parts, 1));
+            string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+            string? quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             object symbol = add(add(bs, "/"), quote);
@@ -2237,7 +2237,7 @@ public partial class lbank : Exchange
         int numOrders = result.Count;
         if ((numOrders == 1))
         {
-            return ccxt.BaseExchange.ToOrder(this.parseOrder(getValue(result, 0)));
+            return ccxt.BaseExchange.ToOrder(this.parseOrder((result != null && 0 < result.Count ? result[0] : null)));
         } else
         {
             throw new BadRequest ((string)(this.id + " fetchOrder() can only fetch one order at a time")) ;

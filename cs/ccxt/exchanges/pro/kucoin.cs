@@ -932,7 +932,7 @@ public partial class kucoin : ccxt.kucoin
         if (getIndexOf(((string)topic), "contractMarket") < 0)
         {
             List<object> parts = ((string)((string)topic)).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-            string? marketId = ((string)getValue(parts, 1));
+            string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             market = this.safeMarket(marketId, market);
             string? symbol = this.safeString(market, "symbol");
             IDictionary<string, object> data = this.safeDict(ticker, "data", new Dictionary<string, object>() {});

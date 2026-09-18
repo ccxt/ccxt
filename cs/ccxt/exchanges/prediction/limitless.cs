@@ -1226,8 +1226,8 @@ public partial class limitless : PredictionExchange
             List<object> rawAsks = this.safeList(book, "asks", new List<object>() {});
             int rawBidsLength = rawBids.Count;
             int rawAsksLength = rawAsks.Count;
-            object yesBestBid = ((bool) (rawBidsLength > 0)) ? getValue(rawBids, 0) : null;
-            object yesBestAsk = ((bool) (rawAsksLength > 0)) ? getValue(rawAsks, 0) : null;
+            object yesBestBid = ((bool) (rawBidsLength > 0)) ? (rawBids != null && 0 < rawBids.Count ? rawBids[0] : null) : null;
+            object yesBestAsk = ((bool) (rawAsksLength > 0)) ? (rawAsks != null && 0 < rawAsks.Count ? rawAsks[0] : null) : null;
             string? yesBidPrice = this.safeString(yesBestBid, "price");
             string? yesBidSize = this.safeString(yesBestBid, "size");
             string? yesAskPrice = this.safeString(yesBestAsk, "price");

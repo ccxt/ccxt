@@ -224,7 +224,7 @@ public partial class mudrex : ccxt.mudrex
             return;
         }
         List<object> parts = ((string)stream).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-        string? interval = ((string)getValue(parts, 1));
+        string? interval = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         string? tf = this.findTimeframe(interval);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? s = this.safeString(data, "s");

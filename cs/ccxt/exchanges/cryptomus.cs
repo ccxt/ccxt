@@ -389,8 +389,8 @@ public partial class cryptomus : Exchange
             throw new ExchangeError ((string)(this.id + " parseMarket() missing marketId")) ;
         }
         List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        string? baseId = ((string)getValue(parts, 0));
-        string? quoteId = ((string)getValue(parts, 1));
+        string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+        string? quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         IDictionary<string, object> fees = this.safeDict(this.fees, "trading");

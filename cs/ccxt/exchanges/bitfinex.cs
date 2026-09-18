@@ -897,8 +897,8 @@ public partial class bitfinex : Exchange
             if (getIndexOf(((string)id), ":") >= 0)
             {
                 List<object> parts = ((string)((string)id)).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-                baseId = getValue(parts, 0);
-                quoteId = getValue(parts, 1);
+                baseId = (parts != null && 0 < parts.Count ? parts[0] : null);
+                quoteId = (parts != null && 1 < parts.Count ? parts[1] : null);
             } else
             {
                 baseId = slice(((string)id), 0, 3);
@@ -1469,7 +1469,7 @@ public partial class bitfinex : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
         };
-        int priceIndex = ((bool) (isEqual(getValue(fullRequest, "precision"), "R0"))) ? 1 : 0;
+        int priceIndex = ((bool) (isEqual((fullRequest != null && fullRequest.ContainsKey("precision") ? fullRequest["precision"] : null), "R0"))) ? 1 : 0;
         IList<object> orders = this.toArray(orderbook);
         for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
@@ -1753,7 +1753,7 @@ public partial class bitfinex : Exchange
         Int64? timestamp = this.safeInteger(tradeList, timestampIndex);
         if (isPrivate)
         {
-            object marketId = getValue(tradeList, 1);
+            object marketId = (tradeList != null && 1 < tradeList.Count ? tradeList[1] : null);
             symbol = this.safeSymbol(marketId);
             orderId = this.safeString(tradeList, 3);
             Int64? maker = this.safeInteger(tradeList, 8);
@@ -1766,7 +1766,7 @@ public partial class bitfinex : Exchange
                 { "cost", feeCostString },
                 { "currency", feeCurrency },
             };
-            object orderType = getValue(tradeList, 6);
+            object orderType = (tradeList != null && 6 < tradeList.Count ? tradeList[6] : null);
             type = this.safeString(getValue(this.options, "exchangeTypes"), orderType);
         }
         return this.safeTrade(new Dictionary<string, object>() {

@@ -170,7 +170,7 @@ public partial class coinex : ccxt.coinex
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            string? symbolsString = ((string)getValue(parts, 1));
+            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object tickers = this.filterByArray(newTickers, "symbol", symbols);
             List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
@@ -346,7 +346,7 @@ public partial class coinex : ccxt.coinex
         }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(data, "balance_list", new List<object>() {});
-        object firstEntry = getValue(balances, 0);
+        object firstEntry = (balances != null && 0 < balances.Count ? balances[0] : null);
         Int64? updated = this.safeInteger(firstEntry, "updated_at");
         string? unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
         bool isSpot = (!isEqual(updated, null));

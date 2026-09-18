@@ -753,7 +753,7 @@ public partial class testMainClass
             int valuesLength = values.Count;
             if (valuesLength > 0)
             {
-                object first = getValue(values, 0);
+                object first = (values != null && 0 < values.Count ? values[0] : null);
                 if ((first != null))
                 {
                     symbol = getValue(first, "symbol");
@@ -1080,7 +1080,7 @@ public partial class testMainClass
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
                     List<object> handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-                    string? marketPart = ((string)getValue(handleParts, 0));
+                    string? marketPart = ((string)(handleParts != null && 0 < handleParts.Count ? handleParts[0] : null));
                     string lowerPart = ((string)marketPart).ToLower();
                     string dedashed = ((string)lowerPart).Replace((string)"-", (string)" ");
                     eventQuery = ((string)dedashed).Replace((string)"_", (string)" ");
@@ -1700,7 +1700,7 @@ public partial class testMainClass
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<object> currentParts = ((string)current).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
                     res = add(res, "/");
-                    res = add(res, getValue(currentParts, 0));
+                    res = add(res, (currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
                     break;
                 }
                 res = add(res, "/");
@@ -1723,8 +1723,8 @@ public partial class testMainClass
             {
                 continue;
             }
-            string? key = ((string)getValue(keyValue, 0));
-            object value = getValue(keyValue, 1);
+            string? key = ((string)(keyValue != null && 0 < keyValue.Count ? keyValue[0] : null));
+            object value = (keyValue != null && 1 < keyValue.Count ? keyValue[1] : null);
             if (((value != null)) && ((((string)value).StartsWith(((string)"["))) || (((string)value).StartsWith(((string)"{")))))
             {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI

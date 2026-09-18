@@ -2802,7 +2802,7 @@ public partial class pacifica : Exchange
         {
             if (((paginationCursor != null)) && (dataLength > 0))
             {
-                object first = getValue(data, 0);
+                object first = (data != null && 0 < data.Count ? data[0] : null);
                 ((IDictionary<string,object>)first)["next_cursor"] = paginationCursor;
                 ((IDictionary<string,object>)first)["has_more"] = hasMore;
                 ((List<object>)data)[Convert.ToInt32(0)] = first;

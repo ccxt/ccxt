@@ -5576,7 +5576,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(getValue(data, 0), market));
+        return ccxt.BaseExchange.ToTicker(this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market));
     }
 
     /**
@@ -5613,7 +5613,7 @@ public partial class bitget : Exchange
             response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(getValue(data, 0), market));
+        return ccxt.BaseExchange.ToTicker(this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market));
     }
 
     /**
@@ -11454,7 +11454,7 @@ public partial class bitget : Exchange
             }
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(getValue(data, 0), market));
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate((data != null && 0 < data.Count ? data[0] : null), market));
     }
 
     /**
@@ -12248,10 +12248,10 @@ public partial class bitget : Exchange
         //
         List<object> data = this.safeList2(interest, "openInterestList", "list", new List<object>() {});
         Int64? timestamp = this.safeInteger(interest, "ts");
-        string? marketId = this.safeString(getValue(data, 0), "symbol");
+        string? marketId = this.safeString((data != null && 0 < data.Count ? data[0] : null), "symbol");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
-            { "openInterestAmount", this.safeNumber2(getValue(data, 0), "size", "openInterest") },
+            { "openInterestAmount", this.safeNumber2((data != null && 0 < data.Count ? data[0] : null), "size", "openInterest") },
             { "openInterestValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -13447,7 +13447,7 @@ public partial class bitget : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> order = this.safeList2(data, "successList", "list", new List<object>() {});
-        return this.parseOrder(getValue(order, 0), market);
+        return this.parseOrder((order != null && 0 < order.Count ? order[0] : null), market);
     }
 
     /**

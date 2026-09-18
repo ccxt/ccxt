@@ -8852,13 +8852,13 @@ public partial class kucoin : Exchange
             {
                 if ((address == null))
                 {
-                    if (((string)getValue(txidParts, 1)).Length > 1)
+                    if (((string)(txidParts != null && 1 < txidParts.Count ? txidParts[1] : null)).Length > 1)
                     {
-                        address = getValue(txidParts, 1);
+                        address = (txidParts != null && 1 < txidParts.Count ? txidParts[1] : null);
                     }
                 }
             }
-            txid = getValue(txidParts, 0);
+            txid = (txidParts != null && 0 < txidParts.Count ? txidParts[0] : null);
         }
         string type = ((bool) ((txid == null))) ? "withdrawal" : "deposit";
         string? rawStatus = this.safeString(transaction, "status");

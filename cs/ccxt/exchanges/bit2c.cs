@@ -1065,10 +1065,10 @@ public partial class bit2c : Exchange
             List<object> reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             string? marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
-            market = this.safeMarket(getValue(reference_parts, 0), market);
+            market = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), market);
             object isMaker = this.safeValue(trade, "isMaker");
             makerOrTaker = ((bool) (isEqual(isMaker, true))) ? "maker" : "taker";
-            orderId = ((bool) (isEqual(isMaker, true))) ? getValue(reference_parts, 2) : getValue(reference_parts, 1);
+            orderId = ((bool) (isEqual(isMaker, true))) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
             Int64? action = this.safeInteger(trade, "action");
             if ((action == 0))
             {

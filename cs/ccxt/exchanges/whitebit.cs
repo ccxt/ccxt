@@ -1199,7 +1199,7 @@ public partial class whitebit : Exchange
         {
             string? entry = ((string)getValue(currencyIds, i));
             List<object> splitEntry = ((string)entry).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            object currencyId = getValue(splitEntry, 0);
+            object currencyId = (splitEntry != null && 0 < splitEntry.Count ? splitEntry[0] : null);
             object feeInfo = getValue(response, entry);
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codes == null)) || (this.inArray(code, codes))))
@@ -1544,12 +1544,12 @@ public partial class whitebit : Exchange
             IDictionary<string, object> currencyLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
             Dictionary<string, object> limits = new Dictionary<string, object>() {
                 { "deposit", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(currencyLimits, "deposit"), "min") },
-                    { "max", getValue(getValue(currencyLimits, "deposit"), "max") },
+                    { "min", getValue((currencyLimits != null && currencyLimits.ContainsKey("deposit") ? currencyLimits["deposit"] : null), "min") },
+                    { "max", getValue((currencyLimits != null && currencyLimits.ContainsKey("deposit") ? currencyLimits["deposit"] : null), "max") },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", getValue(getValue(currencyLimits, "withdraw"), "min") },
-                    { "max", getValue(getValue(currencyLimits, "withdraw"), "max") },
+                    { "min", getValue((currencyLimits != null && currencyLimits.ContainsKey("withdraw") ? currencyLimits["withdraw"] : null), "min") },
+                    { "max", getValue((currencyLimits != null && currencyLimits.ContainsKey("withdraw") ? currencyLimits["withdraw"] : null), "max") },
                 } },
             };
             // Add fee information if available
@@ -4974,10 +4974,10 @@ public partial class whitebit : Exchange
                     int errorsLength = errorKeys.Count;
                     if (errorsLength > 0)
                     {
-                        string? errorKey = ((string)getValue(errorKeys, 0));
+                        string? errorKey = ((string)(errorKeys != null && 0 < errorKeys.Count ? errorKeys[0] : null));
                         List<object> errorMessageArray = this.safeList(errorObject, errorKey, new List<object>() {});
                         int errorMessageLength = errorMessageArray.Count;
-                        errorInfo = ((bool) (errorMessageLength > 0)) ? getValue(errorMessageArray, 0) : body;
+                        errorInfo = ((bool) (errorMessageLength > 0)) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
                     }
                 }
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
@@ -4994,10 +4994,10 @@ public partial class whitebit : Exchange
                 object errorInfo = body;
                 if (errKeysLength > 0)
                 {
-                    string? errorKey = ((string)getValue(errKeys, 0));
+                    string? errorKey = ((string)(errKeys != null && 0 < errKeys.Count ? errKeys[0] : null));
                     List<object> errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
                     int errorMessageLength = errorMessageArray.Count;
-                    errorInfo = ((bool) (errorMessageLength > 0)) ? getValue(errorMessageArray, 0) : body;
+                    errorInfo = ((bool) (errorMessageLength > 0)) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
                 }
                 string feedback = add((this.id + " "), body);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);

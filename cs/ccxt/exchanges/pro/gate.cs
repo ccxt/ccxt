@@ -1727,7 +1727,7 @@ public partial class gate : ccxt.gate
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            string? symbolsString = ((string)getValue(parts, 1));
+            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
@@ -2202,9 +2202,9 @@ public partial class gate : ccxt.gate
                     List<object> payload = this.safeList(message, "payload", new List<object>() {});
                     for (int i = 0; i < payload.Count; postFixIncrement(ref i))
                     {
-                        object marketType = ((bool) isEqual(getValue(parsedChannel, 0), "futures")) ? "swap" : getValue(parsedChannel, 0);
+                        object marketType = ((bool) isEqual((parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null), "futures")) ? "swap" : (parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null);
                         string? symbol = this.safeSymbol(getValue(payload, i), null, "_", marketType);
-                        object messageHashSymbol = add(add(getValue(parsedChannel, 1), ":"), symbol);
+                        object messageHashSymbol = add(add((parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null), ":"), symbol);
                         if (((messageHashSymbol != null)) && (inOp(((WebSocketClient)client).subscriptions, messageHashSymbol)))
                         {
                             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHashSymbol);

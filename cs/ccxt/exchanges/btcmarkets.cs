@@ -528,8 +528,8 @@ public partial class btcmarkets : Exchange
             int numParts = addressParts.Count;
             if (numParts > 1)
             {
-                address = getValue(addressParts, 0);
-                tag = getValue(addressParts, 1);
+                address = (addressParts != null && 0 < addressParts.Count ? addressParts[0] : null);
+                tag = (addressParts != null && 1 < addressParts.Count ? addressParts[1] : null);
             }
         }
         object addressTo = address;

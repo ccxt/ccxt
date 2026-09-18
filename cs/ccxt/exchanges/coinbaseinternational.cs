@@ -1079,7 +1079,7 @@ public partial class coinbaseinternational : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(networks)); postFixIncrement(ref i))
         {
             Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
-            ((IDictionary<string,object>)result)[(string)getValue(network, "network")] = network;
+            ((IDictionary<string,object>)result)[(string)(network != null && network.ContainsKey("network") ? network["network"] : null)] = network;
         }
         return ((Dictionary<string, object>)((object)(result)));
     }

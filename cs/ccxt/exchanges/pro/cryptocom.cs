@@ -1167,7 +1167,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            string? symbolsString = ((string)getValue(parts, 1));
+            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
@@ -1242,7 +1242,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         string? messageHash = this.safeString(message, "subscription");
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        List<object> positionBalances = this.safeList(getValue(data, 0), "position_balances", new List<object>() {});
+        List<object> positionBalances = this.safeList((data != null && 0 < data.Count ? data[0] : null), "position_balances", new List<object>() {});
         ((IDictionary<string,object>)this.balance)["info"] = data;
         for (int i = 0; i < positionBalances.Count; postFixIncrement(ref i))
         {

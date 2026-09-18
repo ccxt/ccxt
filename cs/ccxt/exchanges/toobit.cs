@@ -1155,7 +1155,7 @@ public partial class toobit : Exchange
         string? baseId = this.safeString(market, "baseAsset", "");
         string? quoteId = this.safeString(market, "quoteAsset");
         List<object> baseParts = ((string)baseId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        string? baseIdClean = ((string)getValue(baseParts, 0));
+        string? baseIdClean = ((string)(baseParts != null && 0 < baseParts.Count ? baseParts[0] : null));
         object bs = this.safeCurrencyCode(baseIdClean);
         string? quote = this.safeCurrencyCode(quoteId);
         string? settleId = this.safeString(market, "marginToken");

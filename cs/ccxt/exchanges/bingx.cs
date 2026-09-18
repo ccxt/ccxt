@@ -1463,8 +1463,8 @@ public partial class bingx : Exchange
     {
         string id = ((string)this.safeString(market, "symbol"));
         List<object> symbolParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        string? baseId = ((string)getValue(symbolParts, 0));
-        string? quoteId = ((string)getValue(symbolParts, 1));
+        string? baseId = ((string)(symbolParts != null && 0 < symbolParts.Count ? symbolParts[0] : null));
+        string? quoteId = ((string)(symbolParts != null && 1 < symbolParts.Count ? symbolParts[1] : null));
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? currency = this.safeString(market, "currency");

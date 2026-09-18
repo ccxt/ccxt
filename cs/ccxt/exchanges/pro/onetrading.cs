@@ -1034,7 +1034,7 @@ public partial class onetrading : ccxt.onetrading
             string? datetime = this.safeString2(update, "time", "timestamp");
             object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
             IDictionary<string, object> previousOrder = this.safeDict(previousOrderArray, 0, new Dictionary<string, object>() {});
-            symbol = getValue(previousOrder, "symbol");
+            symbol = (previousOrder != null && previousOrder.ContainsKey("symbol") ? previousOrder["symbol"] : null);
             string? filled = this.safeString(update, "filled_amount");
             string? status = this.parseWsOrderStatus(updateType);
             if ((updateType == "ORDER_CLOSED") && isTrue(Precise.stringEq(filled, "0")))

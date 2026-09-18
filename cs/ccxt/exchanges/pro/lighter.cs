@@ -183,7 +183,7 @@ public partial class lighter : ccxt.lighter
         IDictionary<string, object> data = this.safeDict(message, "order_book", new Dictionary<string, object>() {});
         string? channel = this.safeString(message, "channel", "");
         List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-        string? marketId = ((string)getValue(parts, 1));
+        string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(message, "timestamp");
@@ -623,7 +623,7 @@ public partial class lighter : ccxt.lighter
         List<object> data = this.safeList(message, "trades", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
         List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-        string? marketId = ((string)getValue(parts, 1));
+        string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object stored = this.safeValue(this.trades, symbol);
@@ -825,7 +825,7 @@ public partial class lighter : ccxt.lighter
         //
         string? channel = this.safeString(message, "channel", "");
         List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-        string? accountIndex = ((string)getValue(parts, 1));
+        string? accountIndex = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         IDictionary<string, object> data = this.safeDict(message, "trades", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         int idsLength = marketIds.Count;
@@ -1033,7 +1033,7 @@ public partial class lighter : ccxt.lighter
         List<object> data = this.safeList(message, "liquidation_trades", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
         List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-        string? marketId = ((string)getValue(parts, 1));
+        string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object stored = this.safeValue(this.liquidations, symbol);

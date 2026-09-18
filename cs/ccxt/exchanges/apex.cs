@@ -1638,7 +1638,7 @@ public partial class apex : Exchange
         string? nonce = "0";
         if (subAccounts.Count > 0)
         {
-            nonce = this.safeString(getValue(subAccounts, 0), "nonce", "0");
+            nonce = this.safeString((subAccounts != null && 0 < subAccounts.Count ? subAccounts[0] : null), "nonce", "0");
         }
         string? finalNonce = nonce; // java req
         string? ethAddress = this.safeString(accountData, "ethereumAddress", "");

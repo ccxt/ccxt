@@ -2587,8 +2587,8 @@ public partial class digifinex : Exchange
                 int numParts = parts.Count;
                 if (numParts > 1)
                 {
-                    side = getValue(parts, 0);
-                    type = getValue(parts, 1);
+                    side = (parts != null && 0 < parts.Count ? parts[0] : null);
+                    type = (parts != null && 1 < parts.Count ? parts[1] : null);
                 } else
                 {
                     type = "limit";
@@ -4360,7 +4360,7 @@ public partial class digifinex : Exchange
         //
         string dataRequest = ((bool) (isEqual(marketType, "swap"))) ? "data" : "positions";
         List<object> data = this.safeList(response, dataRequest, new List<object>() {});
-        Dictionary<string, object> position = this.parsePosition(getValue(data, 0), market);
+        Dictionary<string, object> position = this.parsePosition((data != null && 0 < data.Count ? data[0] : null), market);
         if (isEqual(marketType, "swap"))
         {
             return ccxt.BaseExchange.ToPosition(position);
