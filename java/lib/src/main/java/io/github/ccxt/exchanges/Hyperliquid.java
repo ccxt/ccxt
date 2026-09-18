@@ -909,7 +909,7 @@ public class Hyperliquid extends HyperliquidApi
             // Count the numbers before the decimal separator
             String integerPart = this.safeString(priceSplitted, 0, "");
             // Get significant digits, take the max() of 5 and the integer digits count
-            Object significantDigits = Helpers.mathMax(5, integerPart.length());
+            Object significantDigits = Math.max(5, integerPart.length());
             // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
             pricePrecision = Helpers.mathMin(Helpers.subtract(maxDecimals, amountPrecision), Helpers.subtract(significantDigits, integerPart.length()));
         }
@@ -1879,7 +1879,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object priceStr = this.numberToString(price);
         Object integerPart = Helpers.GetValue(Helpers.split(((String)priceStr), "."), 0);
-        Object significantDigits = Helpers.mathMax(5, ((String)integerPart).length());
+        Object significantDigits = Math.max(5, ((String)integerPart).length());
         Object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         Object maxDecimals = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 8 : 6;
         Object subtractedValue = Helpers.subtract(maxDecimals, this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "amount")));
