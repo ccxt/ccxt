@@ -147,9 +147,9 @@ public partial class kucoin : ccxt.kucoin
             return result;
         } catch(Exception e)
         {
-            var future = this.safeValue(getValue(this.options, "urls"), connectId);
+            var future = this.safeValue((this.options.ContainsKey("urls") ? this.options["urls"] : null), connectId);
             ((Future)future).reject(e);
-            ((IDictionary<string,object>)getValue(this.options, "urls")).Remove((string)connectId);
+            ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null)).Remove((string)connectId);
         }
         return null;
     }
@@ -187,10 +187,10 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         string requestId = ((object)this.requestId()).ToString();
         Dictionary<string, object> market = this.market(symbol);
-        string urlType = ((bool) (((getValue(market, "contract") as bool?) == true))) ? "futures" : "spot";
+        string urlType = ((bool) ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))) ? "futures" : "spot";
         string tradeType = ((string)urlType).ToUpper();
         object action = "subscribe";
-        if (!isEqual(subscription, null))
+        if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) ((unsubscribe == true))) ? "unsubscribe" : action;
@@ -200,10 +200,10 @@ public partial class kucoin : ccxt.kucoin
             { "action", action },
             { "channel", channel },
             { "tradeType", tradeType },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), urlType);
+        string? url = this.safeString(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
         var client = this.client(url);
         if (!(inOp(((WebSocketClient)client).subscriptions, messageHash)))
         {
@@ -218,7 +218,7 @@ public partial class kucoin : ccxt.kucoin
         this.checkRequiredCredentials();
         string requestId = ((object)this.requestId()).ToString();
         object action = "subscribe";
-        if (!isEqual(subscription, null))
+        if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) ((unsubscribe == true))) ? "unsubscribe" : action;
@@ -228,10 +228,10 @@ public partial class kucoin : ccxt.kucoin
             { "action", action },
             { "channel", channel },
         };
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> message = this.extend(request, parameters);
         object url = await this.getUtaUrl();
@@ -246,7 +246,7 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<object> getUtaUrl()
     {
         string? utaToken = await this.authenticateUta();
-        return add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?token="), utaToken);
+        return add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "?token="), utaToken);
     }
 
     public async virtual Task<string?> authenticateUta()
@@ -259,7 +259,7 @@ public partial class kucoin : ccxt.kucoin
         Int64 now = this.milliseconds();
         bool expired = isGreaterThanOrEqual((subtract(now, lastUpdate)), refreshInterval);
         string messageHash = "utaToken";
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);
         if (((utaToken == null)) || expired)
         {
@@ -309,7 +309,7 @@ public partial class kucoin : ccxt.kucoin
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         var client = this.client(url);
-        for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); i++)
+        for (int i = 0; i < getArrayLength(subscriptionHashes); i++)
         {
             object subscriptionHash = getValue(subscriptionHashes, i);
             if (!(inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
@@ -331,12 +331,12 @@ public partial class kucoin : ccxt.kucoin
             { "response", true },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        if (!isEqual(subscription, null))
+        if ((subscription != null))
         {
             ((IDictionary<string,object>)subscription)[(string)requestId] = requestId;
         }
         var client = this.client(url);
-        for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); i++)
+        for (int i = 0; i < getArrayLength(subscriptionHashes); i++)
         {
             object subscriptionHash = getValue(subscriptionHashes, i);
             if (!(inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
@@ -363,13 +363,13 @@ public partial class kucoin : ccxt.kucoin
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string messageHash = add("ticker:", symbolVar);
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string messageHash = ("ticker:" + (symbolVar));
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -380,7 +380,7 @@ public partial class kucoin : ccxt.kucoin
             string channel = "ticker";
             return ccxt.BaseExchange.ToTicker(await this.subscribePublicUta(messageHash, channel, symbolVar, parameters));
         }
-        object isFuturesMethod = getValue(market, "contract");
+        object isFuturesMethod = (market.ContainsKey("contract") ? market["contract"] : null);
         object url = await this.negotiate(false, isFuturesMethod);
         object method = "/market/snapshot";
         if (isEqual(isFuturesMethod, true))
@@ -392,7 +392,7 @@ public partial class kucoin : ccxt.kucoin
             method = ((IList<object>)methodparametersVariable)[0];
             parameters = ((IList<object>)methodparametersVariable)[1];
         }
-        object topic = add(add(method, ":"), getValue(market, "id"));
+        object topic = add(add(method, ":"), (market.ContainsKey("id") ? market["id"] : null));
         return ccxt.BaseExchange.ToTicker(await this.subscribe(url, messageHash, topic, parameters));
     }
 
@@ -411,13 +411,13 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object isFuturesMethod = getValue(market, "contract");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object isFuturesMethod = (market.ContainsKey("contract") ? market["contract"] : null);
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "unWatchTicker", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -427,7 +427,7 @@ public partial class kucoin : ccxt.kucoin
             { "topic", "ticker" },
             { "unsubscribe", true },
         };
-        string subMessageHash = add("ticker:", symbol);
+        string subMessageHash = ("ticker:" + (symbol));
         if (isTrue(uta))
         {
             subMessageHash = ("uta:" + subMessageHash);
@@ -448,7 +448,7 @@ public partial class kucoin : ccxt.kucoin
                 method = ((IList<object>)methodparametersVariable)[0];
                 parameters = ((IList<object>)methodparametersVariable)[1];
             }
-            object topic = add(add(method, ":"), getValue(market, "id"));
+            object topic = add(add(method, ":"), (market.ContainsKey("id") ? market["id"] : null));
             string messageHash = ("unsubscribe:" + subMessageHash);
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
@@ -476,7 +476,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -491,7 +491,7 @@ public partial class kucoin : ccxt.kucoin
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         bool isFuturesMethod = ((marketType != "spot")) && ((marketType != "margin"));
-        if ((isFuturesMethod || isTrue(uta)) && isEqual(symbols, null))
+        if ((isFuturesMethod || isTrue(uta)) && (symbols == null))
         {
             throw new ArgumentsRequired ((string)(((this.id + " watchTickers() requires a list of symbols for ") + marketType) + " markets and unified trading account (uta)")) ;
         }
@@ -508,19 +508,19 @@ public partial class kucoin : ccxt.kucoin
         }
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add("ticker:", symbol));
+                ((IList<object>)messageHashes).Add(("ticker:" + (symbol)));
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)topics).Add(add(add(method, ":"), getValue(market, "id")));
+                ((IList<object>)topics).Add(add(add(method, ":"), (market.ContainsKey("id") ? market["id"] : null)));
             }
         }
         object url = await this.negotiate(false, isFuturesMethod);
         object tickers = null;
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             object allTopic = add(method, ":all");
             tickers = await this.subscribe(url, messageHash, allTopic, parameters);
@@ -552,7 +552,7 @@ public partial class kucoin : ccxt.kucoin
         string urlType = ((bool) isContract) ? "futures" : "spot";
         string tradeType = ((string)urlType).ToUpper();
         object action = "subscribe";
-        if (!isEqual(subscription, null))
+        if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) ((unsubscribe == true))) ? "unsubscribe" : action;
@@ -565,7 +565,7 @@ public partial class kucoin : ccxt.kucoin
             { "symbols", this.marketIds(symbols) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), urlType);
+        string? url = this.safeString(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
         var client = this.client(url);
         object messageHashWithSymbols = add(add(channel, ":"), String.Join(",", ((IList<object>)symbols).ToArray()));
         if (!(inOp(((WebSocketClient)client).subscriptions, messageHashWithSymbols)))
@@ -578,7 +578,7 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<ccxt.Tickers> WatchUtaTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -589,7 +589,7 @@ public partial class kucoin : ccxt.kucoin
         {
             string? symbol = this.safeString(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string subMessageHash = add((messageHash + ":"), getValue(market, "symbol"));
+            string subMessageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             ((IList<object>)messageHashes).Add(subMessageHash);
         }
         object tickers = await this.subscribePublicMultipleUta(messageHashes, "ticker", symbols, parameters);
@@ -698,7 +698,7 @@ public partial class kucoin : ccxt.kucoin
             object ticker = this.parseSpotOrUtaTicker(rawTicker, market);
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
-            string messageHash = add("ticker:", symbol);
+            string messageHash = ("ticker:" + (symbol));
             (client as WebSocketClient).resolve(ticker, messageHash);
             // watchTickers
             Dictionary<string, object> allTickers = new Dictionary<string, object>() {};
@@ -737,8 +737,8 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         Dictionary<string, object> ticker = this.parseTicker(data, market);
-        ((IDictionary<string,object>)this.tickers)[(string)getValue(market, "symbol")] = ticker;
-        string messageHash = add("ticker:", getValue(market, "symbol"));
+        ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+        string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -780,8 +780,8 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsUtaTicker(data, market));
-        ((IDictionary<string,object>)this.tickers)[(string)getValue(market, "symbol")] = ticker;
-        string messageHash = add("uta:ticker:", getValue(market, "symbol"));
+        ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+        string messageHash = ("uta:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -833,7 +833,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -858,7 +858,7 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<object> watchMultiHelper(object methodName, object channelName, object isFuturesChannel, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -866,14 +866,14 @@ public partial class kucoin : ccxt.kucoin
         int length = getArrayLength(symbols);
         if (length > 100)
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() accepts a maximum of 100 symbols")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() accepts a maximum of 100 symbols")) ;
         }
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("bidask@", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("bidask@" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
         object url = await this.negotiate(false, isFuturesChannel);
         IList<object> marketIds = this.marketIds(symbols);
@@ -992,14 +992,14 @@ public partial class kucoin : ccxt.kucoin
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = add((add("candles:", symbolVar) + ":"), timeframeVar);
+        string messageHash = ((("candles:" + (symbolVar)) + ":") + (timeframeVar));
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -1016,14 +1016,14 @@ public partial class kucoin : ccxt.kucoin
             ohlcv = await this.subscribePublicUta(messageHash, channel, symbolVar, this.extend(extendedParams, parameters));
         } else
         {
-            object isFuturesMethod = getValue(market, "contract");
+            object isFuturesMethod = (market.ContainsKey("contract") ? market["contract"] : null);
             object url = await this.negotiate(false, isFuturesMethod);
             string channelName = "/market/candles:";
             if (isEqual(isFuturesMethod, true))
             {
                 channelName = "/contractMarket/limitCandle:";
             }
-            object topic = add(add(add(channelName, getValue(market, "id")), "_"), period);
+            object topic = (((channelName + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + period);
             ohlcv = await this.subscribe(url, messageHash, topic, parameters);
         }
         if (this.newUpdates)
@@ -1051,12 +1051,12 @@ public partial class kucoin : ccxt.kucoin
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -1069,7 +1069,7 @@ public partial class kucoin : ccxt.kucoin
             { "topic", "ohlcv" },
             { "unsubscribe", true },
         };
-        string subMessageHash = add((add("candles:", symbol) + ":"), timeframeVar);
+        string subMessageHash = ((("candles:" + (symbol)) + ":") + (timeframeVar));
         if (isTrue(uta))
         {
             subMessageHash = ("uta:" + subMessageHash);
@@ -1082,7 +1082,7 @@ public partial class kucoin : ccxt.kucoin
             return await this.subscribePublicUta(utaMessageHash, "kline", symbol, this.extend(extendedParams, parameters), subscription);
         } else
         {
-            object isFuturesMethod = getValue(market, "contract");
+            object isFuturesMethod = (market.ContainsKey("contract") ? market["contract"] : null);
             object url = await this.negotiate(false, isFuturesMethod);
             string channelName = "/market/candles:";
             if (isEqual(isFuturesMethod, true))
@@ -1090,7 +1090,7 @@ public partial class kucoin : ccxt.kucoin
                 channelName = "/contractMarket/limitCandle:";
             }
             string messageHash = ("unsubscribe:" + subMessageHash);
-            object topic = add(add(add(channelName, getValue(market, "id")), "_"), period);
+            object topic = (((channelName + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + period);
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
@@ -1151,7 +1151,7 @@ public partial class kucoin : ccxt.kucoin
         // use a reverse lookup in a static map instead
         string? timeframe = this.findTimeframe(interval);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -1192,7 +1192,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(data, "i");
         string? timeframe = this.findTimeframe(interval);
         string messageHash = ((("uta:candles:" + symbol) + ":") + timeframe);
@@ -1236,8 +1236,8 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            string messageHash = add("uta:trades:", symbolVar);
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            string messageHash = ("uta:trades:" + (symbolVar));
             string channel = "trade";
             object trades = await this.subscribePublicUta(messageHash, channel, symbolVar, parameters);
             if (this.newUpdates)
@@ -1272,7 +1272,7 @@ public partial class kucoin : ccxt.kucoin
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1292,9 +1292,9 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("trades:", symbol));
+            ((IList<object>)messageHashes).Add(("trades:" + (symbol)));
             object marketId = getValue(marketIds, i);
-            ((IList<object>)subscriptionHashes).Add(add(channelName, marketId));
+            ((IList<object>)subscriptionHashes).Add((channelName + (marketId)));
         }
         object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters);
         if (this.newUpdates)
@@ -1319,7 +1319,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1339,8 +1339,8 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
-            ((IList<object>)subscriptionHashes).Add(add("trades:", symbol));
+            ((IList<object>)messageHashes).Add(("unsubscribe:trades:" + (symbol)));
+            ((IList<object>)subscriptionHashes).Add(("trades:" + (symbol)));
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
@@ -1380,8 +1380,8 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
-            symbol = getValue(market, "symbol");
-            string subMessageHash = add("uta:trades:", symbol);
+            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            string subMessageHash = ("uta:trades:" + (symbol));
             string messageHash = ("unsubscribe:" + subMessageHash);
             string channel = "trade";
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1560,12 +1560,12 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             object depth = "increment"; // '1', '5', '50' or 'increment'
             IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
             depth = ((IList<object>)depthparametersVariable)[0];
             parameters = ((IList<object>)depthparametersVariable)[1];
-            string messageHash = add((add("uta:orderbook:", symbolVar) + ":depth:"), depth);
+            string messageHash = ((("uta:orderbook:" + (symbolVar)) + ":depth:") + (depth));
             string channel = "obu";
             Dictionary<string, object> subscription = new Dictionary<string, object>() {};
             if ((isEqual(depth, "increment")))
@@ -1613,7 +1613,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
             object depth = "increment"; // '1', '5', '50' or 'increment'
             IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
             depth = ((IList<object>)depthparametersVariable)[0];
@@ -1621,7 +1621,7 @@ public partial class kucoin : ccxt.kucoin
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "depth", depth },
             });
-            string subMessageHash = add((add("uta:orderbook:", symbol) + ":depth:"), depth);
+            string subMessageHash = ((("uta:orderbook:" + (symbol)) + ":depth:") + (depth));
             string messageHash = ("unsubscribe:" + subMessageHash);
             string channel = "obu";
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1667,7 +1667,7 @@ public partial class kucoin : ccxt.kucoin
                 throw new ExchangeError ((string)(this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")) ;
             }
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1698,7 +1698,7 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
+            ((IList<object>)messageHashes).Add(("orderbook:" + (symbol)));
             object marketId = getValue(marketIds, i);
             ((IList<object>)subscriptionHashes).Add(add(add(method, ":"), marketId));
         }
@@ -1735,7 +1735,7 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit");
         parameters = this.omit(parameters, "limit");
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1766,8 +1766,8 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
-            ((IList<object>)subscriptionHashes).Add(add("orderbook:", symbol));
+            ((IList<object>)messageHashes).Add(("unsubscribe:orderbook:" + (symbol)));
+            ((IList<object>)subscriptionHashes).Add(("orderbook:" + (symbol)));
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
@@ -1909,7 +1909,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeIntegerProduct(data, "M", 0.000001);
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -1965,7 +1965,7 @@ public partial class kucoin : ccxt.kucoin
         {
             return -1;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(cache)); i++)
+        for (int i = 0; i < getArrayLength(cache); i++)
         {
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
@@ -2029,7 +2029,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); i++)
+        for (int i = 0; i < getArrayLength(bidAsks); i++)
         {
             List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -2163,7 +2163,7 @@ public partial class kucoin : ccxt.kucoin
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2173,10 +2173,10 @@ public partial class kucoin : ccxt.kucoin
         parameters = ((IList<object>)utaparametersVariable)[1];
         IDictionary<string, object> market = null;
         object messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object orders = null;
@@ -2185,9 +2185,9 @@ public partial class kucoin : ccxt.kucoin
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "tradeType", "UNIFIED" },
             });
-            messageHash = add("uta:", messageHash);
+            messageHash = ("uta:" + (messageHash));
             string channel = "order";
-            if (isEqual(symbolVar, null))
+            if ((symbolVar == null))
             {
                 channel = channel + "All";
             }
@@ -2207,7 +2207,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 topic = ((bool) ((trigger == true))) ? "/contractMarket/advancedOrders" : "/contractMarket/tradeOrders";
             }
-            if (isEqual(symbolVar, null))
+            if ((symbolVar == null))
             {
                 string suffix = this.getOrdersMessageHashSuffix(topic);
                 messageHash = add(messageHash, suffix);
@@ -2480,7 +2480,7 @@ public partial class kucoin : ccxt.kucoin
         string? orderId = this.safeString(parsed, "id");
         string? triggerPrice = this.safeString(parsed, "triggerPrice");
         bool isTriggerOrder = ((triggerPrice != null));
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -2589,7 +2589,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsUtaOrder(data));
         string? symbol = this.safeString(parsed, "symbol");
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -2622,17 +2622,17 @@ public partial class kucoin : ccxt.kucoin
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object messageHash = "myTrades";
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            messageHash = add(add(messageHash, ":"), getValue(market, "symbol"));
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = add(add(messageHash, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
@@ -2649,7 +2649,7 @@ public partial class kucoin : ccxt.kucoin
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "tradeType", "UNIFIED" },
             });
-            messageHash = add("uta:", messageHash);
+            messageHash = ("uta:" + (messageHash));
             string channel = "execution.lite";
             trades = await this.subscribePrivateUta(new List<object>() {messageHash}, channel, channel, null, parameters);
         } else
@@ -2663,7 +2663,7 @@ public partial class kucoin : ccxt.kucoin
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "privateChannel", true },
             };
-            if (isEqual(symbolVar, null))
+            if ((symbolVar == null))
             {
                 string suffix = this.getMyTradesMessageHashSuffix(topic);
                 messageHash = add(messageHash, suffix);
@@ -2680,7 +2680,7 @@ public partial class kucoin : ccxt.kucoin
     public virtual string getMyTradesMessageHashSuffix(object topic)
     {
         string suffix = "-spot";
-        if (isGreaterThanOrEqual(getIndexOf(topic, "contractMarket"), 0))
+        if (getIndexOf(topic, "contractMarket") >= 0)
         {
             suffix = "-contract";
         }
@@ -2717,7 +2717,7 @@ public partial class kucoin : ccxt.kucoin
         //         }
         //     }
         //
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -2731,7 +2731,7 @@ public partial class kucoin : ccxt.kucoin
         string suffix = this.getMyTradesMessageHashSuffix(topic);
         string typeSpecificMessageHash = (messageHash + suffix);
         (client as WebSocketClient).resolve(this.myTrades, typeSpecificMessageHash);
-        string symbolSpecificMessageHash = add((messageHash + ":"), getValue(parsed, "symbol"));
+        string symbolSpecificMessageHash = ((messageHash + ":") + (getValue(parsed, "symbol")));
         (client as WebSocketClient).resolve(this.myTrades, symbolSpecificMessageHash);
     }
 
@@ -2759,7 +2759,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsUtaTrade(data, market));
         string? symbol = ((string)getValue(trade, "symbol"));
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -2869,7 +2869,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3141,21 +3141,21 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<ccxt.Position> WatchPosition(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchPosition() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object url = await this.negotiate(true);
         Dictionary<string, object> market = this.market(symbol);
-        string topic = add("/contract/position:", getValue(market, "id"));
+        string topic = ("/contract/position:" + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "privateChannel", true },
         };
-        string messageHash = add("position:", getValue(market, "symbol"));
+        string messageHash = ("position:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         var client = this.client(url);
         this.setPositionCache(client as WebSocketClient, symbol);
         object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", true);
@@ -3163,7 +3163,7 @@ public partial class kucoin : ccxt.kucoin
         object currentPosition = this.getCurrentPosition(symbol);
         if ((isEqual(fetchPositionSnapshot, true)) && (isEqual(awaitPositionSnapshot, true)) && ((currentPosition == null)))
         {
-            object snapshot = await client.future(add("fetchPositionSnapshot:", symbol));
+            object snapshot = await client.future(("fetchPositionSnapshot:" + (symbol)));
             return ccxt.BaseExchange.ToPosition(snapshot);
         }
         return ccxt.BaseExchange.ToPosition(await this.subscribe(url, messageHash, topic, this.extend(request, parameters)));
@@ -3184,7 +3184,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3196,7 +3196,7 @@ public partial class kucoin : ccxt.kucoin
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             ((IList<object>)messageHashes).Add(messageHash);
         } else
@@ -3204,7 +3204,7 @@ public partial class kucoin : ccxt.kucoin
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add((messageHash + ":"), symbol));
+                ((IList<object>)messageHashes).Add(((messageHash + ":") + (symbol)));
             }
         }
         object url = await this.getUtaUrl();
@@ -3232,7 +3232,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual object getCurrentPosition(object symbol)
     {
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             return null;
         }
@@ -3291,7 +3291,7 @@ public partial class kucoin : ccxt.kucoin
         object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", false);
         if (isEqual(fetchPositionSnapshot, true))
         {
-            string messageHash = add("fetchPositionSnapshot:", symbol);
+            string messageHash = ("fetchPositionSnapshot:" + (symbol));
             if (!(inOp(client.futures, messageHash)))
             {
                 client.future(messageHash);
@@ -3311,7 +3311,7 @@ public partial class kucoin : ccxt.kucoin
         {
             var future = getValue(client.futures, messageHash);
             (future as Future).resolve(cache);
-            (client as WebSocketClient).resolve(position, add("position:", symbol));
+            (client as WebSocketClient).resolve(position, ("position:" + (symbol)));
         }
     }
 
@@ -3459,7 +3459,7 @@ public partial class kucoin : ccxt.kucoin
         //         }
         //     }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolById();
         }
@@ -3560,13 +3560,13 @@ public partial class kucoin : ccxt.kucoin
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
         string channel = "funding-fee";
-        string messageHash = add("fundingRate:", symbolVar);
+        string messageHash = ("fundingRate:" + (symbolVar));
         return ccxt.BaseExchange.ToFundingRate(await this.subscribePublicUta(messageHash, channel, symbolVar, parameters));
     }
 
@@ -3582,13 +3582,13 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbol = this.safeSymbol(symbol);
         string channel = "funding-fee";
-        string subMessageHash = add("fundingRate:", symbol);
+        string subMessageHash = ("fundingRate:" + (symbol));
         string unSubMessageHash = ("unsubscribe:" + subMessageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbols", new List<object>() {symbol} },
@@ -3680,13 +3680,13 @@ public partial class kucoin : ccxt.kucoin
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
         string channel = "mark-price";
-        string messageHash = add("uta:ticker:", symbolVar);
+        string messageHash = ("uta:ticker:" + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.subscribePublicUta(messageHash, channel, symbolVar, parameters));
     }
 
@@ -3702,13 +3702,13 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbol = this.safeSymbol(symbol);
         string channel = "mark-price";
-        string subMessageHash = add("uta:ticker:", symbol);
+        string subMessageHash = ("uta:ticker:" + (symbol));
         string unSubMessageHash = ("unsubscribe:" + subMessageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbols", new List<object>() {symbol} },
@@ -3858,7 +3858,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 type = type + "Futures";
             }
-            ((IDictionary<string,object>)getValue(this.options, "urls"))[(string)type] = null;
+            ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null))[(string)type] = null;
         }
         this.handleErrors(1, "", client.url, "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         return ((bool?)((object)(false)));
@@ -3896,7 +3896,7 @@ public partial class kucoin : ccxt.kucoin
     {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             return add(add(elementName, ":"), symbol);
         } else

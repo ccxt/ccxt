@@ -390,9 +390,9 @@ public partial class BaseTest
             // every row must be a well formed price and amount pair, the php
             // corruption produced rows holding only an amount
             List<object> desyncSides = new List<object>() {getValue(desyncBook, "bids"), getValue(desyncBook, "asks")};
-            for (int i = 0; i < getArrayLength(desyncSides); i++)
+            for (int i = 0; i < (desyncSides?.Count ?? 0); i++)
             {
-                object side = getValue(desyncSides, i);
+                object side = desyncSides[i];
                 for (int k = 0; k < getArrayLength(side); k++)
                 {
                     object row = getValue(side, k);

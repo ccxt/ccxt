@@ -212,7 +212,7 @@ public partial class revolutx : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = queryKeys.Count;
-        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), implodedPath);
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), implodedPath);
         string queryString = "";
         if (isEqual(api, "private"))
         {
@@ -371,7 +371,7 @@ public partial class revolutx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -466,7 +466,7 @@ public partial class revolutx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -584,7 +584,7 @@ public partial class revolutx : Exchange
             }
             ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
-        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -684,7 +684,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -765,7 +765,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["until"] = this.milliseconds();
         }
-        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             ((IDictionary<string,object>)request)["region"] = region;

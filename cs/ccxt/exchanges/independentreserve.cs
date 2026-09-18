@@ -434,12 +434,12 @@ public partial class independentreserve : Exchange
         List<object> result = new List<object>() {};
         IList<object> baseCurrencyIds = this.toArray(baseCurrencies);
         IList<object> quoteCurrencyIds = this.toArray(quoteCurrencies);
-        for (int i = 0; i < getArrayLength(baseCurrencyIds); i++)
+        for (int i = 0; i < (baseCurrencyIds?.Count ?? 0); i++)
         {
             object baseId = baseCurrencyIds[i];
             object bs = this.safeCurrencyCode(baseId);
             double? minAmount = this.safeNumber(limits, baseId);
-            for (int j = 0; j < getArrayLength(quoteCurrencyIds); j++)
+            for (int j = 0; j < (quoteCurrencyIds?.Count ?? 0); j++)
             {
                 object quoteId = quoteCurrencyIds[j];
                 string? quote = this.safeCurrencyCode(quoteId);
@@ -503,7 +503,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
@@ -1038,7 +1038,7 @@ public partial class independentreserve : Exchange
         //
         Dictionary<string, object> fees = new Dictionary<string, object>() {};
         IList<object> rows = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             object fee = rows[i];
             string? currencyId = this.safeString(fee, "CurrencyCode");
@@ -1054,7 +1054,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
@@ -1327,7 +1327,7 @@ public partial class independentreserve : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)

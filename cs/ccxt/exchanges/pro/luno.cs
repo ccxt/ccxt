@@ -57,12 +57,12 @@ public partial class luno : ccxt.luno
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string subscriptionHash = add("/stream/", (market.ContainsKey("id") ? market["id"] : null));
+        string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
-        string messageHash = add("trades:", symbolVar);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
+        string messageHash = ("trades:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
@@ -101,7 +101,7 @@ public partial class luno : ccxt.luno
         }
         object symbol = getValue(subscription, "symbol");
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + (symbol));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -111,7 +111,7 @@ public partial class luno : ccxt.luno
         }
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            object rawTrade = getValue(rawTrades, i);
+            object rawTrade = rawTrades[i];
             Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {trade});
         }
@@ -172,12 +172,12 @@ public partial class luno : ccxt.luno
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string subscriptionHash = add("/stream/", (market.ContainsKey("id") ? market["id"] : null));
+        string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
-        string messageHash = add("orderbook:", symbolVar);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
+        string messageHash = ("orderbook:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
@@ -222,7 +222,7 @@ public partial class luno : ccxt.luno
         //     }
         //
         object symbol = getValue(subscription, "symbol");
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + (symbol));
         Int64? timestamp = this.safeInteger(message, "timestamp");
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -272,7 +272,7 @@ public partial class luno : ccxt.luno
         thirdKey ??= 2;
         bidasks = this.toArray(bidasks);
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(bidasks)); i++)
+        for (int i = 0; i < getArrayLength(bidasks); i++)
         {
             ((IList<object>)result).Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
@@ -372,9 +372,9 @@ public partial class luno : ccxt.luno
         }
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Values);
         List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
-        for (int j = 0; j < getArrayLength(handlers); j++)
+        for (int j = 0; j < (handlers?.Count ?? 0); j++)
         {
-            object handler = getValue(handlers, j);
+            object handler = handlers[j];
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message, (subscriptions != null && 0 < subscriptions.Count ? subscriptions[0] : null)});
         }
     }

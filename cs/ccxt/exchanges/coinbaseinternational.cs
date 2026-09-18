@@ -1025,7 +1025,7 @@ public partial class coinbaseinternational : Exchange
     public virtual object findDefaultNetwork(object networks)
     {
         IList<object> networksArray = this.toArray(networks);
-        for (int i = 0; i < getArrayLength(networksArray); i++)
+        for (int i = 0; i < (networksArray?.Count ?? 0); i++)
         {
             object info = getValue(networksArray[i], "info");
             bool? is_default = this.safeBool(info, "is_default", false);
@@ -1076,7 +1076,7 @@ public partial class coinbaseinternational : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(networks)); i++)
+        for (int i = 0; i < getArrayLength(networks); i++)
         {
             Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             ((IDictionary<string,object>)result)[(string)(network != null && network.ContainsKey("network") ? network["network"] : null)] = network;
@@ -1830,7 +1830,7 @@ public partial class coinbaseinternational : Exchange
         {
             rows = instruments;
         }
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             object instrument = rows[i];
             string? marketId = this.safeString(instrument, "symbol");
@@ -1975,7 +1975,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object rawBalance = getValue(response, i);
             string? currencyId = this.safeString(rawBalance, "asset_name");
@@ -2054,7 +2054,7 @@ public partial class coinbaseinternational : Exchange
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         string clientOrderIdprefix = ((string)this.safeString(this.options, "brokerId", "nfqkvdjp"));
         string? clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
-        clientOrderId = slice(clientOrderId, 0, 17);
+        clientOrderId = ((clientOrderId == null) ? null : ((string)clientOrderId).Substring(0, Math.Min(17, ((string)clientOrderId).Length)));
         if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
@@ -2098,7 +2098,7 @@ public partial class coinbaseinternational : Exchange
         // market orders must be IOC
         if ((typeId == "MARKET"))
         {
-            if ((tif != null) && !isEqual(tif, "IOC"))
+            if ((tif != null) && (tif != "IOC"))
             {
                 throw new InvalidOrder ((string)(this.id + " createOrder() market orders must have tif set to \"IOC\"")) ;
             }
@@ -2729,7 +2729,7 @@ public partial class coinbaseinternational : Exchange
                 fullPath = fullPath + ("?" + this.urlencodeWithArrayRepeat(query));
             }
         }
-        object url = add(getValue(getValue(this.urls, "api"), "rest"), fullPath);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), fullPath);
         if (signed)
         {
             this.checkRequiredCredentials();

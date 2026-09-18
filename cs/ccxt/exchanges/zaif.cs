@@ -940,7 +940,7 @@ public partial class zaif : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue(getValue(this.urls, "api"), "rest"), "/");
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/");
         if (isEqual(api, "public"))
         {
             url = add(url, ((("api/" + (this.version)) + "/") + this.implodeParams(path, parameters)));

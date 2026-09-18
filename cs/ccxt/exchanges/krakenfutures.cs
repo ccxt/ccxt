@@ -542,7 +542,7 @@ public partial class krakenfutures : Exchange
             if (!index)
             {
                 linear = (((string)marketType).IndexOf("_vanilla", StringComparison.Ordinal) >= 0);
-                inverse = !isTrue(linear);
+                inverse = !(linear == true);
                 string? settleTime = this.safeString(market, "lastTradingTime");
                 type = ((bool) ((settleTime == null))) ? "swap" : "future";
                 expiry = this.parse8601(settleTime);
@@ -581,7 +581,7 @@ public partial class krakenfutures : Exchange
                     settleId = quoteId;
                     inverse = false;
                 }
-                linear = !isTrue(inverse);
+                linear = !(inverse == true);
                 symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
                 if (future)
                 {
@@ -642,9 +642,9 @@ public partial class krakenfutures : Exchange
                 { "info", market },
             });
         }
-        object settlementCurrencies = getValue(getValue(this.options, "settlementCurrencies"), "flex");
+        object settlementCurrencies = getValue((this.options.ContainsKey("settlementCurrencies") ? this.options["settlementCurrencies"] : null), "flex");
         List<object> currencies = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlementCurrencies)); i++)
+        for (int i = 0; i < getArrayLength(settlementCurrencies); i++)
         {
             object code = getValue(settlementCurrencies, i);
             ((IList<object>)currencies).Add(new Dictionary<string, object>() {
@@ -677,7 +677,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderbook(this.extend(request, parameters));
         //
@@ -730,7 +730,7 @@ public partial class krakenfutures : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTickersSymbol(this.extend(request, parameters));
         //
@@ -922,7 +922,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         IDictionary<string, object> volumes = new Dictionary<string, object>() {};
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             Dictionary<string, object> volumesResponse = await this.privateGetFeeschedulesVolumes();
             //
@@ -949,11 +949,11 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            string? uid = this.safeString(getValue(market, "info"), "feeScheduleUid");
+            string? uid = this.safeString((market.ContainsKey("info") ? market["info"] : null), "feeScheduleUid");
             IDictionary<string, object> schedule = this.safeDict(schedulesByUid, uid);
             if ((schedule == null))
             {
@@ -985,7 +985,7 @@ public partial class krakenfutures : Exchange
         {
             object tier = tiers[i];
             string? tierVolume = this.safeString(tier, "usdVolume");
-            if (((volume == null)) || isTrue(Precise.stringGe(volume, tierVolume)))
+            if (((volume == null)) || Precise.stringGe(volume, tierVolume))
             {
                 makerFee = this.safeString(tier, "makerFee");
                 takerFee = this.safeString(tier, "takerFee");
@@ -1047,7 +1047,7 @@ public partial class krakenfutures : Exchange
             throw new NotSupported ((string)(this.id + " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\"")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "price_type", priceType },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
@@ -1138,7 +1138,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object method = null;
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
@@ -1434,7 +1434,7 @@ public partial class krakenfutures : Exchange
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         type = this.safeString(parameters, "orderType", type);
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool postOnly = false;
@@ -1455,7 +1455,7 @@ public partial class krakenfutures : Exchange
             type = "mkt";
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "size", this.amountToPrecision(symbol, amount) },
         };
@@ -2657,11 +2657,11 @@ public partial class krakenfutures : Exchange
         string? remaining = this.safeString(details, "unfilledSize");
         string? average = null;
         string filled2 = "0.0";
-        int tradesLength = getArrayLength(trades);
+        int tradesLength = (trades?.Count ?? 0);
         if (tradesLength > 0)
         {
             string vwapSum = "0.0";
-            for (int i = 0; i < getArrayLength(trades); i++)
+            for (int i = 0; i < (trades?.Count ?? 0); i++)
             {
                 object trade = trades[i];
                 string? tradeAmount = this.safeString(trade, "amount");
@@ -2670,7 +2670,7 @@ public partial class krakenfutures : Exchange
                 vwapSum = ((string)Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice)));
             }
             average = Precise.stringDiv(vwapSum, filled2);
-            if (((amount != null)) && (!isClosed) && isPrior && isTrue(Precise.stringGe(filled2, amount)))
+            if (((amount != null)) && (!isClosed) && isPrior && Precise.stringGe(filled2, amount))
             {
                 status = "closed";
                 isClosed = true;
@@ -3077,7 +3077,7 @@ public partial class krakenfutures : Exchange
                 // unified ledger contract: after = before +/- amount - fee
                 amount = Precise.stringAdd(amount, feeCost);
             }
-            if (isTrue(Precise.stringLt(amount, "0")))
+            if (Precise.stringLt(amount, "0"))
             {
                 direction = "out";
                 amount = Precise.stringAbs(amount);
@@ -3125,8 +3125,8 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        object type = this.safeString2(parameters, "type", "account");
-        object symbol = this.safeString(parameters, "symbol");
+        string? type = this.safeString2(parameters, "type", "account");
+        string? symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, new List<object>() {"type", "account", "symbol"});
         Dictionary<string, object> response = await this.privateGetAccounts(parameters);
         //
@@ -3217,7 +3217,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         string? datetime = this.safeString(response, "serverTime");
-        if (isEqual(type, "marginAccount") || isEqual(type, "margin"))
+        if ((type == "marginAccount") || (type == "margin"))
         {
             if ((symbol == null))
             {
@@ -3236,7 +3236,7 @@ public partial class krakenfutures : Exchange
         {
             type = ((bool) ((type == null))) ? "" : type;
             symbol = ((bool) ((symbol == null))) ? "" : symbol;
-            throw new BadRequest ((string)((this.id + " fetchBalance has no account for ") + (type))) ;
+            throw new BadRequest ((string)((this.id + " fetchBalance has no account for ") + type)) ;
         }
         object balance = this.parseBalance(account);
         ((IDictionary<string,object>)balance)["info"] = response;
@@ -3428,17 +3428,17 @@ public partial class krakenfutures : Exchange
         string? fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         string? nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
         string? nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
-        if (isTrue(Precise.stringGt(fundingRateResult, "0.25")))
+        if (Precise.stringGt(fundingRateResult, "0.25"))
         {
             fundingRateResult = "0.25";
-        } else if (isTrue(Precise.stringLt(fundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(fundingRateResult, "-0.25"))
         {
             fundingRateResult = "-0.25";
         }
-        if (isTrue(Precise.stringGt(nextFundingRateResult, "0.25")))
+        if (Precise.stringGt(nextFundingRateResult, "0.25"))
         {
             nextFundingRateResult = "0.25";
-        } else if (isTrue(Precise.stringLt(nextFundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(nextFundingRateResult, "-0.25"))
         {
             nextFundingRateResult = "-0.25";
         }
@@ -3487,7 +3487,7 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "swap") as bool?) != true))
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
@@ -3509,7 +3509,7 @@ public partial class krakenfutures : Exchange
         //
         object rates = this.safeValue(response, "rates");
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rates)); i++)
+        for (int i = 0; i < getArrayLength(rates); i++)
         {
             object item = getValue(rates, i);
             string? datetime = this.safeString(item, "timestamp");
@@ -3759,14 +3759,14 @@ public partial class krakenfutures : Exchange
         {
             return tiers;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(marginLevels)); i++)
+        for (int i = 0; i < getArrayLength(marginLevels); i++)
         {
             object tier = getValue(marginLevels, i);
             string? initialMargin = this.safeString(tier, "initialMargin");
             double? minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (!isEqual(i, 0))
             {
-                int tiersLength = getArrayLength(tiers);
+                int tiersLength = (tiers?.Count ?? 0);
                 object previousTier = getValue(tiers, (tiersLength - 1));
                 ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
             }
@@ -3826,9 +3826,9 @@ public partial class krakenfutures : Exchange
         } else if (((this.markets != null)) && (inOp(this.markets, account)))
         {
             Dictionary<string, object> market = this.market(account);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             List<object> splitId = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            if (((getValue(market, "inverse") as bool?) == true))
+            if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
             {
                 return ("fi_" + this.safeString(splitId, 1));
             } else
@@ -4067,12 +4067,12 @@ public partial class krakenfutures : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiVersions = this.safeValue(getValue(this.options, "versions"), api, new Dictionary<string, object>() {});
+        object apiVersions = this.safeValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), api, new Dictionary<string, object>() {});
         object methodVersions = this.safeValue(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, this.version);
         object version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
-        object apiAccess = this.safeValue(getValue(this.options, "access"), api, new Dictionary<string, object>() {});
+        object apiAccess = this.safeValue((this.options.ContainsKey("access") ? this.options["access"] : null), api, new Dictionary<string, object>() {});
         object methodAccess = this.safeValue(apiAccess, method, new Dictionary<string, object>() {});
         string? access = this.safeString(methodAccess, path, "public");
         object endpoint = add(add(version, "/"), this.implodeParams(path, parameters));
@@ -4094,7 +4094,7 @@ public partial class krakenfutures : Exchange
             }
             query = add(query, ("?" + postData));
         }
-        object url = add(getValue(getValue(this.urls, "api"), api), query);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), query);
         if (isEqual(api, "private") || (access == "private"))
         {
             this.checkRequiredCredentials();

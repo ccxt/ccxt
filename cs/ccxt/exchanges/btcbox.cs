@@ -847,7 +847,7 @@ public partial class btcbox : Exchange
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
         if (isEqual(type, "open"))
         {
-            for (int i = 0; i < getArrayLength(orders); i++)
+            for (int i = 0; i < (orders?.Count ?? 0); i++)
             {
                 ((IDictionary<string,object>)orders[i])["status"] = "open";
             }
@@ -899,7 +899,7 @@ public partial class btcbox : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), this.version), "/"), path);
+        object url = add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/"), this.version), "/"), path);
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -908,7 +908,7 @@ public partial class btcbox : Exchange
             }
         } else if (isEqual(api, "webApi"))
         {
-            url = add(add(getValue(this.urls, "www"), "/"), path);
+            url = add(add((((IDictionary<string, object>)this.urls).ContainsKey("www") ? ((IDictionary<string, object>)this.urls)["www"] : null), "/"), path);
         } else
         {
             this.checkRequiredCredentials();

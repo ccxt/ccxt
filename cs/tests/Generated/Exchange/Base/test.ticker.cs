@@ -75,22 +75,22 @@ public partial class testMainClass : BaseTest
         // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
         if (!(inOp(skippedProperties, "checkInactiveMarkets")))
         {
-            if ((market != null) && ((getValue(market, "active") as bool?) == false))
+            if ((market != null) && (((market.ContainsKey("active") ? market["active"] : null) as bool?) == false))
             {
                 return;
             }
         }
         if (inOp(skippedProperties, "skipNonActiveMarkets"))
         {
-            if ((market == null) || (((getValue(market, "active") as bool?) != true)))
+            if ((market == null) || ((((market.ContainsKey("active") ? market["active"] : null) as bool?) != true)))
             {
                 return;
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        bool isStandardMarket = ((market != null) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        bool isStandardMarket = ((market != null) && isTrue(exchange.inArray((market.ContainsKey("type") ? market["type"] : null), new List<object>() {"spot", "swap", "future", "option"})));
         bool valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
-        if (isTrue(valuesShouldBePositive) && !(inOp(skippedProperties, "positiveValues")))
+        if (valuesShouldBePositive && !(inOp(skippedProperties, "positiveValues")))
         {
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "high", "0");
@@ -111,7 +111,7 @@ public partial class testMainClass : BaseTest
         //
         string? lastString = exchange.safeString(entry, "last");
         string? closeString = exchange.safeString(entry, "close");
-        assert((((closeString == null)) && ((lastString == null))) || isTrue(Precise.stringEq(lastString, closeString)), ("`last` != `close`" + (logText)));
+        assert((((closeString == null)) && ((lastString == null))) || Precise.stringEq(lastString, closeString), ("`last` != `close`" + (logText)));
         string? openPrice = exchange.safeString(entry, "open");
         //
         // base & quote volumes
@@ -236,7 +236,7 @@ public partial class testMainClass : BaseTest
             // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            assert(!isTrue(valuesShouldBePositive) || isTrue(Precise.stringGe(vwap, "0")), ("vwap is not greater than zero" + (logText)));
+            assert(!valuesShouldBePositive || Precise.stringGe(vwap, "0"), ("vwap is not greater than zero" + (logText)));
             if ((baseVolume != null))
             {
                 assert((quoteVolume != null), ("baseVolume & vwap is defined, but quoteVolume is not" + (logText)));
@@ -260,7 +260,7 @@ public partial class testMainClass : BaseTest
             string? medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             string? medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             string? medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            assert(isTrue(Precise.stringGe(lastString, medianLow)) && isTrue(Precise.stringLe(lastString, medianHigh)), ("last price should be within 1% of the bid/ask median price" + (logText)));
+            assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), ("last price should be within 1% of the bid/ask median price" + (logText)));
         }
         string? percentage = exchange.safeString(entry, "percentage");
         string? change = exchange.safeString(entry, "change");

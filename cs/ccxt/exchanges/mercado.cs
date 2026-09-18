@@ -352,7 +352,7 @@ public partial class mercado : Exchange
         List<object> result = new List<object>() {};
         object amountLimits = this.safeValue(this.options, "limits", new Dictionary<string, object>() {});
         IList<object> coins = this.toArray(response);
-        for (int i = 0; i < getArrayLength(coins); i++)
+        for (int i = 0; i < (coins?.Count ?? 0); i++)
         {
             object coin = coins[i];
             object baseId = coin;
@@ -1140,7 +1140,7 @@ public partial class mercado : Exchange
     public virtual List<object> ordersToTrades(object orders)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); i++)
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             List<object> trades = this.safeList(getValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; y < trades.Count; y++)
@@ -1156,7 +1156,7 @@ public partial class mercado : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue(getValue(this.urls, "api"), api), "/");
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/");
         object query = this.omit(parameters, this.extractParams(path));
         if ((isEqual(api, "public")) || (isEqual(api, "v4Public")) || (isEqual(api, "v4PublicNet")))
         {

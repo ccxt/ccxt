@@ -2145,7 +2145,7 @@ public partial class coinsph : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> fees = this.toArray(response);
-        for (int i = 0; i < getArrayLength(fees); i++)
+        for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
             object fee = this.parseTradingFee(fees[i]);
             object symbol = getValue(fee, "symbol");
@@ -2584,7 +2584,7 @@ public partial class coinsph : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), api);
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         object query = this.omit(parameters, this.extractParams(path));
         string? endpoint = this.implodeParams(path, parameters);
         url = add(add(url, "/"), endpoint);

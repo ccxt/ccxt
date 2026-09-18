@@ -783,7 +783,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(balance)); i++)
+        for (int i = 0; i < getArrayLength(balance); i++)
         {
             object balanceEntry = getValue(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");
@@ -1259,7 +1259,7 @@ public partial class cryptomus : Exchange
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             object symbol = symbols[i];
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1279,7 +1279,7 @@ public partial class cryptomus : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); i++)
+        for (int i = 0; i < getArrayLength(feeTiers); i++)
         {
             object tier = getValue(feeTiers, i);
             double? turnover = this.safeNumber(tier, "from_turnover");
@@ -1303,7 +1303,7 @@ public partial class cryptomus : Exchange
         parameters ??= new Dictionary<string, object>();
         string? endpoint = this.implodeParams(path, parameters);
         parameters = this.omit(parameters, this.extractParams(path));
-        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), endpoint);
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), endpoint);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();

@@ -741,11 +741,11 @@ public partial class onetrading : Exchange
         IDictionary<string, object> firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            IDictionary<string, object> tierObject = ((bool) (((getValue(market, "spot") as bool?) == true))) ? firstSpotTier : firstFuturesTier;
+            IDictionary<string, object> tierObject = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", spotFees },
                 { "symbol", symbol },
@@ -813,12 +813,12 @@ public partial class onetrading : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // const tiers = this.parseFeeTiers (feeTiers);
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            string? makerFee = ((bool) (((getValue(market, "spot") as bool?) == true))) ? spotMakerFee : futuresMakerFee;
-            string? takerFee = ((bool) (((getValue(market, "spot") as bool?) == true))) ? spotTakerFee : futuresTakerFee;
+            string? makerFee = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? spotMakerFee : futuresMakerFee;
+            string? takerFee = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? spotTakerFee : futuresTakerFee;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -836,7 +836,7 @@ public partial class onetrading : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); i++)
+        for (int i = 0; i < getArrayLength(feeTiers); i++)
         {
             object tier = getValue(feeTiers, i);
             double? volume = this.safeNumber(tier, "volume");
@@ -925,7 +925,7 @@ public partial class onetrading : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketTickerInstrumentCode(this.extend(request, parameters));
         //
@@ -989,9 +989,9 @@ public partial class onetrading : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawTickers); i++)
+        for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
-            Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
+            Dictionary<string, object> ticker = this.parseTicker(rawTickers[i]);
             string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
@@ -1020,7 +1020,7 @@ public partial class onetrading : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1083,7 +1083,7 @@ public partial class onetrading : Exchange
         //     }
         //
         Int64? timestamp = this.parse8601(this.safeString(response, "time"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount"));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1169,7 +1169,7 @@ public partial class onetrading : Exchange
             limitVar = 1500;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", period },
             { "unit", unit },
         };
@@ -1288,7 +1288,7 @@ public partial class onetrading : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "currency_code");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1502,7 +1502,7 @@ public partial class onetrading : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", uppercaseType },
             { "side", ((string)side).ToUpper() },
             { "amount", this.amountToPrecision(symbol, amount) },
@@ -1622,7 +1622,7 @@ public partial class onetrading : Exchange
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_code"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateDeleteAccountOrders(this.extend(request, parameters));
         //
@@ -1754,7 +1754,7 @@ public partial class onetrading : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_code"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1965,7 +1965,7 @@ public partial class onetrading : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_code"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2021,7 +2021,7 @@ public partial class onetrading : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(add(add(getValue(getValue(this.urls, "api"), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
+        object url = add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {

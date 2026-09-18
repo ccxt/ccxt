@@ -62,8 +62,8 @@ public partial class coincheck : ccxt.coincheck
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-orderbook") },
@@ -135,8 +135,8 @@ public partial class coincheck : ccxt.coincheck
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("trade:", (market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-trades") },
@@ -175,7 +175,7 @@ public partial class coincheck : ccxt.coincheck
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(message)); i++)
+        for (int i = 0; i < getArrayLength(message); i++)
         {
             object data = this.safeValue(message, i);
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));

@@ -769,7 +769,7 @@ public partial class tokocrypto : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), getValue(this.options, "timeDifference"))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
     /**
@@ -843,7 +843,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1659492212507
         //     }
         //
-        if (isEqual(getValue(this.options, "adjustForTimeDifference"), true))
+        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
         {
             await this.loadTimeDifference();
         }
@@ -1595,7 +1595,7 @@ public partial class tokocrypto : Exchange
         };
         if ((price == "index"))
         {
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id"); // Index price takes this argument instead of symbol
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null); // Index price takes this argument instead of symbol
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = this.getMarketIdByType(market);
@@ -1981,7 +1981,7 @@ public partial class tokocrypto : Exchange
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
-        object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
+        object validOrderTypes = this.safeValue((market.ContainsKey("info") ? market["info"] : null), "orderTypes");
         if (!this.inArray(uppercaseType, validOrderTypes))
         {
             if ((initialUppercaseType != uppercaseType))
@@ -2002,7 +2002,7 @@ public partial class tokocrypto : Exchange
             { "LIMIT_MAKER", 7 },
         };
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", add(add(getValue(market, "baseId"), "_"), getValue(market, "quoteId")) },
+            { "symbol", add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "_"), (market.ContainsKey("quoteId") ? market["quoteId"] : null)) },
             { "type", this.safeString(reverseOrderTypeMapping, uppercaseType) },
         };
         if (isEqual(side, "buy"))
@@ -2046,7 +2046,7 @@ public partial class tokocrypto : Exchange
         {
             if (isEqual(side, "buy"))
             {
-                object precision = getValue(getValue(market, "precision"), "price");
+                object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                 object quoteAmount = null;
                 object createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2085,7 +2085,7 @@ public partial class tokocrypto : Exchange
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if ((((getValue(market, "linear") as bool?) == true)) || (((getValue(market, "inverse") as bool?) == true)))
+            if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)))
             {
                 priceIsRequired = true;
             }
@@ -2231,7 +2231,7 @@ public partial class tokocrypto : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -2392,7 +2392,7 @@ public partial class tokocrypto : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
         if (!isEqual(since, null))
@@ -2841,11 +2841,11 @@ public partial class tokocrypto : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        if (!(inOp(getValue(getValue(this.urls, "api"), "rest"), api)))
+        if (!(inOp(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api)))
         {
             throw new NotSupported ((string)(((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "rest"), api);
+        object url = getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api);
         url = add(url, ("/" + (path)));
         if (isEqual(api, "wapi"))
         {
@@ -2994,7 +2994,7 @@ public partial class tokocrypto : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (((error == "-2015")) && (isEqual(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
+            if (((error == "-2015")) && (isEqual((this.options.ContainsKey("hasAlreadyAuthenticatedSuccessfully") ? this.options["hasAlreadyAuthenticatedSuccessfully"] : null), true)))
             {
                 throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }

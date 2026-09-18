@@ -64,9 +64,9 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("orderbook:", symbolVar);
+        string messageHash = ("orderbook:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbooks/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbooks/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -146,7 +146,7 @@ public partial class extended : ccxt.extended
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -155,7 +155,7 @@ public partial class extended : ccxt.extended
     public async virtual Task<object> watchPrivate(object messageHash, object subscription = null)
     {
         this.checkRequiredCredentials();
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/account");
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/account");
         if (((this.clients == null)) || !(inOp(this.clients, url)))
         {
             Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
@@ -166,9 +166,9 @@ public partial class extended : ccxt.extended
                 } },
             };
             this.extendExchangeOptions(defaultOptions);
-            object originalOptions = getValue(getValue(this.options, "ws"), "options");
+            object originalOptions = getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options");
             IDictionary<string, object> originalHeaders = this.safeDict(originalOptions, "headers", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)getValue(this.options, "ws"))["options"] = this.extend(this.extend(new Dictionary<string, object>() {}, originalOptions), new Dictionary<string, object>() {
+            ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["options"] = this.extend(this.extend(new Dictionary<string, object>() {}, originalOptions), new Dictionary<string, object>() {
                 { "headers", this.extend(this.extend(new Dictionary<string, object>() {
                     { "User-Agent", getValue(this.userAgents, "chrome") },
                 }, originalHeaders), new Dictionary<string, object>() {
@@ -176,7 +176,7 @@ public partial class extended : ccxt.extended
                 }) },
             });
             this.client(url);
-            ((IDictionary<string,object>)getValue(this.options, "ws"))["options"] = originalOptions;
+            ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["options"] = originalOptions;
         }
         return await this.watch(url, messageHash, null, messageHash, subscription);
     }
@@ -206,7 +206,7 @@ public partial class extended : ccxt.extended
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         object orders = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -327,7 +327,7 @@ public partial class extended : ccxt.extended
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         object trades = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -392,7 +392,7 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string messageHash = add("myTrades:", keys[i]);
+            string messageHash = ("myTrades:" + (keys[i]));
             (client as WebSocketClient).resolve(stored, messageHash);
         }
         (client as WebSocketClient).resolve(stored, "myTrades");
@@ -493,7 +493,7 @@ public partial class extended : ccxt.extended
             callDynamically(stored, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -564,7 +564,7 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string messageHash = add("orders:", keys[i]);
+            string messageHash = ("orders:" + (keys[i]));
             (client as WebSocketClient).resolve(orders, messageHash);
         }
         (client as WebSocketClient).resolve(orders, "orders");
@@ -598,9 +598,9 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("fundingRate:", symbolVar);
+        string messageHash = ("fundingRate:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/funding/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/funding/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -676,9 +676,9 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("markPrice:", symbolVar);
+        string messageHash = ("markPrice:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/prices/mark/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/prices/mark/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -743,9 +743,9 @@ public partial class extended : ccxt.extended
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/publicTrades/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/publicTrades/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -858,11 +858,11 @@ public partial class extended : ccxt.extended
         }
         parameters = this.omit(parameters, new List<object>() {"candleType", "price"});
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((add((add("ohlcv:", symbolVar) + ":"), timeframeVar) + ":") + candleType);
+        string messageHash = ((((("ohlcv:" + (symbolVar)) + ":") + (timeframeVar)) + ":") + candleType);
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, parameters));
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query);
+        object url = add(add(add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query);
         object ohlcv = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolVar },

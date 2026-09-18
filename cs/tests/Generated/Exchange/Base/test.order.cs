@@ -66,7 +66,7 @@ public partial class testMainClass : BaseTest
             });
             if (!isEqual(getValue(entry, "trades"), null))
             {
-                for (int i = 0; isLessThan(i, getArrayLength(getValue(entry, "trades"))); i++)
+                for (int i = 0; i < getArrayLength(getValue(entry, "trades")); i++)
                 {
                     testTrade(exchange, skippedNew, method, getValue(getValue(entry, "trades"), i), symbol, now, false);
                 }

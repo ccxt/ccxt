@@ -1005,7 +1005,7 @@ public partial class bit2c : Exchange
     {
         object newString = "";
         List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-        for (int i = 0; isLessThan(i, getArrayLength(strParts)); i++)
+        for (int i = 0; i < (strParts?.Count ?? 0); i++)
         {
             newString = add(newString, strParts[i]);
         }
@@ -1190,7 +1190,7 @@ public partial class bit2c : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), this.implodeParams(path, parameters));
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/"), this.implodeParams(path, parameters));
         if (isEqual(api, "public"))
         {
             url = add(url, ".json");

@@ -50,7 +50,7 @@ public partial class upbit : ccxt.upbit
             symbols = new List<object>() {};
         }
         IList<object> marketIds = this.marketIds(symbols);
-        string? url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
+        string? url = this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         var client = this.client(url);
@@ -203,9 +203,9 @@ public partial class upbit : ccxt.upbit
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(timeframeVar, "1s"))
         {
-            throw new NotSupported ((string)(add((this.id + " watchOHLCV does not support"), timeframeVar) + " candle.")) ;
+            throw new NotSupported ((string)(((this.id + " watchOHLCV does not support") + (timeframeVar)) + " candle.")) ;
         }
-        string timeFrameOHLCV = add("candle.", timeframeVar);
+        string timeFrameOHLCV = ("candle." + (timeframeVar));
         return ccxt.BaseExchange.ToOHLCVList(await this.watchPublicMultiple(new List<object>() {symbol}, timeFrameOHLCV));
     }
 
@@ -393,7 +393,7 @@ public partial class upbit : ccxt.upbit
             };
             ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
         }
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/private");
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/private");
         var client = this.client(url);
         return client;
     }
@@ -415,7 +415,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)request)["codes"] = marketIds;
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        object url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
+        object url = this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, "/private");
@@ -448,7 +448,7 @@ public partial class upbit : ccxt.upbit
         List<object> message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        for (int i = 0; i < getArrayLength(requests); i++)
+        for (int i = 0; i < (requests?.Count ?? 0); i++)
         {
             ((IList<object>)message).Add(requests[i]);
         }
@@ -667,7 +667,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(myTrades, "append", new object[] {trade});
         string messageHash = "myTrades";
         (client as WebSocketClient).resolve(myTrades, messageHash);
-        messageHash = add("myTrades:", getValue(trade, "symbol"));
+        messageHash = ("myTrades:" + (getValue(trade, "symbol")));
         (client as WebSocketClient).resolve(myTrades, messageHash);
     }
 

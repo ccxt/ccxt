@@ -537,7 +537,7 @@ public partial class bitvavo : Exchange
     {
         List<object> result = new List<object>() {};
         object fees = this.fees;
-        for (int i = 0; isLessThan(i, getArrayLength(markets)); i++)
+        for (int i = 0; i < getArrayLength(markets); i++)
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market");
@@ -1287,7 +1287,7 @@ public partial class bitvavo : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "symbol");
@@ -3007,7 +3007,7 @@ public partial class bitvavo : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        url = add(getValue(getValue(this.urls, "api"), api), url);
+        url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

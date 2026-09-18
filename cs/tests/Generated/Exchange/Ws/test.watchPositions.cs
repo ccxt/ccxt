@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testPosition(exchange, skippedProperties, method, getValue(response, i), null, now);
                 }

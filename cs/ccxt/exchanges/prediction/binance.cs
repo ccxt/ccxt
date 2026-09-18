@@ -183,7 +183,7 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> queries = (IList<object>)(this.parseSearchQueries(parameters));
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = (queries?.Count ?? 0);
         if (queriesLength > 0)
         {
             object eventParams = this.omit(parameters, new List<object>() {"limit"});
@@ -193,7 +193,7 @@ public partial class binance : PredictionExchange
             for (int ei = 0; ei < eventsLength; ei++)
             {
                 IList<object> eventMarkets = (IList<object>)(this.safeList(getValue(events, ei), "markets", new List<object>() {}));
-                int eventMarketsLength = getArrayLength(eventMarkets);
+                int eventMarketsLength = (eventMarkets?.Count ?? 0);
                 for (int mi = 0; mi < eventMarketsLength; mi++)
                 {
                     ((IList<object>)queryMarkets).Add(getValue(eventMarkets, mi));
@@ -212,7 +212,7 @@ public partial class binance : PredictionExchange
             object parsedEvent = this.parseEvent(getValue(rawTopics, i));
             ((IList<object>)parsedEvents).Add(parsedEvent);
             IList<object> eventMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
-            int eventMarketsLength = getArrayLength(eventMarkets);
+            int eventMarketsLength = (eventMarkets?.Count ?? 0);
             for (int mi = 0; mi < eventMarketsLength; mi++)
             {
                 ((IList<object>)flatMarkets).Add(getValue(eventMarkets, mi));
@@ -249,7 +249,7 @@ public partial class binance : PredictionExchange
         while (true)
         {
             object reqLimit = pageLimit;
-            int collectedLength = getArrayLength(collected);
+            int collectedLength = (collected?.Count ?? 0);
             object remaining = subtract(maxTopics, collectedLength);
             if (isLessThan(remaining, reqLimit))
             {
@@ -297,7 +297,7 @@ public partial class binance : PredictionExchange
             //     }
             //
             IList<object> pageTopics = (IList<object>)(this.safeList(response, "marketTopics", new List<object>() {}));
-            int pageTopicsLength = getArrayLength(pageTopics);
+            int pageTopicsLength = (pageTopics?.Count ?? 0);
             for (int i = 0; i < pageTopicsLength; i++)
             {
                 ((IList<object>)collected).Add(getValue(pageTopics, i));
@@ -346,13 +346,13 @@ public partial class binance : PredictionExchange
         {
             object rawTopic = getValue(rawTopics, i);
             IList<object> rawMarkets = (IList<object>)(this.safeList(rawTopic, "markets", new List<object>() {}));
-            int rawMarketsLength = getArrayLength(rawMarkets);
+            int rawMarketsLength = (rawMarkets?.Count ?? 0);
             bool hasOutcomes = false;
             if (rawMarketsLength > 0)
             {
                 IDictionary<string, object> firstMarket = this.safeDict(rawMarkets, 0, new Dictionary<string, object>() {});
                 IList<object> firstOutcomes = (IList<object>)(this.safeList(firstMarket, "outcomes", new List<object>() {}));
-                int firstOutcomesLength = getArrayLength(firstOutcomes);
+                int firstOutcomesLength = (firstOutcomes?.Count ?? 0);
                 hasOutcomes = (firstOutcomesLength > 0);
             }
             if (hasOutcomes)
@@ -403,7 +403,7 @@ public partial class binance : PredictionExchange
         List<object> tags = this.safeList(parameters, "tags", new List<object>() {});
         int tagsLength = tags.Count;
         List<object> allQueries = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); i++)
+        for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
             ((IList<object>)allQueries).Add(queries[i]);
         }
@@ -411,7 +411,7 @@ public partial class binance : PredictionExchange
         {
             ((IList<object>)allQueries).Add(getValue(tags, i));
         }
-        int allQueriesLength = getArrayLength(allQueries);
+        int allQueriesLength = (allQueries?.Count ?? 0);
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
         Int64? userLimit = this.safeInteger(parameters, "limit");
         Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
@@ -476,7 +476,7 @@ public partial class binance : PredictionExchange
             object parsedEvent = this.parseEvent(getValue(rawTopics, i));
             ((IList<object>)result).Add(parsedEvent);
             IList<object> parsedMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
-            int parsedMarketsLength = getArrayLength(parsedMarkets);
+            int parsedMarketsLength = (parsedMarkets?.Count ?? 0);
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = getValue(parsedMarkets, mi);
@@ -540,7 +540,7 @@ public partial class binance : PredictionExchange
             //         }
             //     ]
             //
-            int responseLength = getArrayLength(response);
+            int responseLength = (response?.Count ?? 0);
             for (int i = 0; i < responseLength; i++)
             {
                 object rawTopic = getValue(response, i);
@@ -557,7 +557,7 @@ public partial class binance : PredictionExchange
             }
         }
         object capped = collected;
-        int collectedLength = getArrayLength(collected);
+        int collectedLength = (collected?.Count ?? 0);
         if ((!isEqual(limitVar, null)) && (isGreaterThan(collectedLength, limitVar)))
         {
             capped = this.arraySlice(collected, 0, limitVar);
@@ -622,7 +622,7 @@ public partial class binance : PredictionExchange
         IList<object> rawMarkets = (IList<object>)(this.safeList(rawTopic, "markets", new List<object>() {}));
         List<object> marketsList = new List<object>() {};
         bool anyActive = false;
-        int rawMarketsLength = getArrayLength(rawMarkets);
+        int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
             object parsed = this.parseTopicMarket(getValue(rawMarkets, i), rawTopic);
@@ -728,7 +728,7 @@ public partial class binance : PredictionExchange
         IList<object> rawOutcomes = (IList<object>)(this.safeList(rawMarket, "outcomes", new List<object>() {}));
         List<object> outcomes = new List<object>() {};
         object resolvedOutcomeRaw = null;
-        int rawOutcomesLength = getArrayLength(rawOutcomes);
+        int rawOutcomesLength = (rawOutcomes?.Count ?? 0);
         for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
             object rawOutcome = getValue(rawOutcomes, oi);
@@ -2141,7 +2141,7 @@ public partial class binance : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiGroup = ((bool) (api is string)) ? api : getValue(api, 0);
-        object baseUrls = getValue(this.urls, "api");
+        object baseUrls = (((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sapi")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 ((IList<object>)collectedTypes).Add(getValue(market, "type"));
             }
         }
-        for (int i = 0; i < getArrayLength(marketTypes); i++)
+        for (int i = 0; i < (marketTypes?.Count ?? 0); i++)
         {
             string? mType = ((string)marketTypes[i]);
             if (!isEqual(getValue(exchange.has, mType), null) && !isEqual(getValue(exchange.has, mType), false))

@@ -1200,7 +1200,7 @@ public partial class bitbank : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = (this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/");
+        object url = (this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/");
         if ((isEqual(api, "public")) || (isEqual(api, "markets")))
         {
             url = add(url, this.implodeParams(path, parameters));

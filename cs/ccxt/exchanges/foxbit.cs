@@ -2261,7 +2261,7 @@ public partial class foxbit : Exchange
             fullPath = "/status";
             urlPath = "status";
         }
-        object url = add(getValue(getValue(this.urls, "api"), urlPath), fullPath);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
         Int64 timestamp = this.milliseconds();
         string query = "";

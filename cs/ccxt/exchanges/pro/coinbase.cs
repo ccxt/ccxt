@@ -93,7 +93,7 @@ public partial class coinbase : ccxt.coinbase
             messageHash = add(add(name, "::"), symbol);
             productIds = new List<object>() {(market.ContainsKey("id") ? market["id"] : null)};
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
@@ -152,7 +152,7 @@ public partial class coinbase : ccxt.coinbase
             unWatchMessageHash = add(add(unWatchMessageHash, "::"), symbol);
             productIds = new List<object>() {(market.ContainsKey("id") ? market["id"] : null)};
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
@@ -206,7 +206,7 @@ public partial class coinbase : ccxt.coinbase
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
@@ -256,7 +256,7 @@ public partial class coinbase : ccxt.coinbase
             ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
             ((IList<object>)unWatchMessageHashes).Add(((("unsubscribe:" + (name)) + "::") + (symbol)));
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "product_ids", productIds },
@@ -923,7 +923,7 @@ public partial class coinbase : ccxt.coinbase
                 callDynamically(cachedOrders, "append", new object[] {parsed});
             }
         }
-        for (int i = 0; i < getArrayLength(marketIds); i++)
+        for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
             string? marketId = ((string)marketIds[i]);
             string? symbol = this.safeSymbol(marketId);
@@ -988,11 +988,11 @@ public partial class coinbase : ccxt.coinbase
 
     public virtual void handleOrderBookHelper(object orderbook, object updates)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(updates)); i++)
+        for (int i = 0; i < getArrayLength(updates); i++)
         {
             object trade = getValue(updates, i);
             string? sideId = this.safeString(trade, "side");
-            string? side = this.safeString(getValue(this.options, "sides"), sideId);
+            string? side = this.safeString((this.options.ContainsKey("sides") ? this.options["sides"] : null), sideId);
             double? price = this.safeNumber(trade, "price_level");
             double? amount = this.safeNumber(trade, "new_quantity");
             object orderbookSide = this.safeValue(orderbook, side);

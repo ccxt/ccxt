@@ -66,8 +66,8 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "ORDERBOOK" },
@@ -157,8 +157,8 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TICKER" },
@@ -288,8 +288,8 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", (market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TRADE" },
@@ -430,8 +430,8 @@ public partial class coinone : ccxt.coinone
             List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (int i = 0; i < keys.Count; i++)
             {
-                string? key = ((string)getValue(keys, i));
-                if (((string)topic).IndexOf(((string)getValue(keys, i)), StringComparison.Ordinal) >= 0)
+                string? key = ((string)keys[i]);
+                if (((string)topic).IndexOf(((string)keys[i]), StringComparison.Ordinal) >= 0)
                 {
                     object method = getValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});

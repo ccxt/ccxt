@@ -1397,7 +1397,7 @@ public partial class dydx : Exchange
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "dYdX Chain Onboarding" },
         };
-        object chainId = getValue(this.options, "chainId");
+        object chainId = (this.options.ContainsKey("chainId") ? this.options["chainId"] : null);
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "chainId", chainId },
             { "name", "dYdX Chain" },
@@ -1742,7 +1742,7 @@ public partial class dydx : Exchange
         object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
         object orderId = getValue(orderRequestRes, 0);
         object orderRequest = getValue(orderRequestRes, 1);
-        object chainName = getValue(this.options, "chainName");
+        object chainName = (this.options.ContainsKey("chainName") ? this.options["chainName"] : null);
         object signedTx = this.signDydxTx(getValue(credentials, "privateKey"), orderRequest, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -1802,7 +1802,7 @@ public partial class dydx : Exchange
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
         }
         string idString = ((object)id).ToString();
-        if ((id != null) && getIndexOf(idString, "-") > -1)
+        if ((id != null) && ((string)idString).IndexOf("-", StringComparison.Ordinal) > -1)
         {
             throw new NotSupported ((string)(this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
         }
@@ -1861,7 +1861,7 @@ public partial class dydx : Exchange
             { "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" },
             { "value", cancelPayload },
         };
-        object chainName = getValue(this.options, "chainName");
+        object chainName = (this.options.ContainsKey("chainName") ? this.options["chainName"] : null);
         object signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -1938,7 +1938,7 @@ public partial class dydx : Exchange
             { "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" },
             { "value", cancelPayload },
         };
-        object chainName = getValue(this.options, "chainName");
+        object chainName = (this.options.ContainsKey("chainName") ? this.options["chainName"] : null);
         object signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2147,7 +2147,7 @@ public partial class dydx : Exchange
         {
             throw new ExchangeError ((string)(this.id + " estimateTxFee() missing feeAmount")) ;
         }
-        if (getIndexOf(feeAmount, ".") >= 0)
+        if (((string)feeAmount).IndexOf(".", StringComparison.Ordinal) >= 0)
         {
             feeAmount = this.numberToString(Math.Ceiling(Convert.ToDouble(this.parseToNumeric(feeAmount))));
         }
@@ -2246,7 +2246,7 @@ public partial class dydx : Exchange
             };
         }
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, "", account);
-        object chainName = getValue(this.options, "chainName");
+        object chainName = (this.options.ContainsKey("chainName") ? this.options["chainName"] : null);
         object signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2446,7 +2446,7 @@ public partial class dydx : Exchange
             { "value", payload },
         };
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, tag, account);
-        object chainName = getValue(this.options, "chainName");
+        object chainName = (this.options.ContainsKey("chainName") ? this.options["chainName"] : null);
         object signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2792,7 +2792,7 @@ public partial class dydx : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), getValue(this.options, "timeDifference"))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
     public virtual object getWalletAddress()
@@ -2820,7 +2820,7 @@ public partial class dydx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? pathWithParams = this.implodeParams(path, parameters);
-        object url = getValue(getValue(this.urls, "api"), section);
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section);
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         url = add(url, ("/" + pathWithParams));
@@ -2884,6 +2884,6 @@ public partial class dydx : Exchange
         // rewrite testnet parameters
         ((IDictionary<string,object>)this.options)["chainName"] = "dydx-testnet-4";
         ((IDictionary<string,object>)this.options)["chainId"] = 11155111;
-        ((IDictionary<string,object>)getValue(this.options, "feeDenom"))["CHAINTOKEN_DENOM"] = "adv4tnt";
+        ((IDictionary<string,object>)(this.options.ContainsKey("feeDenom") ? this.options["feeDenom"] : null))["CHAINTOKEN_DENOM"] = "adv4tnt";
     }
 }

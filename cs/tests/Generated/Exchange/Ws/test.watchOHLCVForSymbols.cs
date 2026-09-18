@@ -57,7 +57,7 @@ public partial class testMainClass : BaseTest
                 assert(inOp(symbolObj, chosenTimeframeKey), ("Response.symbol should contain the timeframe key. " + (assertionMessage)));
                 object ohlcvs = getValue(symbolObj, chosenTimeframeKey);
                 assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("Response.symbol.timeframe should be an array. " + (assertionMessage)));
-                for (int i = 0; i < getArrayLength(ohlcvs); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(ohlcvs); i++)
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
                 }

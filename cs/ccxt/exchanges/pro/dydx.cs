@@ -52,9 +52,9 @@ public partial class dydx : ccxt.dydx
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_trades" },
@@ -84,9 +84,9 @@ public partial class dydx : ccxt.dydx
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_trades" },
@@ -132,7 +132,7 @@ public partial class dydx : ccxt.dydx
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         IList<object> parsedTrades = this.parseTrades(rawTrades, market);
-        for (int i = 0; i < getArrayLength(parsedTrades); i++)
+        for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
             object parsed = parsedTrades[i];
             callDynamically(stored, "append", new object[] {parsed});
@@ -189,9 +189,9 @@ public partial class dydx : ccxt.dydx
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_orderbook" },
@@ -217,9 +217,9 @@ public partial class dydx : ccxt.dydx
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_orderbook" },
@@ -309,9 +309,9 @@ public partial class dydx : ccxt.dydx
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ohlcv:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -346,9 +346,9 @@ public partial class dydx : ccxt.dydx
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ohlcv:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },

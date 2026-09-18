@@ -1157,7 +1157,7 @@ public partial class deribit : Exchange
             List<object> currenciesResult = this.safeList(currenciesResponse, "result", new List<object>() {});
             for (int i = 0; i < currenciesResult.Count; i++)
             {
-                string? currencyId = this.safeString(getValue(currenciesResult, i), "currency");
+                string? currencyId = this.safeString(currenciesResult[i], "currency");
                 Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "currency", currencyId },
                 };
@@ -1238,12 +1238,12 @@ public partial class deribit : Exchange
                 ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
             }
         }
-        for (int i = 0; i < getArrayLength(instrumentsResponses); i++)
+        for (int i = 0; i < (instrumentsResponses?.Count ?? 0); i++)
         {
-            List<object> instrumentsResult = this.safeList(getValue(instrumentsResponses, i), "result", new List<object>() {});
+            List<object> instrumentsResult = this.safeList(instrumentsResponses[i], "result", new List<object>() {});
             for (int k = 0; k < instrumentsResult.Count; k++)
             {
-                object market = getValue(instrumentsResult, k);
+                object market = instrumentsResult[k];
                 string? kind = this.safeString(market, "kind");
                 bool isSpot = ((kind == "spot"));
                 string? id = this.safeString(market, "instrument_name");
@@ -1387,9 +1387,9 @@ public partial class deribit : Exchange
         {
             summaries = new List<object>() {balance};
         }
-        for (int i = 0; i < getArrayLength(summaries); i++)
+        for (int i = 0; i < (summaries?.Count ?? 0); i++)
         {
-            object data = getValue(summaries, i);
+            object data = summaries[i];
             string? currencyId = this.safeString(data, "currency");
             string? currencyCode = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1662,7 +1662,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         //
@@ -1723,14 +1723,14 @@ public partial class deribit : Exchange
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                if ((code != null) && !isEqual(code, getValue(market, "base")))
+                if ((code != null) && !isEqual(code, (market.ContainsKey("base") ? market["base"] : null)))
                 {
                     throw new BadRequest ((string)(this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
                 }
                 if ((code == null))
                 {
-                    code = getValue(market, "base");
-                    type = getValue(market, "type");
+                    code = (market.ContainsKey("base") ? market["base"] : null);
+                    type = (market.ContainsKey("type") ? market["type"] : null);
                 }
             }
         }
@@ -1795,7 +1795,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            Dictionary<string, object> ticker = this.parseTicker(getValue(result, i));
+            Dictionary<string, object> ticker = this.parseTicker(result[i]);
             string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
@@ -1840,7 +1840,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
@@ -2012,7 +2012,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "include_old", true },
         };
         if (!isEqual(since, null))
@@ -2145,7 +2145,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> optionFee = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object fee = getValue(fees, i);
+            object fee = fees[i];
             string? instrumentType = this.safeString(fee, "instrument_type");
             if ((instrumentType == "future"))
             {
@@ -2172,25 +2172,25 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> parsedFees = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
             Dictionary<string, object> fee = new Dictionary<string, object>() {
                 { "info", market },
                 { "symbol", symbol },
                 { "percentage", true },
                 { "tierBased", true },
-                { "maker", getValue(market, "maker") },
-                { "taker", getValue(market, "taker") },
+                { "maker", (market.ContainsKey("maker") ? market["maker"] : null) },
+                { "taker", (market.ContainsKey("taker") ? market["taker"] : null) },
             };
-            if (((getValue(market, "swap") as bool?) == true))
+            if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
             {
                 fee = this.extend(fee, perpetualFee);
-            } else if (((getValue(market, "future") as bool?) == true))
+            } else if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
             {
                 fee = this.extend(fee, futureFee);
-            } else if (((getValue(market, "option") as bool?) == true))
+            } else if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
             {
                 fee = this.extend(fee, optionFee);
             }
@@ -2218,7 +2218,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2267,7 +2267,7 @@ public partial class deribit : Exchange
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(result, "timestamp");
         Int64? nonce = this.safeInteger(result, "change_id");
-        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(result, getValue(market, "symbol"), timestamp));
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -2492,7 +2492,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", this.amountToPrecision(symbol, amount) },
             { "type", type },
         };
@@ -2753,7 +2753,7 @@ public partial class deribit : Exchange
         } else
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateGetCancelAllByInstrument(this.extend(request, parameters));
         }
         //
@@ -2800,7 +2800,7 @@ public partial class deribit : Exchange
         } else
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateGetGetOpenOrdersByInstrument(this.extend(request, parameters));
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
@@ -2845,7 +2845,7 @@ public partial class deribit : Exchange
         } else
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateGetGetOrderHistoryByInstrument(this.extend(request, parameters));
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
@@ -2958,7 +2958,7 @@ public partial class deribit : Exchange
         } else
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
             if (isEqual(since, null))
             {
                 response = await this.privateGetGetUserTradesByInstrument(this.extend(request, parameters));
@@ -3290,7 +3290,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetGetPosition(this.extend(request, parameters));
         //
@@ -3442,8 +3442,8 @@ public partial class deribit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < volatilityResult.Count; i++)
         {
-            Int64? timestamp = this.safeInteger(getValue(volatilityResult, i), 0);
-            double? volatilityObj = this.safeNumber(getValue(volatilityResult, i), 1);
+            Int64? timestamp = this.safeInteger(volatilityResult[i], 0);
+            double? volatilityObj = this.safeNumber(volatilityResult[i], 1);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", volatilityObj },
                 { "timestamp", timestamp },
@@ -3759,7 +3759,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Int64 time = this.milliseconds();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "start_timestamp", (time - (((multiply(8, 60) * 60) * 1000))) },
             { "end_timestamp", time },
         };
@@ -3824,7 +3824,7 @@ public partial class deribit : Exchange
             time = add(sinceVar, month);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "start_timestamp", subtract(sinceVar, 1) },
         };
         Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
@@ -3866,7 +3866,7 @@ public partial class deribit : Exchange
         List<object> result = this.safeList(response, "result", new List<object>() {});
         for (int i = 0; i < result.Count; i++)
         {
-            object fr = getValue(result, i);
+            object fr = result[i];
             object rate = this.parseFundingRate(fr, market);
             ((IList<object>)rates).Add(rate);
         }
@@ -3946,12 +3946,12 @@ public partial class deribit : Exchange
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation", null));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new NotSupported ((string)(((this.id + " fetchLiquidations() does not support ") + (getValue(market, "type"))) + " markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", "bankruptcy" },
         };
         if (!isEqual(since, null))
@@ -4035,12 +4035,12 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new NotSupported ((string)(((this.id + " fetchMyLiquidations() does not support ") + (getValue(market, "type"))) + " markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchMyLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", "bankruptcy" },
         };
         if (!isEqual(since, null))
@@ -4127,7 +4127,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         //
@@ -4266,7 +4266,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters));
         //
@@ -4432,12 +4432,12 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "contract") as bool?) != true))
+        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters));
         //
@@ -4560,7 +4560,7 @@ public partial class deribit : Exchange
                 { "Authorization", (((((((("deri-hmac-sha256 id=" + (this.apiKey)) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };
         }
-        object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), request);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

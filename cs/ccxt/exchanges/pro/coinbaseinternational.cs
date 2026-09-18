@@ -99,17 +99,17 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             IList<object> parsedSymbols = this.marketSymbols(symbols);
             IList<object> marketIds = this.marketIds(parsedSymbols);
             productIds = marketIds;
-            for (int i = 0; i < getArrayLength(parsedSymbols); i++)
+            for (int i = 0; i < (parsedSymbols?.Count ?? 0); i++)
             {
                 ((IList<object>)messageHashes).Add(add(add(name, "::"), parsedSymbols[i]));
             }
         } else if ((symbolsLength == 1))
         {
             market = this.market(getValue(symbols, 0));
-            messageHash = add(add(name, "::"), getValue(market, "symbol"));
-            productIds = new List<object>() {((string)getValue(market, "id"))};
+            messageHash = add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
+            productIds = new List<object>() {((string)(market.ContainsKey("id") ? market["id"] : null))};
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         if ((url == null))
         {
             throw new NotSupported ((string)(this.id + " is not supported in sandbox environment")) ;
@@ -170,7 +170,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         if ((url == null))
         {
             throw new NotSupported ((string)(this.id + " is not supported in sandbox environment")) ;
@@ -264,11 +264,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         List<object> symbols = this.symbols;
         List<object> output = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            if (((getValue(market, "active") as bool?) == true))
+            if ((((market.ContainsKey("active") ? market["active"] : null) as bool?) == true))
             {
                 ((IList<object>)output).Add(symbol);
             }
@@ -518,7 +518,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         IDictionary<string, object> options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(options, timeframeVar, timeframeVar);
         object ohlcv = await this.subscribe(interval, new List<object>() {symbolVar}, parameters);
@@ -552,7 +552,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object messageHash = this.safeString(message, "channel");
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? timeframe = this.findTimeframe(messageHash);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (isEqual(this.safeValue(getValue(this.ohlcvs, symbol), timeframe), null))
@@ -791,7 +791,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public override void handleDeltas(object orderbook, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }

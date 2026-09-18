@@ -144,9 +144,9 @@ public partial class blofin : ccxt.blofin
         {
             return;
         }
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rawTrade = getValue(data, i);
+            object rawTrade = data[i];
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
             string? symbol = ((string)getValue(trade, "symbol"));
             object stored = this.safeValue(this.trades, symbol);
@@ -213,7 +213,7 @@ public partial class blofin : ccxt.blofin
         // due to some problem, temporarily disable other channels
         if (!isEqual(channelName, "books"))
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + callerMethodName) + "() at this moment "), channelName) + " is not supported, coming soon")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + callerMethodName) + "() at this moment ") + (channelName)) + " is not supported, coming soon")) ;
         }
         object orderbook = await this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -334,9 +334,9 @@ public partial class blofin : ccxt.blofin
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(getValue(data, i)));
+            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data[i]));
             string? symbol = ((string)getValue(ticker, "symbol"));
             object messageHash = add(add(channelName, ":"), symbol);
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
@@ -373,13 +373,13 @@ public partial class blofin : ccxt.blofin
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
+        object url = getValue(getValue(getValue(((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), "public");
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsList); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbolsList, i));
-            ((IList<object>)messageHashes).Add(add("bidask:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            ((IList<object>)messageHashes).Add(("bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             ((IList<object>)args).Add(new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -399,9 +399,9 @@ public partial class blofin : ccxt.blofin
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         List<object> data = this.safeList(message, "data");
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, i)));
+            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(data[i]));
             string? symbol = ((string)getValue(ticker, "symbol"));
             string messageHash = ("bidask:" + symbol);
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
@@ -514,9 +514,9 @@ public partial class blofin : ccxt.blofin
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
         }
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object candle = getValue(data, i);
+            object candle = data[i];
             object parsed = this.parseOHLCV(candle, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -554,7 +554,7 @@ public partial class blofin : ccxt.blofin
             { "channel", "account" },
         };
         Dictionary<string, object> request = this.getSubscriptionRequest(new List<object>() {sub});
-        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
+        object url = getValue(getValue(getValue(((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), "private");
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -659,9 +659,9 @@ public partial class blofin : ccxt.blofin
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(getValue(data, i)));
+            Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(data[i]));
             string? symbol = ((string)getValue(order, "symbol"));
             object messageHash = add(add(channelName, ":"), symbol);
             callDynamically(orders, "append", new object[] {order});
@@ -721,9 +721,9 @@ public partial class blofin : ccxt.blofin
         object channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(getValue(data, i)));
+            Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(data[i]));
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
             object messageHash = add(add(channelName, ":"), getValue(position, "symbol"));
@@ -757,13 +757,13 @@ public partial class blofin : ccxt.blofin
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        string messageHash = add("fundingRate:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("fundingRate:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         Dictionary<string, object> requestParams = new Dictionary<string, object>() {
             { "channel", "funding-rate" },
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.getSubscriptionRequest(new List<object>() {requestParams});
-        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
+        object url = getValue(getValue(getValue(((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), "public");
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -789,7 +789,7 @@ public partial class blofin : ccxt.blofin
         object fundingRate = this.parseFundingRate(first);
         object symbol = getValue(fundingRate, "symbol");
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
-        string messageHash = add("fundingRate:", symbol);
+        string messageHash = ("fundingRate:" + (symbol));
         (client as WebSocketClient).resolve(fundingRate, messageHash);
     }
 
@@ -820,7 +820,7 @@ public partial class blofin : ccxt.blofin
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if ((marketType != "swap"))
         {
-            throw new NotSupported ((string)(((add((this.id + " "), callerMethodName) + "() does not support ") + marketType) + " markets yet")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + (callerMethodName)) + "() does not support ") + marketType) + " markets yet")) ;
         }
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -829,9 +829,9 @@ public partial class blofin : ccxt.blofin
             symbols = new List<object>() {};
         }
         int symbolsLength = getArrayLength(symbols);
-        if (isGreaterThan(symbolsLength, 0))
+        if (symbolsLength > 0)
         {
-            for (int i = 0; isLessThan(i, getArrayLength(symbols)); i++)
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object current = getValue(symbols, i);
                 IDictionary<string, object> market = null;
@@ -870,7 +870,7 @@ public partial class blofin : ccxt.blofin
         }
         Dictionary<string, object> request = this.getSubscriptionRequest(rawSubscriptions);
         string privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
-        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
+        object url = getValue(getValue(getValue(((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
@@ -963,7 +963,7 @@ public partial class blofin : ccxt.blofin
 }} },
         };
         string marketType = "swap"; // for now
-        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
+        object url = getValue(getValue(getValue(((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), "private");
         await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 }

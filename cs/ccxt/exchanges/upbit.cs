@@ -620,8 +620,8 @@ public partial class upbit : Exchange
             { "contract", false },
             { "linear", null },
             { "inverse", null },
-            { "taker", this.safeNumber(getValue(this.options, "tradingFeesByQuoteCurrency"), quote, getValue(getValue(this.fees, "trading"), "taker")) },
-            { "maker", this.safeNumber(getValue(this.options, "tradingFeesByQuoteCurrency"), quote, getValue(getValue(this.fees, "trading"), "maker")) },
+            { "taker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue(getValue(this.fees, "trading"), "taker")) },
+            { "maker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue(getValue(this.fees, "trading"), "maker")) },
             { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -661,7 +661,7 @@ public partial class upbit : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -778,9 +778,9 @@ public partial class upbit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> orderbooks = this.toArray(response);
-        for (int i = 0; i < getArrayLength(orderbooks); i++)
+        for (int i = 0; i < (orderbooks?.Count ?? 0); i++)
         {
-            object orderbook = getValue(orderbooks, i);
+            object orderbook = orderbooks[i];
             string? marketId = this.safeString(orderbook, "market");
             string? symbol = this.safeSymbol(marketId, null, "-");
             Int64? timestamp = this.safeInteger(orderbook, "timestamp");
@@ -899,9 +899,9 @@ public partial class upbit : Exchange
             // ticker/all returns every market of the requested quote currencies with a single request
             List<object> quoteIds = new List<object>() {};
             List<object> marketSymbols = this.symbols;
-            for (int i = 0; i < getArrayLength(marketSymbols); i++)
+            for (int i = 0; i < (marketSymbols?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market(getValue(marketSymbols, i));
+                Dictionary<string, object> market = this.market(marketSymbols[i]);
                 string? quoteId = ((string)(market.ContainsKey("quoteId") ? market["quoteId"] : null));
                 if (!this.inArray(quoteId, quoteIds))
                 {
@@ -910,7 +910,7 @@ public partial class upbit : Exchange
             }
             object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
             object quoteCurrencies = "";
-            for (int i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); i++)
+            for (int i = 0; i < getArrayLength(sortedQuoteIds); i++)
             {
                 if (!isEqual(quoteCurrencies, ""))
                 {
@@ -927,9 +927,9 @@ public partial class upbit : Exchange
             IList<object> ids = this.marketIds(symbols);
             List<object> promises = new List<object>() {};
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
-            for (int i = 0; i < getArrayLength(queries); i++)
+            for (int i = 0; i < (queries?.Count ?? 0); i++)
             {
-                object idsQuery = getValue(queries, i);
+                object idsQuery = queries[i];
                 ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
                     { "markets", idsQuery },
                 }, parameters)));
@@ -2136,7 +2136,7 @@ public partial class upbit : Exchange
             { "order", id },
             { "type", type },
         });
-        int numTrades = getArrayLength(trades);
+        int numTrades = (trades?.Count ?? 0);
         if (numTrades > 0)
         {
             // the timestamp in fetchOrder trades is missing
@@ -2687,7 +2687,7 @@ public partial class upbit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
+        object url = this.implodeParams(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters)));

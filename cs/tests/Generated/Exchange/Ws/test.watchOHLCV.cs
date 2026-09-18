@@ -50,7 +50,7 @@ public partial class testMainClass : BaseTest
             if (((success == true)) && ((response != null)))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }

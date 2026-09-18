@@ -861,9 +861,9 @@ public partial class bitmex : Exchange
         symbol = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbol);
         object oldPrecision = this.safeValue(this.options, "oldPrecision");
-        if ((((getValue(market, "spot") as bool?) == true)) && (!isEqual(oldPrecision, true)))
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (!isEqual(oldPrecision, true)))
         {
-            amount = this.convertFromRealAmount(getValue(market, "base"), amount);
+            amount = this.convertFromRealAmount((market.ContainsKey("base") ? market["base"] : null), amount);
         }
         return base.amountToPrecision(symbol, amount);
     }
@@ -882,7 +882,7 @@ public partial class bitmex : Exchange
             return this.parseNumber(rawQuantity);
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             return this.parseNumber(this.convertToRealAmount(((string)this.safeString(market, currencySide)), rawQuantity));
         }
@@ -1286,7 +1286,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1392,7 +1392,7 @@ public partial class bitmex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1408,7 +1408,7 @@ public partial class bitmex : Exchange
             { "nonce", null },
         };
         IList<object> orders = this.toArray(response);
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             object order = orders[i];
             string side = ((bool) (isEqual(getValue(order, "side"), "Sell"))) ? "asks" : "bids";
@@ -1487,7 +1487,7 @@ public partial class bitmex : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1588,7 +1588,7 @@ public partial class bitmex : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1998,7 +1998,7 @@ public partial class bitmex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetInstrument(this.extend(request, parameters));
         object ticker = this.safeValue(response, 0);
@@ -2030,7 +2030,7 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawTickers); i++)
+        for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = this.parseTicker(rawTickers[i]);
             string? symbol = this.safeString(ticker, "symbol");
@@ -2138,7 +2138,7 @@ public partial class bitmex : Exchange
         // timeframes: daily, weekly, monthly, quarterly, and biquarterly
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "binSize", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "partial", true },
         };
@@ -2185,7 +2185,7 @@ public partial class bitmex : Exchange
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
-            for (int i = 0; i < getArrayLength(result); i++)
+            for (int i = 0; i < (result?.Count ?? 0); i++)
             {
                 ((List<object>)result[i])[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(result[i], 0)), duration);
             }
@@ -2476,7 +2476,7 @@ public partial class bitmex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -2557,9 +2557,9 @@ public partial class bitmex : Exchange
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         if ((reduceOnly != null))
         {
-            if ((((getValue(market, "swap") as bool?) != true)) && (((getValue(market, "future") as bool?) != true)))
+            if (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true)) && ((((market.ContainsKey("future") ? market["future"] : null) as bool?) != true)))
             {
-                throw new InvalidOrder ((string)(((this.id + " createOrder() does not support reduceOnly for ") + (getValue(market, "type"))) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() does not support reduceOnly for ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
         }
         bool? postOnly = this.safeBool(parameters, "postOnly");
@@ -2567,7 +2567,7 @@ public partial class bitmex : Exchange
         string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
         Int64? qty = this.parseToInt(this.amountToPrecision(symbol, amount));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", this.capitalize(side) },
             { "orderQty", qty },
             { "ordType", capitalizeOrderType },
@@ -2582,7 +2582,7 @@ public partial class bitmex : Exchange
         {
             ((IList<object>)execInstructions).Add("ParticipateDoNotInitiate");
         }
-        int execInstLength = getArrayLength(execInstructions);
+        int execInstLength = (execInstructions?.Count ?? 0);
         if (execInstLength > 0)
         {
             ((IDictionary<string,object>)request)["execInst"] = String.Join(",", ((IList<object>)execInstructions).ToArray());
@@ -2825,7 +2825,7 @@ public partial class bitmex : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateDeleteOrderAll(this.extend(request, parameters));
         //
@@ -3285,7 +3285,7 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         List<object> filteredResponse = new List<object>() {};
         IList<object> rawItems = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawItems); i++)
+        for (int i = 0; i < (rawItems?.Count ?? 0); i++)
         {
             object item = rawItems[i];
             string? marketId = this.safeString(item, "symbol");
@@ -3376,7 +3376,7 @@ public partial class bitmex : Exchange
             } else
             {
                 market = this.market(symbolVar);
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
         if (!isEqual(since, null))
@@ -3460,12 +3460,12 @@ public partial class bitmex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "type") as string) != "swap") && ((getValue(market, "type") as string) != "future"))
+        if ((((market.ContainsKey("type") ? market["type"] : null) as string) != "swap") && (((market.ContainsKey("type") ? market["type"] : null) as string) != "future"))
         {
             throw new BadSymbol ((string)(this.id + " setLeverage() supports future and swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", leverage },
         };
         return ccxt.BaseExchange.ToDict(await this.privatePostPositionLeverage(this.extend(request, parameters)));
@@ -3499,13 +3499,13 @@ public partial class bitmex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((getValue(market, "type") as string) != "swap")) && (((getValue(market, "type") as string) != "future")))
+        if (((((market.ContainsKey("type") ? market["type"] : null) as string) != "swap")) && ((((market.ContainsKey("type") ? market["type"] : null) as string) != "future")))
         {
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap and future contracts only")) ;
         }
         bool enabled = ((bool) (isEqual(marginModeVar, "cross"))) ? false : true;
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "enabled", enabled },
         };
         return ccxt.BaseExchange.ToDict(await this.privatePostPositionIsolate(this.extend(request, parameters)));
@@ -3797,7 +3797,7 @@ public partial class bitmex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -4149,7 +4149,7 @@ public partial class bitmex : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -4182,7 +4182,7 @@ public partial class bitmex : Exchange
     public virtual object parseSettlements(object settlements, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); i++)
+        for (int i = 0; i < getArrayLength(settlements); i++)
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -4232,7 +4232,7 @@ public partial class bitmex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", this.capitalize(side) },
             { "execInst", "Close" },
         };
@@ -4318,7 +4318,7 @@ public partial class bitmex : Exchange
                 parameters = this.omit(parameters, "_format");
             }
         }
-        object url = add(getValue(getValue(this.urls, "api"), api), query);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), query);
         bool isAuthenticated = this.checkRequiredCredentials(false);
         if (isEqual(api, "private") || (isEqual(api, "public") && isAuthenticated))
         {

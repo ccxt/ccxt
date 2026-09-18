@@ -53,8 +53,8 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketId = ((string)getValue(market, "id"));
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         var client = this.client(url);
         object messageHash = add(add(channel, ":"), marketId);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -89,12 +89,12 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketId = ((string)getValue(market, "id"));
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         var client = this.client(url);
         object subMessageHash = add(add(channel, ":"), marketId);
-        string messageHash = ((add("unsubscribe:", channel) + ":") + marketId);
-        string unSubTopic = add((add(("unsubscribe" + ":"), topic) + ":"), symbol);
+        string messageHash = ((("unsubscribe:" + (channel)) + ":") + marketId);
+        string unSubTopic = (((("unsubscribe" + ":") + (topic)) + ":") + (symbol));
         string? channelId = this.safeString(((WebSocketClient)client).subscriptions, unSubTopic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
@@ -119,7 +119,7 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         await this.authenticate();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         return await this.watch(url, messageHash, null, 1);
     }
 
@@ -146,17 +146,17 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string channel = "candles";
-        string key = add((("trade:" + interval) + ":"), getValue(market, "id"));
-        string messageHash = add((((channel + ":") + interval) + ":"), getValue(market, "id"));
+        string key = ((("trade:" + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string messageHash = ((((channel + ":") + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "channel", channel },
             { "key", key },
         };
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         // not using subscribe here because this message has a different format
         object ohlcv = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
         if (this.newUpdates)
@@ -185,14 +185,14 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string channel = "candles";
-        string subMessageHash = add((((channel + ":") + interval) + ":"), getValue(market, "id"));
+        string subMessageHash = ((((channel + ":") + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         string messageHash = ("unsubscribe:" + subMessageHash);
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         var client = this.client(url);
-        string subId = add((("unsubscribe:trade:" + interval) + ":"), getValue(market, "id")); // trade here because we use the key
+        string subId = ((("unsubscribe:trade:" + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null))); // trade here because we use the key
         string? channelId = this.safeString(((WebSocketClient)client).subscriptions, subId);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
@@ -278,7 +278,7 @@ public partial class bitfinex : ccxt.bitfinex
         marketId = ((string)marketId).Replace((string)add(interval, ":"), (string)"");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? timeframe = this.findTimeframe(interval);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object messageHash = add(add(add(add(channel, ":"), interval), ":"), marketId);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -356,7 +356,7 @@ public partial class bitfinex : ccxt.bitfinex
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = messageHash + add(":", getValue(market, "id"));
+            messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object trades = await this.subscribePrivate(messageHash);
         if (this.newUpdates)
@@ -423,7 +423,7 @@ public partial class bitfinex : ccxt.bitfinex
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
         string? symbol = ((string)getValue(trade, "symbol"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -475,7 +475,7 @@ public partial class bitfinex : ccxt.bitfinex
         Dictionary<string, object> market = this.safeMarket(marketId);
         object messageHash = add(add(channel, ":"), marketId);
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -557,7 +557,7 @@ public partial class bitfinex : ccxt.bitfinex
         //    ]
         //
         int numFields = getArrayLength(trade);
-        bool isPublic = isLessThanOrEqual(numFields, 8);
+        bool isPublic = numFields <= 8;
         object marketId = ((bool) (!isPublic)) ? this.safeString(trade, 1) : null;
         market = this.safeMarket(marketId, market);
         int createdKey = ((bool) isPublic) ? 1 : 2;
@@ -780,7 +780,7 @@ public partial class bitfinex : ccxt.bitfinex
             if (isRaw)
             {
                 object deltas = getValue(message, 1);
-                for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+                for (int i = 0; i < getArrayLength(deltas); i++)
                 {
                     object delta = getValue(deltas, i);
                     object delta2 = getValue(delta, 2);
@@ -794,7 +794,7 @@ public partial class bitfinex : ccxt.bitfinex
             } else
             {
                 object deltas = getValue(message, 1);
-                for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+                for (int i = 0; i < getArrayLength(deltas); i++)
                 {
                     object delta = getValue(deltas, i);
                     object amount = this.safeNumber(delta, 2);
@@ -890,7 +890,7 @@ public partial class bitfinex : ccxt.bitfinex
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isEqual(checksum, true))
             {
-                var error = new ChecksumError(add((this.id + " "), this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }
@@ -1132,7 +1132,7 @@ public partial class bitfinex : ccxt.bitfinex
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -1199,7 +1199,7 @@ public partial class bitfinex : ccxt.bitfinex
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = messageHash + add(":", getValue(market, "id"));
+            messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object orders = await this.subscribePrivate(messageHash);
         if (this.newUpdates)
@@ -1289,7 +1289,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             string? symbol = ((string)keys[i]);
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add((name + ":"), getValue(market, "id"));
+            string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
             (client as WebSocketClient).resolve(this.orders, messageHash);
         }
     }

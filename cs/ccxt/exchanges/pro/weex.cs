@@ -108,7 +108,7 @@ public partial class weex : ccxt.weex
             { "id", id },
         });
         string type = ((bool) isTrue(isContract)) ? "contract" : "spot";
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/public");
+        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type), "/public");
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscription);
     }
 
@@ -118,7 +118,7 @@ public partial class weex : ccxt.weex
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
         string type = ((bool) isTrue(isContract)) ? "contract" : "spot";
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/private");
+        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type), "/private");
         this.authenticate(url);
         string method = "SUBSCRIBE";
         bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
@@ -148,7 +148,7 @@ public partial class weex : ccxt.weex
         Int64 timestamp = this.nonce();
         string payload = (((object)timestamp).ToString() + "/v3/ws/private");
         string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
-        object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
+        object originalHeaders = getValue(getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"), "headers");
         string? userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Dictionary<string, object> extendedOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
@@ -230,8 +230,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            object channelName = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), topic);
+            string messageHash = ((topic + "::") + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
         }
@@ -289,8 +289,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            object channelName = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), topic);
+            string messageHash = ((topic + "::") + (symbol));
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -341,7 +341,7 @@ public partial class weex : ccxt.weex
         List<object> tickers = this.safeList(message, "d", new List<object>() {});
         IDictionary<string, object> data = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data, market));
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker::" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, symbol), messageHash);
@@ -444,8 +444,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            object channelName = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), topic);
+            string messageHash = ((topic + "::") + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
         }
@@ -503,8 +503,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(getValue(market, "id"), "@"), topic);
-            string messageHash = add((topic + "::"), symbol);
+            object channelName = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), topic);
+            string messageHash = ((topic + "::") + (symbol));
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -544,7 +544,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade::" + symbol);
         if (!(inOp(this.trades, symbol)))
         {
@@ -561,7 +561,7 @@ public partial class weex : ccxt.weex
             ((IList<object>)newTrades).Add(trade);
         }
         List<object> sorted = this.sortBy(newTrades, "timestamp");
-        for (int j = 0; j < getArrayLength(sorted); j++)
+        for (int j = 0; j < (sorted?.Count ?? 0); j++)
         {
             object sortedTrade = sorted[j];
             callDynamically(tradesArray, "append", new object[] {sortedTrade});
@@ -673,15 +673,15 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual(getValue(market, "type"), getValue(firstMarket, "type")))
+            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), getValue(firstMarket, "type")))
             {
                 throw new BadRequest ((string)(((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
-            symbolString = getValue(market, "symbol");
+            symbolString = (market.ContainsKey("symbol") ? market["symbol"] : null);
             string? unifiedTimeframe = this.safeString(data, 1, "1");
             string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
-            string messageHash = ((add("ohlcv::", symbolString) + "::") + unifiedTimeframe);
+            object channel = add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), interval), "_"), priceType);
+            string messageHash = ((("ohlcv::" + (symbolString)) + "::") + unifiedTimeframe);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)messageHashes).Add(messageHash);
         }
@@ -755,15 +755,15 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual(getValue(market, "type"), getValue(firstMarket, "type")))
+            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), getValue(firstMarket, "type")))
             {
                 throw new BadRequest ((string)(((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
-            symbolString = getValue(market, "symbol");
+            symbolString = (market.ContainsKey("symbol") ? market["symbol"] : null);
             string? unifiedTimeframe = this.safeString(data, 1, "1");
             string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
-            string messageHash = ((add("ohlcv::", symbolString) + "::") + unifiedTimeframe);
+            object channel = add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), interval), "_"), priceType);
+            string messageHash = ((("ohlcv::" + (symbolString)) + "::") + unifiedTimeframe);
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)subHashes).Add(messageHash);
@@ -811,7 +811,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.ohlcvs, symbol)))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -916,8 +916,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add("orderbook::", symbol);
-            object channel = add(add(getValue(market, "id"), "@depth"), depth);
+            string messageHash = ("orderbook::" + (symbol));
+            object channel = add(add((market.ContainsKey("id") ? market["id"] : null), "@depth"), depth);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channel);
         }
@@ -980,8 +980,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add("orderbook::", symbol);
-            object channel = add(add(getValue(market, "id"), "@depth"), depth);
+            string messageHash = ("orderbook::" + (symbol));
+            object channel = add(add((market.ContainsKey("id") ? market["id"] : null), "@depth"), depth);
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channel);
@@ -1017,7 +1017,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook::" + symbol);
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -1087,8 +1087,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(getValue(market, "id"), "@"), "bookTicker");
-            string messageHash = add("bidask::", symbol);
+            object channelName = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), "bookTicker");
+            string messageHash = ("bidask::" + (symbol));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
         }
@@ -1131,8 +1131,8 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(getValue(market, "id"), "@"), "bookTicker");
-            string messageHash = add("bidask::", symbol);
+            object channelName = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), "bookTicker");
+            string messageHash = ("bidask::" + (symbol));
             string unSubMessageHash = ("unsubscribe::" + messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -1220,7 +1220,7 @@ public partial class weex : ccxt.weex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
@@ -1230,7 +1230,7 @@ public partial class weex : ccxt.weex
         string subscriptionHash = messageHash;
         if ((symbolVar != null))
         {
-            messageHash = messageHash + add("::", symbolVar);
+            messageHash = messageHash + ("::" + (symbolVar));
         }
         string channel = "fill";
         object trades = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters);
@@ -1354,7 +1354,7 @@ public partial class weex : ccxt.weex
         for (int j = 0; j < symbolKeys.Count; j++)
         {
             object symbol = symbolKeys[j];
-            string symbolMessageHash = add((messageHash + "::"), symbol);
+            string symbolMessageHash = ((messageHash + "::") + (symbol));
             (client as WebSocketClient).resolve(trades, symbolMessageHash);
         }
         (client as WebSocketClient).resolve(trades, messageHash);
@@ -1454,7 +1454,7 @@ public partial class weex : ccxt.weex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
@@ -1465,7 +1465,7 @@ public partial class weex : ccxt.weex
         string subscriptionHash = messageHash;
         if ((symbolVar != null))
         {
-            messageHash = messageHash + add("::", symbolVar);
+            messageHash = messageHash + ("::" + (symbolVar));
         }
         string channel = "orders";
         object orders = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters);
@@ -1589,7 +1589,7 @@ public partial class weex : ccxt.weex
         for (int i = 0; i < symbolKeys.Count; i++)
         {
             object symbol = symbolKeys[i];
-            string symbolMessageHash = add((messageHash + "::"), symbol);
+            string symbolMessageHash = ((messageHash + "::") + (symbol));
             (client as WebSocketClient).resolve(orders, symbolMessageHash);
         }
         (client as WebSocketClient).resolve(this.orders, messageHash);
@@ -1778,7 +1778,7 @@ public partial class weex : ccxt.weex
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
         string urlType = ((bool) isContract) ? "contract" : "spot";
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/private");
+        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType), "/private");
         this.authenticate(url);
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type);
@@ -1943,7 +1943,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/private");
+        object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "contract"), "/private");
         this.authenticate(url);
         var client = this.client(url);
         symbols = this.marketSymbols(symbols, "swap", true);
@@ -2088,7 +2088,7 @@ public partial class weex : ccxt.weex
             ((IList<object>)newPositions).Add(position);
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

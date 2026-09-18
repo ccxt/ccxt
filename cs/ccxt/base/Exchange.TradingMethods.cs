@@ -43,7 +43,7 @@ public partial class Exchange
         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchPositionsHistory"), null) && ((getValue(this.has, "fetchPositionsHistory") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchPositionsHistory") ? this.has["fetchPositionsHistory"] : null), null) && (((this.has.ContainsKey("fetchPositionsHistory") ? this.has["fetchPositionsHistory"] : null) as bool?) != false))
         {
             object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsHistory(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
             return ccxt.BaseExchange.ToPositionList(positions);
@@ -105,7 +105,7 @@ public partial class Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchMarkPrices"), null) && ((getValue(this.has, "fetchMarkPrices") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchMarkPrices") ? this.has["fetchMarkPrices"] : null), null) && (((this.has.ContainsKey("fetchMarkPrices") ? this.has["fetchMarkPrices"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
@@ -222,7 +222,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if ((!isEqual(getValue(this.has, "createMarketOrderWithCostWs"), null) && ((getValue(this.has, "createMarketOrderWithCostWs") as bool?) != false)) || ((!isEqual(getValue(this.has, "createMarketBuyOrderWithCostWs"), null) && ((getValue(this.has, "createMarketBuyOrderWithCostWs") as bool?) != false)) && (!isEqual(getValue(this.has, "createMarketSellOrderWithCostWs"), null) && ((getValue(this.has, "createMarketSellOrderWithCostWs") as bool?) != false))))
+        if ((!isEqual((this.has.ContainsKey("createMarketOrderWithCostWs") ? this.has["createMarketOrderWithCostWs"] : null), null) && (((this.has.ContainsKey("createMarketOrderWithCostWs") ? this.has["createMarketOrderWithCostWs"] : null) as bool?) != false)) || ((!isEqual((this.has.ContainsKey("createMarketBuyOrderWithCostWs") ? this.has["createMarketBuyOrderWithCostWs"] : null), null) && (((this.has.ContainsKey("createMarketBuyOrderWithCostWs") ? this.has["createMarketBuyOrderWithCostWs"] : null) as bool?) != false)) && (!isEqual((this.has.ContainsKey("createMarketSellOrderWithCostWs") ? this.has["createMarketSellOrderWithCostWs"] : null), null) && (((this.has.ContainsKey("createMarketSellOrderWithCostWs") ? this.has["createMarketSellOrderWithCostWs"] : null) as bool?) != false))))
         {
             return await this.CreateOrderWs(((string)symbol), "market",((string)side), cost, 1, parameters);
         }
@@ -267,7 +267,7 @@ public partial class Exchange
         */
         parameters ??= new Dictionary<string, object>();
         parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
-        if (!isEqual(getValue(this.has, "createOrderWithTakeProfitAndStopLossWs"), null) && ((getValue(this.has, "createOrderWithTakeProfitAndStopLossWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createOrderWithTakeProfitAndStopLossWs") ? this.has["createOrderWithTakeProfitAndStopLossWs"] : null), null) && (((this.has.ContainsKey("createOrderWithTakeProfitAndStopLossWs") ? this.has["createOrderWithTakeProfitAndStopLossWs"] : null) as bool?) != false))
         {
             return await this.CreateOrderWs(((string)symbol),((string)type),((string)side), amount, price, parameters);
         }
@@ -289,7 +289,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreatePostOnlyOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createPostOnlyOrderWs"), null) || ((getValue(this.has, "createPostOnlyOrderWs") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createPostOnlyOrderWs") ? this.has["createPostOnlyOrderWs"] : null), null) || (((this.has.ContainsKey("createPostOnlyOrderWs") ? this.has["createPostOnlyOrderWs"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createPostOnlyOrderWs() is not supported yet")) ;
         }
@@ -302,7 +302,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateReduceOnlyOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createReduceOnlyOrderWs"), null) || ((getValue(this.has, "createReduceOnlyOrderWs") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createReduceOnlyOrderWs") ? this.has["createReduceOnlyOrderWs"] : null), null) || (((this.has.ContainsKey("createReduceOnlyOrderWs") ? this.has["createReduceOnlyOrderWs"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createReduceOnlyOrderWs() is not supported yet")) ;
         }
@@ -315,7 +315,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateStopLimitOrderWs(string symbol, string side, object amount, object price, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createStopLimitOrderWs"), null) || ((getValue(this.has, "createStopLimitOrderWs") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createStopLimitOrderWs") ? this.has["createStopLimitOrderWs"] : null), null) || (((this.has.ContainsKey("createStopLimitOrderWs") ? this.has["createStopLimitOrderWs"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createStopLimitOrderWs() is not supported yet")) ;
         }
@@ -348,7 +348,7 @@ public partial class Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "stopLossPrice", stopLossPrice },
         });
-        if (!isEqual(getValue(this.has, "createStopLossOrderWs"), null) && ((getValue(this.has, "createStopLossOrderWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createStopLossOrderWs") ? this.has["createStopLossOrderWs"] : null), null) && (((this.has.ContainsKey("createStopLossOrderWs") ? this.has["createStopLossOrderWs"] : null) as bool?) != false))
         {
             return await this.CreateOrderWs(((string)symbol),((string)type),((string)side), amount, price, parameters);
         }
@@ -358,7 +358,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateStopMarketOrderWs(string symbol, string side, object amount, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createStopMarketOrderWs"), null) || ((getValue(this.has, "createStopMarketOrderWs") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createStopMarketOrderWs") ? this.has["createStopMarketOrderWs"] : null), null) || (((this.has.ContainsKey("createStopMarketOrderWs") ? this.has["createStopMarketOrderWs"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createStopMarketOrderWs() is not supported yet")) ;
         }
@@ -371,7 +371,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateStopOrderWs(string symbol, string type, string side, object amount, object price = null, object triggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createStopOrderWs"), null) || ((getValue(this.has, "createStopOrderWs") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createStopOrderWs") ? this.has["createStopOrderWs"] : null), null) || (((this.has.ContainsKey("createStopOrderWs") ? this.has["createStopOrderWs"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createStopOrderWs() is not supported yet")) ;
         }
@@ -408,7 +408,7 @@ public partial class Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "takeProfitPrice", takeProfitPrice },
         });
-        if (!isEqual(getValue(this.has, "createTakeProfitOrderWs"), null) && ((getValue(this.has, "createTakeProfitOrderWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTakeProfitOrderWs") ? this.has["createTakeProfitOrderWs"] : null), null) && (((this.has.ContainsKey("createTakeProfitOrderWs") ? this.has["createTakeProfitOrderWs"] : null) as bool?) != false))
         {
             return await this.CreateOrderWs(((string)symbol),((string)type),((string)side), amount, price, parameters);
         }
@@ -441,7 +441,7 @@ public partial class Exchange
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
-        if (!isEqual(getValue(this.has, "createTrailingAmountOrderWs"), null) && ((getValue(this.has, "createTrailingAmountOrderWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTrailingAmountOrderWs") ? this.has["createTrailingAmountOrderWs"] : null), null) && (((this.has.ContainsKey("createTrailingAmountOrderWs") ? this.has["createTrailingAmountOrderWs"] : null) as bool?) != false))
         {
             return await this.CreateOrderWs(((string)symbol),((string)type),((string)side), amount, price, parameters);
         }
@@ -474,7 +474,7 @@ public partial class Exchange
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
-        if (!isEqual(getValue(this.has, "createTrailingPercentOrderWs"), null) && ((getValue(this.has, "createTrailingPercentOrderWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTrailingPercentOrderWs") ? this.has["createTrailingPercentOrderWs"] : null), null) && (((this.has.ContainsKey("createTrailingPercentOrderWs") ? this.has["createTrailingPercentOrderWs"] : null) as bool?) != false))
         {
             return await this.CreateOrderWs(((string)symbol),((string)type),((string)side), amount, price, parameters);
         }
@@ -504,7 +504,7 @@ public partial class Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "triggerPrice", triggerPrice },
         });
-        if (!isEqual(getValue(this.has, "createTriggerOrderWs"), null) && ((getValue(this.has, "createTriggerOrderWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTriggerOrderWs") ? this.has["createTriggerOrderWs"] : null), null) && (((this.has.ContainsKey("createTriggerOrderWs") ? this.has["createTriggerOrderWs"] : null) as bool?) != false))
         {
             return await this.CreateOrderWs(((string)symbol),((string)type),((string)side), amount, price, parameters);
         }
@@ -521,7 +521,7 @@ public partial class Exchange
     public async virtual Task<List<ccxt.Order>> FetchClosedOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchOrdersWs"), null) && ((getValue(this.has, "fetchOrdersWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchOrdersWs") ? this.has["fetchOrdersWs"] : null), null) && (((this.has.ContainsKey("fetchOrdersWs") ? this.has["fetchOrdersWs"] : null) as bool?) != false))
         {
             object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersWs(((string)symbol), since, limit, parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "closed"));
@@ -538,7 +538,7 @@ public partial class Exchange
     public async virtual Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchOrdersWs"), null) && ((getValue(this.has, "fetchOrdersWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchOrdersWs") ? this.has["fetchOrdersWs"] : null), null) && (((this.has.ContainsKey("fetchOrdersWs") ? this.has["fetchOrdersWs"] : null) as bool?) != false))
         {
             object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersWs(((string)symbol), since, limit, parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "open"));
@@ -580,7 +580,7 @@ public partial class Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchTickersWs"), null) && ((getValue(this.has, "fetchTickersWs") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchTickersWs") ? this.has["fetchTickersWs"] : null), null) && (((this.has.ContainsKey("fetchTickersWs") ? this.has["fetchTickersWs"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
@@ -661,7 +661,7 @@ public partial class Exchange
     public async virtual Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchOpenInterests"), null) && ((getValue(this.has, "fetchOpenInterests") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchOpenInterests") ? this.has["fetchOpenInterests"] : null), null) && (((this.has.ContainsKey("fetchOpenInterests") ? this.has["fetchOpenInterests"] : null) as bool?) != false))
         {
             object openInterests = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToOpenInterest(this.safeDict(openInterests, symbol));
@@ -740,7 +740,7 @@ public partial class Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchTickers"), null) && ((getValue(this.has, "fetchTickers") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchTickers") ? this.has["fetchTickers"] : null), null) && (((this.has.ContainsKey("fetchTickers") ? this.has["fetchTickers"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
@@ -849,7 +849,7 @@ public partial class Exchange
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
-        if (!isEqual(getValue(this.has, "createTrailingAmountOrder"), null) && ((getValue(this.has, "createTrailingAmountOrder") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTrailingAmountOrder") ? this.has["createTrailingAmountOrder"] : null), null) && (((this.has.ContainsKey("createTrailingAmountOrder") ? this.has["createTrailingAmountOrder"] : null) as bool?) != false))
         {
             return await this.CreateOrder(((string)symbol),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
         }
@@ -882,7 +882,7 @@ public partial class Exchange
         {
             ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
         }
-        if (!isEqual(getValue(this.has, "createTrailingPercentOrder"), null) && ((getValue(this.has, "createTrailingPercentOrder") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTrailingPercentOrder") ? this.has["createTrailingPercentOrder"] : null), null) && (((this.has.ContainsKey("createTrailingPercentOrder") ? this.has["createTrailingPercentOrder"] : null) as bool?) != false))
         {
             return await this.CreateOrder(((string)symbol),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
         }
@@ -902,7 +902,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if ((!isEqual(getValue(this.has, "createMarketOrderWithCost"), null) && ((getValue(this.has, "createMarketOrderWithCost") as bool?) != false)) || ((!isEqual(getValue(this.has, "createMarketBuyOrderWithCost"), null) && ((getValue(this.has, "createMarketBuyOrderWithCost") as bool?) != false)) && (!isEqual(getValue(this.has, "createMarketSellOrderWithCost"), null) && ((getValue(this.has, "createMarketSellOrderWithCost") as bool?) != false))))
+        if ((!isEqual((this.has.ContainsKey("createMarketOrderWithCost") ? this.has["createMarketOrderWithCost"] : null), null) && (((this.has.ContainsKey("createMarketOrderWithCost") ? this.has["createMarketOrderWithCost"] : null) as bool?) != false)) || ((!isEqual((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null), null) && (((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null) as bool?) != false)) && (!isEqual((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null), null) && (((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null) as bool?) != false))))
         {
             return await this.CreateOrder(((string)symbol), "market",((string)side),ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
@@ -921,7 +921,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if ((isEqual(getValue(this.options, "createMarketBuyOrderRequiresPrice"), true)) || (!isEqual(getValue(this.has, "createMarketBuyOrderWithCost"), null) && ((getValue(this.has, "createMarketBuyOrderWithCost") as bool?) != false)))
+        if ((isEqual((this.options.ContainsKey("createMarketBuyOrderRequiresPrice") ? this.options["createMarketBuyOrderRequiresPrice"] : null), true)) || (!isEqual((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null), null) && (((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null) as bool?) != false)))
         {
             return await this.CreateOrder(((string)symbol), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
@@ -940,7 +940,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if ((isEqual(getValue(this.options, "createMarketSellOrderRequiresPrice"), true)) || (!isEqual(getValue(this.has, "createMarketSellOrderWithCost"), null) && ((getValue(this.has, "createMarketSellOrderWithCost") as bool?) != false)))
+        if ((isEqual((this.options.ContainsKey("createMarketSellOrderRequiresPrice") ? this.options["createMarketSellOrderRequiresPrice"] : null), true)) || (!isEqual((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null), null) && (((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null) as bool?) != false)))
         {
             return await this.CreateOrder(((string)symbol), "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
@@ -970,7 +970,7 @@ public partial class Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "triggerPrice", triggerPrice },
         });
-        if (!isEqual(getValue(this.has, "createTriggerOrder"), null) && ((getValue(this.has, "createTriggerOrder") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTriggerOrder") ? this.has["createTriggerOrder"] : null), null) && (((this.has.ContainsKey("createTriggerOrder") ? this.has["createTriggerOrder"] : null) as bool?) != false))
         {
             return await this.CreateOrder(((string)symbol),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
         }
@@ -1000,7 +1000,7 @@ public partial class Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "stopLossPrice", stopLossPrice },
         });
-        if (!isEqual(getValue(this.has, "createStopLossOrder"), null) && ((getValue(this.has, "createStopLossOrder") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createStopLossOrder") ? this.has["createStopLossOrder"] : null), null) && (((this.has.ContainsKey("createStopLossOrder") ? this.has["createStopLossOrder"] : null) as bool?) != false))
         {
             return await this.CreateOrder(((string)symbol),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
         }
@@ -1030,7 +1030,7 @@ public partial class Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "takeProfitPrice", takeProfitPrice },
         });
-        if (!isEqual(getValue(this.has, "createTakeProfitOrder"), null) && ((getValue(this.has, "createTakeProfitOrder") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createTakeProfitOrder") ? this.has["createTakeProfitOrder"] : null), null) && (((this.has.ContainsKey("createTakeProfitOrder") ? this.has["createTakeProfitOrder"] : null) as bool?) != false))
         {
             return await this.CreateOrder(((string)symbol),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
         }
@@ -1063,7 +1063,7 @@ public partial class Exchange
         */
         parameters ??= new Dictionary<string, object>();
         parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
-        if (!isEqual(getValue(this.has, "createOrderWithTakeProfitAndStopLoss"), null) && ((getValue(this.has, "createOrderWithTakeProfitAndStopLoss") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("createOrderWithTakeProfitAndStopLoss") ? this.has["createOrderWithTakeProfitAndStopLoss"] : null), null) && (((this.has.ContainsKey("createOrderWithTakeProfitAndStopLoss") ? this.has["createOrderWithTakeProfitAndStopLoss"] : null) as bool?) != false))
         {
             return await this.CreateOrder(((string)symbol),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
         }
@@ -1139,7 +1139,7 @@ public partial class Exchange
     public async virtual Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((!isEqual(getValue(this.has, "fetchOpenOrders"), null) && ((getValue(this.has, "fetchOpenOrders") as bool?) != false)) && (!isEqual(getValue(this.has, "fetchClosedOrders"), null) && ((getValue(this.has, "fetchClosedOrders") as bool?) != false)))
+        if ((!isEqual((this.has.ContainsKey("fetchOpenOrders") ? this.has["fetchOpenOrders"] : null), null) && (((this.has.ContainsKey("fetchOpenOrders") ? this.has["fetchOpenOrders"] : null) as bool?) != false)) && (!isEqual((this.has.ContainsKey("fetchClosedOrders") ? this.has["fetchClosedOrders"] : null), null) && (((this.has.ContainsKey("fetchClosedOrders") ? this.has["fetchClosedOrders"] : null) as bool?) != false)))
         {
             throw new NotSupported ((string)(this.id + " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
         }
@@ -1161,7 +1161,7 @@ public partial class Exchange
     public async virtual Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchOrders"), null) && ((getValue(this.has, "fetchOrders") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchOrders") ? this.has["fetchOrders"] : null), null) && (((this.has.ContainsKey("fetchOrders") ? this.has["fetchOrders"] : null) as bool?) != false))
         {
             object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "open"));
@@ -1172,7 +1172,7 @@ public partial class Exchange
     public async virtual Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchOrders"), null) && ((getValue(this.has, "fetchOrders") as bool?) != false))
+        if (!isEqual((this.has.ContainsKey("fetchOrders") ? this.has["fetchOrders"] : null), null) && (((this.has.ContainsKey("fetchOrders") ? this.has["fetchOrders"] : null) as bool?) != false))
         {
             object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "closed"));
@@ -1237,7 +1237,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreatePostOnlyOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createPostOnlyOrder"), null) || ((getValue(this.has, "createPostOnlyOrder") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createPostOnlyOrder") ? this.has["createPostOnlyOrder"] : null), null) || (((this.has.ContainsKey("createPostOnlyOrder") ? this.has["createPostOnlyOrder"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createPostOnlyOrder() is not supported yet")) ;
         }
@@ -1250,7 +1250,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateReduceOnlyOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createReduceOnlyOrder"), null) || ((getValue(this.has, "createReduceOnlyOrder") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createReduceOnlyOrder") ? this.has["createReduceOnlyOrder"] : null), null) || (((this.has.ContainsKey("createReduceOnlyOrder") ? this.has["createReduceOnlyOrder"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createReduceOnlyOrder() is not supported yet")) ;
         }
@@ -1263,7 +1263,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateStopOrder(string symbol, string type, string side, object amount, object price = null, object triggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createStopOrder"), null) || ((getValue(this.has, "createStopOrder") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createStopOrder") ? this.has["createStopOrder"] : null), null) || (((this.has.ContainsKey("createStopOrder") ? this.has["createStopOrder"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createStopOrder() is not supported yet")) ;
         }
@@ -1280,7 +1280,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateStopLimitOrder(string symbol, string side, object amount, object price, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createStopLimitOrder"), null) || ((getValue(this.has, "createStopLimitOrder") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createStopLimitOrder") ? this.has["createStopLimitOrder"] : null), null) || (((this.has.ContainsKey("createStopLimitOrder") ? this.has["createStopLimitOrder"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createStopLimitOrder() is not supported yet")) ;
         }
@@ -1293,7 +1293,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CreateStopMarketOrder(string symbol, string side, object amount, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "createStopMarketOrder"), null) || ((getValue(this.has, "createStopMarketOrder") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("createStopMarketOrder") ? this.has["createStopMarketOrder"] : null), null) || (((this.has.ContainsKey("createStopMarketOrder") ? this.has["createStopMarketOrder"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " createStopMarketOrder() is not supported yet")) ;
         }
@@ -1306,7 +1306,7 @@ public partial class Exchange
     public async virtual Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "fetchTradingFees"), null) || ((getValue(this.has, "fetchTradingFees") as bool?) == false))
+        if (isEqual((this.has.ContainsKey("fetchTradingFees") ? this.has["fetchTradingFees"] : null), null) || (((this.has.ContainsKey("fetchTradingFees") ? this.has["fetchTradingFees"] : null) as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " fetchTradingFee() is not supported yet")) ;
         }

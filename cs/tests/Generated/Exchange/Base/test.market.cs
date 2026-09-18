@@ -140,7 +140,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
         List<object> checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
-        for (int i = 0; i < (checkedTypes?.Count ?? 0); postFixIncrement(ref i))
+        for (int i = 0; i < (checkedTypes?.Count ?? 0); i++)
         {
             string? type = ((string)checkedTypes[i]);
             if (isEqual(getValue(market, type), true))
@@ -152,7 +152,7 @@ public partial class testMainClass : BaseTest
         if ((isEqual(swap, true)) || (isEqual(future, true)))
         {
             List<object> checkedSubTypes = new List<object>() {"linear", "inverse"};
-            for (int i = 0; i < (checkedSubTypes?.Count ?? 0); postFixIncrement(ref i))
+            for (int i = 0; i < (checkedSubTypes?.Count ?? 0); i++)
             {
                 string? subType = ((string)checkedSubTypes[i]);
                 if (isEqual(getValue(market, subType), true))
@@ -203,7 +203,7 @@ public partial class testMainClass : BaseTest
             // contract size should be defined
             assert(((inOp(skippedProperties, "contractSize")) || (contractSize != null)), ("\"contractSize\" must be defined when \"contract\" is true" + (logText)));
             // contract size should be above zero
-            assert((inOp(skippedProperties, "contractSize")) || isTrue(Precise.stringGt(contractSize, "0")), ("\"contractSize\" must be > 0 when \"contract\" is true" + (logText)));
+            assert((inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), ("\"contractSize\" must be > 0 when \"contract\" is true" + (logText)));
             // settle should be defined
             assert((inOp(skippedProperties, "settle")) || (!isEqual(getValue(market, "settle"), null) && !isEqual(getValue(market, "settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + (logText)));
         } else if (!isEqual(contract, true))
@@ -259,7 +259,7 @@ public partial class testMainClass : BaseTest
         List<object> precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
         int precisionKeysLen = precisionKeys.Count;
         assert(precisionKeysLen >= 2, ("precision should have \"amount\" and \"price\" keys at least" + (logText)));
-        for (int i = 0; i < precisionKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < precisionKeys.Count; i++)
         {
             string? priceOrAmountKey = ((string)precisionKeys[i]);
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
@@ -280,7 +280,7 @@ public partial class testMainClass : BaseTest
         List<object> limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
         int limitsKeysLength = limitsKeys.Count;
         assert(limitsKeysLength >= 3, ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + (logText)));
-        for (int i = 0; i < limitsKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < limitsKeys.Count; i++)
         {
             string? key = ((string)limitsKeys[i]);
             object limitEntry = getValue(getValue(market, "limits"), key);
@@ -316,8 +316,8 @@ public partial class testMainClass : BaseTest
         if (!(inOp(skippedProperties, "marginModes")))
         {
             IDictionary<string, object> marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
-            assert(inOp(marginModes, "cross"), ("marginModes should have \"cross\" key" + (logText)));
-            assert(inOp(marginModes, "isolated"), ("marginModes should have \"isolated\" key" + (logText)));
+            assert(marginModes.ContainsKey("cross"), ("marginModes should have \"cross\" key" + (logText)));
+            assert(marginModes.ContainsKey("isolated"), ("marginModes should have \"isolated\" key" + (logText)));
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "isolated", new List<object>() {true, false, null});
         }

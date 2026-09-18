@@ -825,7 +825,7 @@ public partial class coinbaseexchange : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawMarkets); i++)
+        for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
             object market = rawMarkets[i];
             string? id = this.safeString(market, "id");
@@ -957,7 +957,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1519,7 +1519,7 @@ public partial class coinbaseexchange : Exchange
             }
             if ((until == null))
             {
-                object parsedTimeframeMilliseconds = multiply(parsedTimeframe, 1000);
+                object parsedTimeframeMilliseconds = (parsedTimeframe * 1000);
                 if (this.isRoundNumber(mod(since, parsedTimeframeMilliseconds)))
                 {
                     ((IDictionary<string,object>)request)["end"] = this.iso8601(this.sum(multiply((subtract(limitVar, 1)), parsedTimeframeMilliseconds), since));
@@ -2157,7 +2157,7 @@ public partial class coinbaseexchange : Exchange
         object account = this.safeValue(accountsByCurrencyCode, code);
         if ((account == null))
         {
-            throw new ExchangeError ((string)add((this.id + " fetchLedger() could not find account id for "), code)) ;
+            throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
@@ -2178,7 +2178,7 @@ public partial class coinbaseexchange : Exchange
         }
         List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, parameters));
         IList<object> entries = this.toArray(response);
-        for (int i = 0; i < getArrayLength(entries); i++)
+        for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
             ((IDictionary<string,object>)entries[i])["currency"] = code;
         }
@@ -2217,7 +2217,7 @@ public partial class coinbaseexchange : Exchange
                 object account = this.safeValue(accountsByCurrencyCode, code);
                 if ((account == null))
                 {
-                    throw new ExchangeError ((string)add((this.id + " fetchDepositsWithdrawals() could not find account id for "), code)) ;
+                    throw new ExchangeError ((string)((this.id + " fetchDepositsWithdrawals() could not find account id for ") + (code))) ;
                 }
                 id = getValue(account, "id");
             }
@@ -2480,10 +2480,10 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)this.options)["coinbaseAccountsByCurrencyId"] = this.indexBy(accounts, "currency");
         }
         string? currencyId = ((string)getValue(currency, "id"));
-        object account = this.safeValue(getValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
+        object account = this.safeValue((this.options.ContainsKey("coinbaseAccountsByCurrencyId") ? this.options["coinbaseAccountsByCurrencyId"] : null), currencyId);
         if ((account == null))
         {
-            throw new InvalidAddress ((string)(((add((this.id + " createDepositAddress() could not find currency code "), code) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
+            throw new InvalidAddress ((string)(((((this.id + " createDepositAddress() could not find currency code ") + (code)) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
@@ -2508,7 +2508,7 @@ public partial class coinbaseexchange : Exchange
                 request = request + ("?" + this.urlencode(query));
             }
         }
-        string url = (this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + request);
+        string url = (this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + request);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2522,7 +2522,7 @@ public partial class coinbaseexchange : Exchange
                     payload = body;
                 }
             }
-            object what = add(add(add(nonce, method), request), payload);
+            object what = (((nonce + (method)) + request) + (payload));
             object secret = null;
             try
             {
@@ -2560,7 +2560,7 @@ public partial class coinbaseexchange : Exchange
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
-            throw new ExchangeError ((string)add((this.id + " "), body)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;
     }

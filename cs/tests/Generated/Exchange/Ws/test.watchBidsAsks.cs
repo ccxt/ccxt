@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
                 // because tests will make a second call of this method with symbols array
-                if (isTrue((e is ArgumentsRequired)) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
+                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
                 {
                     // todo: provide random symbols to try
                     // return false;

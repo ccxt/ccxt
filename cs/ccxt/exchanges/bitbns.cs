@@ -358,7 +358,7 @@ public partial class bitbns : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawMarkets); i++)
+        for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
             object market = rawMarkets[i];
             string? id = this.safeString(market, "id");
@@ -446,7 +446,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -471,7 +471,7 @@ public partial class bitbns : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -787,7 +787,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", ((string)side).ToUpper() },
-            { "symbol", getValue(market, "uppercaseId") },
+            { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
         if (isEqual(type, "limit"))
@@ -795,7 +795,7 @@ public partial class bitbns : Exchange
             ((IDictionary<string,object>)request)["rate"] = this.priceToPrecision(symbol, price);
         } else
         {
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
         if ((triggerPrice != null))
         {
@@ -858,11 +858,11 @@ public partial class bitbns : Exchange
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "entry_id", id },
-            { "symbol", getValue(market, "uppercaseId") },
+            { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
         };
         Dictionary<string, object> response = null;
         string tail = ((bool) ((isTrigger == true))) ? "StopLossOrder" : "Order";
-        string quoteSide = ((bool) (((getValue(market, "quoteId") as string) == "USDT"))) ? "usdtcancel" : "cancel";
+        string quoteSide = ((bool) ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))) ? "usdtcancel" : "cancel";
         quoteSide = quoteSide + tail;
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
@@ -893,7 +893,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "entry_id", id },
         };
         bool? trigger = this.safeBool2(parameters, "trigger", "stop");
@@ -959,9 +959,9 @@ public partial class bitbns : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        string quoteSide = ((bool) (((getValue(market, "quoteId") as string) == "USDT"))) ? "usdtListOpen" : "listOpen";
+        string quoteSide = ((bool) ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))) ? "usdtListOpen" : "listOpen";
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "uppercaseId") },
+            { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
             { "page", 0 },
             { "side", ((bool) ((isTrigger == true))) ? ((quoteSide + "StopOrders")) : ((quoteSide + "Orders")) },
         };
@@ -1101,7 +1101,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "page", 0 },
         };
         if (!isEqual(since, null))
@@ -1177,8 +1177,8 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(market, "baseId") },
-            { "market", getValue(market, "quoteId") },
+            { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "market", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         List<object> response = await this.wwwGetExchangeDataTradedetails(this.extend(request, parameters));
         //
@@ -1435,7 +1435,7 @@ public partial class bitbns : Exchange
                 { "X-BITBNS-APIKEY", this.apiKey },
             };
         }
-        object baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), api));
+        object baseUrl = this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string nonce = ((object)this.nonce()).ToString();

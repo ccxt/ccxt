@@ -64,7 +64,7 @@ public partial class cryptocom : ccxt.cryptocom
             });
         } catch(Exception e)
         {
-            var error = new NetworkError(add((this.id + " pong failed with error "), this.exceptionMessage(e)));
+            var error = new NetworkError(((this.id + " pong failed with error ") + (this.exceptionMessage(e))));
             ((WebSocketClient)client).reset(error);
         }
     }
@@ -161,8 +161,8 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string currentTopic = ((add(("book" + "."), (market.ContainsKey("id") ? market["id"] : null)) + ".") + ((object)limitVar).ToString());
-            string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+            string currentTopic = (((("book" + ".") + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + ((object)limitVar).ToString());
+            string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)topics).Add(currentTopic);
         }
@@ -224,8 +224,8 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string currentTopic = ((add(("book" + "."), (market.ContainsKey("id") ? market["id"] : null)) + ".") + ((object)limit).ToString());
-            string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+            string currentTopic = (((("book" + ".") + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + ((object)limit).ToString());
+            string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             ((IList<object>)subMessageHashes).Add(messageHash);
             ((IList<object>)messageHashes).Add(("unsubscribe:" + messageHash));
             ((IList<object>)topics).Add(currentTopic);
@@ -243,7 +243,7 @@ public partial class cryptocom : ccxt.cryptocom
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -338,7 +338,7 @@ public partial class cryptocom : ccxt.cryptocom
                 object checksum = this.handleOption("watchOrderBook", "checksum", true);
                 if (isEqual(checksum, true))
                 {
-                    throw new ChecksumError ((string)add((this.id + " "), this.orderbookChecksumMessage(symbol))) ;
+                    throw new ChecksumError ((string)((this.id + " ") + (this.orderbookChecksumMessage(symbol)))) ;
                 }
             }
         }
@@ -407,7 +407,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string currentTopic = add(("trade" + "."), (market.ContainsKey("id") ? market["id"] : null));
+            string currentTopic = (("trade" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
             ((IList<object>)topics).Add(currentTopic);
         }
         object trades = await this.watchPublicMultiple(topics, topics, parameters);
@@ -443,8 +443,8 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string currentTopic = add(("trade" + "."), (market.ContainsKey("id") ? market["id"] : null));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            string currentTopic = (("trade" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)messageHashes).Add(("unsubscribe:trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             ((IList<object>)topics).Add(currentTopic);
         }
         return await this.unWatchPublicMultiple("trades", symbols, messageHashes, topics, topics, parameters);
@@ -497,7 +497,7 @@ public partial class cryptocom : ccxt.cryptocom
             return;
         }
         IList<object> parsedTrades = this.parseTrades(data, market);
-        for (int j = 0; j < getArrayLength(parsedTrades); j++)
+        for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
             callDynamically(stored, "append", new object[] {parsedTrades[j]});
         }
@@ -559,7 +559,7 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("ticker" + "."), (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = (("ticker" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(messageHash, parameters));
     }
 
@@ -580,8 +580,8 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string subMessageHash = add(("ticker" + "."), (market.ContainsKey("id") ? market["id"] : null));
-        string messageHash = add("unsubscribe:ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string subMessageHash = (("ticker" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string messageHash = ("unsubscribe:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         return await this.unWatchPublicMultiple("ticker", new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, new List<object>() {subMessageHash}, parameters);
     }
 
@@ -604,12 +604,12 @@ public partial class cryptocom : ccxt.cryptocom
         symbols = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
-        for (int i = 0; i < getArrayLength(marketIds); i++)
+        for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
             object marketId = marketIds[i];
-            ((IList<object>)messageHashes).Add(add("ticker.", marketId));
+            ((IList<object>)messageHashes).Add(("ticker." + (marketId)));
         }
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -648,12 +648,12 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> messageHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
-        for (int i = 0; i < getArrayLength(marketIds); i++)
+        for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
             object marketId = marketIds[i];
             object symbol = getValue(symbols, i);
-            ((IList<object>)subMessageHashes).Add(add("ticker.", marketId));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            ((IList<object>)subMessageHashes).Add(("ticker." + (marketId)));
+            ((IList<object>)messageHashes).Add(("unsubscribe:ticker:" + (symbol)));
         }
         return await this.unWatchPublicMultiple("ticker", symbols, messageHashes, subMessageHashes, subMessageHashes, parameters);
     }
@@ -770,13 +770,13 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
-        for (int i = 0; i < getArrayLength(marketIds); i++)
+        for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
             object marketId = marketIds[i];
-            ((IList<object>)messageHashes).Add(add("bidask.", getValue(symbols, i)));
-            ((IList<object>)topics).Add(add("ticker.", marketId));
+            ((IList<object>)messageHashes).Add(("bidask." + (getValue(symbols, i))));
+            ((IList<object>)topics).Add(("ticker." + (marketId)));
         }
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -853,7 +853,7 @@ public partial class cryptocom : ccxt.cryptocom
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = add(((("candlestick" + ".") + interval) + "."), (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = (((("candlestick" + ".") + interval) + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
         object ohlcv = await this.watchPublic(messageHash, parameters);
         if (this.newUpdates)
         {
@@ -884,8 +884,8 @@ public partial class cryptocom : ccxt.cryptocom
         Dictionary<string, object> market = this.market(symbol);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string subMessageHash = add(((("candlestick" + ".") + interval) + "."), (market.ContainsKey("id") ? market["id"] : null));
-        string messageHash = add((add("unsubscribe:ohlcv:", (market.ContainsKey("symbol") ? market["symbol"] : null)) + ":"), timeframeVar);
+        string subMessageHash = (((("candlestick" + ".") + interval) + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string messageHash = ((("unsubscribe:ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + (timeframeVar));
         Dictionary<string, object> subExtend = new Dictionary<string, object>() {
             { "symbolsAndTimeframes", new List<object>() {new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar}} },
         };
@@ -922,7 +922,7 @@ public partial class cryptocom : ccxt.cryptocom
             }
         }
         object data = this.safeValue(message, "data");
-        for (int i = 0; isLessThan(i, getArrayLength(data)); i++)
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object tick = getValue(data, i);
             object parsed = this.parseOHLCV(tick, market);
@@ -1012,7 +1012,7 @@ public partial class cryptocom : ccxt.cryptocom
             }
             object stored = this.orders;
             IList<object> parsed = this.parseOrders(orders);
-            for (int i = 0; i < getArrayLength(parsed); i++)
+            for (int i = 0; i < (parsed?.Count ?? 0); i++)
             {
                 callDynamically(stored, "append", new object[] {parsed[i]});
             }
@@ -1042,7 +1042,7 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         await this.authenticate();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1163,7 +1163,7 @@ public partial class cryptocom : ccxt.cryptocom
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1419,7 +1419,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1435,7 +1435,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async virtual Task<object> watchPublicMultiple(object messageHashes, object topics, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1452,7 +1452,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         subExtend ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -1477,7 +1477,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", nonce },
             { "nonce", nonce },
@@ -1490,7 +1490,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1642,7 +1642,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
+        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -1651,7 +1651,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             string method = "public/auth";
             string nonce = ((object)this.nonce()).ToString();
-            string auth = (add((method + nonce), this.apiKey) + nonce);
+            string auth = (((method + nonce) + (this.apiKey)) + nonce);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", nonce },

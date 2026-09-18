@@ -603,9 +603,9 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         object data = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             response = await this.privateSpotGetV2ExTradefee(this.extend(request, parameters));
             //
@@ -716,10 +716,10 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             if (!isEqual(limit, null))
             {
@@ -743,7 +743,7 @@ public partial class zebpay : Exchange
             response = await this.publicSwapGetV1MarketOrderBook(this.extend(request, parameters));
         }
         IDictionary<string, object> bookData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(bookData, getValue(market, "symbol"), null, "bids", "asks", 0, 1));
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(bookData, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", 0, 1));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(bookData, "nonce");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -767,10 +767,10 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             response = await this.publicSpotGetV2MarketTicker(this.extend(request, parameters));
         } else
@@ -859,22 +859,22 @@ public partial class zebpay : Exchange
             limitVar = 100; // default is 200
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         } else
         {
             ((IDictionary<string,object>)request)["interval"] = timeframeVar;
         }
-        if ((((getValue(market, "contract") as bool?) == true)) && (!isEqual(limitVar, null)))
+        if (((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && (!isEqual(limitVar, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
         if (!isEqual(since, null))
         {
-            if (((getValue(market, "spot") as bool?) == true))
+            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             } else
@@ -889,7 +889,7 @@ public partial class zebpay : Exchange
             parameters = this.omit(parameters, new List<object>() {"endtime", "until"});
         }
         Dictionary<string, object> response = null;
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             if (isEqual(until, null) || isEqual(since, null))
             {
@@ -956,14 +956,14 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((((getValue(market, "spot") as bool?) == true)) && !isEqual(limit, null))
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             response = await this.publicSpotGetV2MarketTrades(this.extend(request, parameters));
         } else
@@ -1225,11 +1225,11 @@ public partial class zebpay : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", ((string)side).ToUpper() },
         };
         Dictionary<string, object> response = null;
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             var requestparametersVariable = this.orderRequest(symbol, type, amount, request, price, parameters);
             request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
@@ -1240,7 +1240,7 @@ public partial class zebpay : Exchange
             string? marginAsset = this.safeString(parameters, "marginAsset", "INR");
             string? formType = this.safeStringUpper(parameters, "formType", "ORDER_FORM");
             ((IDictionary<string,object>)request)["formType"] = formType;
-            ((IDictionary<string,object>)request)["amount"] = this.parseToNumeric(this.amountToPrecision(getValue(market, "id"), amount));
+            ((IDictionary<string,object>)request)["amount"] = this.parseToNumeric(this.amountToPrecision((market.ContainsKey("id") ? market["id"] : null), amount));
             ((IDictionary<string,object>)request)["marginAsset"] = marginAsset;
             bool hasTP = (takeProfitPrice != null);
             bool hasSL = (stopLossPrice != null);
@@ -1333,7 +1333,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
             response = await this.privateSpotDeleteV2ExOrder(this.extend(request, parameters));
@@ -1345,7 +1345,7 @@ public partial class zebpay : Exchange
                 throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a clientOrderId parameter for swap orders")) ;
             }
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateSwapDeleteV1TradeOrder(this.extend(request, parameters));
         }
         //
@@ -1419,11 +1419,11 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
         List<object> orders = new List<object>() {};
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             ((IDictionary<string,object>)request)["currentPage"] = 1;
             if (!isEqual(limit, null))
@@ -1498,7 +1498,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if (((getValue(market, "spot") as bool?) == true))
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
             response = await this.privateSpotGetV2ExOrder(this.extend(request, parameters));
@@ -1616,7 +1616,7 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateSwapPostV1TradePositionClose(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1710,7 +1710,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         //
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
@@ -1780,7 +1780,7 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amount },
         };
         Dictionary<string, object> response = await this.privateSwapPostV1TradeAddMargin(this.extend(request, parameters));
@@ -1830,7 +1830,7 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amount },
         };
         Dictionary<string, object> response = await this.privateSwapPostV1TradeReduceMargin(this.extend(request, parameters));
@@ -2191,7 +2191,7 @@ public partial class zebpay : Exchange
         parameters = this.omit(parameters, "defaultType");
         bool isV1 = getIndexOf(path, "v1/") > -1;
         string marketType = ((bool) isV1) ? "swap" : "spot";
-        object url = getValue(getValue(this.urls, "api"), marketType);
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), marketType);
         string tail = ("/api/" + this.implodeParams(path, parameters));
         url = add(url, tail);
         string timestamp = ((object)this.milliseconds()).ToString();

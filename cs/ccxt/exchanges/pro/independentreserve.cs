@@ -57,8 +57,8 @@ public partial class independentreserve : ccxt.independentreserve
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
-        string messageHash = add("trades:", symbolVar);
+        object url = add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "?subscribe=ticker-"), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
+        string messageHash = ("trades:" + (symbolVar));
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -158,8 +158,8 @@ public partial class independentreserve : ccxt.independentreserve
             limitVar = 100;
         }
         string? limitString = this.numberToString(limitVar);
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
-        string messageHash = ((add("orderbook:", symbolVar) + ":") + limitString);
+        object url = add(add(add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbook/"), limitString), "?subscribe="), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
+        string messageHash = ((("orderbook:" + (symbolVar)) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
@@ -205,7 +205,7 @@ public partial class independentreserve : ccxt.independentreserve
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
-        string messageHash = ((add("orderbook:", symbol) + ":") + depth);
+        string messageHash = ((("orderbook:" + (symbol)) + ":") + depth);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
@@ -259,7 +259,7 @@ public partial class independentreserve : ccxt.independentreserve
             Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
             if ((calculatedChecksum != responseChecksum))
             {
-                var error = new ChecksumError(add((this.id + " "), this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -293,7 +293,7 @@ public partial class independentreserve : ccxt.independentreserve
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }

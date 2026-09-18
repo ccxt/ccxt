@@ -53,13 +53,13 @@ public partial class derive : ccxt.derive
         object options = this.safeValue(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = ((Int64)this.sum(previousValue, 1));
-        ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
+        ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
         return newValue;
     }
 
     public async virtual Task<object> watchPublic(object messageHash, object message, object subscription)
     {
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
@@ -94,7 +94,7 @@ public partial class derive : ccxt.derive
             limitVar = 10;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = ((add("orderbook.", (market.ContainsKey("id") ? market["id"] : null)) + ".10.") + this.numberToString(limitVar));
+        string topic = ((("orderbook." + ((market.ContainsKey("id") ? market["id"] : null))) + ".10.") + this.numberToString(limitVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -165,7 +165,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = (add("ticker_slim.", (market.ContainsKey("id") ? market["id"] : null)) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
+        string topic = (("ticker_slim." + ((market.ContainsKey("id") ? market["id"] : null))) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -311,7 +311,7 @@ public partial class derive : ccxt.derive
             limit = 10;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = ((add("orderbook.", (market.ContainsKey("id") ? market["id"] : null)) + ".10.") + this.numberToString(limit));
+        string topic = ((("orderbook." + ((market.ContainsKey("id") ? market["id"] : null))) + ".10.") + this.numberToString(limit));
         string messageHash = ("unwatch" + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -341,7 +341,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = add("trades.", (market.ContainsKey("id") ? market["id"] : null));
+        string topic = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
         string messageHah = ("unwatch" + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -357,7 +357,7 @@ public partial class derive : ccxt.derive
 
     public async virtual Task<object> unWatchPublic(object messageHash, object message, object subscription)
     {
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
@@ -385,7 +385,7 @@ public partial class derive : ccxt.derive
         }
         var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
         ((WebSocketClient)client).reject(error, topic);
-        (client as WebSocketClient).resolve(error, add("unwatch", topic));
+        (client as WebSocketClient).resolve(error, ("unwatch" + (topic)));
     }
 
     public virtual void handleTradesUnSubscription(WebSocketClient client, object topic)
@@ -404,7 +404,7 @@ public partial class derive : ccxt.derive
         }
         var error = new UnsubscribeError(((this.id + " trades ") + symbol));
         ((WebSocketClient)client).reject(error, topic);
-        (client as WebSocketClient).resolve(error, add("unwatch", topic));
+        (client as WebSocketClient).resolve(error, ("unwatch" + (topic)));
     }
 
     public virtual object handleUnSubscribe(WebSocketClient client, object message)
@@ -458,7 +458,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = add("trades.", (market.ContainsKey("id") ? market["id"] : null));
+        string topic = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -495,7 +495,7 @@ public partial class derive : ccxt.derive
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(data, i));
             callDynamically(tradesArray, "append", new object[] {trade});
@@ -508,7 +508,7 @@ public partial class derive : ccxt.derive
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -542,7 +542,7 @@ public partial class derive : ccxt.derive
     public async virtual Task<object> watchPrivate(object messageHash, object message, object subscription)
     {
         await this.authenticate();
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
@@ -585,7 +585,7 @@ public partial class derive : ccxt.derive
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -723,7 +723,7 @@ public partial class derive : ccxt.derive
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + add(":", symbolVar);
+            messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },

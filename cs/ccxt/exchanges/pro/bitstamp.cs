@@ -71,9 +71,9 @@ public partial class bitstamp : ccxt.bitstamp
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("orderbook:", symbolVar);
-        string channel = add("diff_order_book_", (market.ContainsKey("id") ? market["id"] : null));
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string messageHash = ("orderbook:" + (symbolVar));
+        string channel = ("diff_order_book_" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
@@ -103,8 +103,8 @@ public partial class bitstamp : ccxt.bitstamp
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string channel = add("diff_order_book_", (market.ContainsKey("id") ? market["id"] : null));
-        string subHash = add("orderbook:", symbol);
+        string channel = ("diff_order_book_" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string subHash = ("orderbook:" + (symbol));
         return await this.unWatchChannel(channel, subHash, "orderbook", new List<object>() {symbol}, parameters);
     }
 
@@ -122,8 +122,8 @@ public partial class bitstamp : ccxt.bitstamp
     public async virtual Task<object> unWatchChannel(object channel, object subHash, object topic, object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string unsubHash = add("unsubscribe:", channel);
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string unsubHash = ("unsubscribe:" + (channel));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:unsubscribe" },
             { "data", new Dictionary<string, object>() {
@@ -216,7 +216,7 @@ public partial class bitstamp : ccxt.bitstamp
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); i++)
+        for (int i = 0; i < getArrayLength(bidAsks); i++)
         {
             List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -237,7 +237,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return -1;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
             object delta = getValue(deltas, i);
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
@@ -270,9 +270,9 @@ public partial class bitstamp : ccxt.bitstamp
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("trades:", symbolVar);
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string channel = add("live_trades_", (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = ("trades:" + (symbolVar));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string channel = ("live_trades_" + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
@@ -306,8 +306,8 @@ public partial class bitstamp : ccxt.bitstamp
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string channel = add("live_trades_", (market.ContainsKey("id") ? market["id"] : null));
-        string subHash = add("trades:", symbol);
+        string channel = ("live_trades_" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string subHash = ("trades:" + (symbol));
         return await this.unWatchChannel(channel, subHash, "trades", new List<object>() {symbol}, parameters);
     }
 
@@ -420,9 +420,9 @@ public partial class bitstamp : ccxt.bitstamp
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add("fundingRate:", symbolVar);
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string channel = add("funding_rate_", (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = ("fundingRate:" + (symbolVar));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string channel = ("funding_rate_" + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
@@ -490,7 +490,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string channel = "private-my_orders";
-        string messageHash = add((channel + "_"), (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = ((channel + "_") + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
             { "limit", limitVar },
@@ -528,7 +528,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbol);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         await this.authenticate();
-        string channel = add((add("private-my_orders_", (market.ContainsKey("id") ? market["id"] : null)) + "-"), getValue(this.options, "userId"));
+        string channel = ((("private-my_orders_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + ((this.options.ContainsKey("userId") ? this.options["userId"] : null)));
         return await this.unWatchChannel(channel, channel, "orders", new List<object>() {symbol}, parameters);
     }
 
@@ -559,7 +559,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string channel = "private-my_trades";
-        string messageHash = add((channel + "_"), (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = ((channel + "_") + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
             { "limit", limitVar },
@@ -597,7 +597,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbol);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         await this.authenticate();
-        string channel = add((add("private-my_trades_", (market.ContainsKey("id") ? market["id"] : null)) + "-"), getValue(this.options, "userId"));
+        string channel = ((("private-my_trades_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + ((this.options.ContainsKey("userId") ? this.options["userId"] : null)));
         return await this.unWatchChannel(channel, channel, "myTrades", new List<object>() {symbol}, parameters);
     }
 
@@ -938,9 +938,9 @@ public partial class bitstamp : ccxt.bitstamp
     public virtual object pruneCachedBySymbols(object newCache, object cache, object symbols)
     {
         IList<object> entries = this.toArray(cache);
-        for (int i = 0; i < getArrayLength(entries); i++)
+        for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
-            object entry = getValue(entries, i);
+            object entry = entries[i];
             string? entrySymbol = this.safeString(entry, "symbol");
             if (!this.inArray(entrySymbol, symbols))
             {
@@ -1004,7 +1004,7 @@ public partial class bitstamp : ccxt.bitstamp
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (((string)channel).IndexOf(((string)key), StringComparison.Ordinal) > -1)
             {
                 object method = getValue(methods, key);
@@ -1148,14 +1148,14 @@ public partial class bitstamp : ccxt.bitstamp
     public async virtual Task<object> subscribePrivate(object subscription, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         await this.authenticate();
-        messageHash = add(messageHash, add("-", getValue(this.options, "userId")));
+        messageHash = add(messageHash, ("-" + ((this.options.ContainsKey("userId") ? this.options["userId"] : null))));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
                 { "channel", messageHash },
-                { "auth", getValue(this.options, "wsSessionToken") },
+                { "auth", (this.options.ContainsKey("wsSessionToken") ? this.options["wsSessionToken"] : null) },
             } },
         };
         ((IDictionary<string,object>)subscription)["messageHash"] = messageHash;

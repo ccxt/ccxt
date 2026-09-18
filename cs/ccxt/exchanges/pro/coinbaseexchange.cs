@@ -70,10 +70,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            messageHash = add(messageHash, add(":", (market.ContainsKey("id") ? market["id"] : null)));
+            messageHash = add(messageHash, (":" + ((market.ContainsKey("id") ? market["id"] : null))));
             ((IList<object>)productIds).Add((market.ContainsKey("id") ? market["id"] : null));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
@@ -107,7 +107,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             ((IList<object>)productIds).Add((market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)messageHashes).Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
@@ -400,9 +400,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         for (int i = 0; i < symbolsLength; i++)
         {
             object marketId = getValue(marketIds, i);
-            ((IList<object>)messageHashes).Add(add((name + ":"), marketId));
+            ((IList<object>)messageHashes).Add(((name + ":") + (marketId)));
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", marketIds },
@@ -440,8 +440,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
@@ -756,7 +756,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         string? totalCost = "0";
                         string? totalAmount = "0";
                         object trades = getValue(previousOrder, "trades");
-                        for (int i = 0; isLessThan(i, getArrayLength(trades)); i++)
+                        for (int i = 0; i < getArrayLength(trades); i++)
                         {
                             object tradeEntry = getValue(trades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -977,7 +977,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }

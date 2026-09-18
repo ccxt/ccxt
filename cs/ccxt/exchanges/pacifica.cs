@@ -4015,7 +4015,7 @@ public partial class pacifica : Exchange
         }
         if (!isEqual(this.handleOption("sign", "apiKey"), null))
         {
-            ((IDictionary<string,object>)headers)["PF-API-KEY"] = getValue(this.options, "apiKey");
+            ((IDictionary<string,object>)headers)["PF-API-KEY"] = (this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -4049,7 +4049,7 @@ public partial class pacifica : Exchange
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
-            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); i++)
+            for (int i = 0; i < getArrayLength(sortedKeys); i++)
             {
                 object key = getValue(sortedKeys, i);
                 ((IDictionary<string,object>)result)[(string)key] = this.sortJsonKeys(getValue(value, key));
@@ -4111,7 +4111,7 @@ public partial class pacifica : Exchange
             }
             if ((builderCode != null))
             {
-                bool? isOperationSupportBuilder = this.safeBool(getValue(this.options, "builderSupportOperations"), operationType, false);
+                bool? isOperationSupportBuilder = this.safeBool((this.options.ContainsKey("builderSupportOperations") ? this.options["builderSupportOperations"] : null), operationType, false);
                 if ((isOperationSupportBuilder == true))
                 {
                     ((IDictionary<string,object>)sigPayload)["builder_code"] = builderCode;

@@ -2019,7 +2019,7 @@ public partial class kucoin : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), getValue(this.options, "timeDifference"))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
     /**
@@ -2039,7 +2039,7 @@ public partial class kucoin : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if ((!isEqual(type, "spot")) && (!isEqual(type, "margin")))
+        if (((type != "spot")) && ((type != "margin")))
         {
             //
             //    {
@@ -2096,7 +2096,7 @@ public partial class kucoin : Exchange
                 { "tradeType", tradeType },
             };
             response = await this.utaGetServerStatus(this.extend(request, parameters));
-        } else if ((!isEqual(type, "spot")) && (!isEqual(type, "margin")))
+        } else if (((type != "spot")) && ((type != "margin")))
         {
             response = await this.futuresPublicGetStatus(parameters);
         } else
@@ -2242,7 +2242,7 @@ public partial class kucoin : Exchange
         List<object> tickerItems = this.safeList(this.safeDict(tickersResponse, "data", new Dictionary<string, object>() {}), "ticker", new List<object>() {});
         Dictionary<string, object> tickersById = this.indexBy(tickerItems, "symbol");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsData); i++)
+        for (int i = 0; i < (symbolsData?.Count ?? 0); i++)
         {
             object market = symbolsData[i];
             string? id = this.safeString(market, "symbol");
@@ -2325,7 +2325,7 @@ public partial class kucoin : Exchange
             List<object> contractMarkets = this.safeList(responses, contractIndex, new List<object>() {});
             result = this.arrayConcat(result, contractMarkets);
         }
-        if (isEqual(getValue(this.options, "adjustForTimeDifference"), true))
+        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
         {
             await this.loadTimeDifference();
         }
@@ -2583,7 +2583,7 @@ public partial class kucoin : Exchange
         List<object> contractSymbolsData = this.safeList(contractData, "list", new List<object>() {});
         List<object> symbolsData = this.arrayConcat(spotData, contractSymbolsData);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsData); i++)
+        for (int i = 0; i < (symbolsData?.Count ?? 0); i++)
         {
             object market = symbolsData[i];
             string? id = this.safeString(market, "symbol");
@@ -2686,7 +2686,7 @@ public partial class kucoin : Exchange
                 { "info", market },
             });
         }
-        if (isEqual(getValue(this.options, "adjustForTimeDifference"), true))
+        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
         {
             await this.loadTimeDifference();
         }
@@ -2704,7 +2704,7 @@ public partial class kucoin : Exchange
     public async virtual Task<object> loadMigrationStatus(object force = null)
     {
         force ??= false;
-        if (!(this.options.ContainsKey("hf")) || (isEqual(getValue(this.options, "hf"), null)) || isTrue(force))
+        if (!(this.options.ContainsKey("hf")) || (isEqual((this.options.ContainsKey("hf") ? this.options["hf"] : null), null)) || isTrue(force))
         {
             Dictionary<string, object> result = await this.privateGetHfAccountsOpened();
             ((IDictionary<string,object>)this.options)["hf"] = this.safeBool(result, "data");
@@ -2931,7 +2931,7 @@ public partial class kucoin : Exchange
             data = this.safeList(response, "data", new List<object>() {});
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             object account = data[i];
             string? accountId = this.safeString(account, "id");
@@ -3490,7 +3490,7 @@ public partial class kucoin : Exchange
                 ((IDictionary<string,object>)request)["tradeType"] = this.typeToTradeType(type);
             }
             response = await this.utaGetMarketTicker(this.extend(request, parameters));
-        } else if ((!isEqual(type, "spot")) && (!isEqual(type, "margin")))
+        } else if (((type != "spot")) && ((type != "margin")))
         {
             return await this.FetchContractTickers(symbols, parameters);
         } else
@@ -3639,7 +3639,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTicker", "uta", uta);
@@ -3687,7 +3687,7 @@ public partial class kucoin : Exchange
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             List<object> resultList = this.safeList(data, "list", new List<object>() {});
             result = this.safeDict(resultList, 0, new Dictionary<string, object>() {});
-        } else if (((getValue(market, "contract") as bool?) == true))
+        } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
             response = await this.futuresPublicGetTicker(this.extend(request, parameters));
             //
@@ -3760,10 +3760,10 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (((getValue(market, "contract") as bool?) == true))
+        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters));
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -3839,7 +3839,7 @@ public partial class kucoin : Exchange
         if (isTrue(uta))
         {
             return await this.FetchUTAOHLCV(((string)symbol),((string)timeframeVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
-        } else if (((getValue(market, "contract") as bool?) == true))
+        } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
             return await this.FetchContractOHLCV(((string)symbol),((string)timeframeVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
@@ -3883,7 +3883,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
@@ -3909,7 +3909,7 @@ public partial class kucoin : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOHLCV", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if ((isEqual(type, "spot")) || (isEqual(type, "margin")))
+        if (((type == "spot")) || ((type == "margin")))
         {
             ((IDictionary<string,object>)request)["tradeType"] = "SPOT";
         } else
@@ -3932,7 +3932,7 @@ public partial class kucoin : Exchange
             {
                 throw new NotSupported ((string)(this.id + " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = add(add(getValue(market, "id"), "-"), suffix);
+            ((IDictionary<string,object>)request)["symbol"] = add(add((market.ContainsKey("id") ? market["id"] : null), "-"), suffix);
         }
         Dictionary<string, object> response = await this.utaGetMarketKline(this.extend(request, parameters));
         //
@@ -3989,7 +3989,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
@@ -4061,7 +4061,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         IDictionary<string, object> timeframeOptions = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> swapTimeframes = this.safeDict(timeframeOptions, "swap", new Dictionary<string, object>() {});
@@ -4208,12 +4208,12 @@ public partial class kucoin : Exchange
                 ((IDictionary<string,object>)request)["chain"] = ((string)_netIdTmp).ToLower();
             }
         }
-        object version = getValue(getValue(getValue(getValue(this.options, "versions"), "private"), "GET"), "deposit-addresses");
-        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = "v1";
+        object version = getValue(getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"), "deposit-addresses");
+        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = "v1";
         Dictionary<string, object> response = await this.privateGetDepositAddresses(this.extend(request, parameters));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = version;
+        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
         object data = this.safeValue(response, "data");
         if ((data == null))
         {
@@ -4255,7 +4255,7 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? address = this.safeString(data, "address");
-        if (!isEqual(currencyId, "NIM"))
+        if ((currencyId != "NIM"))
         {
             // contains spaces
             this.checkAddress(address);
@@ -4275,7 +4275,7 @@ public partial class kucoin : Exchange
         if ((currency != null))
         {
             code = this.safeCurrencyCode(getValue(currency, "id"));
-            if (!isEqual(code, "NIM"))
+            if ((code != "NIM"))
             {
                 // contains spaces
                 this.checkAddress(address);
@@ -4353,8 +4353,8 @@ public partial class kucoin : Exchange
             response = await this.utaPrivateGetAssetDepositAddress(this.extend(request, parameters));
         } else
         {
-            object version = getValue(getValue(getValue(getValue(this.options, "versions"), "private"), "GET"), "deposit-addresses");
-            ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = "v2";
+            object version = getValue(getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"), "deposit-addresses");
+            ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = "v2";
             response = await this.privateGetDepositAddresses(this.extend(request, parameters));
             //
             //     {
@@ -4371,7 +4371,7 @@ public partial class kucoin : Exchange
             //         ]
             //     }
             //
-            ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = version;
+            ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
         }
         List<object> chains = this.safeList(response, "data", new List<object>() {});
         object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
@@ -4404,7 +4404,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Int64? level = this.safeInteger(parameters, "level", 2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         bool isAuthenticated = this.checkRequiredCredentials(false);
         object uta = false;
@@ -4427,8 +4427,8 @@ public partial class kucoin : Exchange
                 limitString = "100";
             }
             ((IDictionary<string,object>)request)["limit"] = limitString;
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            if ((isEqual(type, "spot")) || (isEqual(type, "margin")))
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            if (((type == "spot")) || ((type == "margin")))
             {
                 ((IDictionary<string,object>)request)["tradeType"] = "SPOT";
             } else
@@ -4436,7 +4436,7 @@ public partial class kucoin : Exchange
                 ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
             }
             response = await this.utaPrivateGetMarketOrderbook(this.extend(request, parameters));
-        } else if ((!isEqual(type, "spot")) && (!isEqual(type, "margin")))
+        } else if (((type != "spot")) && ((type != "margin")))
         {
             if ((level != 2) && !isEqual(level, null))
             {
@@ -4539,7 +4539,7 @@ public partial class kucoin : Exchange
                 timestamp = this.parseToInt((nanoseconds / 1000000));
             }
         }
-        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", subtract(level, 2), subtract(level, 1)));
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", subtract(level, 2), subtract(level, 1)));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "sequence");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -4598,15 +4598,15 @@ public partial class kucoin : Exchange
         if (isTrue(uta))
         {
             return await this.CreateUtaOrder(symbol, type, side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
-        } else if (((getValue(market, "spot") as bool?) == true))
+        } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             return await this.CreateSpotOrder(symbol, type, side, amount, price, parameters);
-        } else if (((getValue(market, "contract") as bool?) == true))
+        } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
             return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
         } else
         {
-            throw new NotSupported ((string)((this.id + " createOrder() does not support market ") + (getValue(market, "type")))) ;
+            throw new NotSupported ((string)((this.id + " createOrder() does not support market ") + ((market.ContainsKey("type") ? market["type"] : null)))) ;
         }
     }
 
@@ -4760,7 +4760,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOid", clientOrderId },
             { "side", side },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", type },
         };
         double? quoteAmount = this.safeNumber2(parameters, "cost", "funds");
@@ -4819,7 +4819,7 @@ public partial class kucoin : Exchange
                 throw new BadRequest ((string)(this.id + " createOrder does not support isolated margin for stop orders")) ;
             } else if (isEqual(marginMode, "cross"))
             {
-                ((IDictionary<string,object>)request)["tradeType"] = getValue(getValue(this.options, "marginModes"), marginMode);
+                ((IDictionary<string,object>)request)["tradeType"] = getValue((this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode);
             }
         } else if (isMarginOrder)
         {
@@ -4842,10 +4842,10 @@ public partial class kucoin : Exchange
     public virtual string marketOrderAmountToPrecision(object symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
-        string result = this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
-        if (isEqual(result, "0"))
+        string result = this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("info") ? market["info"] : null), "quoteIncrement"), this.precisionMode, this.paddingMode);
+        if ((result == "0"))
         {
-            throw new InvalidOrder ((string)((((this.id + " amount of ") + (getValue(market, "symbol"))) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
+            throw new InvalidOrder ((string)((((this.id + " amount of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum amount precision of ") + this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount")))) ;
         }
         return result;
     }
@@ -4943,7 +4943,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOid", clientOrderId },
             { "side", side },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", type },
             { "leverage", 1 },
         };
@@ -5164,8 +5164,8 @@ public partial class kucoin : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
-        object isSpot = getValue(market, "spot");
-        object isContract = getValue(market, "contract");
+        object isSpot = (market.ContainsKey("spot") ? market["spot"] : null);
+        object isContract = (market.ContainsKey("contract") ? market["contract"] : null);
         object accountMode = "unified";
         IList<object> accountModeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "accountMode", accountMode);
         accountMode = ((IList<object>)accountModeparametersVariable)[0];
@@ -5182,7 +5182,7 @@ public partial class kucoin : Exchange
             { "accountMode", accountMode },
             { "tradeType", tradeType },
             { "clientOid", clientOrderId },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", ((string)side).ToUpper() },
             { "orderType", ((string)type).ToUpper() },
         };
@@ -5260,7 +5260,7 @@ public partial class kucoin : Exchange
                     string positionSide = ((bool) (isEqual(side, "buy"))) ? "LONG" : "SHORT";
                     if ((reduceOnly == true))
                     {
-                        positionSide = ((bool) (isEqual(positionSide, "LONG"))) ? "SHORT" : "LONG";
+                        positionSide = ((bool) ((positionSide == "LONG"))) ? "SHORT" : "LONG";
                     }
                     ((IDictionary<string,object>)request)["positionSide"] = positionSide;
                 }
@@ -5431,10 +5431,10 @@ public partial class kucoin : Exchange
                 throw new ArgumentsRequired ((string)(this.id + " createOrders() requires a symbol for each order")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
-            if (((getValue(market, "spot") as bool?) == true))
+            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
                 isSpot = true;
-            } else if (((getValue(market, "contract") as bool?) == true))
+            } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
             {
                 isContract = true;
             }
@@ -5512,7 +5512,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderList", ordersRequests },
         };
         bool? hf = null;
@@ -5652,7 +5652,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         if ((clientOrderId != null))
@@ -5733,7 +5733,7 @@ public partial class kucoin : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if ((isEqual(marketType, "spot")) || (isEqual(marketType, "margin")))
+        if (((marketType == "spot")) || ((marketType == "margin")))
         {
             return await this.CancelSpotOrder(((string)id),((string)symbol), parameters);
         } else
@@ -5798,7 +5798,7 @@ public partial class kucoin : Exchange
                     throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol parameter for hf orders")) ;
                 }
                 Dictionary<string, object> market = this.market(symbol);
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
         IDictionary<string, object> response = null;
@@ -5922,7 +5922,7 @@ public partial class kucoin : Exchange
                 throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument when cancelling by clientOrderId")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
             response = await this.futuresPrivateDeleteOrdersClientOrderClientOid(this.extend(request, parameters));
         } else
@@ -5986,7 +5986,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         object accountMode = "unified";
         IList<object> accountModeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrder", "accountMode", accountMode);
         accountMode = ((IList<object>)accountModeparametersVariable)[0];
@@ -5997,7 +5997,7 @@ public partial class kucoin : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         bool isUnified = (isEqual(accountMode, "unified"));
-        string? tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, isUnified, parameters);
+        string? tradeType = this.handleTradeType((market.ContainsKey("contract") ? market["contract"] : null), marginMode, isUnified, parameters);
         ((IDictionary<string,object>)request)["tradeType"] = tradeType;
         Dictionary<string, object> response = await this.utaPrivatePostAccountModeOrderCancel(this.extend(request, parameters));
         //
@@ -6059,7 +6059,7 @@ public partial class kucoin : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if ((isEqual(marketType, "spot")) || (isEqual(marketType, "margin")))
+        if (((marketType == "spot")) || ((marketType == "margin")))
         {
             return await this.CancelAllSpotOrders(symbol, parameters);
         } else
@@ -6112,7 +6112,7 @@ public partial class kucoin : Exchange
         }
         if (isMarginOrders)
         {
-            ((IDictionary<string,object>)request)["tradeType"] = getValue(getValue(this.options, "marginModes"), marginMode);
+            ((IDictionary<string,object>)request)["tradeType"] = getValue((this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode);
             if (isEqual(marginMode, "isolated") && ((trigger == true)))
             {
                 throw new BadRequest ((string)(this.id + " cancelAllOrders does not support isolated margin for stop orders")) ;
@@ -6217,7 +6217,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object isContract = getValue(market, "contract");
+        object isContract = (market.ContainsKey("contract") ? market["contract"] : null);
         string tradeType = ((bool) (isEqual(isContract, true))) ? "FUTURES" : "SPOT";
         object trigger = false;
         IList<object> triggerparametersVariable = (IList<object>)this.handleParamBool(parameters, "trigger", trigger);
@@ -6226,7 +6226,7 @@ public partial class kucoin : Exchange
         string orderFilter = ((bool) (isEqual(trigger, true))) ? "ADVANCED" : "NORMAL";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountMode", "unified" },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "tradeType", tradeType },
             { "orderFilter", orderFilter },
         };
@@ -6308,7 +6308,7 @@ public partial class kucoin : Exchange
         } else
         {
             Dictionary<string, object> market = this.market(symbol);
-            marketType = getValue(market, "type");
+            marketType = (market.ContainsKey("type") ? market["type"] : null);
         }
         if (isTrue(uta))
         {
@@ -6387,9 +6387,9 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        ((IDictionary<string,object>)request)["tradeType"] = this.safeString(getValue(this.options, "marginModes"), marginMode, "TRADE");
+        ((IDictionary<string,object>)request)["tradeType"] = this.safeString((this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode, "TRADE");
         Dictionary<string, object> response = null;
         if (isMarginOrder && (lowercaseStatus == "active") && ((trigger != true)))
         {
@@ -6504,7 +6504,7 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -6624,8 +6624,8 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            marketType = getValue(market, "type");
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            marketType = (market.ContainsKey("type") ? market["type"] : null);
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         } else
         {
             marketType = this.safeString(parameters, "marketType");
@@ -6862,7 +6862,7 @@ public partial class kucoin : Exchange
         } else
         {
             Dictionary<string, object> market = this.market(symbol);
-            marketType = getValue(market, "type");
+            marketType = (market.ContainsKey("type") ? market["type"] : null);
         }
         if ((isEqual(marketType, "spot")) || (isEqual(marketType, "margin")))
         {
@@ -7117,7 +7117,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         object accountMode = "unified";
         IList<object> accountModeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrder", "accountMode", accountMode);
         accountMode = ((IList<object>)accountModeparametersVariable)[0];
@@ -7128,7 +7128,7 @@ public partial class kucoin : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         bool isUnified = (isEqual(accountMode, "unified"));
-        string? tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, isUnified, parameters);
+        string? tradeType = this.handleTradeType((market.ContainsKey("contract") ? market["contract"] : null), marginMode, isUnified, parameters);
         ((IDictionary<string,object>)request)["tradeType"] = tradeType;
         Dictionary<string, object> response = await this.utaPrivateGetAccountModeOrderDetail(this.extend(request, parameters));
         //
@@ -7192,7 +7192,7 @@ public partial class kucoin : Exchange
                 tradeType = ((string)marginMode).ToUpper();
                 if (isTrue(isUnified))
                 {
-                    if (isEqual(tradeType, "ISOLATED"))
+                    if ((tradeType == "ISOLATED"))
                     {
                         throw new NotSupported ((string)(this.id + " spot isolated margin is not supported for unified accountMode")) ;
                     } else
@@ -7767,7 +7767,7 @@ public partial class kucoin : Exchange
             });
             return await this.FetchMyUtaTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
-        if ((isEqual(marketType, "spot")) || (isEqual(marketType, "margin")))
+        if (((marketType == "spot")) || ((marketType == "margin")))
         {
             return await this.FetchMySpotTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
@@ -7820,7 +7820,7 @@ public partial class kucoin : Exchange
         if (isMargin)
         {
             hf = true;
-            ((IDictionary<string,object>)request)["tradeType"] = ((bool) ((marginMode == null))) ? null : this.safeString(getValue(this.options, "marginModes"), marginMode, marginMode);
+            ((IDictionary<string,object>)request)["tradeType"] = ((bool) ((marginMode == null))) ? null : this.safeString((this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode, marginMode);
         }
         if ((isEqual(hf, true)) && (symbol == null))
         {
@@ -7830,9 +7830,9 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object method = getValue(this.options, "fetchMyTradesMethod");
+        object method = (this.options.ContainsKey("fetchMyTradesMethod") ? this.options["fetchMyTradesMethod"] : null);
         bool parseResponseData = false;
         Dictionary<string, object> response = null;
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endAt", request, parameters);
@@ -7969,7 +7969,7 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -8068,8 +8068,8 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            isContract = getValue(market, "contract");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            isContract = (market.ContainsKey("contract") ? market["contract"] : null);
         } else if (((marketType == "spot")) || ((marketType == "margin")))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;
@@ -8161,7 +8161,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         // pagination is not supported on the exchange side anymore
         // if (since !== undefined) {
@@ -8182,7 +8182,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(uta))
         {
-            if ((isEqual(type, "spot")) || (isEqual(type, "margin")))
+            if (((type == "spot")) || ((type == "margin")))
             {
                 ((IDictionary<string,object>)request)["tradeType"] = "SPOT";
             } else
@@ -8210,7 +8210,7 @@ public partial class kucoin : Exchange
             //
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             trades = this.safeList(data, "list", new List<object>() {});
-        } else if ((isEqual(type, "spot")) || (isEqual(type, "margin")))
+        } else if (((type == "spot")) || ((type == "margin")))
         {
             response = await this.publicGetMarketHistories(this.extend(request, parameters));
             //
@@ -8402,7 +8402,7 @@ public partial class kucoin : Exchange
             };
         }
         string? type = this.safeString(trade, "type");
-        if (isEqual(type, "match"))
+        if ((type == "match"))
         {
             type = null;
         }
@@ -8539,7 +8539,7 @@ public partial class kucoin : Exchange
             };
         }
         string? type = this.safeString2(trade, "type", "orderType");
-        if (isEqual(type, "match"))
+        if ((type == "match"))
         {
             type = null;
         }
@@ -8640,14 +8640,14 @@ public partial class kucoin : Exchange
         IDictionary<string, object> entry = null;
         if (isTrue(uta))
         {
-            if (((getValue(market, "spot") as bool?) == true))
+            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
                 ((IDictionary<string,object>)request)["tradeType"] = "SPOT";
             } else
             {
                 ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.utaPrivateGetUserFeeRate(this.extend(request, parameters));
             //
             //     {
@@ -8667,9 +8667,9 @@ public partial class kucoin : Exchange
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             List<object> dataList = this.safeList(data, "list", new List<object>() {});
             entry = this.safeDict(dataList, 0);
-        } else if (((getValue(market, "spot") as bool?) == true))
+        } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            ((IDictionary<string,object>)request)["symbols"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateGetTradeFees(this.extend(request, parameters));
             //
             //     {
@@ -8687,7 +8687,7 @@ public partial class kucoin : Exchange
             entry = this.safeDict(data, 0);
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.futuresPrivateGetTradeFees(this.extend(request, parameters));
             //
             //     {
@@ -9333,7 +9333,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? type = this.safeString(accountsByType, requestedType, requestedType);
         parameters = this.omit(parameters, "type");
-        if (isEqual(type, "contract"))
+        if ((type == "contract"))
         {
             return await this.FetchContractBalance(parameters);
         }
@@ -9341,7 +9341,7 @@ public partial class kucoin : Exchange
         IList<object> hfparametersVariable = (IList<object>)this.handleHfAndParams(parameters);
         hf = (bool?)((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
-        if ((isEqual(hf, true)) && (!isEqual(type, "main")))
+        if ((isEqual(hf, true)) && ((type != "main")))
         {
             type = "trade_hf";
         }
@@ -9349,8 +9349,8 @@ public partial class kucoin : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        bool isolated = (isEqual(marginMode, "isolated")) || (isEqual(type, "isolated"));
-        bool cross = (isEqual(marginMode, "cross")) || (isEqual(type, "margin"));
+        bool isolated = (isEqual(marginMode, "isolated")) || ((type == "isolated"));
+        bool cross = (isEqual(marginMode, "cross")) || ((type == "margin"));
         if (isolated)
         {
             if ((currency != null))
@@ -9456,7 +9456,7 @@ public partial class kucoin : Exchange
         {
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object assets = this.safeValue(data, "assets", data);
-            for (int i = 0; isLessThan(i, getArrayLength(assets)); i++)
+            for (int i = 0; i < getArrayLength(assets); i++)
             {
                 object entry = getValue(assets, i);
                 IDictionary<string, object> bs = this.safeDict(entry, "baseAsset", new Dictionary<string, object>() {});
@@ -9608,10 +9608,10 @@ public partial class kucoin : Exchange
         IDictionary<string, object> utaAccountsByType = this.safeDict(this.options, "utaAccountsByType", new Dictionary<string, object>() {});
         string? type = null;
         type = this.safeString(utaAccountsByType, requestedType, requestedType);
-        bool isIsolated = (isEqual(type, "ISOLATED"));
+        bool isIsolated = ((type == "ISOLATED"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if (isEqual(type, "unified"))
+        if ((type == "unified"))
         {
             ((IDictionary<string,object>)request)["accountMode"] = type;
             // uta
@@ -10358,15 +10358,15 @@ public partial class kucoin : Exchange
         if (isEqual(hf, true))
         {
             maxLimit = 200;
-        } else if (isEqual(type, "contract"))
+        } else if ((type == "contract"))
         {
             maxLimit = 50;
         } else if (isTrue(uta))
         {
-            if ((isEqual(type, "UNIFIED")) || (isEqual(type, "SPOT")))
+            if (((type == "UNIFIED")) || ((type == "SPOT")))
             {
                 maxLimit = 200;
-            } else if (isEqual(type, "FUTURES"))
+            } else if ((type == "FUTURES"))
             {
                 maxLimit = 100;
             }
@@ -10396,7 +10396,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (!isEqual(limit, null))
         {
-            if (isEqual(type, "contract"))
+            if ((type == "contract"))
             {
                 ((IDictionary<string,object>)request)["maxCount"] = limit;
             } else if (isEqual(hf, true))
@@ -10421,7 +10421,7 @@ public partial class kucoin : Exchange
             {
                 response = await this.privateGetHfAccountsLedgers(this.extend(request, parameters));
             }
-        } else if (isEqual(type, "contract"))
+        } else if ((type == "contract"))
         {
             //
             //     {
@@ -10502,7 +10502,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> versions = this.safeDict(this.options, "versions", new Dictionary<string, object>() {});
         IDictionary<string, object> apiVersions = this.safeDict(versions, api, new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
-        string? defaultVersion = this.safeString(methodVersions, path, getValue(this.options, "version"));
+        string? defaultVersion = this.safeString(methodVersions, path, (this.options.ContainsKey("version") ? this.options["version"] : null));
         string? version = this.safeString(parameters, "version", defaultVersion);
         if ((version == "v3") && (((IDictionary<string, object>)config).ContainsKey("v3")))
         {
@@ -10743,7 +10743,7 @@ public partial class kucoin : Exchange
         double? amountBorrowed = null;
         double? interest = null;
         string? currencyId = null;
-        if (isEqual(marginMode, "isolated"))
+        if ((marginMode == "isolated"))
         {
             amountBorrowed = this.safeNumber(isolatedBase, "liabilityPrincipal");
             interest = this.safeNumber(isolatedBase, "liabilityInterest");
@@ -10908,7 +10908,7 @@ public partial class kucoin : Exchange
         //     ]
         //
         Dictionary<string, object> borrowRateHistories = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object item = getValue(response, i);
             string? code = this.safeCurrencyCode(this.safeString(item, "currency"));
@@ -11035,7 +11035,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "size", this.currencyToPrecision(((string)code), amount) },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeInForce", "FOK" },
             { "isIsolated", true },
         };
@@ -11118,7 +11118,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "size", this.currencyToPrecision(((string)code), amount) },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "isIsolated", true },
         };
         Dictionary<string, object> response = await this.privatePostMarginRepay(this.extend(request, parameters));
@@ -11223,12 +11223,12 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "contract") as bool?) != true))
+        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchLeverage() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, parameters));
         //
@@ -11273,14 +11273,14 @@ public partial class kucoin : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("setLeverage", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (((symbol != null)) || ((!isEqual(marketType, "spot")) && (!isEqual(marketType, "margin"))))
+        if (((symbol != null)) || (((marketType != "spot")) && ((marketType != "margin"))))
         {
             if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " setLeverage requires a symbol argument for contract markets")) ;
             }
             market = this.market(symbol);
-            if (((getValue(market, "contract") as bool?) == true))
+            if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
             {
                 return ccxt.BaseExchange.ToDict(await this.setContractLeverage(leverage, symbol, parameters));
             }
@@ -11367,7 +11367,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", ((object)leverage).ToString() },
         };
         object uta = await this.isUTAEnabled();
@@ -11393,7 +11393,7 @@ public partial class kucoin : Exchange
         double? leverageNum = this.safeNumber(data, "leverage");
         return new Dictionary<string, object>() {
             { "info", response },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "marginMode", null },
             { "longLeverage", leverageNum },
             { "shortLeverage", leverageNum },
@@ -11436,7 +11436,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRate", "uta", uta);
@@ -11631,7 +11631,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? until = this.safeInteger(parameters, "until");
         object uta = false;
@@ -11749,7 +11749,7 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         } else if (!isTrue(uta))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingHistory() requires a symbol argument")) ;
@@ -11825,7 +11825,7 @@ public partial class kucoin : Exchange
             dataList = this.safeList(data, "dataList", new List<object>() {});
         }
         List<object> fees = new List<object>() {};
-        for (int i = 0; i < getArrayLength(dataList); i++)
+        for (int i = 0; i < (dataList?.Count ?? 0); i++)
         {
             object listItem = dataList[i];
             Int64? timestamp = this.safeInteger2(listItem, "timePoint", "settlementTime");
@@ -11869,7 +11869,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPosition", "uta", uta);
@@ -12034,7 +12034,7 @@ public partial class kucoin : Exchange
             if ((length == 1))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, 0));
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
         if (isTrue(uta))
@@ -12366,7 +12366,7 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            isContractMarket = getValue(market, "contract");
+            isContractMarket = (market.ContainsKey("contract") ? market["contract"] : null);
             if (!isEqual(isContractMarket, true))
             {
                 uta = true; // spot market orders can only be cancelled via the uta endpoint
@@ -12477,7 +12477,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "margin", this.amountToPrecision(symbol, amount) },
             { "bizNo", uuid },
         };
@@ -12559,7 +12559,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "withdrawAmount", amountString },
         };
         Dictionary<string, object> response = await this.futuresPrivatePostMarginWithdrawMargin(this.extend(request, parameters));
@@ -12573,7 +12573,7 @@ public partial class kucoin : Exchange
         string? responseCode = this.safeString(response, "code");
         return new Dictionary<string, object>() {
             { "info", response },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", "reduce" },
             { "marginMode", "isolated" },
             { "amount", this.parseNumber(amountString) },
@@ -12671,7 +12671,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.futuresPrivateGetPositionGetMarginMode(this.extend(request, parameters));
         //
@@ -12690,7 +12690,7 @@ public partial class kucoin : Exchange
     public override object parseMarginMode(object marginMode, object market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
-        marginType = ((bool) (isEqual(marginType, "ISOLATED"))) ? "isolated" : "cross";
+        marginType = ((bool) ((marginType == "ISOLATED"))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },
@@ -12721,12 +12721,12 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "contract") as bool?) != true))
+        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " setMarginMode() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginMode", ((string)marginMode).ToUpper() },
         };
         Dictionary<string, object> response = await this.futuresPrivatePostPositionChangeMarginMode(this.extend(request, parameters));
@@ -12822,7 +12822,7 @@ public partial class kucoin : Exchange
             clientOrderId = this.numberToString(this.nonce());
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "closeOrder", true },
             { "clientOid", clientOrderId },
             { "type", "market" },
@@ -12856,7 +12856,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "contract") as bool?) != true))
+        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
@@ -12870,7 +12870,7 @@ public partial class kucoin : Exchange
             return ccxt.BaseExchange.ToLeverageTierList(this.safeList(result, symbol, new List<object>() {}));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.futuresPublicGetContractsRiskLimitSymbol(this.extend(request, parameters));
         //
@@ -12927,7 +12927,7 @@ public partial class kucoin : Exchange
         //     }
         //
         List<object> tiers = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(info)); i++)
+        for (int i = 0; i < getArrayLength(info); i++)
         {
             IDictionary<string, object> tier = this.safeDict(info, i, new Dictionary<string, object>() {});
             string? marketId = this.safeString(tier, "symbol");
@@ -13150,7 +13150,7 @@ public partial class kucoin : Exchange
             return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit,((string)timeframeVar), parameters, maxLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
         if (!isEqual(since, null))
@@ -13205,7 +13205,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> versions = this.safeDict(this.options, "versions", new Dictionary<string, object>() {});
         IDictionary<string, object> apiVersions = this.safeDict(versions, api, new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
-        string? defaultVersion = this.safeString(methodVersions, path, getValue(this.options, "version"));
+        string? defaultVersion = this.safeString(methodVersions, path, (this.options.ContainsKey("version") ? this.options["version"] : null));
         string? version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
         string endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, parameters));
@@ -13233,7 +13233,7 @@ public partial class kucoin : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         object endpart = "";
         headers = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
-        object url = getValue(getValue(this.urls, "api"), api);
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         string? tradeType = this.safeString(query, "tradeType");
         if (!this.isEmpty(query))
         {
@@ -13242,7 +13242,7 @@ public partial class kucoin : Exchange
                 endpoint = endpoint + ("?" + this.rawencode(query));
             } else
             {
-                if ((isEqual(endpoint, "/api/ua/v1/classic/order/place")) || (isEqual(endpoint, "/api/ua/v1/classic/order/place/batch")) || (isEqual(endpoint, "/api/ua/v1/classic/order/cancel")) || (isEqual(endpoint, "/api/ua/v1/classic/order/cancel/batch")))
+                if (((endpoint == "/api/ua/v1/classic/order/place")) || ((endpoint == "/api/ua/v1/classic/order/place/batch")) || ((endpoint == "/api/ua/v1/classic/order/cancel")) || ((endpoint == "/api/ua/v1/classic/order/cancel/batch")))
                 {
                     endpoint = endpoint + ("?tradeType=" + tradeType);
                 }

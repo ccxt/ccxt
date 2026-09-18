@@ -1919,7 +1919,7 @@ public partial class woofipro : Exchange
         string? taker = this.safeString(data, "futures_taker_fee_rate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             object symbol = symbols[i];
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -3446,7 +3446,7 @@ public partial class woofipro : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -3455,7 +3455,7 @@ public partial class woofipro : Exchange
         string? r = ((string)getValue(signature, "r"));
         string? s = ((string)getValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return (add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
+        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -3639,7 +3639,7 @@ public partial class woofipro : Exchange
         IDictionary<string, object> marginMode = this.safeDict(marginModes, (market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((marginMode == null))
         {
-            throw new BadSymbol ((string)add((this.id + " fetchMarginMode() did not return a margin mode for "), (market.ContainsKey("symbol") ? market["symbol"] : null))) ;
+            throw new BadSymbol ((string)((this.id + " fetchMarginMode() did not return a margin mode for ") + ((market.ContainsKey("symbol") ? market["symbol"] : null)))) ;
         }
         return ccxt.BaseExchange.ToMarginMode(marginMode);
     }
@@ -4065,7 +4065,7 @@ public partial class woofipro : Exchange
         object version = getValue(section, 0);
         object access = getValue(section, 1);
         string? pathWithParams = this.implodeParams(path, parameters);
-        object url = add(add(add(getValue(getValue(this.urls, "api"), access), "/"), version), "/");
+        object url = add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (isEqual(access, "public"))
@@ -4104,14 +4104,14 @@ public partial class woofipro : Exchange
             object apiKey = this.apiKey;
             if (getIndexOf(apiKey, "ed25519:") < 0)
             {
-                apiKey = add("ed25519:", apiKey);
+                apiKey = ("ed25519:" + (apiKey));
             }
             headers = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);
+            auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
             if (isEqual(method, "POST") || isEqual(method, "PUT"))
             {
                 body = this.json(parameters);

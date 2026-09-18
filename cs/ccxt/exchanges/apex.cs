@@ -582,8 +582,8 @@ public partial class apex : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         string? name = this.safeString(currency, "displayName");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        object chains = getValue(this.options, "_temp_currencies_chains");
-        for (int j = 0; isLessThan(j, getArrayLength(chains)); j++)
+        object chains = (this.options.ContainsKey("_temp_currencies_chains") ? this.options["_temp_currencies_chains"] : null);
+        for (int j = 0; j < getArrayLength(chains); j++)
         {
             object chain = getValue(chains, j);
             List<object> tokens = this.safeList(chain, "tokens", new List<object>() {});
@@ -1419,7 +1419,7 @@ public partial class apex : Exchange
                 {
                     object markets = getValue(marketsById, newMarketId);
                     int numMarkets = getArrayLength(markets);
-                    if (isGreaterThan(numMarkets, 0))
+                    if (numMarkets > 0)
                     {
                         if (isEqual(getValue(getValue(getValue(marketsById, newMarketId), 0), "id2"), marketId))
                         {
@@ -1469,7 +1469,7 @@ public partial class apex : Exchange
             object accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount());
             ((IDictionary<string,object>)this.options)["accountId"] = this.safeString(accountData, "id", "0");
         }
-        return getValue(this.options, "accountId");
+        return (this.options.ContainsKey("accountId") ? this.options["accountId"] : null);
     }
 
     /**
@@ -1652,7 +1652,7 @@ public partial class apex : Exchange
         {
             assets = spotAssets;
         }
-        for (int i = 0; i < getArrayLength(assets); i++)
+        for (int i = 0; i < (assets?.Count ?? 0); i++)
         {
             if (isEqual(this.safeString(assets[i], "token", ""), code))
             {
@@ -2209,7 +2209,7 @@ public partial class apex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = ((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/") + (path));
+        string url = ((this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/") + (path));
         headers = new Dictionary<string, object>() {
             { "User-Agent", "apex-CCXT" },
             { "Accept", "application/json" },

@@ -2228,7 +2228,7 @@ public partial class hollaex : Exchange
                 path = add(path, ("?" + this.urlencode(query)));
             }
         }
-        object url = add(getValue(getValue(this.urls, "api"), "rest"), path);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), path);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();

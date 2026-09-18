@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 // to "all tickers" itself, and it requires symbols to be set
                 // so, in such case, if it's arguments-required exception, we don't
                 // mark tests as failed, but just skip them
-                if (isTrue((e is ArgumentsRequired)) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
+                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
                 {
                     // todo: provide random symbols to try
                     // return;

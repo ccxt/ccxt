@@ -430,7 +430,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument")) ;
         }
-        Int64? productId = this.parseToInt(getValue(market, "id"));
+        Int64? productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         string? priceString = this.priceToPrecision(symbol, price);
         string? amountString = this.amountToPrecision(symbol, amount);
         string? priceX18 = this.convertToX18(priceString);
@@ -618,7 +618,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a price argument")) ;
         }
-        Int64? productId = this.parseToInt(getValue(market, "id"));
+        Int64? productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         string? priceString = this.priceToPrecision(symbol, price);
         string? amountString = this.amountToPrecision(symbol, amount);
         string? priceX18 = this.convertToX18(priceString);
@@ -760,7 +760,7 @@ public partial class nado : Exchange
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
+            }, cancelledOrders[i]), market));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -781,7 +781,7 @@ public partial class nado : Exchange
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)productIds).Add(this.parseToInt(getValue(market, "id")));
+            ((IList<object>)productIds).Add(this.parseToInt((market.ContainsKey("id") ? market["id"] : null)));
         }
         object subaccount = null;
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "subaccount", "default");
@@ -864,7 +864,7 @@ public partial class nado : Exchange
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
+            }, cancelledOrders[i]), market));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -883,7 +883,7 @@ public partial class nado : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
-        Int64? productId = this.parseToInt(getValue(market, "id"));
+        Int64? productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         object subaccount = null;
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
@@ -959,7 +959,7 @@ public partial class nado : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "order" },
-            { "product_id", this.parseToInt(getValue(market, "id")) },
+            { "product_id", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "digest", id },
         };
         Dictionary<string, object> response = await this.gatewayPublicGetQuery(this.extend(request, parameters));
@@ -1008,7 +1008,7 @@ public partial class nado : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IList<object>)productIds).Add(this.parseToInt(getValue(market, "id")));
+            ((IList<object>)productIds).Add(this.parseToInt((market.ContainsKey("id") ? market["id"] : null)));
         }
         object subaccount = null;
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
@@ -1120,7 +1120,7 @@ public partial class nado : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sender", sender },
             { "type", "subaccount_orders" },
-            { "product_id", this.parseToInt(getValue(market, "id")) },
+            { "product_id", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
         };
         Dictionary<string, object> response = await this.gatewayPublicGetQuery(this.extend(request, parameters));
         //
@@ -1200,7 +1200,7 @@ public partial class nado : Exchange
         };
         if ((market != null))
         {
-            ((IDictionary<string,object>)ordersRequest)["product_ids"] = new List<object> {this.parseToInt(getValue(market, "id"))};
+            ((IDictionary<string,object>)ordersRequest)["product_ids"] = new List<object> {this.parseToInt((market.ContainsKey("id") ? market["id"] : null))};
         }
         IList<object> ordersRequestparametersVariable = (IList<object>)this.handleUntilOption("max_time", ordersRequest, parameters, 0.001);
         ordersRequest = (Dictionary<string, object>)((IList<object>)ordersRequestparametersVariable)[0];
@@ -1236,7 +1236,7 @@ public partial class nado : Exchange
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < orders.Count; i++)
         {
-            object order = getValue(orders, i);
+            object order = orders[i];
             if (this.isArchiveOrderClosed(order))
             {
                 ((IList<object>)closedOrders).Add(this.extend(new Dictionary<string, object>() {
@@ -1322,7 +1322,7 @@ public partial class nado : Exchange
         };
         if ((market != null))
         {
-            ((IDictionary<string,object>)matchesRequest)["product_ids"] = new List<object> {this.parseToInt(getValue(market, "id"))};
+            ((IDictionary<string,object>)matchesRequest)["product_ids"] = new List<object> {this.parseToInt((market.ContainsKey("id") ? market["id"] : null))};
         }
         IList<object> matchesRequestparametersVariable = (IList<object>)this.handleUntilOption("max_time", matchesRequest, parameters, 0.001);
         matchesRequest = (Dictionary<string, object>)((IList<object>)matchesRequestparametersVariable)[0];
@@ -1369,7 +1369,7 @@ public partial class nado : Exchange
         List<object> trades = new List<object>() {};
         for (int i = 0; i < matches.Count; i++)
         {
-            object match = getValue(matches, i);
+            object match = matches[i];
             string? submissionIdx = this.safeString(match, "submission_idx");
             IDictionary<string, object> tx = this.safeDict(txsBySubmission, submissionIdx, new Dictionary<string, object>() {});
             ((IList<object>)trades).Add(this.extend(tx, match));
@@ -1536,12 +1536,12 @@ public partial class nado : Exchange
         List<object> transactions = new List<object>() {};
         for (int i = 0; i < events.Count; i++)
         {
-            object eventVar = getValue(events, i);
+            object eventVar = events[i];
             string? submissionIdx = this.safeString(eventVar, "submission_idx");
             object tx = new Dictionary<string, object>() {};
             for (int j = 0; j < txs.Count; j++)
             {
-                object rawTx = getValue(txs, j);
+                object rawTx = txs[j];
                 string? txSubmissionIdx = this.safeString(rawTx, "submission_idx");
                 if ((txSubmissionIdx == submissionIdx))
                 {
@@ -1618,7 +1618,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            object position = getValue(positions, i);
+            object position = positions[i];
             IDictionary<string, object> balance = this.safeDict(position, "balance", new Dictionary<string, object>() {});
             string? amount = this.safeString(balance, "amount");
             if (((amount == null)) || Precise.stringEquals(amount, "0"))
@@ -1629,7 +1629,7 @@ public partial class nado : Exchange
             object product = new Dictionary<string, object>() {};
             for (int j = 0; j < products.Count; j++)
             {
-                object rawProduct = getValue(products, j);
+                object rawProduct = products[j];
                 string? rawProductId = this.safeString(rawProduct, "product_id");
                 if ((rawProductId == productId))
                 {
@@ -1721,7 +1721,7 @@ public partial class nado : Exchange
         Dictionary<string, object> pairsById = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
         {
-            object rawPair = getValue(pairs, i);
+            object rawPair = pairs[i];
             string? pairProductId = this.safeString(rawPair, "product_id");
             if ((pairProductId != null))
             {
@@ -1731,7 +1731,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsById = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; i++)
         {
-            object rawAsset = getValue(assets, i);
+            object rawAsset = assets[i];
             string? assetProductId = this.safeString(rawAsset, "product_id");
             if ((assetProductId != null))
             {
@@ -1741,7 +1741,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsByCode = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; i++)
         {
-            object rawAsset = getValue(assets, i);
+            object rawAsset = assets[i];
             string? assetSymbol = this.safeString(rawAsset, "symbol");
             string? assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
             if ((assetCode == null))
@@ -1767,7 +1767,7 @@ public partial class nado : Exchange
         List<object> markets = new List<object>() {};
         for (int i = 0; i < symbols.Count; i++)
         {
-            object market = getValue(symbols, i);
+            object market = symbols[i];
             string? id = this.safeString(market, "product_id");
             IDictionary<string, object> pair = this.safeDict(pairsById, id, new Dictionary<string, object>() {});
             IDictionary<string, object> asset = this.safeDict(assetsById, id, new Dictionary<string, object>() {});
@@ -1874,9 +1874,9 @@ public partial class nado : Exchange
         List<object> response = await this.gatewayV2PublicGetAssets(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> assets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(assets); i++)
+        for (int i = 0; i < (assets?.Count ?? 0); i++)
         {
-            object currency = getValue(assets, i);
+            object currency = assets[i];
             Dictionary<string, object> parsed = this.parseCurrency(currency);
             string? code = this.safeString(parsed, "code");
             if ((code == null))
@@ -1950,7 +1950,7 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
         IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
         if ((ticker == null))
@@ -1975,11 +1975,11 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "swap") as bool?) != true))
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
-        string? tickerId = this.safeString(getValue(market, "info"), "ticker_id");
+        string? tickerId = this.safeString((market.ContainsKey("info") ? market["info"] : null), "ticker_id");
         Dictionary<string, object> response = await this.archiveV2PublicGetContracts(parameters);
         //
         //     {
@@ -2033,7 +2033,7 @@ public partial class nado : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "swap") as bool?) != true))
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingHistory() supports swap contracts only")) ;
         }
@@ -2044,7 +2044,7 @@ public partial class nado : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interest_and_funding", new Dictionary<string, object>() {
                 { "subaccount", this.createSubaccount(this.walletAddress, subaccount) },
-                { "product_ids", new List<object> {this.parseToInt(getValue(market, "id"))} },
+                { "product_ids", new List<object> {this.parseToInt((market.ContainsKey("id") ? market["id"] : null))} },
                 { "limit", ((bool) (isEqual(limit, null))) ? 100 : mathMin(limit, 100) },
             } },
         };
@@ -2070,7 +2070,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < fundingPayments.Count; i++)
         {
-            ((IList<object>)result).Add(this.parseFundingHistory(getValue(fundingPayments, i), market));
+            ((IList<object>)result).Add(this.parseFundingHistory(fundingPayments[i], market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
@@ -2119,7 +2119,7 @@ public partial class nado : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            string? ticker = ((string)getValue(tickers, i));
+            string? ticker = ((string)tickers[i]);
             ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rates, symbols));
@@ -2140,11 +2140,11 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (((getValue(market, "swap") as bool?) != true))
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new BadSymbol ((string)(this.id + " fetchOpenInterest() supports swap contracts only")) ;
         }
-        string? tickerId = this.safeString(getValue(market, "info"), "ticker_id");
+        string? tickerId = this.safeString((market.ContainsKey("info") ? market["info"] : null), "ticker_id");
         Dictionary<string, object> response = await this.archiveV2PublicGetContracts(parameters);
         //
         //     {
@@ -2216,7 +2216,7 @@ public partial class nado : Exchange
         List<object> interests = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            string? ticker = ((string)getValue(tickers, i));
+            string? ticker = ((string)tickers[i]);
             ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(interests, symbols));
@@ -2237,7 +2237,7 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? tickerId = this.safeString(getValue(market, "info"), "ticker_id");
+        string? tickerId = this.safeString((market.ContainsKey("info") ? market["info"] : null), "ticker_id");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker_id", tickerId },
             { "depth", ((bool) (isEqual(limit, null))) ? 100 : limit },
@@ -2259,7 +2259,7 @@ public partial class nado : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
     }
 
     /**
@@ -2279,7 +2279,7 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? tickerId = this.safeString(getValue(market, "info"), "ticker_id");
+        string? tickerId = this.safeString((market.ContainsKey("info") ? market["info"] : null), "ticker_id");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker_id", tickerId },
         };
@@ -2329,7 +2329,7 @@ public partial class nado : Exchange
         parameters = this.omit(parameters, "until");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "candlesticks", new Dictionary<string, object>() {
-                { "product_id", this.parseToInt(getValue(market, "id")) },
+                { "product_id", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
                 { "granularity", this.safeInteger(this.timeframes, timeframeVar, this.parseTimeframe(timeframeVar)) },
             } },
         };
@@ -2703,7 +2703,7 @@ public partial class nado : Exchange
         List<object> balances = this.safeList(response, "spot_balances", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object rawBalance = getValue(balances, i);
+            object rawBalance = balances[i];
             string? currencyId = this.safeString(rawBalance, "product_id");
             string? code = this.safeCurrencyCode(currencyId);
             if ((code == "0"))
@@ -3201,7 +3201,7 @@ public partial class nado : Exchange
             subaccount = "default";
         }
         string address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
-        if ((getArrayLength(address) != 40))
+        if (((address?.Length ?? 0) != 40))
         {
             throw new BadRequest ((string)(this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }
@@ -3367,7 +3367,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " signHash() requires privateKey")) ;
         }
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)getValue(signature, "r"));
         string? s = ((string)getValue(signature, "s"));
         string v = ((string)this.intToBase16(this.sum(27, getValue(signature, "v")))).ToLower();
@@ -3382,7 +3382,7 @@ public partial class nado : Exchange
         }
         if (((string)marketId).EndsWith(((string)"-PERP")))
         {
-            return slice(marketId, 0, -5);
+            return ((marketId == null) ? null : ((string)marketId).Substring(0, Math.Max(((string)marketId).Length - 5, 0)));
         }
         return marketId;
     }
@@ -3397,7 +3397,7 @@ public partial class nado : Exchange
         {
             endpoint = api;
         }
-        object url = getValue(getValue(this.urls, "api"), endpoint);
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
         if (!isEqual(path, ""))
         {
             url = add(url, ("/" + this.implodeParams(path, parameters)));

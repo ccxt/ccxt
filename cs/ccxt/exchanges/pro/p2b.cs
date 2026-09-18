@@ -72,7 +72,7 @@ public partial class p2b : ccxt.p2b
     public async virtual Task<object> subscribe(object name, object messageHash, object request, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", request },
@@ -108,11 +108,11 @@ public partial class p2b : ccxt.p2b
         Int64? channel = this.safeInteger(timeframes, timeframeVar);
         if (isEqual(channel, null))
         {
-            throw new BadRequest ((string)add((this.id + " watchOHLCV cannot take a timeframe of "), timeframeVar)) ;
+            throw new BadRequest ((string)((this.id + " watchOHLCV cannot take a timeframe of ") + (timeframeVar))) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> request = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), channel};
-        string messageHash = add("kline::", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("kline::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         object ohlcv = await this.subscribe("kline.subscribe", messageHash, request, parameters);
         if (this.newUpdates)
         {
@@ -147,8 +147,8 @@ public partial class p2b : ccxt.p2b
         parameters = ((IList<object>)nameparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        ((IDictionary<string,object>)getValue(this.options, "tickerSubs"))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
-        object tickerSubs = getValue(this.options, "tickerSubs");
+        ((IDictionary<string,object>)(this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
+        object tickerSubs = (this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null);
         List<object> request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);
         object messageHash = add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         return ccxt.BaseExchange.ToTicker(await this.subscribe(add(name, ".subscribe"), messageHash, request, parameters));
@@ -186,7 +186,7 @@ public partial class p2b : ccxt.p2b
             ((IList<object>)messageHashes).Add(add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
             ((IList<object>)args).Add((market.ContainsKey("id") ? market["id"] : null));
         }
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", add(name, ".subscribe") },
             { "params", args },
@@ -238,11 +238,11 @@ public partial class p2b : ccxt.p2b
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
+                ((IList<object>)messageHashes).Add(("deals::" + (getValue(symbols, i))));
             }
         }
         IList<object> marketIds = this.marketIds(symbols);
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "deals.subscribe" },
             { "params", marketIds },
@@ -280,7 +280,7 @@ public partial class p2b : ccxt.p2b
         }
         Dictionary<string, object> market = this.market(symbol);
         string name = "depth.subscribe";
-        string messageHash = add("orderbook::", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("orderbook::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? interval = this.safeString(parameters, "interval", "0.001");
         if (isEqual(limitVar, null))
         {
@@ -472,7 +472,7 @@ public partial class p2b : ccxt.p2b
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = add("orderbook::", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("orderbook::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);

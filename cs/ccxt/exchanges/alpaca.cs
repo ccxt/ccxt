@@ -1067,7 +1067,7 @@ public partial class alpaca : Exchange
                 string? pageToken = this.safeString(response, "next_page_token");
                 for (int i = 1; isLessThan(i, paginationCalls); i++)
                 {
-                    int ohlcvsLength = getArrayLength(ohlcvs);
+                    int ohlcvsLength = (ohlcvs?.Count ?? 0);
                     if (((pageToken == null)) || ((!isEqual(limit, null)) && (isGreaterThanOrEqual(ohlcvsLength, limit))))
                     {
                         break;
@@ -2161,7 +2161,7 @@ public partial class alpaca : Exchange
             {
                 ledger = activities;
             }
-            for (int i = 0; i < getArrayLength(ledger); i++)
+            for (int i = 0; i < (ledger?.Count ?? 0); i++)
             {
                 object entry = ledger[i];
                 string? activityType = this.safeString(entry, "activity_type");
@@ -2199,7 +2199,7 @@ public partial class alpaca : Exchange
         {
             transfers = response;
         }
-        for (int i = 0; i < getArrayLength(transfers); i++)
+        for (int i = 0; i < (transfers?.Count ?? 0); i++)
         {
             object entry = transfers[i];
             string? direction = this.safeString(entry, "direction");
@@ -2565,7 +2565,7 @@ public partial class alpaca : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        object url = this.implodeHostname(getValue(getValue(this.urls, "api"), getValue(api, 0)));
+        object url = this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(api, 0)));
         headers = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
         if (isEqual(getValue(api, 1), "private"))
         {

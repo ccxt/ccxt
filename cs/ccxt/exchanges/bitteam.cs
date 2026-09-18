@@ -1563,7 +1563,7 @@ public partial class bitteam : Exchange
         {
             rawTickers = response;
         }
-        for (int i = 0; i < getArrayLength(rawTickers); i++)
+        for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
             object rawTicker = rawTickers[i];
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
@@ -2572,7 +2572,7 @@ public partial class bitteam : Exchange
         parameters ??= new Dictionary<string, object>();
         object request = this.omit(parameters, this.extractParams(path));
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), endpoint);
         string query = this.urlencode(request);
         if (isEqual(api, "private"))
         {

@@ -66,7 +66,7 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("orderbook" + ":"), (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = (("orderbook" + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         object orderbook = await this.watchPublic(messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -146,7 +146,7 @@ public partial class hollaex : ccxt.hollaex
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string messageHash = add(("trade" + ":"), (market.ContainsKey("id") ? market["id"] : null));
+        string messageHash = (("trade" + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         object trades = await this.watchPublic(messageHash, parameters);
         if (this.newUpdates)
         {
@@ -185,7 +185,7 @@ public partial class hollaex : ccxt.hollaex
         }
         object data = this.safeValue(message, "data", new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
-        for (int j = 0; j < getArrayLength(parsedTrades); j++)
+        for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
             callDynamically(stored, "append", new object[] {parsedTrades[j]});
         }
@@ -220,7 +220,7 @@ public partial class hollaex : ccxt.hollaex
         {
             market = this.market(symbolVar);
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + add(":", (market.ContainsKey("id") ? market["id"] : null));
+            messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         if (this.newUpdates)
@@ -270,7 +270,7 @@ public partial class hollaex : ccxt.hollaex
         }
         object stored = this.myTrades;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); i++)
+        for (int i = 0; i < getArrayLength(rawTrades); i++)
         {
             object trade = getValue(rawTrades, i);
             Dictionary<string, object> parsed = this.parseTrade(trade);
@@ -320,7 +320,7 @@ public partial class hollaex : ccxt.hollaex
         {
             market = this.market(symbolVar);
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + add(":", (market.ContainsKey("id") ? market["id"] : null));
+            messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         if (this.newUpdates)
@@ -502,7 +502,7 @@ public partial class hollaex : ccxt.hollaex
     public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },
@@ -529,8 +529,8 @@ public partial class hollaex : ccxt.hollaex
             // that would trigger a new connection on each received message
             ((IDictionary<string,object>)this.options)["ws-expires"] = expires;
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        string auth = add(("CONNECT" + "/stream"), expires);
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string auth = (("CONNECT" + "/stream") + (expires));
         string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "api-key", this.apiKey },

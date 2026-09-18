@@ -1330,7 +1330,7 @@ public partial class derive : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tradesArray); i++)
+        for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
             object rawTrade = tradesArray[i];
             bool isFetchTrades = !(inOp(rawTrade, "order_id"));
@@ -2991,7 +2991,7 @@ public partial class derive : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object subaccount = getValue(response, i);
             List<object> collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});
@@ -3242,7 +3242,7 @@ public partial class derive : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
+        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
         if (isEqual(method, "POST"))
         {
             headers = new Dictionary<string, object>() {

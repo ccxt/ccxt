@@ -131,14 +131,14 @@ public partial class testMainClass
         {
             List<object> testFileNames = new List<object>(((IDictionary<string,object>)this.testFiles).Keys);
             List<object> possibleMethodNames = ((string)methodArgv).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>(); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-            if (isGreaterThanOrEqual((possibleMethodNames?.Count ?? 0), 1))
+            if ((possibleMethodNames?.Count ?? 0) >= 1)
             {
-                for (int i = 0; i < testFileNames.Count; postFixIncrement(ref i))
+                for (int i = 0; i < testFileNames.Count; i++)
                 {
-                    string? testFileName = ((string)getValue(testFileNames, i));
-                    for (int j = 0; isLessThan(j, (possibleMethodNames?.Count ?? 0)); postFixIncrement(ref j))
+                    string? testFileName = ((string)testFileNames[i]);
+                    for (int j = 0; j < (possibleMethodNames?.Count ?? 0); j++)
                     {
-                        string? methodName = ((string)getValue(possibleMethodNames, j));
+                        string? methodName = ((string)possibleMethodNames[j]);
                         methodName = ((string)methodName).Replace((string)"()", (string)"");
                         if ((testFileName == methodName))
                         {
@@ -170,9 +170,9 @@ public partial class testMainClass
         object exchangeId = exchange.id;
         object reqCreds = getExchangeProp(exchange, ("re" + "quiredCredentials")); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         List<object> objkeys = new List<object>(((IDictionary<string,object>)reqCreds).Keys);
-        for (int i = 0; i < objkeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < objkeys.Count; i++)
         {
-            string? credential = ((string)getValue(objkeys, i));
+            string? credential = ((string)objkeys[i]);
             object isRequired = getValue(reqCreds, credential);
             if ((isEqual(isRequired, true)) && (isEqual(getExchangeProp(exchange, credential), null)))
             {
@@ -210,9 +210,9 @@ public partial class testMainClass
         if ((exchangeSettings != null))
         {
             List<object> settingKeys = new List<object>(((IDictionary<string,object>)exchangeSettings).Keys);
-            for (int i = 0; i < settingKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < settingKeys.Count; i++)
             {
-                string? key = ((string)getValue(settingKeys, i));
+                string? key = ((string)settingKeys[i]);
                 object settingValue = getValue(exchangeSettings, key);
                 bool settingIsEmpty = ((settingValue == null)) || ((settingValue == null)) || (isEqual(settingValue, "")) || (isEqual(settingValue, false)) || (isEqual(settingValue, 0));
                 if (!settingIsEmpty)
@@ -265,7 +265,7 @@ public partial class testMainClass
         object missingSpace = subtract(subtract(size, messageLength), 0); // - 0 is added just to trick transpile to treat the .length as a string for php
         if (isGreaterThan(missingSpace, 0))
         {
-            for (int i = 0; isLessThan(i, missingSpace); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, missingSpace); i++)
             {
                 res = res + " ";
             }
@@ -353,9 +353,9 @@ public partial class testMainClass
         object finalSkips = new Dictionary<string, object>() {};
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
         List<object> methodNames = new List<object>() {methodName, add(add(methodName, "."), this.ext)};
-        for (int i = 0; i < (methodNames?.Count ?? 0); postFixIncrement(ref i))
+        for (int i = 0; i < (methodNames?.Count ?? 0); i++)
         {
-            object mName = getValue(methodNames, i);
+            object mName = methodNames[i];
             if (inOp(this.skippedMethods, mName))
             {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
@@ -379,9 +379,9 @@ public partial class testMainClass
             { "depositWithdrawFee", new List<object>() {"fetchDepositWithdrawFee", "fetchDepositWithdrawFees"} },
         };
         List<object> objectNames = new List<object>(((IDictionary<string,object>)objectSkips).Keys);
-        for (int i = 0; i < objectNames.Count; postFixIncrement(ref i))
+        for (int i = 0; i < objectNames.Count; i++)
         {
-            string? objectName = ((string)getValue(objectNames, i));
+            string? objectName = ((string)objectNames[i]);
             object objectMethods = getValue(objectSkips, objectName);
             if (isTrue(exchange.inArray(methodName, objectMethods)))
             {
@@ -423,7 +423,7 @@ public partial class testMainClass
         isPublic ??= false;
         object maxRetries = 3;
         object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-        for (int i = 0; isLessThan(i, maxRetries); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, maxRetries); i++)
         {
             try
             {
@@ -528,7 +528,7 @@ public partial class testMainClass
     {
         object fetchCache = exchange.getFetchCache();
         object url = "";
-        if (isGreaterThan(getArrayLength(fetchCache), 0))
+        if (getArrayLength(fetchCache) > 0)
         {
             object lastEntry = getValue(fetchCache, (getArrayLength(fetchCache) - 1));
             object lastRequest = getValue(lastEntry, "request");
@@ -598,9 +598,9 @@ public partial class testMainClass
     {
         List<object> testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
         List<object> promises = new List<object>() {};
-        for (int i = 0; i < testNames.Count; postFixIncrement(ref i))
+        for (int i = 0; i < testNames.Count; i++)
         {
-            string? testName = ((string)getValue(testNames, i));
+            string? testName = ((string)testNames[i]);
             object testArgs = getValue(tests, testName);
             ((IList<object>)promises).Add(this.testSafe(testName, exchange, testArgs, isPublicTest));
         }
@@ -609,9 +609,9 @@ public partial class testMainClass
         List<object> results = await promiseAll(promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         List<object> failedMethods = new List<object>() {};
-        for (int i = 0; i < testNames.Count; postFixIncrement(ref i))
+        for (int i = 0; i < testNames.Count; i++)
         {
-            string? testName = ((string)getValue(testNames, i));
+            string? testName = ((string)testNames[i]);
             object testReturnedValue = getValue(results, i);
             if (!isEqual(testReturnedValue, true))
             {
@@ -655,7 +655,7 @@ public partial class testMainClass
         {
             return preferredSwapSymbol;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object s = getValue(symbols, i);
             object market = exchange.safeValue(exchange.markets, s);
@@ -679,7 +679,7 @@ public partial class testMainClass
             codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT"};
         }
         object code = getValue(codes, 0);
-        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(codes); i++)
         {
             if (inOp(exchange.currencies, getValue(codes, i)))
             {
@@ -695,9 +695,9 @@ public partial class testMainClass
         Dictionary<string, object> res = new Dictionary<string, object>() {};
         object markets = exchange.markets;
         List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object market = getValue(markets, key);
             if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
             {
@@ -722,9 +722,9 @@ public partial class testMainClass
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if ((symbol == null))
         {
-            for (int i = 0; i < (codes?.Count ?? 0); postFixIncrement(ref i))
+            for (int i = 0; i < (codes?.Count ?? 0); i++)
             {
-                string? currentCode = ((string)getValue(codes, i));
+                string? currentCode = ((string)codes[i]);
                 object marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, "base", currentCode);
                 object indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, "symbol");
                 List<object> symbolsArrayForCurrentCode = new List<object>(((IDictionary<string,object>)indexedMkts).Keys);
@@ -741,7 +741,7 @@ public partial class testMainClass
         {
             object activeMarkets = exchange.filterBy(currentTypeMarkets, "active", true);
             List<object> activeSymbols = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(activeMarkets)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(activeMarkets); i++)
             {
                 ((IList<object>)activeSymbols).Add(getValue(getValue(activeMarkets, i), "symbol"));
             }
@@ -836,9 +836,9 @@ public partial class testMainClass
         object settle = exchange.safeString(defaultMarket, "settle");
         List<object> candidates = new List<object>() {};
         List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
-        for (int i = 0; i < tickerSymbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < tickerSymbols.Count; i++)
         {
-            string? tickerSymbol = ((string)getValue(tickerSymbols, i));
+            string? tickerSymbol = ((string)tickerSymbols[i]);
             object market = exchange.safeDict(exchange.markets, tickerSymbol);
             if ((market != null))
             {
@@ -869,7 +869,7 @@ public partial class testMainClass
             return defaultSymbols;
         }
         List<object> result = new List<object> {exchange.safeString(getValue(ranked, 0), "symbol")};
-        if (isGreaterThan(rankedLength, 1))
+        if (rankedLength > 1)
         {
             ((IList<object>)result).Add(exchange.safeString(getValue(ranked, 1), "symbol"));
         }
@@ -1001,11 +1001,11 @@ public partial class testMainClass
             // (hyperliquid re-assigns outcome ids), which would strand a stale pin
             bool pinFound = false;
             List<object> pinnedKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
-            for (int i = 0; i < pinnedKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < pinnedKeys.Count; i++)
             {
-                object pinnedMarket = getValue(exchange.markets, getValue(pinnedKeys, i));
+                object pinnedMarket = getValue(exchange.markets, pinnedKeys[i]);
                 object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new List<object>() {});
-                for (int j = 0; isLessThan(j, getArrayLength(pinnedOutcomes)); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(pinnedOutcomes); j++)
                 {
                     if (isEqual(exchange.safeString(getValue(pinnedOutcomes, j), "outcome"), outcomeSymbol))
                     {
@@ -1027,12 +1027,12 @@ public partial class testMainClass
         if ((outcomeSymbol == null))
         {
             List<object> marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
-            for (int i = 0; i < marketKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < marketKeys.Count; i++)
             {
-                object market = getValue(exchange.markets, getValue(marketKeys, i));
+                object market = getValue(exchange.markets, marketKeys[i]);
                 object outcomesList = exchange.safeList(market, "outcomes", new List<object>() {});
                 int outcomesListLength = getArrayLength(outcomesList);
-                if (isGreaterThan(outcomesListLength, 0))
+                if (outcomesListLength > 0)
                 {
                     outcomeSymbol = exchange.safeString(getValue(outcomesList, 0), "outcome");
                     if ((outcomeSymbol != null))
@@ -1098,7 +1098,7 @@ public partial class testMainClass
                 }, "events", new List<object>() {});
                 this.assertPredictionEvents(exchange, eventsList);
                 int eventsLength = getArrayLength(eventsList);
-                if (isGreaterThan(eventsLength, 0))
+                if (eventsLength > 0)
                 {
                     eventId = exchange.safeString(getValue(eventsList, 0), "id");
                 }
@@ -1126,12 +1126,12 @@ public partial class testMainClass
                 // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
                 object extraScopes = exchange.safeList(this.skippedSettingsForExchange, "preferredEventScopes", new List<object>() {});
                 int extraScopesLength = getArrayLength(extraScopes);
-                for (int si = 0; isLessThan(si, extraScopesLength); postFixIncrement(ref si))
+                for (int si = 0; si < extraScopesLength; si++)
                 {
                     ((IList<object>)scopesToTest).Add(getValue(extraScopes, si));
                 }
                 int scopesToTestLength = (scopesToTest?.Count ?? 0);
-                for (int sj = 0; sj < scopesToTestLength; postFixIncrement(ref sj))
+                for (int sj = 0; sj < scopesToTestLength; sj++)
                 {
                     object scope = getValue(scopesToTest, sj);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
@@ -1140,7 +1140,7 @@ public partial class testMainClass
                         { "events", scopedEvents },
                     }, "events", new List<object>() {});
                     int scopedListLength = getArrayLength(scopedList);
-                    assert(isGreaterThan(scopedListLength, 0), add(add(add(exchange.id, " fetchEvents scoped by "), exchange.json(scope)), " returned no events - the parameter path may be broken"));
+                    assert(scopedListLength > 0, add(add(add(exchange.id, " fetchEvents scoped by "), exchange.json(scope)), " returned no events - the parameter path may be broken"));
                     this.assertPredictionEvents(exchange, scopedList);
                 }
                 if ((eventQuery != null))
@@ -1154,7 +1154,7 @@ public partial class testMainClass
                         { "events", limited },
                     }, "events", new List<object>() {});
                     int limitedListLength = getArrayLength(limitedList);
-                    assert(isLessThanOrEqual(limitedListLength, 1), add(exchange.id, " fetchEvents did not honour limit=1"));
+                    assert(limitedListLength <= 1, add(exchange.id, " fetchEvents did not honour limit=1"));
                 }
             } catch(Exception e)
             {
@@ -1227,7 +1227,7 @@ public partial class testMainClass
     {
         assert(((events is IList<object>) || (events.GetType().IsGenericType && events.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(exchange.id, " fetchEvents/fetchEvent should return a list"));
         int eventsLength = getArrayLength(events);
-        for (int i = 0; isLessThan(i, eventsLength); postFixIncrement(ref i))
+        for (int i = 0; i < eventsLength; i++)
         {
             this.assertPredictionEvent(exchange, getValue(events, i));
         }
@@ -1246,7 +1246,7 @@ public partial class testMainClass
         assert((markets != null), add(add(exchange.id, " event missing markets"), logText));
         int marketsLength = getArrayLength(markets);
         assert(isEqual(exchange.safeString(eventVar, "symbol"), null), add(add(exchange.id, " event must not carry the deprecated symbol key"), logText));
-        for (int i = 0; isLessThan(i, marketsLength); postFixIncrement(ref i))
+        for (int i = 0; i < marketsLength; i++)
         {
             object market = getValue(markets, i);
             assert(isEqual(exchange.isDictionary(market), true), add(add(exchange.id, " event market should be a dict"), logText));
@@ -1256,7 +1256,7 @@ public partial class testMainClass
             object outcomes = exchange.safeList(market, "outcomes");
             assert((outcomes != null), add(add(exchange.id, " event market missing outcomes"), logText));
             int outcomesLength = getArrayLength(outcomes);
-            for (int j = 0; isLessThan(j, outcomesLength); postFixIncrement(ref j))
+            for (int j = 0; j < outcomesLength; j++)
             {
                 assert(isEqual(exchange.safeString(getValue(outcomes, j), "symbol"), null), add(add(exchange.id, " event outcome must not carry the deprecated symbol key"), logText));
             }
@@ -1475,7 +1475,7 @@ public partial class testMainClass
         // try proxy several times
         int maxRetries = 3;
         object exceptionMessageString = null;
-        for (int j = 0; j < maxRetries; postFixIncrement(ref j))
+        for (int j = 0; j < maxRetries; j++)
         {
             try
             {
@@ -1664,7 +1664,7 @@ public partial class testMainClass
             return result;
         }
         object files = ioDirRead(folder);
-        for (int i = 0; isLessThan(i, getArrayLength(files)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(files); i++)
         {
             object file = getValue(files, i);
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
@@ -1690,11 +1690,11 @@ public partial class testMainClass
         }
         List<object> urlParts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object res = "";
-        for (int i = 0; i < urlParts.Count; postFixIncrement(ref i))
+        for (int i = 0; i < urlParts.Count; i++)
         {
             if (i > 2)
             {
-                string? current = ((string)getValue(urlParts, i));
+                string? current = ((string)urlParts[i]);
                 if (getIndexOf(current, "?") > -1)
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
@@ -1714,9 +1714,9 @@ public partial class testMainClass
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> parts = ((string)url).Split(new [] {((string)"&")}, StringSplitOptions.None).ToList<object>();
-        for (int i = 0; i < parts.Count; postFixIncrement(ref i))
+        for (int i = 0; i < parts.Count; i++)
         {
-            string? part = ((string)getValue(parts, i));
+            string? part = ((string)parts[i]);
             List<object> keyValue = ((string)part).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             int keysLength = keyValue.Count;
             if ((keysLength != 2))
@@ -1774,7 +1774,7 @@ public partial class testMainClass
         }
         if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(value); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(value); i++)
             {
                 if (!isTrue(this.isVacantValue(exchange, getValue(value, i))))
                 {
@@ -1786,9 +1786,9 @@ public partial class testMainClass
         if (isTrue(exchange.isDictionary(value)))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
-                if (!isTrue(this.isVacantValue(exchange, getValue(value, getValue(keys, i)))))
+                if (!isTrue(this.isVacantValue(exchange, getValue(value, keys[i]))))
                 {
                     return false;
                 }
@@ -1804,9 +1804,9 @@ public partial class testMainClass
         // all and which carry no data here (see isVacantValue)
         List<object> keys = new List<object>(((IDictionary<string,object>)target).Keys);
         object count = 0;
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (!isTrue((exchange.inArray(key, otherKeys))) && isTrue(this.isVacantValue(exchange, getValue(target, key))))
             {
                 continue;
@@ -1862,9 +1862,9 @@ public partial class testMainClass
             }
             this.assertStaticError(isEqual(storedKeysLength, newKeysLength), "output length mismatch", storedOutput, newOutput);
             // iterate over the keys
-            for (int i = 0; i < storedOutputKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < storedOutputKeys.Count; i++)
             {
-                object key = getValue(storedOutputKeys, i);
+                object key = storedOutputKeys[i];
                 if (isTrue(exchange.inArray(key, skipKeys)))
                 {
                     continue;
@@ -1893,7 +1893,7 @@ public partial class testMainClass
             int storedArrayLength = getArrayLength(storedOutput);
             int newArrayLength = getArrayLength(newOutput);
             this.assertStaticError((storedArrayLength == newArrayLength), "output length mismatch", storedOutput, newOutput);
-            for (int i = 0; i < getArrayLength(storedOutput); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(storedOutput); i++)
             {
                 object storedItem = getValue(storedOutput, i);
                 object newItem = getValue(newOutput, i);
@@ -2121,7 +2121,7 @@ public partial class testMainClass
             return null;
         }
         List<object> newInput = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(input); i++)
         {
             object current = getValue(input, i);
             if (isTrue(isNullValue(current)))
@@ -2174,9 +2174,9 @@ public partial class testMainClass
             {
                 object sentHeaders = ((bool) (!isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
                 List<object> storedHeaderKeys = new List<object>(((IDictionary<string,object>)storedHeaders).Keys);
-                for (int i = 0; i < storedHeaderKeys.Count; postFixIncrement(ref i))
+                for (int i = 0; i < storedHeaderKeys.Count; i++)
                 {
-                    string? headerKey = ((string)getValue(storedHeaderKeys, i));
+                    string? headerKey = ((string)storedHeaderKeys[i]);
                     object storedHeaderValue = getValue(storedHeaders, headerKey);
                     object sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
                     this.assertStaticError(isEqual(sentHeaderValue, storedHeaderValue), ("header mismatch for " + headerKey), storedHeaderValue, sentHeaderValue);
@@ -2242,7 +2242,7 @@ public partial class testMainClass
         // that resolve nothing (e.g. subscribe acks) fall through on the
         // timeout
         sequential ??= false;
-        for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messages); i++)
         {
             object waited = 0;
             while (!isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(waited, 5000)))
@@ -2286,7 +2286,7 @@ public partial class testMainClass
     {
         try
         {
-            for (int i = 0; isLessThan(i, getArrayLength(expectedResults)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(expectedResults); i++)
             {
                 object result = await callExchangeMethodDynamically(exchange, method, input);
                 // ws structures can be live typed objects (e.g. orderbooks) in some
@@ -2323,7 +2323,7 @@ public partial class testMainClass
         int sentLength = getArrayLength(sentMessages);
         int expectedLength = getArrayLength(expectedSent);
         assert((sentLength == expectedLength), ((((("sent ws messages count mismatch: sent " + ((object)sentLength).ToString()) + ", expected ") + ((object)expectedLength).ToString()) + " ") + (jsonStringify(sentMessages))));
-        for (int i = 0; isLessThan(i, expectedLength); postFixIncrement(ref i))
+        for (int i = 0; i < expectedLength; i++)
         {
             object unifiedSent = jsonParse(jsonStringify(getValue(sentMessages, i)));
             this.assertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, getValue(expectedSent, i));
@@ -2387,11 +2387,11 @@ public partial class testMainClass
         object globalOptions = ((bool) isEqual(getValue(exchangeData, "options"), null)) ? new Dictionary<string, object>() {} : getValue(exchangeData, "options");
         object methods = ((bool) isEqual(getValue(exchangeData, "methods"), null)) ? new Dictionary<string, object>() {} : getValue(exchangeData, "methods");
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
+        for (int i = 0; i < methodsNames.Count; i++)
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
-            for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(results); j++)
             {
                 object result = getValue(results, j);
                 object description = getValue(result, "description");
@@ -2560,10 +2560,10 @@ public partial class testMainClass
         if ((predictionEvents != null))
         {
             List<object> eventMarkets = new List<object>() {};
-            for (int i = 0; i < getArrayLength(predictionEvents); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(predictionEvents); i++)
             {
                 object evMarkets = exchange.safeList(getValue(predictionEvents, i), "markets", new List<object>() {});
-                for (int j = 0; isLessThan(j, getArrayLength(evMarkets)); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(evMarkets); j++)
                 {
                     object evMarket = getValue(evMarkets, j);
                     // every market row must carry the unified market handle (PredictionMarket
@@ -2623,11 +2623,11 @@ public partial class testMainClass
         exchange.extendExchangeOptions(globalOptions);
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
+        for (int i = 0; i < methodsNames.Count; i++)
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
-            for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(results); j++)
             {
                 object result = getValue(results, j);
                 object oldExchangeOptions = exchange.options; // snapshot options;
@@ -2716,11 +2716,11 @@ public partial class testMainClass
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
         exchange.extendExchangeOptions(options);
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
+        for (int i = 0; i < methodsNames.Count; i++)
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
-            for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(results); j++)
             {
                 object result = getValue(results, j);
                 object description = exchange.safeValue(result, "description");
@@ -2785,9 +2785,9 @@ public partial class testMainClass
         object sum = 0;
         object methods = getValue(exchangeData, "methods");
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
+        for (int i = 0; i < methodsNames.Count; i++)
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
             int resultsLength = getArrayLength(results);
             sum = exchange.sum(sum, resultsLength);
@@ -2877,9 +2877,9 @@ public partial class testMainClass
         {
             dump(("[INFO:MAIN] Testing only: " + (testName)));
         }
-        for (int i = 0; i < exchanges.Count; postFixIncrement(ref i))
+        for (int i = 0; i < exchanges.Count; i++)
         {
-            string? exchangeName = ((string)getValue(exchanges, i));
+            string? exchangeName = ((string)exchanges[i]);
             object exchangeData = getValue(staticData, exchangeName);
             object disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
             if (isTrue(disabled))
@@ -3044,7 +3044,7 @@ public partial class testMainClass
             createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         object batchOrders = getValue(createOrdersRequest, "batchOrders");
-        for (int i = 0; isLessThan(i, getArrayLength(batchOrders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(batchOrders); i++)
         {
             object current = getValue(batchOrders, i);
             object currentClientOrderId = getValue(current, "newClientOrderId");

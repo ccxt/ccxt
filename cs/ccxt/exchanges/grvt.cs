@@ -1295,7 +1295,7 @@ public partial class grvt : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument", getValue(market, "id") },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1456,7 +1456,7 @@ public partial class grvt : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument", getValue(market, "id") },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Dictionary<string, object> priceTypeMap = new Dictionary<string, object>() {
@@ -1554,7 +1554,7 @@ public partial class grvt : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument", getValue(market, "id") },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2106,7 +2106,7 @@ public partial class grvt : Exchange
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};
         List<object> nonMatchedResults = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(transfers)); i++)
+        for (int i = 0; i < getArrayLength(transfers); i++)
         {
             object transfer = getValue(transfers, i);
             if ((isTrue(onlyMainAccount) && isEqual(getValue(transfer, "fromAccount"), "0") && isEqual(getValue(transfer, "toAccount"), "0")) || (!isTrue(onlyMainAccount) && (!isEqual(getValue(transfer, "fromAccount"), "0") || !isEqual(getValue(transfer, "toAccount"), "0"))))
@@ -2185,7 +2185,7 @@ public partial class grvt : Exchange
             bool isFromFundingAccount = isEqual(fromAccountVar, "funding");
             if (isFromFundingAccount && (getIndexOf(msg, "You are not authorized") >= 0))
             {
-                throw new PermissionDenied ((string)add((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)) ;
+                throw new PermissionDenied ((string)((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + (msg))) ;
             }
             throw error;
         }
@@ -2390,7 +2390,7 @@ public partial class grvt : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> orderLeg = new Dictionary<string, object>() {
-            { "instrument", getValue(market, "id") },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "size", this.amountToPrecision(symbol, amount) },
         };
         if (!isEqual(price, null))
@@ -2616,7 +2616,7 @@ public partial class grvt : Exchange
             object leg = orderLegs[i];
             Dictionary<string, object> market = this.market(getValue(leg, "instrument"));
             object bigInt10 = this.convertToBigIntCustom("10");
-            int precisionValue = this.precisionFromString(this.safeString(getValue(market, "precision"), "base"));
+            int precisionValue = this.precisionFromString(this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "base"));
             string precisionValueStr = ((object)precisionValue).ToString();
             double sizeMultiplier = Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(precisionValueStr)));
             object size = getValue(leg, "size");
@@ -2626,7 +2626,7 @@ public partial class grvt : Exchange
             string sizeDecLengthStr = ((object)sizeDecLength).ToString();
             object sizeInteger = divide(multiply(this.convertToBigIntCustom(((string)size).Replace((string)".", (string)"")), sizeMultiplier), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(sizeDecLengthStr)))));
             Dictionary<string, object> legOrder = new Dictionary<string, object>() {
-                { "assetID", getValue(getValue(market, "info"), "instrument_hash") },
+                { "assetID", getValue((market.ContainsKey("info") ? market["info"] : null), "instrument_hash") },
                 { "contractSize", this.parseToInt(sizeInteger) },
                 { "isBuyingContract", getValue(leg, "is_buying_asset") },
             };
@@ -2698,9 +2698,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add(getValue(market, "baseId"));
+            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add(getValue(market, "quoteId"));
+            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if (!isEqual(limit, null))
         {
@@ -2774,12 +2774,12 @@ public partial class grvt : Exchange
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                if (((getValue(market, "contract") as bool?) != true))
+                if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
                 {
                     throw new BadRequest ((string)(this.id + " fetchPositions() supports contract markets only")) ;
                 }
-                ((IList<object>)getValue(request, "base")).Add(getValue(market, "baseId"));
-                ((IList<object>)getValue(request, "quote")).Add(getValue(market, "quoteId"));
+                ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+                ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
             }
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1Positions(this.extend(request, parameters));
@@ -2924,7 +2924,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
-            { "instrument", getValue(market, "id") },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", this.numberToString(leverage) },
         };
         Dictionary<string, object> response = await this.privateTradingPostFullV1SetInitialLeverage(this.extend(request, parameters));
@@ -3053,9 +3053,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add(getValue(market, "baseId"));
+            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add(getValue(market, "quoteId"));
+            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if (!isEqual(limit, null))
         {
@@ -3140,9 +3140,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add(getValue(market, "baseId"));
+            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add(getValue(market, "quoteId"));
+            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if (!isEqual(limit, null))
         {
@@ -3587,9 +3587,9 @@ public partial class grvt : Exchange
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
-            ((IList<object>)getValue(request, "base")).Add(getValue(market, "baseId"));
+            ((IList<object>)getValue(request, "base")).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            ((IList<object>)getValue(request, "quote")).Add(getValue(market, "quoteId"));
+            ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters));
         //
@@ -3722,7 +3722,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> domainData = this.eipDomainData();
         Dictionary<string, object> definitions = this.eipDefinitions();
         byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
-        string ethEncodedMessageHashed = add("0x", this.hash(ethEncodedMessage, keccak, "hex"));
+        string ethEncodedMessageHashed = ("0x" + (this.hash(ethEncodedMessage, keccak, "hex")));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         string? secretOrPrivkey = ((bool) usesPrivKey) ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
@@ -3730,7 +3730,7 @@ public partial class grvt : Exchange
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(getValue(signature, "r"));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(getValue(signature, "s"));
         ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, getValue(signature, "v"));
-        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((bool) ((signerAddress == null))) ? this.ethGetAddressFromPrivateKey(add("0x", privateKeyWithoutZero)) : signerAddress;
+        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((bool) ((signerAddress == null))) ? this.ethGetAddressFromPrivateKey(("0x" + (privateKeyWithoutZero))) : signerAddress;
         return request;
     }
 
@@ -3742,7 +3742,7 @@ public partial class grvt : Exchange
             return padded;
         } else
         {
-            return add("0x", padded);
+            return ("0x" + (padded));
         }
     }
 
@@ -3785,7 +3785,7 @@ public partial class grvt : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(getValue(getValue(this.urls, "api"), api), path);
+        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), path);
         string queryString = "";
         if (isEqual(method, "GET"))
         {
@@ -3859,7 +3859,7 @@ public partial class grvt : Exchange
                 object cookieValue = getValue(((string)cookie).Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>(), 0);
                 ((IDictionary<string,object>)this.options)["AuthCookieValue"] = cookieValue;
             }
-            if (isEqual(getValue(this.options, "AuthCookieValue"), null) || isEqual(getValue(this.options, "AuthAccountId"), null))
+            if (isEqual((this.options.ContainsKey("AuthCookieValue") ? this.options["AuthCookieValue"] : null), null) || isEqual((this.options.ContainsKey("AuthAccountId") ? this.options["AuthAccountId"] : null), null))
             {
                 throw new AuthenticationError ((string)(this.id + " signIn() failed to receive auth-cookie or account-id")) ;
             }
@@ -3868,7 +3868,7 @@ public partial class grvt : Exchange
             string? errorCode = this.safeString(response, "code");
             if ((errorCode != null))
             {
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                 throw new ExchangeError ((string)feedback) ;
             } else
@@ -3876,7 +3876,7 @@ public partial class grvt : Exchange
                 string? message = this.safeString(response, "message");
                 if ((message != null))
                 {
-                    string feedback = add((this.id + " "), body);
+                    string feedback = ((this.id + " ") + (body));
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                     throw new ExchangeError ((string)feedback) ;
                 } else
@@ -3884,7 +3884,7 @@ public partial class grvt : Exchange
                     string? status = this.safeString(response, "status");
                     if ((status != null) && (status != "success"))
                     {
-                        string feedback = add((this.id + " "), body);
+                        string feedback = ((this.id + " ") + (body));
                         throw new ExchangeError ((string)feedback) ;
                     }
                 }
