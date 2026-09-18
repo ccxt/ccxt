@@ -63,7 +63,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
@@ -83,7 +83,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
         this.checkRequiredCredentials();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         string instruction = "subscribe";
         string ts = ((object)this.nonce()).ToString();
         string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
@@ -322,7 +322,7 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(ticker, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId, market);
-        object parsedTicker = this.parseWsTicker(ticker, market);
+        Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsTicker(ticker, market));
         string messageHash = (("ticker" + ":") + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
         (client as WebSocketClient).resolve(parsedTicker, messageHash);
@@ -454,7 +454,7 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId, market);
-        object parsedBidAsk = this.parseWsBidAsk(data, market);
+        Dictionary<string, object> parsedBidAsk = ((Dictionary<string, object>)this.parseWsBidAsk(data, market));
         string messageHash = (("bidask" + ":") + symbol);
         ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedBidAsk;
         (client as WebSocketClient).resolve(parsedBidAsk, messageHash);
@@ -510,7 +510,7 @@ public partial class backpack : ccxt.backpack
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
@@ -529,7 +529,7 @@ public partial class backpack : ccxt.backpack
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
@@ -642,7 +642,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.market(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? stream = this.safeString(message, "stream", "");
         List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? timeframe = this.safeString(parts, 1, "");
@@ -659,7 +659,7 @@ public partial class backpack : ccxt.backpack
         object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
         object parsed = this.parseWsOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
-        string messageHash = ((add("candles:", symbol) + ":") + timeframe);
+        string messageHash = ((("candles:" + symbol) + ":") + timeframe);
         (client as WebSocketClient).resolve(new List<object>() {symbol, timeframe, ohlcv}, messageHash);
     }
 
@@ -817,7 +817,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.market(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -825,9 +825,9 @@ public partial class backpack : ccxt.backpack
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object cache = getValue(this.trades, symbol);
-        object trade = this.parseWsTrade(data, market);
+        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data, market));
         callDynamically(cache, "append", new object[] {trade});
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + symbol);
         (client as WebSocketClient).resolve(cache, messageHash);
         (client as WebSocketClient).resolve(cache, "trades");
     }
@@ -1205,8 +1205,8 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
-        object parsed = this.parseWsOrder(data, market);
+        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(data, market));
         object orders = this.orders;
         if ((orders == null))
         {
@@ -1216,7 +1216,7 @@ public partial class backpack : ccxt.backpack
         }
         callDynamically(orders, "append", new object[] {parsed});
         (client as WebSocketClient).resolve(orders, messageHash);
-        object symbolSpecificMessageHash = add((messageHash + ":"), symbol);
+        string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         (client as WebSocketClient).resolve(orders, symbolSpecificMessageHash);
     }
 
@@ -1430,13 +1430,13 @@ public partial class backpack : ccxt.backpack
             this.positions = new ArrayCacheBySymbolById();
         }
         object cache = this.positions;
-        object parsedPosition = this.parseWsPosition(data);
+        Dictionary<string, object> parsedPosition = ((Dictionary<string, object>)this.parseWsPosition(data));
         Int64? microseconds = this.safeInteger(data, "E", 0);
         Int64? timestamp = this.parseToInt(divide(microseconds, 1000));
         ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
         callDynamically(cache, "append", new object[] {parsedPosition});
-        object symbolSpecificMessageHash = add((messageHash + ":"), getValue(parsedPosition, "symbol"));
+        string symbolSpecificMessageHash = add((messageHash + ":"), getValue(parsedPosition, "symbol"));
         (client as WebSocketClient).resolve(new List<object>() {parsedPosition}, messageHash);
         (client as WebSocketClient).resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);
     }

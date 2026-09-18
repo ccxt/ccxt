@@ -100,7 +100,7 @@ public partial class extended : ccxt.extended
         string? marketId = this.safeString(data, "m");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         Int64? timestamp = this.safeInteger(message, "ts");
         Int64? nonce = this.safeInteger(message, "seq");
         string? type = this.safeString(message, "type", this.safeString(data, "t"));
@@ -717,7 +717,7 @@ public partial class extended : ccxt.extended
             { "info", message },
         }, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        string messageHash = add("markPrice:", symbol);
+        string messageHash = ("markPrice:" + symbol);
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -789,7 +789,7 @@ public partial class extended : ccxt.extended
         string? marketId = this.safeString(first, "m");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + symbol);
         IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))

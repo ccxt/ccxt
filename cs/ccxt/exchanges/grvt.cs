@@ -3552,7 +3552,7 @@ public partial class grvt : Exchange
             { "FILL_OR_KILL", 4 },
             { "RETAIL_PRICE_IMPROVEMENT", 5 },
         };
-        return ((Int64?)((object)(this.safeInteger(timeInForces, timeInForce, 0))));
+        return this.safeInteger(timeInForces, timeInForce, 0);
     }
 
     public virtual string? parseOrderStatus(object status)

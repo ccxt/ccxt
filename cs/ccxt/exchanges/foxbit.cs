@@ -2306,7 +2306,7 @@ public partial class foxbit : Exchange
         if (isEqual(urlPath, "private"))
         {
             this.checkRequiredCredentials();
-            string preHash = add(add(add(add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
+            string preHash = add(add((add(this.numberToString(timestamp), method) + fullPath), signatureQuery), bodyToSignature);
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);

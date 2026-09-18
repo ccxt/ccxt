@@ -2053,7 +2053,7 @@ public partial class coinbaseinternational : Exchange
         string typeId = ((string)type).ToUpper();
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         string clientOrderIdprefix = ((string)this.safeString(this.options, "brokerId", "nfqkvdjp"));
-        string? clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
+        string? clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
         clientOrderId = slice(clientOrderId, 0, 17);
         if (isEqual(side, null))
         {

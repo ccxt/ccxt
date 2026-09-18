@@ -129,7 +129,7 @@ public partial class grvt : ccxt.grvt
     public override object requestId()
     {
         this.lockId();
-        object newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Int64 newValue = ((Int64)this.sum(this.safeInteger(this.options, "requestId", 0), 1));
         ((IDictionary<string,object>)this.options)["requestId"] = newValue;
         this.unlockId();
         return newValue;
@@ -146,7 +146,7 @@ public partial class grvt : ccxt.grvt
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -293,10 +293,10 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
-        object ticker = this.parseWsTicker(data, market);
+        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data, market));
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        (client as WebSocketClient).resolve(ticker, add("ticker::", symbol));
+        (client as WebSocketClient).resolve(ticker, ("ticker::" + symbol));
     }
 
     public virtual object parseWsTicker(object message, object market = null)
@@ -397,16 +397,16 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        object parsed = this.parseWsTrade(data);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(data));
         object stored = getValue(this.trades, symbol);
         callDynamically(stored, "append", new object[] {parsed});
-        (client as WebSocketClient).resolve(stored, add("trade::", symbol));
+        (client as WebSocketClient).resolve(stored, ("trade::" + symbol));
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -429,8 +429,8 @@ public partial class grvt : ccxt.grvt
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string symbolVar = symbol;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -517,11 +517,11 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? secondPart = this.safeString(parts, 1, "");
         string timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
-        object timeframe = this.findTimeframe(timeframeId);
-        string messageHash = add((add("ohlcv::", symbol) + "::"), timeframe);
+        string? timeframe = this.findTimeframe(timeframeId);
+        string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (!(inOp(getValue(this.ohlcvs, symbol), ((string)timeframe))))
         {
@@ -554,7 +554,7 @@ public partial class grvt : ccxt.grvt
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -656,7 +656,7 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -669,7 +669,7 @@ public partial class grvt : ccxt.grvt
         bool isSnapshotMessage = isLessThanOrEqual(sequenceNumber, 0);
         if (isSnapshotChannel || isSnapshotMessage)
         {
-            object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
+            Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size"));
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
@@ -689,7 +689,7 @@ public partial class grvt : ccxt.grvt
         // unconditional assignment is correct for every language.
         ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
         ((IDictionary<string,object>)orderbook)["nonce"] = sequenceNumber;
-        string messageHash = add("orderbook::", symbol);
+        string messageHash = ("orderbook::" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
@@ -813,7 +813,7 @@ public partial class grvt : ccxt.grvt
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object trade = this.parseWsMyTrade(data);
+        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsMyTrade(data));
         callDynamically(this.myTrades, "append", new object[] {trade});
         (client as WebSocketClient).resolve(this.myTrades, add("myTrades::", getValue(trade, "symbol")));
         (client as WebSocketClient).resolve(this.myTrades, "myTrades");
@@ -908,7 +908,7 @@ public partial class grvt : ccxt.grvt
             this.positions = new ArrayCacheBySymbolBySide();
         }
         IDictionary<string, object> data = this.safeDict(message, "feed");
-        object position = this.parseWsPosition(data);
+        Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(data));
         string? symbol = this.safeString(position, "symbol");
         callDynamically(this.positions, "append", new object[] {position});
         List<object> newPositions = new List<object>() {};
@@ -1040,7 +1040,7 @@ public partial class grvt : ccxt.grvt
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object order = this.parseWsOrder(data);
+        Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(data));
         callDynamically(this.orders, "append", new object[] {order});
         (client as WebSocketClient).resolve(this.orders, "orders");
         (client as WebSocketClient).resolve(this.orders, add("order::", getValue(order, "symbol")));

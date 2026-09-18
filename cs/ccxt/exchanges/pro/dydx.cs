@@ -137,7 +137,7 @@ public partial class dydx : ccxt.dydx
             object parsed = getValue(parsedTrades, i);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = add(("trade" + ":"), symbol);
+        string messageHash = (("trade" + ":") + symbol);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -268,7 +268,7 @@ public partial class dydx : ccxt.dydx
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "message_id");
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
@@ -420,7 +420,7 @@ public partial class dydx : ccxt.dydx
         string? symbol = ((string)getValue(market, "symbol"));
         IDictionary<string, object> content = this.safeDict(message, "contents");
         List<object> candles = this.safeList(content, "candles");
-        string messageHash = add("ohlcv:", symbol);
+        string messageHash = ("ohlcv:" + symbol);
         IDictionary<string, object> ohlcv = this.safeDict(candles, 0, content);
         object parsed = this.parseOHLCV(ohlcv, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});

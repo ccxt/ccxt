@@ -267,7 +267,7 @@ public partial class bitrue : ccxt.bitrue
         //        "Y": "0"
         //    }
         //
-        object parsed = this.parseWsOrder(message);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message));
         if (isEqual(this.orders, null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -446,7 +446,7 @@ public partial class bitrue : ccxt.bitrue
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        object snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks"));
         (orderbook as IOrderBook).reset(snapshot);
         string messageHash = add("orderbook:", symbol);
         (client as WebSocketClient).resolve(orderbook, messageHash);
@@ -537,7 +537,7 @@ public partial class bitrue : ccxt.bitrue
         string wsId = (("e_" + baseIdLower) + quoteIdLower);
         string channel = (("market_" + wsId) + "_trade_ticker");
         string messageHash = add("trades:", symbolVar);
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
             { "params", new Dictionary<string, object>() {
@@ -597,7 +597,7 @@ public partial class bitrue : ccxt.bitrue
                 stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            object trade = this.parseWsTrade(getValue(data, i), market);
+            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(getValue(data, i), market));
             callDynamically(stored, "append", new object[] {trade});
             appended = true;
         }
@@ -673,7 +673,7 @@ public partial class bitrue : ccxt.bitrue
         string wsId = (("e_" + baseIdLower) + quoteIdLower);
         string channel = ((("market_" + wsId) + "_kline_") + interval);
         string messageHash = add((add("ohlcv:", symbolVar) + ":"), timeframeVar);
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
             { "params", new Dictionary<string, object>() {
@@ -721,7 +721,7 @@ public partial class bitrue : ccxt.bitrue
         object symbol = getValue(market, "symbol");
         string? wsInterval = this.safeString(parts, 4);
         IDictionary<string, object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
-        object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
+        string? timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
         object tick = this.safeValue(message, "tick");
         if ((tick == null))
         {
@@ -739,7 +739,7 @@ public partial class bitrue : ccxt.bitrue
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         callDynamically(stored, "append", new object[] {parsed});
-        string messageHash = add((add("ohlcv:", symbol) + ":"), timeframe);
+        string messageHash = ((add("ohlcv:", symbol) + ":") + timeframe);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -785,7 +785,7 @@ public partial class bitrue : ccxt.bitrue
         string wsId = (("e_" + baseIdLower) + quoteIdLower);
         string channel = (("market_" + wsId) + "_ticker");
         string messageHash = add("ticker:", symbolVar);
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
             { "params", new Dictionary<string, object>() {
@@ -830,7 +830,7 @@ public partial class bitrue : ccxt.bitrue
             return;
         }
         Int64? timestamp = this.safeInteger(message, "ts");
-        object parsed = this.parseWsTicker(tick, market, timestamp);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(tick, market, timestamp));
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
         string messageHash = add("ticker:", symbol);
         (client as WebSocketClient).resolve(parsed, messageHash);

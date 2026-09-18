@@ -300,7 +300,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         this.handleBidAsk(client as WebSocketClient, message);
-        object ticker = this.parseWsTicker(message);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
         object symbol = getValue(ticker, "symbol");
         if ((symbol != null))
         {
@@ -503,7 +503,7 @@ public partial class bitget : ccxt.bitget
 
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
-        object ticker = this.parseWsBidAsk(message);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(message));
         object symbol = getValue(ticker, "symbol");
         if ((symbol != null))
         {
@@ -617,7 +617,7 @@ public partial class bitget : ccxt.bitget
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -723,7 +723,7 @@ public partial class bitget : ccxt.bitget
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? interval = this.safeString(arg, "interval");
@@ -737,7 +737,7 @@ public partial class bitget : ccxt.bitget
             isUta = true;
         }
         object timeframes = this.safeValue(this.options, "timeframes");
-        object timeframe = this.findTimeframe(interval, timeframes);
+        string? timeframe = this.findTimeframe(interval, timeframes);
         if ((timeframe == null))
         {
             return;
@@ -758,10 +758,10 @@ public partial class bitget : ccxt.bitget
         string? messageHash = null;
         if (isTrue(isUta))
         {
-            messageHash = add("kline:", symbol);
+            messageHash = ("kline:" + symbol);
         } else
         {
-            messageHash = add((add("candles:", timeframe) + ":"), symbol);
+            messageHash = ((("candles:" + timeframe) + ":") + symbol);
         }
         (client as WebSocketClient).resolve(stored, messageHash);
     }
@@ -1006,8 +1006,8 @@ public partial class bitget : ccxt.bitget
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        object symbol = getValue(market, "symbol");
-        string messageHash = add("orderbook:", symbol);
+        string? symbol = ((string)getValue(market, "symbol"));
+        string messageHash = ("orderbook:" + symbol);
         object data = this.safeValue(message, "data");
         object rawOrderBook = this.safeValue(data, 0);
         Int64? timestamp = this.safeInteger(rawOrderBook, "ts");
@@ -1082,7 +1082,7 @@ public partial class bitget : ccxt.bitget
                     bidsKey = "b";
                 }
             }
-            object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
+            Dictionary<string, object> parsedOrderbook = ((Dictionary<string, object>)this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey));
             (orderbook as IOrderBook).reset(parsedOrderbook);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
@@ -1270,7 +1270,7 @@ public partial class bitget : ccxt.bitget
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -1285,10 +1285,10 @@ public partial class bitget : ccxt.bitget
         {
             object index = subtract(subtract(length, i), 1);
             object rawTrade = getValue(data, index);
-            object parsed = this.parseWsTrade(rawTrade, market);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade, market));
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + symbol);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -1577,7 +1577,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object instType = this.safeString(arg, "instType", "");
+        string instType = ((string)this.safeString(arg, "instType", ""));
         if (isEqual(this.positions, null))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -1595,11 +1595,11 @@ public partial class bitget : ccxt.bitget
             object rawPosition = getValue(rawPositions, i);
             string? marketId = this.safeString2(rawPosition, "instId", "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
-            object position = this.parseWsPosition(rawPosition, market);
+            Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition, market));
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(instType, ":positions::"));
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (instType + ":positions::"));
         for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -1612,7 +1612,7 @@ public partial class bitget : ccxt.bitget
                 (client as WebSocketClient).resolve(positions, messageHash);
             }
         }
-        (client as WebSocketClient).resolve(newPositions, add(instType, ":positions"));
+        (client as WebSocketClient).resolve(newPositions, (instType + ":positions"));
     }
 
     public virtual object parseWsPosition(object position, object market = null)
@@ -1765,9 +1765,9 @@ public partial class bitget : ccxt.bitget
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         string? productType = this.safeString(parameters, "productType");
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
@@ -1987,7 +1987,7 @@ public partial class bitget : ccxt.bitget
             object order = getValue(data, i);
             string? marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            object parsed = this.parseWsOrder(order, market);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order, market));
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(parsed, "symbol");
             if ((symbol != null))
@@ -1999,13 +1999,13 @@ public partial class bitget : ccxt.bitget
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(keys, i));
-            object innerMessageHash = ((messageHash + ":") + symbol);
+            string innerMessageHash = ((messageHash + ":") + symbol);
             if ((channel == "orders-crossed"))
             {
-                innerMessageHash = add(innerMessageHash, ":cross");
+                innerMessageHash = (innerMessageHash + ":cross");
             } else if ((channel == "orders-isolated"))
             {
-                innerMessageHash = add(innerMessageHash, ":isolated");
+                innerMessageHash = (innerMessageHash + ":isolated");
             }
             (client as WebSocketClient).resolve(stored, innerMessageHash);
         }
@@ -2340,9 +2340,9 @@ public partial class bitget : ccxt.bitget
             symbolVar = getValue(market, "symbol");
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object instType = null;
         object uta = null;
@@ -2525,7 +2525,7 @@ public partial class bitget : ccxt.bitget
                 string? marketId = this.safeString2(trade, "instId", "symbol");
                 market = this.safeMarket(marketId, null, null, marketType);
             }
-            object parsed = this.parseWsTrade(trade, market);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(parsed, "symbol");
             string symbolSpecificMessageHash = add("myTrades:", symbol);
@@ -2557,9 +2557,9 @@ public partial class bitget : ccxt.bitget
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "uta", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("watchBalance", parameters);
@@ -2857,7 +2857,7 @@ public partial class bitget : ccxt.bitget
         if ((authenticated == null))
         {
             string timestamp = ((object)this.seconds()).ToString();
-            object auth = ((timestamp + "GET") + "/user/verify");
+            string auth = ((timestamp + "GET") + "/user/verify");
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
             string operation = "login";
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2911,7 +2911,7 @@ public partial class bitget : ccxt.bitget
         //  { event: "login", code: 0 }
         //
         string messageHash = "authenticated";
-        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
+        var future = this.safeValue((client as WebSocketClient).futures, messageHash);
         (future as Future).resolve(true);
     }
 
@@ -3136,9 +3136,9 @@ public partial class bitget : ccxt.bitget
         string type = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));
-        string subMessageHash = add("orderbook:", symbol);
+        string subMessageHash = ("orderbook:" + symbol);
         if (inOp(this.orderbooks, symbol))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
@@ -3151,7 +3151,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add((this.id + " orderbook "), symbol));
+        var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
         if (inOp(client.futures, subMessageHash))
         {
             ((WebSocketClient)client).reject(error, subMessageHash);
@@ -3169,9 +3169,9 @@ public partial class bitget : ccxt.bitget
         string type = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = add("unsubscribe:trade:", getValue(market, "symbol"));
-        string subMessageHash = add("trade:", symbol);
+        string subMessageHash = ("trade:" + symbol);
         if (inOp(this.trades, symbol))
         {
             ((IDictionary<string,object>)this.trades).Remove((string)symbol);
@@ -3184,7 +3184,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add((this.id + " trades "), symbol));
+        var error = new UnsubscribeError(((this.id + " trades ") + symbol));
         if (inOp(client.futures, subMessageHash))
         {
             ((WebSocketClient)client).reject(error, subMessageHash);
@@ -3202,9 +3202,9 @@ public partial class bitget : ccxt.bitget
         string type = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
-        string subMessageHash = add("ticker:", symbol);
+        string subMessageHash = ("ticker:" + symbol);
         if (inOp(this.tickers, symbol))
         {
             ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
@@ -3217,7 +3217,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add((this.id + " ticker "), symbol));
+        var error = new UnsubscribeError(((this.id + " ticker ") + symbol));
         if (inOp(client.futures, subMessageHash))
         {
             ((WebSocketClient)client).reject(error, subMessageHash);
@@ -3250,19 +3250,19 @@ public partial class bitget : ccxt.bitget
             isUta = true;
         }
         object timeframes = this.safeValue(this.options, "timeframes");
-        object timeframe = this.findTimeframe(interval, timeframes);
+        string? timeframe = this.findTimeframe(interval, timeframes);
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? messageHash = null;
         string? subMessageHash = null;
         if (isTrue(isUta))
         {
-            messageHash = add("unsubscribe:kline:", symbol);
-            subMessageHash = add("kline:", symbol);
+            messageHash = ("unsubscribe:kline:" + symbol);
+            subMessageHash = ("kline:" + symbol);
         } else
         {
-            messageHash = add((add("unsubscribe:candles:", timeframe) + ":"), symbol);
-            subMessageHash = add((add("candles:", timeframe) + ":"), symbol);
+            messageHash = ((("unsubscribe:candles:" + timeframe) + ":") + symbol);
+            subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         }
         if (inOp(this.ohlcvs, symbol))
         {

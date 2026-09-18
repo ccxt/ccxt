@@ -3206,7 +3206,7 @@ public partial class hitbtc : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (!isEqual(type, "swap"))
         {
-            throw new NotSupported ((string)(add((this.id + " fetchFundingRates() does not support "), type) + " markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchFundingRates() does not support ") + type) + " markets")) ;
         }
         Dictionary<string, object> response = await this.publicGetPublicFuturesInfo(this.extend(request, parameters));
         //

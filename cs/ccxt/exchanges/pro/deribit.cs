@@ -983,7 +983,7 @@ public partial class deribit : ccxt.deribit
         callDynamically(stored, "append", new object[] {parsed});
         ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
-        string messageHash = ((add("chart.trades|", symbol) + "|") + rawTimeframe);
+        string messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
         (client as WebSocketClient).resolve(resolveData, messageHash);
     }
 
