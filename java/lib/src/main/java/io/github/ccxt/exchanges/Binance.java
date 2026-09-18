@@ -4759,7 +4759,7 @@ public class Binance extends BinanceApi
                 return new HashMap<String, Object>() {{}};
             }
             // demotrading does not support sapi endpoints
-            if (Helpers.isTrue(this.safeBool(this.options, "enableDemoTrading", false)))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "enableDemoTrading", false)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -5044,7 +5044,7 @@ public class Binance extends BinanceApi
             Object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions", false);
             if (java.util.Objects.equals(loadAllOptions, true))
             {
-                if (!Helpers.isTrue(this.inArray("option", rawFetchMarkets)))
+                if (!this.inArray("option", rawFetchMarkets))
                 {
                     ((List<Object>)rawFetchMarkets).add("option");
                 }
@@ -7788,7 +7788,7 @@ public class Binance extends BinanceApi
         }
         ((Map<String, Object>)request).put("type", uppercaseType);
         Object validOrderTypes = this.safeList(((Map<String, Object>)market).get("info"), "orderTypes", new ArrayList<Object>(Arrays.asList()));
-        if (!Helpers.isTrue(this.inArray(uppercaseType, validOrderTypes)))
+        if (!this.inArray(uppercaseType, validOrderTypes))
         {
             if (!java.util.Objects.equals(initialUppercaseType, uppercaseType))
             {
@@ -9347,7 +9347,7 @@ public class Binance extends BinanceApi
             {
                 validOrderTypes = new ArrayList<Object>(Arrays.asList("LIMIT", "MARKET"));
             }
-            if (!Helpers.isTrue(this.inArray(uppercaseType, validOrderTypes)))
+            if (!this.inArray(uppercaseType, validOrderTypes))
             {
                 if (!java.util.Objects.equals(initialUppercaseType, uppercaseType))
                 {

@@ -4715,7 +4715,7 @@ public Object describe()
         Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object key = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "timestamp";
         Object fromStart = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : false;
-        if (Helpers.isTrue(this.valueIsDefined(limit)))
+        if (this.valueIsDefined(limit))
         {
             Object arrayLength = ((List<?>)array).size();
             if (Helpers.isGreaterThan(arrayLength, 0))
@@ -5693,7 +5693,7 @@ public Object describe()
 
     public Object isEmptyString(Object value)
     {
-        return !Helpers.isTrue(this.valueIsDefined(value)) || java.util.Objects.equals(value, "");
+        return !this.valueIsDefined(value) || java.util.Objects.equals(value, "");
     }
 
     public Object safeNumberOmitZero(Object obj, Object key, Object... optionalArgs)
@@ -5861,7 +5861,7 @@ public Object describe()
         {
             Object key = Helpers.GetValue(keys, i);
             Object featureBlock = Helpers.GetValue(featuresObj, key);
-            if (!Helpers.isTrue(this.inArray(key, new ArrayList<Object>(Arrays.asList("sandbox")))) && !java.util.Objects.equals(featureBlock, null))
+            if (!this.inArray(key, new ArrayList<Object>(Arrays.asList("sandbox"))) && !java.util.Objects.equals(featureBlock, null))
             {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
                 if (!(Helpers.inOp(featureBlock, "symbolRequired")))
@@ -7690,7 +7690,7 @@ public Object describe()
             try
             {
                 // if it was not explicitly disabled, then don't fetch
-                if (!Helpers.isTrue(this.safeBool(options, "webApiEnable", true)))
+                if (!Boolean.TRUE.equals(this.safeBool(options, "webApiEnable", true)))
                 {
                     return null;
                 }
@@ -8307,7 +8307,7 @@ public Object describe()
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id, null, null, "swap");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object contract = this.safeBool(market, "contract", false);
-                if ((java.util.Objects.equals(contract, true)) && (Helpers.isTrue(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && Helpers.isTrue(this.inArray(symbol, symbols)))))
+                if ((java.util.Objects.equals(contract, true)) && (Helpers.isTrue(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && this.inArray(symbol, symbols))))
                 {
                     Helpers.addElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market));
                 }
@@ -8322,7 +8322,7 @@ public Object describe()
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "swap");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object contract = this.safeBool(market, "contract", false);
-                if ((java.util.Objects.equals(contract, true)) && (Helpers.isTrue(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && Helpers.isTrue(this.inArray(symbol, symbols)))))
+                if ((java.util.Objects.equals(contract, true)) && (Helpers.isTrue(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && this.inArray(symbol, symbols))))
                 {
                     Helpers.addElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market));
                 }
@@ -8767,7 +8767,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(objects)); i++)
         {
-            if (Helpers.isTrue(this.inArray(Helpers.GetValue(Helpers.GetValue(objects, i), key), values)))
+            if (this.inArray(Helpers.GetValue(Helpers.GetValue(objects, i), key), values))
             {
                 ((List<Object>)results).add(Helpers.GetValue(objects, i));
             }
@@ -8800,7 +8800,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(objects)); i++)
         {
-            if (!Helpers.isTrue(this.inArray(Helpers.GetValue(Helpers.GetValue(objects, i), key), values)))
+            if (!this.inArray(Helpers.GetValue(Helpers.GetValue(objects, i), key), values))
             {
                 ((List<Object>)results).add(Helpers.GetValue(objects, i));
             }
@@ -10988,7 +10988,7 @@ public Object describe()
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
-        if (!Helpers.isTrue(this.inArray(triggerDirection, new ArrayList<Object>(Arrays.asList("ascending", "descending", "up", "down", "above", "below")))) && !Helpers.isTrue(exchangeSpecificDefined) && !Helpers.isTrue(allowEmpty))
+        if (!this.inArray(triggerDirection, new ArrayList<Object>(Arrays.asList("ascending", "descending", "up", "down", "above", "below"))) && !Helpers.isTrue(exchangeSpecificDefined) && !Helpers.isTrue(allowEmpty))
         {
             throw new ArgumentsRequired((this.id + " createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"")) ;
         }
@@ -12239,7 +12239,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (!Helpers.isTrue(this.inArray(key, removeKeys)))
+            if (!this.inArray(key, removeKeys))
             {
                 Helpers.addElementToObject(newDict, key, Helpers.GetValue(dict, key));
             }
@@ -12390,7 +12390,7 @@ public Object describe()
             Object info = Helpers.GetValue(response, i);
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-            if ((java.util.Objects.equals(symbols, null)) || Helpers.isTrue(this.inArray(((Map<String, Object>)market).get("symbol"), symbols)))
+            if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
                 Helpers.addElementToObject(marginModeStructures, ((Map<String, Object>)market).get("symbol"), this.parseMarginMode(info, market));
             }
@@ -12419,7 +12419,7 @@ public Object describe()
             Object info = Helpers.GetValue(response, i);
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-            if ((java.util.Objects.equals(symbols, null)) || Helpers.isTrue(this.inArray(((Map<String, Object>)market).get("symbol"), symbols)))
+            if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
                 Helpers.addElementToObject(leverageStructures, ((Map<String, Object>)market).get("symbol"), this.parseLeverage(info, market));
             }
@@ -12631,7 +12631,7 @@ public Object describe()
             Object info = Helpers.GetValue(response, i);
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-            if ((java.util.Objects.equals(symbols, null)) || Helpers.isTrue(this.inArray(((Map<String, Object>)market).get("symbol"), symbols)))
+            if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
                 ((List<Object>)marginModifications).add(this.parseMarginModification(info, market));
             }

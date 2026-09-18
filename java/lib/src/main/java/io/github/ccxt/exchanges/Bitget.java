@@ -3833,7 +3833,7 @@ public class Bitget extends BitgetApi
                         Object entry = this.safeDict(data, j, new HashMap<String, Object>() {{}});
                         String entrySymbol = this.safeString(entry, "symbol");
                         Object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
-                        if ((java.util.Objects.equals(entryBorrowable, true)) && Helpers.isTrue(this.safeBool(entry, "isCrossBorrowable", true)))
+                        if ((java.util.Objects.equals(entryBorrowable, true)) && Boolean.TRUE.equals(this.safeBool(entry, "isCrossBorrowable", true)))
                         {
                             ((List<Object>)crossKeys).add(entrySymbol);
                         }
@@ -3919,10 +3919,10 @@ public class Bitget extends BitgetApi
                 String base = this.safeCurrencyCode(baseId);
                 Object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new ArrayList<Object>(Arrays.asList()));
                 String settleId = null;
-                if (Helpers.isTrue(this.inArray(baseId, supportMarginCoins)))
+                if (this.inArray(baseId, supportMarginCoins))
                 {
                     settleId = baseId;
-                } else if (Helpers.isTrue(this.inArray(quoteId, supportMarginCoins)))
+                } else if (this.inArray(quoteId, supportMarginCoins))
                 {
                     settleId = quoteId;
                 } else
