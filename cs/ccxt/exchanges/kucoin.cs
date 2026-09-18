@@ -10550,7 +10550,7 @@ public partial class kucoin : Exchange
         Int64? timestamp = this.milliseconds();
         if ((timestampId != null))
         {
-            timestamp = this.parseToInt(slice(timestampId, 0, 13));
+            timestamp = this.parseToInt(((timestampId == null) ? null : ((string)timestampId).Substring(0, Math.Min(13, ((string)timestampId).Length))));
         }
         string? currencyId = this.safeString(info, "currency");
         return new Dictionary<string, object>() {

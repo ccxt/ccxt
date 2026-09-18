@@ -901,8 +901,8 @@ public partial class bitfinex : Exchange
                 quoteId = (parts != null && 1 < parts.Count ? parts[1] : null);
             } else
             {
-                baseId = slice(((string)id), 0, 3);
-                quoteId = slice(((string)id), 3, 6);
+                baseId = ((((string)id) == null) ? null : ((string)id).Substring(0, Math.Min(3, ((string)id).Length)));
+                quoteId = ((((string)id) == null) ? null : ((string)id).Substring(Math.Min(3, ((string)id).Length), Math.Min(6, ((string)id).Length) - Math.Min(3, ((string)id).Length)));
             }
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);

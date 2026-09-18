@@ -360,7 +360,7 @@ public partial class bithumb : ccxt.bithumb
         }
         string date = ((string)this.safeString(ticker, "date", ""));
         string time = ((string)this.safeString(ticker, "time", ""));
-        string kstDatetime = ((((((((((slice(date, 0, 4) + "-") + slice(date, 4, 6)) + "-") + slice(date, 6, 8)) + "T") + slice(time, 0, 2)) + ":") + slice(time, 2, 4)) + ":") + slice(time, 4, 6));
+        string kstDatetime = ((((((((((((date == null) ? null : ((string)date).Substring(0, Math.Min(4, ((string)date).Length))) + "-") + ((date == null) ? null : ((string)date).Substring(Math.Min(4, ((string)date).Length), Math.Min(6, ((string)date).Length) - Math.Min(4, ((string)date).Length)))) + "-") + ((date == null) ? null : ((string)date).Substring(Math.Min(6, ((string)date).Length), Math.Min(8, ((string)date).Length) - Math.Min(6, ((string)date).Length)))) + "T") + ((time == null) ? null : ((string)time).Substring(0, Math.Min(2, ((string)time).Length)))) + ":") + ((time == null) ? null : ((string)time).Substring(Math.Min(2, ((string)time).Length), Math.Min(4, ((string)time).Length) - Math.Min(2, ((string)time).Length)))) + ":") + ((time == null) ? null : ((string)time).Substring(Math.Min(4, ((string)time).Length), Math.Min(6, ((string)time).Length) - Math.Min(4, ((string)time).Length))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         object timestamp = this.parse8601(kstDatetime);
         if (!isEqual(timestamp, null))
@@ -505,7 +505,7 @@ public partial class bithumb : ccxt.bithumb
             {
                 return;
             }
-            Int64? legacyTimestamp = this.parseToInt(slice(timestampStr, 0, 13));
+            Int64? legacyTimestamp = this.parseToInt(((timestampStr == null) ? null : ((string)timestampStr).Substring(0, Math.Min(13, ((string)timestampStr).Length))));
             if (!(inOp(this.orderbooks, legacySymbol)))
             {
                 ccxt.pro.OrderBook ob = this.orderBook();
@@ -559,7 +559,7 @@ public partial class bithumb : ccxt.bithumb
         Int64? timestamp = null;
         if ((gen2TimestampStr != null))
         {
-            timestamp = this.parseToInt(slice(gen2TimestampStr, 0, 13));
+            timestamp = this.parseToInt(((gen2TimestampStr == null) ? null : ((string)gen2TimestampStr).Substring(0, Math.Min(13, ((string)gen2TimestampStr).Length))));
         }
         if (isEqual(timestamp, null))
         {

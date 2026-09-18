@@ -359,7 +359,7 @@ public partial class gemini : ccxt.gemini
         //     }
         //
         string? type = this.safeString(message, "type", "");
-        string? timeframeId = slice(type, 8, null);
+        string? timeframeId = ((type == null) ? null : ((string)type).Substring(Math.Min(8, ((string)type).Length)));
         int timeframeEndIndex = getIndexOf(timeframeId, "_");
         timeframeId = slice(timeframeId, 0, timeframeEndIndex);
         string marketId = ((string)this.safeString(message, "symbol", "")).ToLower();

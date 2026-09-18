@@ -441,7 +441,7 @@ public partial class delta : Exchange
         }
         if ((expiry != null))
         {
-            expiry = ((slice(expiry, 4, null) + slice(expiry, 2, 4)) + slice(expiry, 0, 2));
+            expiry = ((((expiry == null) ? null : ((string)expiry).Substring(Math.Min(4, ((string)expiry).Length))) + ((expiry == null) ? null : ((string)expiry).Substring(Math.Min(2, ((string)expiry).Length), Math.Min(4, ((string)expiry).Length) - Math.Min(2, ((string)expiry).Length)))) + ((expiry == null) ? null : ((string)expiry).Substring(0, Math.Min(2, ((string)expiry).Length))));
         }
         string settle = quote;
         string? strike = this.safeString(optionParts, 2);

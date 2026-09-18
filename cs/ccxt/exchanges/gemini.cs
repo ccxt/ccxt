@@ -1340,12 +1340,12 @@ public partial class gemini : Exchange
             int idLength = (((string)marketId).Length - 0);
             if (isEqual(idLength, 7))
             {
-                baseId = slice(marketId, 0, 4);
-                quoteId = slice(marketId, 4, 7);
+                baseId = ((marketId == null) ? null : ((string)marketId).Substring(0, Math.Min(4, ((string)marketId).Length)));
+                quoteId = ((marketId == null) ? null : ((string)marketId).Substring(Math.Min(4, ((string)marketId).Length), Math.Min(7, ((string)marketId).Length) - Math.Min(4, ((string)marketId).Length)));
             } else
             {
-                baseId = slice(marketId, 0, 3);
-                quoteId = slice(marketId, 3, 6);
+                baseId = ((marketId == null) ? null : ((string)marketId).Substring(0, Math.Min(3, ((string)marketId).Length)));
+                quoteId = ((marketId == null) ? null : ((string)marketId).Substring(Math.Min(3, ((string)marketId).Length), Math.Min(6, ((string)marketId).Length) - Math.Min(3, ((string)marketId).Length)));
             }
             bs = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);

@@ -643,7 +643,7 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
         }
-        string? localTime = slice(timestamp, 0, 23);
+        string? localTime = ((timestamp == null) ? null : ((string)timestamp).Substring(0, Math.Min(23, ((string)timestamp).Length)));
         if ((timestamp == null))
         {
             throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
