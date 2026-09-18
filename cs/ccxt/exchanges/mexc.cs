@@ -5874,7 +5874,7 @@ public partial class mexc : Exchange
         //    }
         //
         market = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? contracts = this.safeString(position, "holdVol");
         double? entryPrice = this.safeNumber(position, "openAvgPrice");
         string? initialMargin = this.safeString(position, "im");

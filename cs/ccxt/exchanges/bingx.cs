@@ -2959,7 +2959,7 @@ public partial class bingx : Exchange
         // it's (bad, but) the only way we can check the tickers origin
         string type = ((lastQty == null)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, type);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? open = this.safeString(ticker, "openPrice");
         string? high = this.safeString(ticker, "highPrice");
         string? low = this.safeString(ticker, "lowPrice");

@@ -2443,7 +2443,7 @@ public partial class xt : Exchange
             marketType = hasSpotKeys ? "spot" : "contract";
         }
         market = this.safeMarket(marketId, market, "_", marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? percentage = this.safeString2(ticker, "cr", "r");
         if ((percentage != null))

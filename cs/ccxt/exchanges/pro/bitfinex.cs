@@ -668,7 +668,7 @@ public partial class bitfinex : ccxt.bitfinex
         //     ]
         //
         market = this.safeMarket(null, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? last = this.safeString(ticker, 6);
         string? change = this.safeString(ticker, 4);
         return this.safeTicker(new Dictionary<string, object>() {

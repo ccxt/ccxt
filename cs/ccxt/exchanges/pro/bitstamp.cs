@@ -336,7 +336,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             market = this.safeMarket(null, market);
         }
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? sideRaw = this.safeInteger(trade, "type");
         string side = ((sideRaw == 0)) ? "buy" : "sell";
         return this.safeTrade(new Dictionary<string, object>() {
@@ -664,7 +664,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
         market = this.safeMarket(null, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
@@ -817,7 +817,7 @@ public partial class bitstamp : ccxt.bitstamp
         string? triggerPrice = this.safeString(order, "stop_price");
         Int64? timestamp = this.safeTimestamp(order, "datetime");
         market = this.safeMarket(null, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },

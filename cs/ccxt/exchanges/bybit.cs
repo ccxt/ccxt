@@ -4285,7 +4285,7 @@ public partial class bybit : Exchange
             marketType = getValue(market, "type");
         }
         market = this.safeMarket(marketId, market, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? amountString = this.safeStringN(trade, new List<object>() {"execQty", "orderQty", "size"});
         string? priceString = this.safeStringN(trade, new List<object>() {"execPrice", "orderPrice", "price"});
         string? costString = this.safeString(trade, "execValue");
@@ -5071,7 +5071,7 @@ public partial class bybit : Exchange
             marketType = isContract ? "contract" : "spot";
         }
         market = this.safeMarket(marketId, market, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger2(order, "createdTime", "createdAt");
         string? marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',

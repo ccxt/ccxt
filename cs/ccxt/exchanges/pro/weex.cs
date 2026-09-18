@@ -222,7 +222,7 @@ public partial class weex : ccxt.weex
         }
         symbols = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object isContract = GetValue(firstMarket, "contract");
+        bool? isContract = ((bool?)GetValue(firstMarket, "contract"));
         string topic = "ticker";
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -280,7 +280,7 @@ public partial class weex : ccxt.weex
         }
         symbols = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object isContract = GetValue(firstMarket, "contract");
+        bool? isContract = ((bool?)GetValue(firstMarket, "contract"));
         string topic = "ticker";
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -341,7 +341,7 @@ public partial class weex : ccxt.weex
         List<object> tickers = this.safeList(message, "d", new List<object>() {});
         IDictionary<string, object> data = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(data, market);
-        object symbol = GetValue(market, "symbol");
+        string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("ticker::", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
@@ -436,7 +436,7 @@ public partial class weex : ccxt.weex
         }
         symbols = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object isContract = GetValue(firstMarket, "contract");
+        bool? isContract = ((bool?)GetValue(firstMarket, "contract"));
         string topic = "trade";
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -494,7 +494,7 @@ public partial class weex : ccxt.weex
         }
         symbols = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object isContract = GetValue(firstMarket, "contract");
+        bool? isContract = ((bool?)GetValue(firstMarket, "contract"));
         string topic = "trade";
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -544,7 +544,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object symbol = GetValue(market, "symbol");
+        string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("trade::", symbol);
         if (!(inOp(this.trades, symbol)))
         {
@@ -811,7 +811,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object symbol = GetValue(market, "symbol");
+        string? symbol = ((string)GetValue(market, "symbol"));
         if (!(inOp(this.ohlcvs, symbol)))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -903,7 +903,7 @@ public partial class weex : ccxt.weex
         }
         symbols = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object isContract = GetValue(firstMarket, "contract");
+        bool? isContract = ((bool?)GetValue(firstMarket, "contract"));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         object depth = "200";
@@ -966,7 +966,7 @@ public partial class weex : ccxt.weex
         }
         symbols = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object isContract = GetValue(firstMarket, "contract");
+        bool? isContract = ((bool?)GetValue(firstMarket, "contract"));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         object depth = "200";
@@ -1017,7 +1017,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object symbol = GetValue(market, "symbol");
+        string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("orderbook::", symbol);
         if (!(inOp(this.orderbooks, symbol)))
         {

@@ -77,8 +77,10 @@
 //     no `(string)` cast (see omitZeroStringProducer)
 //   - a MARKET ROW read by a literal string key: `market['symbol']` prints
 //     `getValue(market, "symbol")` and is declared `string?` behind the `(string)` cast when the
-//     receiver is a proven market row (this.market / this.safeMarket / this.safeMarketStructure)
-//     and the key is in MARKET_ROW_STRING_KEYS. Value census (ts/src, checker-typed): the
+//     receiver is a proven market row and the key is in MARKET_ROW_STRING_KEYS. Receiver shapes:
+//     this.market / this.safeMarket / this.safeMarketStructure (and the MARKET_ROW_HELPER_PRODUCERS
+//     ws resolvers), a `market: Market` parameter, or a local bound to one of those. Value census
+//     (ts/src, checker-typed): the
 //     safeMarketStructure skeleton (undefined) plus 150 market-row literals — parseMarket /
 //     fetchMarkets builders / safeMarketStructure arguments — with 1,276 fields at these keys,
 //     every value a string literal / `string` / `Str` / `undefined`, plus six element writes on
@@ -86,12 +88,20 @@
 //     gemini id, independentreserve baseId/quoteId, mercado baseId) hold strings at runtime
 //     (safeString* results, `Object.keys` elements, `.slice`/`.replace` receivers); no boolean,
 //     numeric, list or dictionary value exists at these keys anywhere in the corpus, so the cast
-//     can never throw where the untyped `object` box did not. The other row keys (the bool
-//     keys outside MARKET_ROW_BOOL_KEYS: margin/inverse/active/index; numerics:
-//     contractSize/strike/expiry/numericId; dicts: precision/limits/info/fees) stay `object`.
+//     can never throw where the untyped `object` box did not. The added keys (uppercaseId, subType,
+//     optionType, expiryDatetime, feeSide) carry the same census: campaigns/cs90/tools/U01/
+//     key-value-census.mjs. The other row keys (bool keys outside MARKET_ROW_BOOL_KEYS: margin /
+//     active / quanto / prediction; numerics: contractSize/strike/expiry/numericId; dicts: info /
+//     fees / marginModes) stay `object` — same census file, per-key reject reasons in REPORT.md.
 //   - a MARKET ROW read by a literal BOOL key: `market['swap']` prints `getValue(market, "swap")`
 //     and is declared `bool?` behind the `(bool?)` cast when the key is in MARKET_ROW_BOOL_KEYS
-//     (spot/swap/contract/future/option/linear; writer census and fence: the key table below)
+//     (spot/swap/contract/future/option/linear/inverse/index/stock; writer census and fence: the
+//     key table below, re-run for the added keys with tools/U01/key-value-census.mjs)
+//   - a MARKET ROW read by a literal DICT key (precision/limits): declared
+//     `IDictionary<string, object>` behind the `(IDictionary<string, object>)` cast; every writer
+//     is an object literal, which the printer boxes as `new Dictionary<string, object>()`
+//     (census: tools/U01/key-value-census.mjs — the key table below names the reject reasons for
+//     info / fees / marginModes)
 //   - `a + b` (printed `add(a, b)`) whose every operand is provably int / uint / long / Int64,
 //     or a double left with a provably numeric right: the typed add overloads of the hand-written
 //     base return the same unchecked sum the (object, object) overload's Int64 / double branch
@@ -5044,12 +5054,50 @@ function elementAccessElementType (csharp, initializer, context) {
 // `string?` therefore needs the `(string)` cast back, exactly like elementAccessElementType.
 // The key set, the receiver proof and the value census are in the header (MARKET_ROW_*
 // section). Keys outside the set (booleans / numerics / dicts) keep the local `object`.
-const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type' ];
+const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type',
+    'uppercaseId', 'subType', 'optionType', 'expiryDatetime', 'feeSide' ];
 
 // `market['swap']` — the BOOL keys of a market row: every market-row writer in ts/src (the 157
-// 'symbol'+'base'+'quote' literals plus the skeleton) stores a boolean or nothing at these six
-// keys, nothing else (census: tools/S23/market-row-types.mjs); `(bool?)` is BaseMethods#safeBool*'s shape.
-const MARKET_ROW_BOOL_KEYS = [ 'spot', 'swap', 'contract', 'future', 'option', 'linear' ];
+// 'symbol'+'base'+'quote' literals plus the skeleton) stores a boolean or nothing at these keys,
+// nothing else (census: tools/S23/market-row-types.mjs, re-run for the added keys with
+// campaigns/cs90/tools/U01/key-value-census.mjs); `(bool?)` is BaseMethods#safeBool*'s shape.
+const MARKET_ROW_BOOL_KEYS = [ 'spot', 'swap', 'contract', 'future', 'option', 'linear',
+    'inverse', 'index', 'stock' ];
+
+// `market['precision']` — the DICT keys: every writer of both keys in a market-row literal is an
+// object literal (census: campaigns/cs90/tools/U01/key-value-census.mjs — 122/122 for precision,
+// 119/120 for limits; the one non-literal is a dict-typed identifier), which the printer boxes as
+// `new Dictionary<string, object>()`, so the `(IDictionary<string, object>)` cast names it
+// exactly. `info` stays object (a string writer on a market row plus 58 any-typed ones), `fees`
+// is not a market-row key at all (0 writers), marginModes is left out (its identifier writers'
+// C# box is not proven).
+const MARKET_ROW_DICT_KEYS = [ 'precision', 'limits' ];
+
+// `parseTrade (trade, market: Market = undefined)` — a MARKET-ROW PARAMETER. The annotation is
+// the market-row type itself (ts/src/base/types.ts: `Market = MarketInterface | undefined`), so
+// every ts/src caller passes a market row or nothing; the same use scan as the local receiver
+// still requires every write inside the method to be a row producer or a nullish reset, and the
+// value box at the read is then the key table's (header, MARKET_ROW_* section). Market rows that
+// arrive as a plain `any` parameter (mexc createSpotOrderRequest, pro/bitrue parseWsTicker, …)
+// are NOT covered — no annotation, no proof.
+const MARKET_ROW_PARAM_TYPES = [ 'Market', 'MarketInterface' ];
+
+// `const market = this.getMarketFromSymbols (symbols)`: a venue-local helper whose EVERY return
+// path is a market row, so the local that holds the call IS a row. The three names below are the
+// ws handlers' market resolvers; their return paths are the ones CSHARP_COLLECTION_RETURN_METHODS
+// already records for their C# declaration (base `getMarketFromSymbols`: `this.market
+// (firstMarket)` or undefined; weex `getMarketFromClientAndMessage` / aster `getMarketFromOrder`:
+// `this.safeMarket (...)`). A same-name helper elsewhere may be added only with its own census.
+const MARKET_ROW_HELPER_PRODUCERS = [ 'getMarketFromSymbols', 'getMarketFromClientAndMessage', 'getMarketFromOrder' ];
+
+// the parameter's declared market-row type, or undefined
+function marketRowParamAnnotation (declaration) {
+    const annotation = declaration?.type;
+    if (annotation === undefined) {
+        return undefined;
+    }
+    return annotation.getText ().trim ();
+}
 
 // the literal key of `recv['key']`, or undefined
 function elementAccessLiteralKey (node) {
@@ -5127,7 +5175,7 @@ function marketRowProducer (initializer) {
             return false;
         }
         const name = callee.name?.escapedText;
-        return name === 'market' || name === 'safeMarket' || name === 'safeMarketStructure';
+        return name === 'market' || name === 'safeMarket' || name === 'safeMarketStructure' || MARKET_ROW_HELPER_PRODUCERS.includes (name);
     }
     if (node.kind === ts.SyntaxKind.ConditionalExpression) {
         const nullish = (n) => (n?.kind === ts.SyntaxKind.NullKeyword || (n?.kind === ts.SyntaxKind.Identifier && n.escapedText === 'undefined'));
@@ -5200,8 +5248,10 @@ function marketRowUseDisqualifies (n) {
     return false;
 }
 
-// `market['swap']` on a PROVEN row receiver: the literal key, else undefined. Receiver proof and
-// the corpus fence: the key tables below.
+// `market['swap']` on a PROVEN row receiver: the literal key, else undefined. Two receiver
+// shapes: a LOCAL whose single binding is a market-row producer (or a nullish reset), and a
+// MARKET-ROW PARAMETER (the TS annotation, see MARKET_ROW_PARAM_TYPES). Every other use of the
+// receiver must pass the writer scan below. The corpus fence for the value boxes: the key tables.
 function marketRowReadKey (csharp, initializer) {
     if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
@@ -5225,15 +5275,28 @@ function marketRowReadKey (csharp, initializer) {
     }
     const candidates = (index.declarations.get (receiver.escapedText) ?? [])
         .filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, receiver) === true);
-    if (candidates.length !== 1) {
+    let declaration;
+    if (candidates.length === 1) {
+        declaration = candidates[0];
+        if (declaration.initializer === undefined || !marketRowValueOrNullish (declaration.initializer)) {
+            return undefined;
+        }
+        if (declaration.getStart () > initializer.getStart ()) {
+            return undefined; // the row is not provably bound before the read
+        }
+    } else if (candidates.length === 0) {
+        // the receiver resolves to no local declaration: the MARKET-ROW PARAMETER shape
+        // (parseTrade (trade, market: Market = undefined)). The annotation is the proof that
+        // every caller hands a market row or nothing; the use scan below is the writer join.
+        const params = (index.bindings.get (receiver.escapedText) ?? [])
+            .filter ((candidate) => candidate.kind === ts.SyntaxKind.Parameter)
+            .filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, receiver) === true);
+        if (params.length !== 1 || !MARKET_ROW_PARAM_TYPES.includes (marketRowParamAnnotation (params[0]))) {
+            return undefined;
+        }
+        declaration = params[0];
+    } else {
         return undefined; // the read refers to no local, or to an ambiguous one
-    }
-    const declaration = candidates[0];
-    if (declaration.initializer === undefined || !marketRowValueOrNullish (declaration.initializer)) {
-        return undefined;
-    }
-    if (declaration.getStart () > initializer.getStart ()) {
-        return undefined; // the row is not provably bound before the read
     }
     for (const n of uses) {
         if (n === receiver || n === declaration.name) {
@@ -5261,9 +5324,22 @@ function marketRowBoolReadType (csharp, initializer) {
     return (key !== undefined && MARKET_ROW_BOOL_KEYS.includes (key)) ? 'bool' : undefined;
 }
 
-// The DICT keys (`precision` / `limits` / `info`) have no table: `info` has a STRING writer on a
-// market row (independentreserve) plus 58 any-typed ones, and limits/precision have zero
-// declaration sites — census, proof and reject reasons: REPORT.md + tools/S23/market-row-types.mjs.
+function marketRowDictReadType (csharp, initializer) {
+    const key = marketRowReadKey (csharp, initializer);
+    return (key !== undefined && MARKET_ROW_DICT_KEYS.includes (key)) ? 'dict' : undefined;
+}
+
+// The NUMERIC keys (contractSize / strike / expiry / numericId) have NO table: the TS `Num` /
+// `Int` spellings cover both boxes and the generated C# stores what each writer prints — a
+// `parseNumber`/`safeNumber` double, an int literal, a `safeInteger`/`parse8601` Int64 — so a
+// `(double?)` or `(Int64?)` cast would throw on the writers of the other box (census:
+// campaigns/cs90/tools/U01/key-value-census.mjs, per-key kind table + REPORT.md). They also have
+// zero declaration sites in the generated tree today.
+
+// The DICT keys that stay `object`: `info` has a STRING writer on a market row (independentreserve)
+// plus 58 any-typed ones, so no dict cast can name its box; `fees` is not a market-row key at all
+// (0 writers); marginModes' identifier writers have no proven C# box — census, proof and reject
+// reasons: REPORT.md + campaigns/cs90/tools/U01/key-value-census.mjs.
 // ---- describe()-literal url reads ------------------------------------------------------
 // `const x = this.urls['api']['ws']` prints `object x = getValue(getValue(this.urls, "api"),
 // "ws")`. `this.urls` is filled by Exchange.Options.cs#initializeProperties from
@@ -5713,6 +5789,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // null-exact unboxing Exchange.BaseMethods.cs#safeBool* prints
             csharpType = 'bool?';
             cast = 'bool?';
+        } else if (marketRowDictReadType (csharp, declaration.initializer) === 'dict') {
+            // `const precision = market['precision']`: the row's value at the dict keys is the
+            // `new Dictionary<string, object>()` its only writers print (census: the key table),
+            // so the interface cast names that box
+            csharpType = 'IDictionary<string, object>';
+            cast = 'IDictionary<string, object>';
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above

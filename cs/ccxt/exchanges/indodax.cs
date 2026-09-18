@@ -891,8 +891,8 @@ public partial class indodax : Exchange
         if (!isEqual(market, null))
         {
             symbol = getValue(market, "symbol");
-            object quoteId = getValue(market, "quoteId");
-            object baseId = getValue(market, "baseId");
+            string? quoteId = ((string)getValue(market, "quoteId"));
+            string? baseId = ((string)getValue(market, "baseId"));
             if ((isEqual(getValue(market, "quoteId"), "idr")) && (inOp(order, "order_rp")))
             {
                 quoteId = "rp";

@@ -3251,7 +3251,7 @@ public partial class kucoin : Exchange
         last = this.safeString(ticker, "price", last);
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? percentage = this.safeString(ticker, "changeRate");
         if ((percentage != null))
         {
@@ -7295,7 +7295,7 @@ public partial class kucoin : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? orderId = this.safeString2(order, "id", "orderId");
         string? type = this.safeString(order, "type");
         Int64? timestamp = this.safeInteger(order, "createdAt");
@@ -7613,7 +7613,7 @@ public partial class kucoin : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
         Int64? lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
         string? rawTimeInForce = this.safeString(order, "timeInForce");

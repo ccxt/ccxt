@@ -970,7 +970,7 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         object quoteVolume = this.safeString(ticker, "volCcy24h");

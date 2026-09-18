@@ -1792,7 +1792,7 @@ public partial class alpaca : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? alpacaStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");

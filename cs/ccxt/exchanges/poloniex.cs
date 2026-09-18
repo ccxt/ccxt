@@ -1674,7 +1674,7 @@ public partial class poloniex : Exchange
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "createTime", "cT", "cTime"});
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower2(trade, "side", "takerSide");
         Dictionary<string, object> fee = null;
         string? priceString = this.safeString2(trade, "price", "px");
@@ -2006,7 +2006,7 @@ public partial class poloniex : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, "_");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object resultingTrades = this.safeValue(order, "resultingTrades");
         if ((resultingTrades != null))
         {

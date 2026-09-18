@@ -523,7 +523,7 @@ public partial class mudrex : Exchange
     {
         string? ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         double? pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1028,7 +1028,7 @@ public partial class mudrex : Exchange
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_at"));
         string? status = this.parseOrderStatus(this.safeStringLower(order, "status"));
-        object sym = getValue(market, "symbol");
+        string? sym = ((string)getValue(market, "symbol"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", oid },
@@ -1632,7 +1632,7 @@ public partial class mudrex : Exchange
         //
         string? ms = this.safeString(trade, "symbol");
         market = this.safeMarket(ms, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         string? side = this.safeStringLower(trade, "order_type");

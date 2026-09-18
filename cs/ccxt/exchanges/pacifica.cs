@@ -1394,7 +1394,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         double? funding = this.safeNumber(info, "funding");
         double? markPx = this.safeNumber(info, "mark");
         double? oraclePx = this.safeNumber(info, "oracle");
@@ -1703,7 +1703,7 @@ public partial class pacifica : Exchange
         string? amount = this.safeString(trade, "amount");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? id = this.safeString(trade, "history_id");
         string? side = this.safeString(trade, "side");
         if (side == "open_long")
@@ -2563,7 +2563,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -3037,7 +3037,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString2(order, "symbol", "s");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger2(order, "created_at", "ct");
         string? status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         string? side = this.safeString(order, "side", "d");
@@ -3163,7 +3163,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? margin = this.safeString(position, "margin");
         string marginMode = ((margin != null) && margin != "0") ? "isolated" : "cross";
         bool isIsolated = (marginMode == "isolated");
@@ -3683,7 +3683,7 @@ public partial class pacifica : Exchange
         Int64? timestamp = this.safeInteger(income, "created_at");
         string? marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? amount = this.safeString(income, "amount");
         string? code = this.safeCurrencyCode("USDC");
         double? rate = this.safeNumber(income, "rate");

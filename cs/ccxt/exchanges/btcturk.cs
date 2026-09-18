@@ -550,7 +550,7 @@ public partial class btcturk : Exchange
         //
         string? marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {

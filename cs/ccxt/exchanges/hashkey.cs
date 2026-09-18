@@ -1821,7 +1821,7 @@ public partial class hashkey : Exchange
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
         if ((isEqual(getValue(market, "contract"), true)) && (!isEqual(getValue(market, "contractSize"), null)))
@@ -4147,7 +4147,7 @@ public partial class hashkey : Exchange
     {
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "id", null },

@@ -1118,7 +1118,7 @@ public partial class zebpay : Exchange
         Int64? timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower(trade, "side");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString2(trade, "amount", "quantity");
@@ -1557,7 +1557,7 @@ public partial class zebpay : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? type = this.safeString(order, "type");
         double? timestamp = this.safeNumber(order, "timestamp");
         string? datetime = this.iso8601(timestamp);

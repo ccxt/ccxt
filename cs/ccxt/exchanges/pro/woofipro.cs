@@ -602,7 +602,7 @@ public partial class woofipro : ccxt.woofipro
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
         string? cost = Precise.stringMul(price, amount);
@@ -889,7 +889,7 @@ public partial class woofipro : ccxt.woofipro
         string? orderId = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
         market = this.market(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "totalFee") },

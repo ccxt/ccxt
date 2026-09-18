@@ -2343,7 +2343,7 @@ public partial class bitvavo : Exchange
         Int64? timestamp = this.safeInteger(order, "created");
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "orderType");

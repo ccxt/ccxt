@@ -661,9 +661,9 @@ public partial class coincheck : Exchange
         string? priceString = this.safeString(trade, "rate");
         string? marketId = this.safeString(trade, "pair");
         market = this.safeMarket(marketId, market, "_");
-        object baseId = getValue(market, "baseId");
-        object quoteId = getValue(market, "quoteId");
-        object symbol = getValue(market, "symbol");
+        string? baseId = ((string)getValue(market, "baseId"));
+        string? quoteId = ((string)getValue(market, "quoteId"));
+        string? symbol = ((string)getValue(market, "symbol"));
         string? takerOrMaker = null;
         string? amountString = null;
         string? costString = null;

@@ -3464,7 +3464,7 @@ public partial class htx : Exchange
         //
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
@@ -9466,7 +9466,7 @@ public partial class htx : Exchange
         //     }
         //
         market = this.safeMarket(this.safeString(position, "contract_code"));
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? contracts = this.safeString(position, "volume");
         object contractSize = this.safeValue(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);

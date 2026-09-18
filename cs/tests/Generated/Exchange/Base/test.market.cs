@@ -70,15 +70,15 @@ public partial class testMainClass : BaseTest
             ((IDictionary<string,object>)format)["quanto"] = false; // whether the market is QUANTO or not
         }
         // define locals
-        object spot = getValue(market, "spot");
-        object contract = getValue(market, "contract");
-        object swap = getValue(market, "swap");
-        object future = getValue(market, "future");
-        object option = getValue(market, "option");
+        bool? spot = ((bool?)getValue(market, "spot"));
+        bool? contract = ((bool?)getValue(market, "contract"));
+        bool? swap = ((bool?)getValue(market, "swap"));
+        bool? future = ((bool?)getValue(market, "future"));
+        bool? option = ((bool?)getValue(market, "option"));
         bool? index = exchange.safeBool(market, "index"); // todo: unify
         bool isIndex = (!isEqual(index, null)) && index == true;
-        object linear = getValue(market, "linear");
-        object inverse = getValue(market, "inverse");
+        bool? linear = ((bool?)getValue(market, "linear"));
+        bool? inverse = ((bool?)getValue(market, "inverse"));
         bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
         bool isQuanto = (!isEqual(quanto, null)) && quanto == true;
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);

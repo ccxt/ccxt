@@ -3574,7 +3574,7 @@ public partial class bitget : Exchange
         string? productType = this.safeString2(parameters, "productType", "category", defaultProductType);
         if (((productType == null)) && (!isEqual(market, null)))
         {
-            object settle = getValue(market, "settle");
+            string? settle = ((string)getValue(market, "settle"));
             if (isEqual(getValue(market, "spot"), true))
             {
                 object marginMode = null;
@@ -3588,19 +3588,19 @@ public partial class bitget : Exchange
                 {
                     productType = "SPOT";
                 }
-            } else if (isEqual(settle, "USDT"))
+            } else if (settle == "USDT")
             {
                 productType = "USDT-FUTURES";
-            } else if (isEqual(settle, "USDC"))
+            } else if (settle == "USDC")
             {
                 productType = "USDC-FUTURES";
-            } else if (isEqual(settle, "SUSDT"))
+            } else if (settle == "SUSDT")
             {
                 productType = "SUSDT-FUTURES";
-            } else if (isEqual(settle, "SUSDC"))
+            } else if (settle == "SUSDC")
             {
                 productType = "SUSDC-FUTURES";
-            } else if ((isEqual(settle, "SBTC")) || (isEqual(settle, "SETH")) || (isEqual(settle, "SEOS")))
+            } else if ((settle == "SBTC") || (settle == "SETH") || (settle == "SEOS"))
             {
                 productType = "SCOIN-FUTURES";
             } else
@@ -11180,7 +11180,7 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
         string? marginMode = this.safeString(position, "marginMode");
         string? collateral = null;

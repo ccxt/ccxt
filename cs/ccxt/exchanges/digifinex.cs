@@ -4414,7 +4414,7 @@ public partial class digifinex : Exchange
         //
         string? marketId = this.safeString2(position, "instrument_id", "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? marginMode = this.safeString(position, "margin_mode");
         if ((marginMode != null))
         {

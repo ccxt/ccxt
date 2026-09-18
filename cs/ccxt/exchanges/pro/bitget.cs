@@ -2194,7 +2194,7 @@ public partial class bitget : ccxt.bitget
         string? marketId = this.safeString2(order, "instId", "symbol");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
         object orderFee = this.safeValue(order, "feeDetail", new List<object>() {});
         object fee = this.safeValue(orderFee, 0);

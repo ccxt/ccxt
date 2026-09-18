@@ -1050,12 +1050,12 @@ public partial class bitbns : Exchange
             amountString = this.safeString(trade, "base_volume");
             costString = this.safeString(trade, "quote_volume");
         }
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if ((feeCostString != null))
         {
-            object feeCurrencyCode = getValue(market, "quote");
+            string? feeCurrencyCode = ((string)getValue(market, "quote"));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },

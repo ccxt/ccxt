@@ -2199,7 +2199,7 @@ public partial class aster : ccxt.aster
         }
         ccxt.pro.ArrayCache cache = this.orders;
         Dictionary<string, object> parsed = this.parseWsOrder(message, market);
-        object symbol = GetValue(market, "symbol");
+        string? symbol = ((string)GetValue(market, "symbol"));
         callDynamically(cache, "append", new object[] {parsed});
         List<object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))

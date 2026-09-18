@@ -1019,7 +1019,7 @@ public partial class pacifica : ccxt.pacifica
         string? amount = this.safeString(trade, "a");
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? id = this.safeString(trade, "h");
         string? fee = this.safeString(trade, "f");
         string? side = this.safeString2(trade, "ts", "d");

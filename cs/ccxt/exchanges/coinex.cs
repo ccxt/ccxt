@@ -1551,7 +1551,7 @@ public partial class coinex : Exchange
         string marketType = (inOp(ticker, "mark_price")) ? "swap" : "spot";
         string? marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
         string? quoteVolume = (isEqual(getValue(market, "inverse"), true)) ? null : this.safeString(ticker, "value");

@@ -1417,7 +1417,7 @@ public partial class toobit : Exchange
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
         }
         market = this.safeMarket(null, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },

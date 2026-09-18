@@ -1329,13 +1329,13 @@ public partial class bullish : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(trade, "createdAtTimestamp");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
         string? side = this.safeStringLower(trade, "side");
         bool? isTaker = this.safeBool(trade, "isTaker");
-        object currency = getValue(market, "quote");
+        string? currency = ((string)getValue(market, "quote"));
         string? code = this.safeCurrencyCode(currency);
         double? feeCost = this.safeNumber(trade, "quoteFee");
         Dictionary<string, object> fee = null;
@@ -2938,7 +2938,7 @@ public partial class bullish : Exchange
         //     ]
         //
         market = this.safeMarket(this.safeString(position, "symbol"), market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(position, "createdAtTimestamp");
         string? side = this.safeString(position, "side");
         return this.safePosition(new Dictionary<string, object>() {
