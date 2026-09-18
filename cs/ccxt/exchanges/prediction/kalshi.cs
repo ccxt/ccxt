@@ -368,7 +368,7 @@ public partial class kalshi : PredictionExchange
         if (isGreaterThan(queriesLength, 0))
         {
             object eventParams = this.omit(parameters, new List<object>() {"limit"});
-            List<object> events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(eventParams));
+            List<object> events = ((List<object>)ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(eventParams)));
             int eventsLength = events?.Count ?? 0;
             List<object> queryMarkets = new List<object>() {};
             for (int ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
@@ -391,7 +391,7 @@ public partial class kalshi : PredictionExchange
         string? cursor = null;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         Int64? pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
-        Int64? limit = ((Int64?)mathMin(maxMarkets, pageLimit));
+        object limit = mathMin(maxMarkets, pageLimit);
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -761,8 +761,8 @@ public partial class kalshi : PredictionExchange
         int eventPartsLength = eventParts.Count;
         if (isGreaterThan(eventPartsLength, 1))
         {
-            List<object> seriesParts = ((List<object>)this.arraySlice(eventParts, 0, subtract(eventPartsLength, 1)));
-            seriesTicker = String.Join("-", seriesParts.ToArray());
+            object seriesParts = this.arraySlice(eventParts, 0, subtract(eventPartsLength, 1));
+            seriesTicker = String.Join("-", ((IList<object>)seriesParts).ToArray());
         }
         // market symbol (no outcome suffix)
         object subtitleOrTicker = ((subtitle != null)) ? subtitle : ticker;
@@ -1116,9 +1116,9 @@ public partial class kalshi : PredictionExchange
         double? noAsk = this.safeNumber(raw, "no_ask_dollars");
         double? noBid = this.safeNumber(raw, "no_bid_dollars");
         double? last = this.safeNumber(raw, "last_price_dollars");
-        object bid = null;
-        object ask = null;
-        object close = null;
+        double? bid = null;
+        double? ask = null;
+        double? close = null;
         if (isNo)
         {
             bid = noBid;
@@ -1380,7 +1380,7 @@ public partial class kalshi : PredictionExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string timeframeVar = timeframe;
+        object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1474,7 +1474,7 @@ public partial class kalshi : PredictionExchange
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
         ((IDictionary<string,object>)this.options)["ohlcvCandleDurationSeconds"] = tf;
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usableCandles, ((object)outcomeObj),timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usableCandles, ((object)outcomeObj),((string)timeframeVar), since, limit));
     }
 
     /**
@@ -1522,7 +1522,7 @@ public partial class kalshi : PredictionExchange
         double? previous = this.safeNumber(price, "previous_dollars");
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
-        object endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
+        Int64? endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
         Int64? durationSeconds = this.safeInteger(this.options, "ohlcvCandleDurationSeconds", 0);
         object timestamp = endTimestamp;
         if (!isEqual(endTimestamp, null))
@@ -1880,7 +1880,7 @@ public partial class kalshi : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(parsed, i));
+            object position = getValue(parsed, i);
             IDictionary<string, object> positionInfo = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? positionTicker = this.safeString(positionInfo, "ticker");
             if (((positionTicker != null)) && (inOp(wantedTickers, positionTicker)))
@@ -2018,7 +2018,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
     {
         string? ticker = this.safeString(position, "ticker");
         IDictionary<string, object> outcomeObj = this.safeOutcome(ticker, market);
@@ -2030,7 +2030,7 @@ public partial class kalshi : PredictionExchange
             positionSide = (isGreaterThanOrEqual(yesContracts, 0)) ? "long" : "short";
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
         }
-        return this.safePredictionPosition(new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", null },
             { "outcome", this.safeString(outcomeObj, "outcome", ticker) },
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
@@ -2059,7 +2059,7 @@ public partial class kalshi : PredictionExchange
             { "marginType", "cross" },
             { "percentage", null },
             { "info", position },
-        });
+        }))));
     }
 
     /**
@@ -2149,11 +2149,11 @@ public partial class kalshi : PredictionExchange
         // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
         // both executed and canceled, so fetch every order and keep the non-open ones client-side
         parameters ??= new Dictionary<string, object>();
-        List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> orders = ((List<object>)ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters)));
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, orders?.Count ?? 0); postFixIncrement(ref i))
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            object order = getValue(orders, i);
             string? status = this.safeString(order, "status");
             if ((status == "closed") || (status == "canceled"))
             {

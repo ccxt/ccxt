@@ -1730,7 +1730,7 @@ public partial class PredictionExchange : BaseExchange
         return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public virtual object safePredictionPosition(object position)
+    public virtual Dictionary<string, object> safePredictionPosition(object position)
     {
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
@@ -1766,7 +1766,7 @@ public partial class PredictionExchange : BaseExchange
             { "event", this.safeString(position, "event") },
             { "info", this.safeValue(position, "info", position) },
         };
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public virtual object safePredictionOrderBook(object orderbook, object outcomeObj = null)
@@ -1797,7 +1797,7 @@ public partial class PredictionExchange : BaseExchange
         throw new NotSupported (add(this.id, " parsePredictionTrade() is not supported yet")) ;
     }
 
-    public virtual object parsePredictionPosition(object position, object market = null)
+    public virtual Dictionary<string, object> parsePredictionPosition(object position, object market = null)
     {
         throw new NotSupported (add(this.id, " parsePredictionPosition() is not supported yet")) ;
     }
@@ -1877,7 +1877,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public virtual object parsePredictionPositions(object positions, object parameters = null)
+    public virtual List<object> parsePredictionPositions(object positions, object parameters = null)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.
@@ -1888,11 +1888,11 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
         {
-            object parsed = this.parsePredictionPosition(getValue(rows, i));
+            Dictionary<string, object> parsed = this.parsePredictionPosition(getValue(rows, i));
             Dictionary<string, object> position = this.extend(parsed, parameters);
             ((IList<object>)results).Add(position);
         }
-        return results;
+        return ((List<object>)((object)(results)));
     }
 
     public virtual IList<object> filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, object tail = null)
