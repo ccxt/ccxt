@@ -121,7 +121,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -227,7 +227,7 @@ public partial class modetrade : ccxt.modetrade
         }, market);
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual object handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -286,7 +286,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
 
-    public virtual void handleTickers(WebSocketClient client, object message)
+    public virtual void handleTickers(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -352,7 +352,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -449,7 +449,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -530,7 +530,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {
@@ -643,7 +643,7 @@ public partial class modetrade : ccxt.modetrade
         }, market);
     }
 
-    public virtual void handleAuth(WebSocketClient client, object message)
+    public virtual void handleAuth(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -946,7 +946,7 @@ public partial class modetrade : ccxt.modetrade
         });
     }
 
-    public virtual void handleOrderUpdate(WebSocketClient client, object message)
+    public virtual void handleOrderUpdate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1184,7 +1184,7 @@ public partial class modetrade : ccxt.modetrade
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1341,7 +1341,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, message));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1524,12 +1524,12 @@ public partial class modetrade : ccxt.modetrade
         });
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, IDictionary<string, object> message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // { event: "pong", ts: 1614667590000 }
@@ -1538,7 +1538,7 @@ public partial class modetrade : ccxt.modetrade
         return message;
     }
 
-    public virtual object handleSubscribe(WebSocketClient client, object message)
+    public virtual object handleSubscribe(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

@@ -63,7 +63,7 @@ public partial class independentreserve : ccxt.independentreserve
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -167,7 +167,7 @@ public partial class independentreserve : ccxt.independentreserve
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -299,7 +299,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
     }
 
-    public virtual object handleHeartbeat(WebSocketClient client, object message)
+    public virtual object handleHeartbeat(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -310,7 +310,7 @@ public partial class independentreserve : ccxt.independentreserve
         return message;
     }
 
-    public virtual object handleSubscriptions(WebSocketClient client, object message)
+    public virtual object handleSubscriptions(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
