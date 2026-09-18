@@ -2361,9 +2361,9 @@ func (this *Gemini) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes181512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes181512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   amount,
 		"address":  address,
 	}
@@ -2604,8 +2604,8 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 		retRes200512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes200512)
 	}
-	var currency any = this.Currency(code)
-	code = GetValue(currency, "code")
+	var currency map[string]any = this.Currency(code).(map[string]any)
+	code = currency["code"]
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -2613,7 +2613,7 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
 	}
-	var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+	var networkId any = this.NetworkCodeToId(networkCode, currency["code"])
 	var request map[string]any = map[string]any{
 		"network": networkId,
 	}
@@ -2732,9 +2732,9 @@ func (this *Gemini) createDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes210012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes210012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivatePostV1DepositCurrencyNewAddress(this.Extend(request, params)))

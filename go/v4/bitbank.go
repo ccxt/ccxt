@@ -1245,9 +1245,9 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes97412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes97412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 
 	response := (<-this.PrivateGetUserWithdrawalAccount(this.Extend(request, params)))
@@ -1260,7 +1260,7 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 
 	ch <- map[string]any{
 		"info":     response,
-		"currency": GetValue(currency, "code"),
+		"currency": currency["code"],
 		"network":  nil,
 		"address":  address,
 		"tag":      nil,
@@ -1303,9 +1303,9 @@ func (this *Bitbank) withdrawBody(ch chan any, code any, amount any, address any
 		retRes101312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes101312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset":  GetValue(currency, "id"),
+		"asset":  currency["id"],
 		"amount": amount,
 	}
 

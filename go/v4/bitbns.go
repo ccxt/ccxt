@@ -1399,9 +1399,9 @@ func (this *Bitbns) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		retRes108812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(currency, "id"),
+		"symbol": currency["id"],
 		"page":   0,
 	}
 
@@ -1470,9 +1470,9 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		retRes113812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes113812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(currency, "id"),
+		"symbol": currency["id"],
 		"page":   0,
 	}
 
@@ -1603,9 +1603,9 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes125112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes125112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(currency, "id"),
+		"symbol": currency["id"],
 	}
 
 	response := (<-this.V1PostGetCoinAddressSymbol(this.Extend(request, params)))

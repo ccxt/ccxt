@@ -3957,15 +3957,15 @@ func (this *Coinex) createDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes398012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes398012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var network *string = this.SafeString2(params, "chain", "network")
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " createDepositAddress() requires a network parameter"))
 	}
 	params = this.Omit(params, "network")
 	var request map[string]any = map[string]any{
-		"ccy":   GetValue(currency, "id"),
-		"chain": this.NetworkCodeToId(network, GetValue(currency, "code")),
+		"ccy":   currency["id"],
+		"chain": this.NetworkCodeToId(network, currency["code"]),
 	}
 
 	response := (<-this.V2PrivatePostAssetsRenewalDepositAddress(this.Extend(request, params)))
@@ -4011,9 +4011,9 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes401912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes401912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -4022,7 +4022,7 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a \"network\" parameter"))
 	}
-	request["chain"] = this.NetworkCodeToId(networkCode, GetValue(currency, "code")) // required for on-chain, not required for inter-user transfer
+	request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer
 
 	response := (<-this.V2PrivateGetAssetsDepositAddress(this.Extend(request, params)))
 	PanicOnError(response)
@@ -5169,9 +5169,9 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes497912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes497912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy":        GetValue(currency, "id"),
+		"ccy":        currency["id"],
 		"to_address": address,
 		"amount":     this.CurrencyToPrecision(code, amount),
 	}
@@ -5183,7 +5183,7 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		request["chain"] = this.NetworkCodeToId(networkCode, GetValue(currency, "code")) // required for on-chain, not required for inter-user transfer
+		request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer
 	}
 
 	response := (<-this.V2PrivatePostAssetsWithdraw(this.Extend(request, params)))
@@ -5479,13 +5479,13 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes523812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes523812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
-		"ccy":               GetValue(currency, "id"),
+		"ccy":               currency["id"],
 		"amount":            amountToPrecision,
 		"from_account_type": fromId,
 		"to_account_type":   toId,
@@ -5585,9 +5585,9 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchTransfers", params)
@@ -5863,11 +5863,11 @@ func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 		panic(ArgumentsRequired(this.Id + " fetchIsolatedBorrowRate() requires a code parameter"))
 	}
 	params = this.Omit(params, "code")
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
-		"ccy":    GetValue(currency, "id"),
+		"ccy":    currency["id"],
 	}
 
 	response := (<-this.V2PrivateGetAssetsMarginInterestLimit(this.Extend(request, params)))
@@ -6030,12 +6030,12 @@ func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 		PanicOnError(retRes566612)
 	}
 	var market any = this.Market(symbol)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var isAutoRenew *bool = this.SafeBool2(params, "isAutoRenew", "is_auto_renew", false)
 	params = this.Omit(params, "isAutoRenew")
 	var request map[string]any = map[string]any{
 		"market":        GetValue(market, "id"),
-		"ccy":           GetValue(currency, "id"),
+		"ccy":           currency["id"],
 		"borrow_amount": this.CurrencyToPrecision(code, amount),
 		"is_auto_renew": isAutoRenew,
 	}
@@ -6096,10 +6096,10 @@ func (this *Coinex) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 		PanicOnError(retRes571712)
 	}
 	var market any = this.Market(symbol)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
-		"ccy":    GetValue(currency, "id"),
+		"ccy":    currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 
@@ -6174,9 +6174,9 @@ func (this *Coinex) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalA
 		retRes578012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes578012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 
 	response := (<-this.V2PublicGetAssetsDepositWithdrawConfig(this.Extend(request, params)))
@@ -6409,11 +6409,11 @@ func (this *Coinex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		panic(ArgumentsRequired(this.Id + " fetchLeverage() requires a code parameter"))
 	}
 	params = this.Omit(params, "code")
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
-		"ccy":    GetValue(currency, "id"),
+		"ccy":    currency["id"],
 	}
 
 	response := (<-this.V2PrivateGetAssetsMarginInterestLimit(this.Extend(request, params)))

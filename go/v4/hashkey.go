@@ -2220,9 +2220,9 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes191812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes191812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -2480,9 +2480,9 @@ func (this *Hashkey) withdrawBody(ch chan any, code any, amount any, address any
 		retRes210612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes210612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":     GetValue(currency, "id"),
+		"coin":     currency["id"],
 		"address":  address,
 		"quantity": amount,
 	}
@@ -2494,7 +2494,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code any, amount any, address any
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		request["chainType"] = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		request["chainType"] = this.NetworkCodeToId(networkCode, currency["code"])
 	}
 
 	response := (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params)))
@@ -2651,9 +2651,9 @@ func (this *Hashkey) transferBody(ch chan any, code any, amount any, fromAccount
 		retRes226012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes226012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":          GetValue(currency, "id"),
+		"coin":          currency["id"],
 		"quantity":      this.CurrencyToPrecision(code, amount),
 		"fromAccountId": fromAccount,
 		"toAccountId":   toAccount,
@@ -2828,7 +2828,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		retRes240212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes240212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{}
 	request["startTime"] = since
 	if !IsEqual(limit, nil) {

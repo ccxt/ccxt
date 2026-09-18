@@ -2740,9 +2740,9 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
 		retRes204912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes204912)
 	}
-	var currency any = this.SafeCurrency(code) // for instance, USDC is not inferred from markets but it's still available
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any) // for instance, USDC is not inferred from markets but it's still available
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   amount,
 		"address":  address,
 	}
@@ -2806,9 +2806,9 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 		retRes209812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes209812)
 	}
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.V1PrivatePostPrivateGetDepositAddress(this.Extend(request, params)))

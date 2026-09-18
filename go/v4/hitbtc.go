@@ -1131,9 +1131,9 @@ func (this *Hitbtc) createDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes103812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes103812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var network *string = this.SafeStringUpper(params, "network")
 	if (network != nil) && (IsEqual(code, "USDT")) {
@@ -1186,9 +1186,9 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes107812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes107812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var network *string = this.SafeStringUpper(params, "network")
 	if (network != nil) && (IsEqual(code, "USDT")) {
@@ -3403,7 +3403,7 @@ func (this *Hitbtc) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes275612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes275612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var requestAmount any = this.CurrencyToPrecision(code, amount)
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 	fromAccount = ToLower(fromAccount)
@@ -3414,7 +3414,7 @@ func (this *Hitbtc) transferBody(ch chan any, code any, amount any, fromAccount 
 		panic(BadRequest(this.Id + " transfer() fromAccount and toAccount arguments cannot be the same account"))
 	}
 	var request map[string]any = map[string]any{
-		"currency":    GetValue(currency, "id"),
+		"currency":    currency["id"],
 		"amount":      requestAmount,
 		"source":      fromId,
 		"destination": toId,
@@ -3530,9 +3530,9 @@ func (this *Hitbtc) withdrawBody(ch chan any, code any, amount any, address any,
 		PanicOnError(retRes285012)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   amount,
 		"address":  address,
 	}

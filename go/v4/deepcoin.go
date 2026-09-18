@@ -1530,9 +1530,9 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 		panic(NotSupported(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
 	var code any = GetValue(codes, 0)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency_id": GetValue(currency, "id"),
+		"currency_id": currency["id"],
 		"lang":        "en",
 	}
 
@@ -1849,12 +1849,12 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 		retRes142012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes142012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
-		"currency_id": GetValue(currency, "id"),
+		"currency_id": currency["id"],
 		"amount":      this.CurrencyToPrecision(code, amount),
 		"from_id":     fromId,
 		"to_id":       toId,

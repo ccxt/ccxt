@@ -1218,9 +1218,9 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 		retRes93412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivatePostDepositsCurrency(this.Extend(request, params)))
@@ -1237,7 +1237,7 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 
 	ch <- map[string]any{
 		"info":     response,
-		"currency": GetValue(currency, "code"),
+		"currency": currency["code"],
 		"network":  nil,
 		"address":  address,
 		"tag":      tag,
@@ -1364,10 +1364,10 @@ func (this *Blockchaincom) withdrawBody(ch chan any, code any, amount any, addre
 		retRes105512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes105512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"amount":      amount,
-		"currency":    GetValue(currency, "id"),
+		"currency":    currency["id"],
 		"beneficiary": address,
 		"sendMax":     false,
 	}

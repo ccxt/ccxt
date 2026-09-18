@@ -2377,7 +2377,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 		retRes191912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes191912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	if tag != nil {
 		address = Add(address, Add(":", tag))
 	}
@@ -2387,7 +2387,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 	}
 	params = this.Omit(params, "network")
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   amount,
 		"address":  address,
 		"network":  this.NetworkCodeToId(network, code),

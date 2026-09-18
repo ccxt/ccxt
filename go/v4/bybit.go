@@ -7788,9 +7788,9 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 		retRes600412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes600412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -7824,9 +7824,9 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var chains any = this.SafeList(result, "chains", []any{})
 	var coin *string = this.SafeString(result, "coin")
-	var currencyFromResponse any = this.Currency(coin)
-	var parsed any = this.ParseDepositAddresses(chains, []any{GetValue(currencyFromResponse, "code")}, false, map[string]any{
-		"currency": GetValue(currencyFromResponse, "code"),
+	var currencyFromResponse map[string]any = this.Currency(coin).(map[string]any)
+	var parsed any = this.ParseDepositAddresses(chains, []any{currencyFromResponse["code"]}, false, map[string]any{
+		"currency": currencyFromResponse["code"],
 	})
 
 	ch <- this.IndexBy(parsed, "network")
@@ -7857,14 +7857,14 @@ func (this *Bybit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes605612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes605612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
 	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
 
 	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
 	PanicOnError(indexedAddresses)
-	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(GetValue(currency, "code"), networkCode, indexedAddresses)
+	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(currency["code"], networkCode, indexedAddresses)
 
 	ch <- this.SafeValue(indexedAddresses, selectedNetworkCode)
 	return nil
@@ -8543,9 +8543,9 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 		PanicOnError(retRes663212)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":        GetValue(currency, "id"),
+		"coin":        currency["id"],
 		"amount":      this.NumberToString(amount),
 		"address":     address,
 		"timestamp":   this.Milliseconds(),
@@ -9688,9 +9688,9 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs 
 		retRes753012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes753012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"vipLevel": "No VIP",
 	}
 
@@ -9879,9 +9879,9 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 		retRes767312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes767312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if IsEqual(since, nil) {
 		since = Subtract(this.Milliseconds(), Multiply(86400000, 30)) // last 30 days
@@ -9978,13 +9978,13 @@ func (this *Bybit) transferBody(ch chan any, code any, amount any, fromAccount a
 	var accountTypes any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountTypes, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountTypes, toAccount, toAccount)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"transferId":      transferId,
 		"fromAccountType": fromId,
 		"toAccountType":   toId,
-		"coin":            GetValue(currency, "id"),
+		"coin":            currency["id"],
 		"amount":          amountToPrecision,
 	}
 
@@ -10133,9 +10133,9 @@ func (this *Bybit) borrowCrossMarginBody(ch chan any, code any, amount any, opti
 		retRes786712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes786712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":   GetValue(currency, "id"),
+		"coin":   currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 
@@ -10184,9 +10184,9 @@ func (this *Bybit) repayCrossMarginBody(ch chan any, code any, amount any, optio
 		retRes790312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes790312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":   GetValue(currency, "id"),
+		"coin":   currency["id"],
 		"amount": this.NumberToString(amount),
 	}
 
@@ -10927,10 +10927,10 @@ func (this *Bybit) fetchVolatilityHistoryBody(ch chan any, code any, optionalArg
 		retRes849312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes849312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"category": "option",
-		"baseCoin": GetValue(currency, "id"),
+		"baseCoin": currency["id"],
 	}
 
 	response := (<-this.PublicGetV5MarketHistoricalVolatility(this.Extend(request, params)))
@@ -11798,10 +11798,10 @@ func (this *Bybit) fetchOptionChainBody(ch chan any, code any, optionalArgs ...a
 		retRes918512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes918512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"category": "option",
-		"baseCoin": GetValue(currency, "id"),
+		"baseCoin": currency["id"],
 	}
 
 	response := (<-this.PublicGetV5MarketTickers(this.Extend(request, params)))
@@ -12218,9 +12218,9 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 	//
 	var data any = this.SafeDict(response, "result", map[string]any{})
 	var fromCurrencyId *string = this.SafeString(data, "fromCoin", fromCode)
-	var fromCurrency any = this.Currency(fromCurrencyId)
+	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
 	var toCurrencyId *string = this.SafeString(data, "toCoin", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(data, fromCurrency, toCurrency)
 	return nil

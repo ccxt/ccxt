@@ -2889,9 +2889,9 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code any, optiona
 		retRes233612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"assetCode": GetValue(currency, "id"),
+		"assetCode": currency["id"],
 	}
 	var network any = this.GetNetworkCodeForCurrency(code, params)
 	if network != nil {
@@ -2943,9 +2943,9 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code any, opti
 		retRes237612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes237612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	var networks any = this.SafeValue(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network")
@@ -3020,10 +3020,10 @@ func (this *Lbank) withdrawBody(ch chan any, code any, amount any, address any, 
 	params = this.Omit(params, "fee")
 	// The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
 	this.CheckRequiredArgument("withdraw", fee, "fee")
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"address": address,
-		"coin":    GetValue(currency, "id"),
+		"coin":    currency["id"],
 		"amount":  amount,
 		"fee":     fee,
 	}
@@ -3467,8 +3467,8 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 	params = this.Omit(params, []any{"coin", "assetCode"})
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency any = this.Currency(code)
-		request["assetCode"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["assetCode"] = currency["id"]
 	}
 
 	response := (<-this.SpotPublicGetWithdrawConfigs(this.Extend(request, params)))

@@ -2805,12 +2805,12 @@ func (this *Bullish) withdrawBody(ch chan any, code any, amount any, address any
 	retRes21388 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
 	PanicOnError(retRes21388)
 	// todo check this method properly
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"command": map[string]any{
 			"commandType":   "V1Withdraw",
 			"destinationId": address,
-			"symbol":        GetValue(currency, "id"),
+			"symbol":        currency["id"],
 			"quantity":      this.CurrencyToPrecision(code, amount),
 		},
 	}
@@ -3108,9 +3108,9 @@ func (this *Bullish) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 
 	retRes23988 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
 	PanicOnError(retRes23988)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(currency, "id"),
+		"symbol": currency["id"],
 	}
 
 	response := (<-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params)))
@@ -3510,10 +3510,10 @@ func (this *Bullish) transferBody(ch chan any, code any, amount any, fromAccount
 	retRes27108 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
 	PanicOnError(retRes27108)
 	// todo check this method properly
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"commandType":          "V2TransferAsset",
-		"assetSymbol":          GetValue(currency, "id"),
+		"assetSymbol":          currency["id"],
 		"quantity":             this.CurrencyToPrecision(code, amount),
 		"fromTradingAccountId": fromAccount,
 		"toTradingAccountId":   toAccount,
@@ -3625,9 +3625,9 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = map[string]any{
-		"assetSymbol":      GetValue(currency, "id"),
+		"assetSymbol":      currency["id"],
 		"tradingAccountId": tradingAccountId,
 	}
 	var now int64 = this.Milliseconds()

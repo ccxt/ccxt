@@ -2418,9 +2418,9 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes201212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes201212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset_symbol": GetValue(currency, "id"),
+		"asset_symbol": currency["id"],
 	}
 	networkCodeparamsOmittedVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmittedVariable, 0)
@@ -2740,13 +2740,13 @@ func (this *Bigone) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes228112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes228112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(currency, "id"),
+		"symbol": currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
 		"from":   fromId,
 		"to":     toId,
@@ -2835,9 +2835,9 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes235912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes235912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol":         GetValue(currency, "id"),
+		"symbol":         currency["id"],
 		"target_address": address,
 		"amount":         this.CurrencyToPrecision(code, amount),
 	}
@@ -2849,7 +2849,7 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		request["gateway_name"] = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		request["gateway_name"] = this.NetworkCodeToId(networkCode, currency["code"])
 	}
 	// requires write permission on the wallet
 

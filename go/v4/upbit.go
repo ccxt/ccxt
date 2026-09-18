@@ -421,9 +421,9 @@ func (this *Upbit) fetchCurrencyBody(ch chan any, code any, optionalArgs ...any)
 		retRes29612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes29612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 
-	retRes29915 := (<-this.FetchCurrencyByIdAsync(GetValue(currency, "id"), params))
+	retRes29915 := (<-this.FetchCurrencyByIdAsync(currency["id"], params))
 	PanicOnError(retRes29915)
 	ch <- retRes29915
 	return nil
@@ -2872,7 +2872,7 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes230312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes230312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -2882,8 +2882,8 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	}
 
 	response := (<-this.PrivateGetDepositsCoinAddress(this.Extend(map[string]any{
-		"currency": GetValue(currency, "id"),
-		"net_type": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
+		"currency": currency["id"],
+		"net_type": this.NetworkCodeToId(networkCode, currency["code"]),
 	}, params)))
 	PanicOnError(response)
 
@@ -2924,9 +2924,9 @@ func (this *Upbit) createDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes233812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	// https://github.com/ccxt/ccxt/issues/6452
 
@@ -2989,7 +2989,7 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 		retRes238412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes238412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"amount": amount,
 	}
@@ -3003,7 +3003,7 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 		}
 		params = this.Omit(params, []any{"network"})
 		request["net_type"] = network
-		request["currency"] = GetValue(currency, "id")
+		request["currency"] = currency["id"]
 		request["address"] = address
 		if tag != nil {
 			request["secondary_address"] = tag

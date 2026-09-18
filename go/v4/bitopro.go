@@ -2016,9 +2016,9 @@ func (this *Bitopro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		retRes166312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166312)
 	}
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["startTimestamp"] = since
@@ -2091,9 +2091,9 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		retRes171812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes171812)
 	}
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["startTimestamp"] = since
@@ -2160,10 +2160,10 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		retRes177112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes177112)
 	}
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"serial":   id,
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivateGetWalletWithdrawCurrencySerial(this.Extend(request, params)))
@@ -2223,9 +2223,9 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 		PanicOnError(retRes181412)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   this.NumberToString(amount),
 		"address":  address,
 	}

@@ -3368,7 +3368,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
 	// }
 	//
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var events any = this.SafeList(result, "events", []any{})
 
@@ -3440,7 +3440,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
 	// }
 	//
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var events any = this.SafeList(result, "events", []any{})
 

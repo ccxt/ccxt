@@ -851,7 +851,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	})
 }
 func (this *Bitmex) ConvertFromRealAmount(code any, amount any) any {
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var precision *string = this.SafeString(currency, "precision")
 	var amountString *string = this.NumberToString(amount)
 	var finalAmount *string = Precise.StringDiv(amountString, precision)
@@ -863,7 +863,7 @@ func (this *Bitmex) ConvertToRealAmount(code any, amount any) any {
 	} else if amount == nil {
 		return nil
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var precision *string = this.SafeString(currency, "precision")
 	return Precise.StringMul(amount, precision)
 }
@@ -3543,17 +3543,17 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes278512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes278512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var qty any = this.ConvertFromRealAmount(code, amount)
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   qty,
 		"address":  address,
-		"network":  this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
+		"network":  this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 	if !IsEqual(this.Twofa, nil) {
 		request["otpToken"] = Totp(this.Twofa)
@@ -3702,15 +3702,15 @@ func (this *Bitmex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
 	if InOp(this.Currencies, symbol) {
-		var code any = this.Currency(symbol)
-		request["symbol"] = GetValue(code, "id")
+		var code map[string]any = this.Currency(symbol).(map[string]any)
+		request["symbol"] = code["id"]
 	} else if symbol != nil {
 		var splitSymbol []string = Split(symbol, ":")
 		var splitSymbolLength int = len(splitSymbol)
 		var timeframes []any = []any{"nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"}
 		if (splitSymbolLength > 1) && this.InArray(GetValue(splitSymbol, 1), timeframes) {
-			var code any = this.Currency(GetValue(splitSymbol, 0))
-			symbol = Add(Add(GetValue(code, "id"), ":"), GetValue(splitSymbol, 1))
+			var code map[string]any = this.Currency(GetValue(splitSymbol, 0)).(map[string]any)
+			symbol = Add(Add(code["id"], ":"), GetValue(splitSymbol, 1))
 			request["symbol"] = symbol
 		} else {
 			market = this.Market(symbol)
@@ -3907,11 +3907,11 @@ func (this *Bitmex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires params[\"network\"]"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	params = this.Omit(params, "network")
-	var parsedNetwork any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+	var parsedNetwork any = this.NetworkCodeToId(networkCode, currency["code"])
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"network":  parsedNetwork,
 	}
 

@@ -5298,7 +5298,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 		//
 		// the sub-account branches below already hand back the unified structure; the
 		// spot <> swap branch returned the raw acknowledgement, breaking the shape
-		var currency any = this.SafeCurrency(code)
+		var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 
 		ch <- this.ParseTransfer(transferResponse, currency)
 		return nil
@@ -5351,7 +5351,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " transfer() requires a currency code for spot sub-account transfers"))
 		}
-		var currency any = this.Currency(code)
+		var currency map[string]any = this.Currency(code).(map[string]any)
 		var currencyInfo any = this.SafeDict(currency, "info", map[string]any{})
 		var tokenName *string = this.SafeString(currencyInfo, "name")
 		var tokenId *string = this.SafeString(currencyInfo, "tokenId")

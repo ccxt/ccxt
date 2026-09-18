@@ -2705,7 +2705,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
 		panic(ArgumentsRequired(this.Id + " withdraw requires subaccountId."))
 	}
 	params = this.Omit(params, []any{"subaccountId"})
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var credentials any = this.RetrieveCredentials()
 
 	account := (<-this.FetchDydxAccountAsync())

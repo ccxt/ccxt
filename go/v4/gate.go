@@ -3319,9 +3319,9 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan any, code any, optional
 		retRes235712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes235712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivateWalletGetDepositAddress(this.Extend(request, params)))
@@ -5738,9 +5738,9 @@ func (this *Gate) withdrawBody(ch chan any, code any, amount any, address any, o
 		retRes422712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes422712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"address":  address,
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
@@ -8083,12 +8083,12 @@ func (this *Gate) transferBody(ch chan any, code any, amount any, fromAccount an
 		retRes609612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes609612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var fromId any = this.ConvertTypeToAccount(fromAccount)
 	var toId any = this.ConvertTypeToAccount(toAccount)
 	var truncated any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   truncated,
 	}
 	if !(InOp(GetValue(this.Options, "accountsByType"), fromId)) {
@@ -8113,7 +8113,7 @@ func (this *Gate) transferBody(ch chan any, code any, amount any, fromAccount an
 		params = this.Omit(params, "symbol")
 	}
 	if (IsEqual(toId, "futures")) || (IsEqual(toId, "delivery")) || (IsEqual(fromId, "futures")) || (IsEqual(fromId, "delivery")) {
-		request["settle"] = GetValue(currency, "id") // todo: currencies have network-junctions
+		request["settle"] = currency["id"] // todo: currencies have network-junctions
 	}
 
 	response := (<-this.PrivateWalletPostTransfers(this.Extend(request, params)))
@@ -8956,9 +8956,9 @@ func (this *Gate) repayIsolatedMarginBody(ch chan any, symbol any, code any, amo
 		retRes683912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes683912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(GetValue(currency, "id")),
+		"currency": ToUpper(currency["id"]),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	var market any = this.Market(symbol)
@@ -9006,9 +9006,9 @@ func (this *Gate) repayCrossMarginBody(ch chan any, code any, amount any, option
 
 	retRes68738 := (<-this.LoadUnifiedStatusAsync())
 	PanicOnError(retRes68738)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(GetValue(currency, "id")),
+		"currency": ToUpper(currency["id"]),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	var isUnifiedAccount any = false
@@ -9060,9 +9060,9 @@ func (this *Gate) borrowIsolatedMarginBody(ch chan any, symbol any, code any, am
 		retRes692312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes692312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(GetValue(currency, "id")),
+		"currency": ToUpper(currency["id"]),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	var market any = this.Market(symbol)
@@ -9125,9 +9125,9 @@ func (this *Gate) borrowCrossMarginBody(ch chan any, code any, amount any, optio
 
 	retRes69728 := (<-this.LoadUnifiedStatusAsync())
 	PanicOnError(retRes69728)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(GetValue(currency, "id")),
+		"currency": ToUpper(currency["id"]),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	var isUnifiedAccount any = false
@@ -11000,9 +11000,9 @@ func (this *Gate) fetchOptionChainBody(ch chan any, code any, optionalArgs ...an
 		retRes853412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes853412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"underlying": Add(GetValue(currency, "code"), "_USDT"),
+		"underlying": Add(currency["code"], "_USDT"),
 	}
 
 	response := (<-this.PublicOptionsGetContracts(this.Extend(request, params)))

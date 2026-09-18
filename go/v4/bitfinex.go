@@ -1358,7 +1358,7 @@ func (this *Bitfinex) transferBody(ch chan any, code any, amount any, fromAccoun
 		var keys []string = ObjectKeys(accountsByType)
 		panic(ArgumentsRequired(this.Id + " transfer() toAccount must be one of " + Join(keys, ", ")))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var fromCurrencyId any = this.ConvertDerivativesId(currency, fromAccount)
 	var toCurrencyId any = this.ConvertDerivativesId(currency, toAccount)
 	var requestedAmount any = this.CurrencyToPrecision(code, amount)
@@ -3167,7 +3167,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		retRes245912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes245912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
 	var currencyNetworks any = this.SafeValue(currency, "networks", map[string]any{})
@@ -3637,7 +3637,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 		retRes286412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes286412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
 	params = this.Omit(params, "network")

@@ -2651,9 +2651,9 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
 		retRes226212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes226212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH
@@ -3037,9 +3037,9 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 		PanicOnError(retRes258512)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset":   GetValue(currency, "id"),
+		"asset":   currency["id"],
 		"address": address,
 		"amount":  this.NumberToString(amount),
 	}

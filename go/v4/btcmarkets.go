@@ -1824,9 +1824,9 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 		retRes139512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes139512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"assetName": GetValue(currency, "id"),
+		"assetName": currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),
 	}
 	if !IsEqual(code, "AUD") {

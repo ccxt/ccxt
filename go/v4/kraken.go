@@ -3796,8 +3796,8 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency any = this.Currency(code)
-		request["asset"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["asset"] = currency["id"]
 	}
 	if !IsEqual(since, nil) {
 		var sinceString *string = this.NumberToString(since)
@@ -3917,8 +3917,8 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency any = this.Currency(code)
-		request["asset"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["asset"] = currency["id"]
 	}
 	if !IsEqual(since, nil) {
 		var sinceString *string = this.NumberToString(since)
@@ -4047,9 +4047,9 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan any, code any, optionalArgs 
 		retRes330012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes330012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 
 	response := (<-this.PrivatePostDepositMethods(this.Extend(request, params)))
@@ -4106,7 +4106,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes334412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes334412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var network *string = this.SafeStringUpper(params, "network")
 	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
 	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
@@ -4143,7 +4143,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		}
 	}
 	var request map[string]any = map[string]any{
-		"asset":  GetValue(currency, "id"),
+		"asset":  currency["id"],
 		"method": depositMethod,
 	}
 
@@ -4220,9 +4220,9 @@ func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any,
 
 		retRes343712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes343712)
-		var currency any = this.Currency(code)
+		var currency map[string]any = this.Currency(code).(map[string]any)
 		var request map[string]any = map[string]any{
-			"asset":  GetValue(currency, "id"),
+			"asset":  currency["id"],
 			"amount": amount,
 		}
 		if (address != nil) && (!IsEqual(address, "")) {
@@ -4451,14 +4451,14 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes361912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes361912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var fromAccountParsed *string = this.ParseAccountType(fromAccount)
 	var toAccountParsed *string = this.ParseAccountType(toAccount)
 	var request map[string]any = map[string]any{
 		"amount": this.CurrencyToPrecision(code, amount),
 		"from":   fromAccountParsed,
 		"to":     toAccountParsed,
-		"asset":  GetValue(currency, "id"),
+		"asset":  currency["id"],
 	}
 	if fromAccountParsed == nil || *fromAccountParsed != "Spot Wallet" {
 		panic(BadRequest(Add(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))

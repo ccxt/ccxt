@@ -2677,9 +2677,9 @@ func (this *Blofin) withdrawBody(ch chan any, code any, amount any, address any,
 
 	retRes20518 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes20518)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"address":  address,
 		"amount":   this.NumberToString(amount),
 	}
@@ -3091,12 +3091,12 @@ func (this *Blofin) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes240312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes240312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
-		"currency":    GetValue(currency, "id"),
+		"currency":    currency["id"],
 		"amount":      this.CurrencyToPrecision(code, amount),
 		"fromAccount": fromId,
 		"toAccount":   toId,

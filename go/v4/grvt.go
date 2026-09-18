@@ -2282,7 +2282,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	retRes17168 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes17168)
 	var request any = map[string]any{}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var maxLimit int = 1000
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
@@ -2389,7 +2389,7 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 
 	retRes18008 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes18008)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var defaultFromAccountId *string = this.SafeString(this.Options, "userMainAccountId")
 	if this.InArray(fromAccount, []any{"trading", "funding"}) && this.InArray(toAccount, []any{"trading", "funding"}) {
 		var tradingAccountId any = nil
@@ -2421,7 +2421,7 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 		"from_sub_account_id": this.SafeString(params, "from_sub_account_id", fromAccount),
 		"to_account_id":       this.SafeString(params, "to_account_id", defaultFromAccountId),
 		"to_sub_account_id":   this.SafeString(params, "to_sub_account_id", toAccount),
-		"currency":            GetValue(currency, "id"),
+		"currency":            currency["id"],
 		"num_tokens":          this.CurrencyToPrecision(code, amount),
 		"signature":           this.DefaultSignature(),
 		"transfer_type":       "STANDARD",
@@ -2621,11 +2621,11 @@ func (this *Grvt) withdrawBody(ch chan any, code any, amount any, address any, o
 	retRes19718 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes19718)
 	var defaultFromAccountId *string = this.SafeString(this.Options, "userMainAccountId")
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = map[string]any{
 		"to_eth_address":  address,
 		"from_account_id": defaultFromAccountId,
-		"currency":        GetValue(currency, "id"),
+		"currency":        currency["id"],
 		"num_tokens":      this.CurrencyToPrecision(code, amount),
 		"signature":       this.DefaultSignature(),
 	}

@@ -2258,9 +2258,9 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes174512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 
 	response := (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params)))
@@ -2332,12 +2332,12 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes179912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes179912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	if (tag != nil) && (!IsEqual(tag, "")) {
 		address = Add(Add(address, ":"), tag)
 	}
 	var request map[string]any = map[string]any{
-		"asset":   GetValue(currency, "id"),
+		"asset":   currency["id"],
 		"address": address,
 		"amount":  this.NumberToString(amount),
 	}

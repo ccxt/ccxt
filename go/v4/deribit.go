@@ -1574,9 +1574,9 @@ func (this *Deribit) createDepositAddressBody(ch chan any, code any, optionalArg
 		retRes118212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes118212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivateGetCreateDepositAddress(this.Extend(request, params)))
@@ -1631,9 +1631,9 @@ func (this *Deribit) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes122412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes122412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivateGetGetCurrentDepositAddress(this.Extend(request, params)))
@@ -1859,9 +1859,9 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if typeVar != nil {
 		var requestType any = nil
@@ -2235,9 +2235,9 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes172512)
 	}
 	var code any = this.CodeFromOptions("fetchTradingFees", params)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"extended": true,
 	}
 
@@ -3014,8 +3014,8 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if symbol == nil {
 		var code any = this.CodeFromOptions("fetchOpenOrders", params)
-		var currency any = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["currency"] = currency["id"]
 
 		response = (<-this.PrivateGetGetOpenOrdersByCurrency(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3075,8 +3075,8 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	if symbol == nil {
 		var code any = this.CodeFromOptions("fetchClosedOrders", params)
-		var currency any = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["currency"] = currency["id"]
 
 		response = (<-this.PrivateGetGetOrderHistoryByCurrency(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3216,8 +3216,8 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if symbol == nil {
 		var code any = this.CodeFromOptions("fetchMyTrades", params)
-		var currency any = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["currency"] = currency["id"]
 		if IsEqual(since, nil) {
 
 			response = (<-this.PrivateGetGetUserTradesByCurrency(this.Extend(request, params)))
@@ -3317,9 +3317,9 @@ func (this *Deribit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		retRes259912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes259912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["count"] = limit
@@ -3389,9 +3389,9 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		retRes265012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes265012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["count"] = limit
@@ -3678,8 +3678,8 @@ func (this *Deribit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if code != nil {
 		params = this.Omit(params, "currency")
-		var currency any = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["currency"] = currency["id"]
 	}
 
 	response := (<-this.PrivateGetGetPositions(this.Extend(request, params)))
@@ -3743,9 +3743,9 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan any, code any, optionalA
 		retRes295112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes295112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PublicGetGetHistoricalVolatility(this.Extend(request, params)))
@@ -3833,9 +3833,9 @@ func (this *Deribit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		retRes302112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes302112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["count"] = limit
@@ -3911,10 +3911,10 @@ func (this *Deribit) transferBody(ch chan any, code any, amount any, fromAccount
 		retRes308412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes308412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"amount":      amount,
-		"currency":    GetValue(currency, "id"),
+		"currency":    currency["id"],
 		"destination": toAccount,
 	}
 	var method *string = this.SafeString(params, "method")
@@ -4041,9 +4041,9 @@ func (this *Deribit) withdrawBody(ch chan any, code any, amount any, address any
 		retRes318312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes318312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"address":  address,
 		"amount":   amount,
 	}
@@ -4810,9 +4810,9 @@ func (this *Deribit) fetchOptionChainBody(ch chan any, code any, optionalArgs ..
 		retRes379912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes379912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"kind":     "option",
 	}
 

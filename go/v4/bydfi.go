@@ -3376,12 +3376,12 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
 		retRes264312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes264312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
-		"asset":    GetValue(currency, "id"),
+		"asset":    currency["id"],
 		"amount":   this.CurrencyToPrecision(code, amount),
 		"fromType": fromId,
 		"toType":   toId,
@@ -3449,7 +3449,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		retRes269512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes269512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate == true {
 		var maxLimit int = 50
@@ -3458,14 +3458,14 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 			"paginationDirection": "backward",
 		})
 
-		paginatedResponse := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", GetValue(currency, "code"), since, limit, params, maxLimit, true))
+		paginatedResponse := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", currency["code"], since, limit, params, maxLimit, true))
 		PanicOnError(paginatedResponse)
 
 		ch <- this.SortBy(paginatedResponse, "timestamp")
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")
@@ -3650,7 +3650,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 		retRes283312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes283312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate == true {
 		var maxLimit int = 50
@@ -3659,14 +3659,14 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 			"paginationDirection": "backward",
 		})
 
-		paginatedResponse := (<-this.FetchPaginatedCallDynamicAsync(methodName, GetValue(currency, "code"), since, limit, params, maxLimit, true))
+		paginatedResponse := (<-this.FetchPaginatedCallDynamicAsync(methodName, currency["code"], since, limit, params, maxLimit, true))
 		PanicOnError(paginatedResponse)
 
 		ch <- this.SortBy(paginatedResponse, "timestamp")
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")

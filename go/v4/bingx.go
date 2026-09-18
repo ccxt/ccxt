@@ -5953,7 +5953,7 @@ func (this *Bingx) transferBody(ch chan any, code any, amount any, fromAccount a
 		retRes529212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes529212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("transfer", nil, params)
@@ -5978,7 +5978,7 @@ func (this *Bingx) transferBody(ch chan any, code any, amount any, fromAccount a
 	var request map[string]any = map[string]any{
 		"fromAccount": fromId,
 		"toAccount":   toId,
-		"asset":       GetValue(currency, "id"),
+		"asset":       currency["id"],
 		"amount":      this.CurrencyToPrecision(code, amount),
 	}
 
@@ -6170,11 +6170,11 @@ func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 		retRes546312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes546312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
 	var recvWindow *int64 = this.SafeInteger(params, "recvWindow", defaultRecvWindow)
 	var request map[string]any = map[string]any{
-		"coin":       GetValue(currency, "id"),
+		"coin":       currency["id"],
 		"offset":     0,
 		"limit":      1000,
 		"recvWindow": recvWindow,
@@ -6201,7 +6201,7 @@ func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 	//     }
 	//
 	var data any = this.SafeList(this.SafeDict(response, "data"), "data")
-	var parsed any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")}, false)
+	var parsed any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 
 	ch <- this.IndexBy(parsed, "network")
 	return nil
@@ -7122,7 +7122,7 @@ func (this *Bingx) withdrawBody(ch chan any, code any, amount any, address any, 
 		retRes629212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes629212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var defaultWalletType int = 15 // spot
 	var walletType any = nil
 	var walletTypeparamsVariable []any = this.HandleOptionAndParams2(params, "withdraw", "type", "walletType", defaultWalletType)
@@ -7137,14 +7137,14 @@ func (this *Bingx) withdrawBody(ch chan any, code any, amount any, address any, 
 	}
 	walletType = DerefScalar(this.SafeInteger(walletTypes, walletType, defaultWalletType))
 	var request map[string]any = map[string]any{
-		"coin":       GetValue(currency, "id"),
+		"coin":       currency["id"],
 		"address":    address,
 		"amount":     this.CurrencyToPrecision(code, amount),
 		"walletType": walletType,
 	}
 	var network *string = this.SafeStringUpper(params, "network")
 	if network != nil {
-		request["network"] = this.NetworkCodeToId(network, GetValue(currency, "code"))
+		request["network"] = this.NetworkCodeToId(network, currency["code"])
 	}
 	if tag != nil {
 		request["addressTag"] = tag

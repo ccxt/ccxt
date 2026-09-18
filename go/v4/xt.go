@@ -5270,11 +5270,11 @@ func (this *Xt) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...a
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	this.CheckRequiredArgument("fetchDepositAddress", networkId, "network")
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"chain":    networkId,
 	}
 
@@ -5506,7 +5506,7 @@ func (this *Xt) withdrawBody(ch chan any, code any, amount any, address any, opt
 		retRes432012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes432012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
@@ -5517,7 +5517,7 @@ func (this *Xt) withdrawBody(ch chan any, code any, amount any, address any, opt
 	var networkIdsByCodes any = this.SafeDict(this.Options, "networks", map[string]any{})
 	var networkId *string = this.SafeString2(networkIdsByCodes, networkCode, code, code)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"chain":    networkId,
 		"amount":   this.CurrencyToPrecision(code, amount),
 		"address":  address,
@@ -7133,14 +7133,14 @@ func (this *Xt) transferBody(ch chan any, code any, amount any, fromAccount any,
 		retRes557512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes557512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeDict(this.Options, "accountsById")
 	var fromAccountId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var amountString any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"bizId":    this.Uuid(),
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   amountString,
 		"from":     fromAccountId,
 		"to":       toAccountId,
