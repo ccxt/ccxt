@@ -4726,7 +4726,7 @@ public class Bitget extends BitgetApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object minNotional = 0;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Object item = Helpers.GetValue(info, i);
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
@@ -7117,7 +7117,7 @@ final Object finalMinNotional = minNotional;
         //         "balance": "0.01"
         //     }
         //
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balance)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(balance); i++)
         {
             Object entry = Helpers.GetValue(balance, i);
             Object account = this.account();
@@ -7187,7 +7187,7 @@ final Object finalMinNotional = minNotional;
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balance)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(balance); i++)
         {
             Object entry = Helpers.GetValue(balance, i);
             Object account = this.account();
@@ -9008,7 +9008,7 @@ final Object finalMinNotional = minNotional;
             productType = ((List<Object>) productTypeparametersVariable).get(0);
             parameters = ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> requestList = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(ids); i++)
             {
                 Object individualId = Helpers.GetValue(ids, i);
                 final Object finalProductType = productType;
@@ -10733,7 +10733,7 @@ final Object finalMinNotional = minNotional;
         String amountRaw = this.safeString2(item, "size", "amount", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0))
+        if (Helpers.getIndexOf(amountRaw, "-") >= 0)
         {
             direction = "out";
         }
@@ -12224,7 +12224,7 @@ final Object finalMinNotional = minNotional;
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(contracts); i++)
         {
             Object contract = Helpers.GetValue(contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.

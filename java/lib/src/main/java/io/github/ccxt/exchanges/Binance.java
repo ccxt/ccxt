@@ -4450,7 +4450,7 @@ public class Binance extends BinanceApi
                     defaultType = defaultSubType;
                 }
                 // end diff
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(markets); i++)
                 {
                     Object market = Helpers.GetValue(markets, i);
                     if (java.util.Objects.equals(this.safeValue(market, defaultType), true))
@@ -4459,7 +4459,7 @@ public class Binance extends BinanceApi
                     }
                 }
                 return Helpers.GetValue(markets, 0);
-            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))) && (Helpers.isLessThan(Helpers.getIndexOf(symbol, ":"), 0)))
+            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))) && (Helpers.getIndexOf(symbol, ":") < 0))
             {
                 if ((!java.util.Objects.equals(defaultType, null)) && (!java.util.Objects.equals(defaultType, "spot")))
                 {
@@ -4785,7 +4785,7 @@ public class Binance extends BinanceApi
     public Object parseCurrenciesCustom(Object responseCurrencies, Object marginablesById)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseCurrencies)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(responseCurrencies); i++)
         {
             Object parsed = this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
             if (java.util.Objects.equals(parsed, null))
@@ -5648,7 +5648,7 @@ public class Binance extends BinanceApi
         Boolean cross = (java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(marginMode, "cross"));
         if (Helpers.isTrue(isPortfolioMargin))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
@@ -5744,7 +5744,7 @@ public class Binance extends BinanceApi
             }
         } else if (java.util.Objects.equals(type, "funding"))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
@@ -5767,7 +5767,7 @@ public class Binance extends BinanceApi
             {
                 balances = this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(balances); i++)
             {
                 Object balance = Helpers.GetValue(balances, i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -6784,7 +6784,7 @@ public class Binance extends BinanceApi
     public Object parseTickersForRolling(Object response, Object symbols)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
@@ -7516,7 +7516,7 @@ public class Binance extends BinanceApi
             if (!java.util.Objects.equals(limit, null))
             {
                 Boolean isFutureOrSwap = (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true));
-                Boolean isHistoricalEndpoint = (!java.util.Objects.equals(method, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "GetHistoricalTrades"), 0));
+                Boolean isHistoricalEndpoint = (!java.util.Objects.equals(method, null)) && (Helpers.getIndexOf(method, "GetHistoricalTrades") >= 0);
                 Object maxLimitForContractHistorical = ((Helpers.isTrue(isHistoricalEndpoint))) ? 500 : 1000;
                 ((Map<String, Object>)request).put("limit", (((java.util.Objects.equals(isFutureOrSwap, true)))) ? Helpers.mathMin(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
             }
@@ -12206,7 +12206,7 @@ public class Binance extends BinanceApi
             }
         }
         String txid = this.safeString(transaction, "txId");
-        if ((!java.util.Objects.equals(txid, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(txid, "Internal transfer "), 0)))
+        if ((!java.util.Objects.equals(txid, null)) && (Helpers.getIndexOf(txid, "Internal transfer ") >= 0))
         {
             txid = Helpers.slice(txid, 18, null);
         }
@@ -15803,7 +15803,7 @@ final Object finalMarket = market;
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }
@@ -16245,7 +16245,7 @@ final Object finalMarket = market;
             if ((java.util.Objects.equals(api, "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((java.util.Objects.equals(path, "batchOrders")) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(path, "sub-account"), 0)) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(path, "staking"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(path, "simple-earn"), 0)))
+            } else if ((java.util.Objects.equals(path, "batchOrders")) || (Helpers.getIndexOf(path, "sub-account") >= 0) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (Helpers.getIndexOf(path, "staking") >= 0) || (Helpers.getIndexOf(path, "simple-earn") >= 0))
             {
                 if ((java.util.Objects.equals(method, "DELETE")) && (java.util.Objects.equals(path, "batchOrders")))
                 {
@@ -16369,15 +16369,15 @@ final Object finalMarket = market;
         // will switch "code" checks eventually, when we know all of them
         if ((Helpers.isGreaterThanOrEqual(code, 400)) && (!java.util.Objects.equals(body, null)))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "Price * QTY is zero or less"), 0))
+            if (Helpers.getIndexOf(body, "Price * QTY is zero or less") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "LOT_SIZE"), 0))
+            if (Helpers.getIndexOf(body, "LOT_SIZE") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "PRICE_FILTER"), 0))
+            if (Helpers.getIndexOf(body, "PRICE_FILTER") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }
