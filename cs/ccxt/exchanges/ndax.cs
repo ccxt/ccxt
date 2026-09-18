@@ -1638,11 +1638,11 @@ public partial class ndax : Exchange
         string? debit = this.safeString(item, "DR");
         string? amount = null;
         string? direction = null;
-        if (isTrue(Precise.stringLt(credit, "0")))
+        if (Precise.stringLt(credit, "0"))
         {
             amount = credit;
             direction = "in";
-        } else if (isTrue(Precise.stringLt(debit, "0")))
+        } else if (Precise.stringLt(debit, "0"))
         {
             amount = debit;
             direction = "out";

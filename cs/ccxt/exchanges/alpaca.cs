@@ -2166,7 +2166,7 @@ public partial class alpaca : Exchange
                 object entry = getValue(ledger, i);
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
-                bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !isTrue(Precise.stringLt(amount, "0")));
+                bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(amount, "0"));
                 string entryDirection = ((bool) isIncoming) ? "INCOMING" : "OUTGOING";
                 if ((isEqual(type, "BOTH")) || (isEqual(entryDirection, type)))
                 {
@@ -2314,7 +2314,7 @@ public partial class alpaca : Exchange
         if ((activityType != null))
         {
             string? netAmount = this.safeString(transaction, "net_amount");
-            bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !isTrue(Precise.stringLt(netAmount, "0")));
+            bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(netAmount, "0"));
             timestamp = this.parse8601((this.safeString(transaction, "date") + "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = ((bool) isIncoming) ? "deposit" : "withdrawal";

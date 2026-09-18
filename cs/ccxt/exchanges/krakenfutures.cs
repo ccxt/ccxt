@@ -922,7 +922,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         IDictionary<string, object> volumes = new Dictionary<string, object>() {};
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             Dictionary<string, object> volumesResponse = await this.privateGetFeeschedulesVolumes();
             //
@@ -985,7 +985,7 @@ public partial class krakenfutures : Exchange
         {
             object tier = getValue(tiers, i);
             string? tierVolume = this.safeString(tier, "usdVolume");
-            if ((isEqual(volume, null)) || isTrue(Precise.stringGe(volume, tierVolume)))
+            if ((isEqual(volume, null)) || Precise.stringGe(volume, tierVolume))
             {
                 makerFee = this.safeString(tier, "makerFee");
                 takerFee = this.safeString(tier, "takerFee");
@@ -2670,7 +2670,7 @@ public partial class krakenfutures : Exchange
                 vwapSum = ((string)Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice)));
             }
             average = Precise.stringDiv(vwapSum, filled2);
-            if (((amount != null)) && (!isClosed) && isPrior && isTrue(Precise.stringGe(filled2, amount)))
+            if (((amount != null)) && (!isClosed) && isPrior && Precise.stringGe(filled2, amount))
             {
                 status = "closed";
                 isClosed = true;
@@ -3077,7 +3077,7 @@ public partial class krakenfutures : Exchange
                 // unified ledger contract: after = before +/- amount - fee
                 amount = Precise.stringAdd(amount, feeCost);
             }
-            if (isTrue(Precise.stringLt(amount, "0")))
+            if (Precise.stringLt(amount, "0"))
             {
                 direction = "out";
                 amount = Precise.stringAbs(amount);
@@ -3428,17 +3428,17 @@ public partial class krakenfutures : Exchange
         string? fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         string? nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
         string? nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
-        if (isTrue(Precise.stringGt(fundingRateResult, "0.25")))
+        if (Precise.stringGt(fundingRateResult, "0.25"))
         {
             fundingRateResult = "0.25";
-        } else if (isTrue(Precise.stringLt(fundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(fundingRateResult, "-0.25"))
         {
             fundingRateResult = "-0.25";
         }
-        if (isTrue(Precise.stringGt(nextFundingRateResult, "0.25")))
+        if (Precise.stringGt(nextFundingRateResult, "0.25"))
         {
             nextFundingRateResult = "0.25";
-        } else if (isTrue(Precise.stringLt(nextFundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(nextFundingRateResult, "-0.25"))
         {
             nextFundingRateResult = "-0.25";
         }

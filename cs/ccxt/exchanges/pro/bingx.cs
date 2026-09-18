@@ -1373,7 +1373,7 @@ public partial class bingx : ccxt.bingx
         object market = null;
         string messageHash = "";
         symbols = this.marketSymbols(symbols);
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if ((!isEqual(symbols, null)) && !this.isEmpty(symbols))
         {
             market = this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1491,9 +1491,9 @@ public partial class bingx : ccxt.bingx
         if (isEqual(positionSide, "both"))
         {
             hedged = false;
-            if (!isTrue(Precise.stringEq(contracts, "0")))
+            if (!Precise.stringEq(contracts, "0"))
             {
-                if (isTrue(Precise.stringLt(contracts, "0")))
+                if (Precise.stringLt(contracts, "0"))
                 {
                     positionSide = "short";
                 } else
@@ -1589,7 +1589,7 @@ public partial class bingx : ccxt.bingx
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> filteredSymbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }
@@ -1996,7 +1996,7 @@ public partial class bingx : ccxt.bingx
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (!this.handleErrorMessage(client as WebSocketClient, message))
         {
             return;
         }

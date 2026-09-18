@@ -964,7 +964,7 @@ public partial class hashkey : Exchange
         List<object> spotMarkets = this.safeList(response, "symbols", new List<object>() {});
         List<object> swapMarkets = this.safeList(response, "contracts", new List<object>() {});
         List<object> markets = this.arrayConcat(spotMarkets, swapMarkets);
-        if (isTrue(this.isEmpty(markets)))
+        if (this.isEmpty(markets))
         {
             markets = new List<object>() {response}; // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
@@ -1182,7 +1182,7 @@ public partial class hashkey : Exchange
                 IDictionary<string, object> last = this.safeDict(riskLimits, (arrayLength - 1));
                 object minInitialMargin = this.safeString(first, "initialMargin");
                 object maxInitialMargin = this.safeString(last, "initialMargin");
-                if (isTrue(Precise.stringGt(minInitialMargin, maxInitialMargin)))
+                if (Precise.stringGt(minInitialMargin, maxInitialMargin))
                 {
                     var minInitialMarginmaxInitialMarginVariable = new List<object>() {maxInitialMargin, minInitialMargin};
                     minInitialMargin = ((IList<object>)minInitialMarginmaxInitialMarginVariable)[0];

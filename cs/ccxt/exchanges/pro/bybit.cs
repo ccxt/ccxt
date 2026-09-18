@@ -1700,7 +1700,7 @@ public partial class bybit : ccxt.bybit
         }
         string method = "watchPositions";
         string messageHash = "";
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if ((!isEqual(symbols, null)) && !this.isEmpty(symbols))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1859,7 +1859,7 @@ public partial class bybit : ccxt.bybit
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }
@@ -1886,7 +1886,7 @@ public partial class bybit : ccxt.bybit
         string method = "watchPositions";
         string messageHash = "unsubscribe:positions";
         string subHash = "positions";
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if ((!isEqual(symbols, null)) && !this.isEmpty(symbols))
         {
             throw new NotSupported ((string)(this.id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
         }

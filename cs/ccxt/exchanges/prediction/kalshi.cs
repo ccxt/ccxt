@@ -548,7 +548,7 @@ public partial class kalshi : PredictionExchange
                         throw e;
                     }
                 }
-                if (isTrue(this.hasOutcome(outcomeSymbol)))
+                if (this.hasOutcome(outcomeSymbol))
                 {
                     return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
                 }
@@ -629,7 +629,7 @@ public partial class kalshi : PredictionExchange
         }
         for (int i = 0; i < getArrayLength(outcomeSymbols); postFixIncrement(ref i))
         {
-            if (!isTrue(this.hasOutcome(getValue(outcomeSymbols, i))))
+            if (!this.hasOutcome(getValue(outcomeSymbols, i)))
             {
                 ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
             }
@@ -1136,12 +1136,12 @@ public partial class kalshi : PredictionExchange
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         double? bidVolume = null;
-        if (((bidSizeString != null)) && isTrue(Precise.stringGe(bidSizeString, "0")))
+        if (((bidSizeString != null)) && Precise.stringGe(bidSizeString, "0"))
         {
             bidVolume = this.parseNumber(bidSizeString);
         }
         double? askVolume = null;
-        if (((askSizeString != null)) && isTrue(Precise.stringGe(askSizeString, "0")))
+        if (((askSizeString != null)) && Precise.stringGe(askSizeString, "0"))
         {
             askVolume = this.parseNumber(askSizeString);
         }

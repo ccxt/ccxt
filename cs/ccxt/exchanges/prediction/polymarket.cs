@@ -1307,7 +1307,7 @@ public partial class polymarket : PredictionExchange
         }
         for (int i = 0; i < getArrayLength(outcomeSymbols); postFixIncrement(ref i))
         {
-            if (!isTrue(this.hasOutcome(getValue(outcomeSymbols, i))))
+            if (!this.hasOutcome(getValue(outcomeSymbols, i)))
             {
                 ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
             }

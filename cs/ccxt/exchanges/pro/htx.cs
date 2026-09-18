@@ -1757,7 +1757,7 @@ public partial class htx : ccxt.htx
         }
         object market = null;
         object messageHash = "";
-        if ((!isTrue(this.isEmpty(symbols))) && (!isEqual(symbols, null)))
+        if ((!this.isEmpty(symbols)) && (!isEqual(symbols, null)))
         {
             market = this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1911,7 +1911,7 @@ public partial class htx : ccxt.htx
             ((IDictionary<string,object>)this.positions)[(string)url] = new Dictionary<string, object>() {};
         }
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
-        if (isTrue(this.isEmpty(rawPositions)))
+        if (this.isEmpty(rawPositions))
         {
             List<object> prefixes = new List<object>() {"cross:positions", "isolated:positions"};
             for (int i = 0; i < getArrayLength(prefixes); postFixIncrement(ref i))
@@ -1962,7 +1962,7 @@ public partial class htx : ccxt.htx
                 string? symbolsString = ((string)getValue(parts, 1));
                 List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                 object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
-                if (!isTrue(this.isEmpty(positions)))
+                if (!this.isEmpty(positions))
                 {
                     (client as WebSocketClient).resolve(positions, messageHash);
                 }

@@ -1551,7 +1551,7 @@ public partial class gate : ccxt.gate
         object market = null;
         symbols = this.marketSymbols(symbols);
         List<object> payload = new List<object>() {("!" + "all")};
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             market = this.getMarketFromSymbols(symbols);
         }
@@ -1570,7 +1570,7 @@ public partial class gate : ccxt.gate
             { "option", "options" },
         });
         object messageHash = add(type, ":positions");
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             if (isEqual(symbols, null))
             {
@@ -1730,7 +1730,7 @@ public partial class gate : ccxt.gate
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }
@@ -1978,7 +1978,7 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarketType(type, isInverse);
         List<object> payload = new List<object>() {};
         string messageHash = "";
-        if (isTrue(this.isEmpty(symbols)))
+        if (this.isEmpty(symbols))
         {
             if (!isEqual(typeId, "futures") && !isInverse)
             {

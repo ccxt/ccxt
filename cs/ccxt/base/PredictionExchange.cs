@@ -487,7 +487,7 @@ public partial class PredictionExchange : BaseExchange
         {
             throw new ArgumentsRequired ((string)(this.id + " outcome() requires an outcomeSymbol argument")) ;
         }
-        if ((isEqual(this.outcomes, null)) || isTrue(this.isEmpty(this.outcomes)))
+        if ((isEqual(this.outcomes, null)) || this.isEmpty(this.outcomes))
         {
             throw new ExchangeError ((string)(this.id + " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
         }
@@ -841,13 +841,13 @@ public partial class PredictionExchange : BaseExchange
             List<object> missing = new List<object>() {};
             for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
             {
-                if (isTrue(reload) || !isTrue(this.hasOutcome(getValue(outcomes, i))))
+                if (isTrue(reload) || !this.hasOutcome(getValue(outcomes, i)))
                 {
                     ((IList<object>)missing).Add(getValue(outcomes, i));
                 }
             }
             int missingLength = getArrayLength(missing);
-            bool wasWarm = (!isEqual(this.outcomes, null)) && !isTrue(this.isEmpty(this.outcomes));
+            bool wasWarm = (!isEqual(this.outcomes, null)) && !this.isEmpty(this.outcomes);
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if ((missingLength > 0) && ((loadAll == true)) && !wasWarm && !isTrue(reload))
             {
@@ -855,7 +855,7 @@ public partial class PredictionExchange : BaseExchange
                 List<object> stillMissing = new List<object>() {};
                 for (int i = 0; i < missingLength; postFixIncrement(ref i))
                 {
-                    if (!isTrue(this.hasOutcome(getValue(missing, i))))
+                    if (!this.hasOutcome(getValue(missing, i)))
                     {
                         ((IList<object>)stillMissing).Add(getValue(missing, i));
                     }
@@ -869,7 +869,7 @@ public partial class PredictionExchange : BaseExchange
             }
             return this.outcomes;
         }
-        if (!isTrue(reload) && (!isEqual(this.outcomes, null)) && !isTrue(this.isEmpty(this.outcomes)))
+        if (!isTrue(reload) && (!isEqual(this.outcomes, null)) && !this.isEmpty(this.outcomes))
         {
             return this.outcomes;
         }
@@ -911,18 +911,18 @@ public partial class PredictionExchange : BaseExchange
         }
         if (!isTrue(reload))
         {
-            if (isTrue(this.hasOutcome(outcomeSymbol)))
+            if (this.hasOutcome(outcomeSymbol))
             {
                 return this.safeOutcome(outcomeSymbol);
             }
-            bool wasWarm = (!isEqual(this.outcomes, null)) && !isTrue(this.isEmpty(this.outcomes));
+            bool wasWarm = (!isEqual(this.outcomes, null)) && !this.isEmpty(this.outcomes);
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            if (!wasWarm && (!isEqual(this.markets, null)) && !isTrue(this.isEmpty(this.markets)))
+            if (!wasWarm && (!isEqual(this.markets, null)) && !this.isEmpty(this.markets))
             {
                 this.populateOutcomes();
-                if (isTrue(this.hasOutcome(outcomeSymbol)))
+                if (this.hasOutcome(outcomeSymbol))
                 {
                     return this.safeOutcome(outcomeSymbol);
                 }
@@ -935,7 +935,7 @@ public partial class PredictionExchange : BaseExchange
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
                 await this.loadOutcomes();
-                if (isTrue(this.hasOutcome(outcomeSymbol)))
+                if (this.hasOutcome(outcomeSymbol))
                 {
                     return this.safeOutcome(outcomeSymbol);
                 }
@@ -1028,7 +1028,7 @@ public partial class PredictionExchange : BaseExchange
                     throw e;
                 }
             }
-            if (isTrue(this.hasOutcome(outcomeSymbol)))
+            if (this.hasOutcome(outcomeSymbol))
             {
                 return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
             }
@@ -1555,7 +1555,7 @@ public partial class PredictionExchange : BaseExchange
         {
             amount = Precise.stringAdd(filled, remaining);
         }
-        if (((average == null)) && ((filled != null)) && ((cost != null)) && isTrue(Precise.stringGt(filled, "0")))
+        if (((average == null)) && ((filled != null)) && ((cost != null)) && Precise.stringGt(filled, "0"))
         {
             average = Precise.stringDiv(cost, filled);
         }
@@ -1688,7 +1688,7 @@ public partial class PredictionExchange : BaseExchange
         {
             change = Precise.stringSub(close, open);
         }
-        if (((percentage == null)) && ((change != null)) && ((open != null)) && isTrue(Precise.stringGt(open, "0")))
+        if (((percentage == null)) && ((change != null)) && ((open != null)) && Precise.stringGt(open, "0"))
         {
             percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
         }

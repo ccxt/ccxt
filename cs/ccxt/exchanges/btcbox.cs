@@ -735,7 +735,7 @@ public partial class btcbox : Exchange
         // fetchOrders do not return status, use heuristic
         if ((status == null))
         {
-            if (isTrue(Precise.stringEquals(remaining, "0")))
+            if (Precise.stringEquals(remaining, "0"))
             {
                 status = "closed";
             }
@@ -966,7 +966,7 @@ public partial class btcbox : Exchange
         {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip(response);
-            if (!isTrue(this.isJsonEncodedObject(response)))
+            if (!this.isJsonEncodedObject(response))
             {
                 throw new ExchangeError ((string)add((this.id + " "), response)) ;
             }

@@ -678,7 +678,7 @@ public partial class deepcoin : Exchange
         string? maxLimitSize = this.safeString(market, "maxLmtSz");
         double? maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         string? state = this.safeString(market, "state");
-        bool isMargin = spot && isTrue((Precise.stringGt(maxLeverage, "1")));
+        bool isMargin = spot && (Precise.stringGt(maxLeverage, "1"));
         bool? isInverse = ((bool) swap) ? (!isEqual(isLinear, true)) : null;
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
@@ -1604,7 +1604,7 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeInteger(item, "ts");
         string? change = this.safeString(item, "balChg");
         string? amount = Precise.stringAbs(change);
-        string direction = ((bool) isTrue(Precise.stringLt(change, "0"))) ? "out" : "in";
+        string direction = ((bool) Precise.stringLt(change, "0")) ? "out" : "in";
         string? currencyId = this.safeString(item, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         string? type = this.safeString(item, "type");

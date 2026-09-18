@@ -409,7 +409,7 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = new List<object>() {};
         string streamHash = "liquidations";
         symbols = this.marketSymbols(symbols, null, true, true);
-        if (isTrue(this.isEmpty(symbols)))
+        if (this.isEmpty(symbols))
         {
             ((IList<object>)subscriptionHashes).Add(("!" + "forceOrder@arr"));
             ((IList<object>)messageHashes).Add("liquidations");
@@ -424,7 +424,7 @@ public partial class binance : ccxt.binance
             streamHash = streamHash + ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object firstMarket = null;
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             firstMarket = this.getMarketFromSymbols(symbols);
         }
@@ -652,7 +652,7 @@ public partial class binance : ccxt.binance
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         List<object> messageHashes = new List<object>() {"myLiquidations"};
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -1916,7 +1916,7 @@ public partial class binance : ccxt.binance
         IList<object> timezoneparametersVariable = (IList<object>)this.handleParamString(parameters, "timezone");
         timezone = (string)((IList<object>)timezoneparametersVariable)[0];
         parameters = ((IList<object>)timezoneparametersVariable)[1];
-        bool isUtc8 = ((timezone != null)) && ((isEqual(timezone, "+08:00")) || isTrue(Precise.stringEq(timezone, "8")));
+        bool isUtc8 = ((timezone != null)) && ((isEqual(timezone, "+08:00")) || Precise.stringEq(timezone, "8"));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
@@ -2008,7 +2008,7 @@ public partial class binance : ccxt.binance
         IList<object> timezoneparametersVariable = (IList<object>)this.handleParamString(parameters, "timezone");
         timezone = (string)((IList<object>)timezoneparametersVariable)[0];
         parameters = ((IList<object>)timezoneparametersVariable)[1];
-        bool isUtc8 = ((timezone != null)) && ((isEqual(timezone, "+08:00")) || isTrue(Precise.stringEq(timezone, "8")));
+        bool isUtc8 = ((timezone != null)) && ((isEqual(timezone, "+08:00")) || Precise.stringEq(timezone, "8"));
         List<object> rawHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -2637,10 +2637,10 @@ public partial class binance : ccxt.binance
             // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             rawMarketType = ((bool) (isOptionMarkPrice)) ? "optionMarket" : "option";
-        } else if (isTrue(this.isLinear(marketType, subType)))
+        } else if (this.isLinear(marketType, subType))
         {
             rawMarketType = "future";
-        } else if (isTrue(this.isInverse(marketType, subType)))
+        } else if (this.isInverse(marketType, subType))
         {
             rawMarketType = "delivery";
         } else if (isEqual(marketType, "spot"))
@@ -3539,10 +3539,10 @@ public partial class binance : ccxt.binance
             // subType alone and would flip 'stock' to 'future' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
-            if (isTrue(this.isLinear(type, subType)))
+            if (this.isLinear(type, subType))
             {
                 type = "future";
-            } else if (isTrue(this.isInverse(type, subType)))
+            } else if (this.isInverse(type, subType))
             {
                 type = "delivery";
             }
@@ -4194,10 +4194,10 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (!isEqual(type, "option") && !isEqual(type, "stock"))
         {
-            if (isTrue(this.isLinear(type, subType)))
+            if (this.isLinear(type, subType))
             {
                 type = "future";
-            } else if (isTrue(this.isInverse(type, subType)))
+            } else if (this.isInverse(type, subType))
             {
                 type = "delivery";
             }
@@ -4218,10 +4218,10 @@ public partial class binance : ccxt.binance
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams(method, market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             type = "delivery";
         }
@@ -5246,7 +5246,7 @@ public partial class binance : ccxt.binance
         Int64? lastUpdateTimestamp = T;
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "n");
-        if (((feeCost != null)) && isTrue((Precise.stringGt(feeCost, "0"))))
+        if (((feeCost != null)) && (Precise.stringGt(feeCost, "0")))
         {
             string? feeCurrencyId = this.safeString(order, "N");
             string? feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -5549,7 +5549,7 @@ public partial class binance : ccxt.binance
             List<object> fills = this.safeList(order, "fi", new List<object>() {});
             string? rawQty = this.safeString(order, "q", "0");
             string side = "BUY";
-            if (isTrue(Precise.stringLt(rawQty, "0")))
+            if (Precise.stringLt(rawQty, "0"))
             {
                 side = "SELL";
             }
@@ -5622,7 +5622,7 @@ public partial class binance : ccxt.binance
         object market = null;
         object messageHash = "";
         symbols = this.marketSymbols(symbols);
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             market = this.getMarketFromSymbols(symbols);
             if (isEqual(symbols, null))
@@ -5814,7 +5814,7 @@ public partial class binance : ccxt.binance
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }
@@ -5844,9 +5844,9 @@ public partial class binance : ccxt.binance
         if (isEqual(positionSide, "both"))
         {
             hedged = false;
-            if (!isTrue(Precise.stringEq(contracts, "0")))
+            if (!Precise.stringEq(contracts, "0"))
             {
-                if (isTrue(Precise.stringLt(contracts, "0")))
+                if (Precise.stringLt(contracts, "0"))
                 {
                     positionSide = "short";
                 } else
@@ -5899,10 +5899,10 @@ public partial class binance : ccxt.binance
         string? side = null;
         if ((contracts != null))
         {
-            if (isTrue(Precise.stringLt(contracts, "0")))
+            if (Precise.stringLt(contracts, "0"))
             {
                 side = "short";
-            } else if (isTrue(Precise.stringGt(contracts, "0")))
+            } else if (Precise.stringGt(contracts, "0"))
             {
                 side = "long";
             }
@@ -6218,7 +6218,7 @@ public partial class binance : ccxt.binance
                         // accumulate order fees
                         object fees = this.safeValue(order, "fees");
                         object fee = this.safeValue(order, "fee");
-                        if (!isTrue(this.isEmpty(fees)))
+                        if (!this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
                             for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
@@ -6421,7 +6421,7 @@ public partial class binance : ccxt.binance
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }

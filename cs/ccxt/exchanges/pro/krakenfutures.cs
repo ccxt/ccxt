@@ -330,7 +330,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string messageHash = "";
         symbols = this.marketSymbols(symbols);
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if ((!isEqual(symbols, null)) && !this.isEmpty(symbols))
         {
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
@@ -406,7 +406,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }
@@ -438,10 +438,10 @@ public partial class krakenfutures : ccxt.krakenfutures
         string hedged = "both";
         string? balanceString = this.safeString(position, "balance");
         string? side = null;
-        if (isTrue(Precise.stringGt(balanceString, "0")))
+        if (Precise.stringGt(balanceString, "0"))
         {
             side = "long";
-        } else if (isTrue(Precise.stringLt(balanceString, "0")))
+        } else if (Precise.stringLt(balanceString, "0"))
         {
             side = "short";
         }
@@ -888,7 +888,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(getValue(currentTrade, "cost")));
                     totalAmount = Precise.stringAdd(totalAmount, this.numberToString(getValue(currentTrade, "amount")));
                 }
-                if (isTrue(Precise.stringGt(totalAmount, "0")))
+                if (Precise.stringGt(totalAmount, "0"))
                 {
                     ((IDictionary<string,object>)previousOrder)["average"] = Precise.stringDiv(totalCost, totalAmount);
                 }
@@ -1754,7 +1754,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             string? messageHash = ((string)this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i))));
             ((IList<object>)messageHashes).Add(messageHash);
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            if (!isTrue(this.subscriptionExistsForHash(url, messageHash)))
+            if (!this.subscriptionExistsForHash(url, messageHash))
             {
                 ((IList<object>)rawSubs).Add(getValue(market, "id"));
             }

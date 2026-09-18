@@ -798,7 +798,7 @@ public partial class cryptocom : Exchange
     {
         // this endpoint requires authentication
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.checkRequiredCredentials(false)))
+        if (!this.checkRequiredCredentials(false))
         {
             return new Dictionary<string, object>() {};
         }
@@ -1748,7 +1748,7 @@ public partial class cryptocom : Exchange
             {
                 if (isEqual(side, "buy"))
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT_LIMIT";
                     } else
@@ -1757,7 +1757,7 @@ public partial class cryptocom : Exchange
                     }
                 } else
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
                     } else
@@ -1769,7 +1769,7 @@ public partial class cryptocom : Exchange
             {
                 if (isEqual(side, "buy"))
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT";
                     } else
@@ -1778,7 +1778,7 @@ public partial class cryptocom : Exchange
                     }
                 } else
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "STOP_LOSS";
                     } else
@@ -2010,7 +2010,7 @@ public partial class cryptocom : Exchange
             {
                 if (isEqual(side, "buy"))
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT_LIMIT";
                     } else
@@ -2019,7 +2019,7 @@ public partial class cryptocom : Exchange
                     }
                 } else
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
                     } else
@@ -2031,7 +2031,7 @@ public partial class cryptocom : Exchange
             {
                 if (isEqual(side, "buy"))
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT";
                     } else
@@ -2040,7 +2040,7 @@ public partial class cryptocom : Exchange
                     }
                 } else
                 {
-                    if (isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((IDictionary<string,object>)request)["type"] = "STOP_LOSS";
                     } else
@@ -3391,7 +3391,7 @@ public partial class cryptocom : Exchange
         currency = this.safeCurrency(currencyId, currency);
         string? amount = this.safeString(item, "transaction_qty");
         string? direction = null;
-        if (isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringAbs(amount);
@@ -3965,7 +3965,7 @@ public partial class cryptocom : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "hedged", null },
-            { "side", ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "long" : "short" },
+            { "side", ((bool) Precise.stringGt(amount, "0")) ? "long" : "short" },
             { "contracts", this.parseNumber(Precise.stringAbs(amount)) },
             { "contractSize", getValue(market, "contractSize") },
             { "entryPrice", null },

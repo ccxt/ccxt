@@ -1992,10 +1992,10 @@ public partial class delta : Exchange
         string? side = null;
         if ((sizeString != null))
         {
-            if (isTrue(Precise.stringGt(sizeString, "0")))
+            if (Precise.stringGt(sizeString, "0"))
             {
                 side = "buy";
-            } else if (isTrue(Precise.stringLt(sizeString, "0")))
+            } else if (Precise.stringLt(sizeString, "0"))
             {
                 side = "sell";
             }

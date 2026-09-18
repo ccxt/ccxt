@@ -2096,7 +2096,7 @@ public partial class gate : Exchange
         {
             await this.loadTimeDifference();
         }
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             await this.loadUnifiedStatus();
         }
@@ -2876,7 +2876,7 @@ public partial class gate : Exchange
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
-        string type = ((bool) isTrue(this.isLeveragedCurrency(currencyId))) ? "leveraged" : "crypto";
+        string type = ((bool) this.isLeveragedCurrency(currencyId)) ? "leveraged" : "crypto";
         List<object> chains = this.safeList(rawCurrency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < chains.Count; postFixIncrement(ref j))
@@ -5094,7 +5094,7 @@ public partial class gate : Exchange
         market = this.safeMarket(marketId, market, "_", marketType);
         string? amountString = this.safeString2(trade, "amount", "size");
         string? priceString = this.safeString(trade, "price");
-        string contractSide = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
+        string contractSide = ((bool) Precise.stringLt(amountString, "0")) ? "sell" : "buy";
         amountString = Precise.stringAbs(amountString);
         string? side = this.safeString2(trade, "side", "type", contractSide);
         string? orderId = this.safeString(trade, "order_id");
@@ -5406,7 +5406,7 @@ public partial class gate : Exchange
             if (isEqual(getValue(id, 0), "b"))
             {
                 // GateCode handling
-                type = ((bool) isTrue(Precise.stringGt(amountString, "0"))) ? "deposit" : "withdrawal";
+                type = ((bool) Precise.stringGt(amountString, "0")) ? "deposit" : "withdrawal";
                 amountString = Precise.stringAbs(amountString);
             } else
             {
@@ -6399,9 +6399,9 @@ public partial class gate : Exchange
         }
         if (((contract != null)) && ((contract != "")))
         {
-            bool isMarketOrder = isTrue(Precise.stringEquals(price, "0")) && (isEqual(timeInForce, "IOC"));
+            bool isMarketOrder = Precise.stringEquals(price, "0") && (isEqual(timeInForce, "IOC"));
             type = ((bool) isMarketOrder) ? "market" : "limit";
-            side = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "buy" : "sell";
+            side = ((bool) Precise.stringGt(amount, "0")) ? "buy" : "sell";
         }
         string? rawStatus = this.safeStringN(order, new List<object>() {"finish_as", "status", "open"});
         string? timestampStr = this.safeString(order, "create_time_ms");
@@ -7662,10 +7662,10 @@ public partial class gate : Exchange
         string? side = this.safeString(position, "side");
         if ((side == null))
         {
-            if (isTrue(Precise.stringGt(size, "0")))
+            if (Precise.stringGt(size, "0"))
             {
                 side = "long";
-            } else if (isTrue(Precise.stringLt(size, "0")))
+            } else if (Precise.stringLt(size, "0"))
             {
                 side = "short";
             }
@@ -9318,7 +9318,7 @@ public partial class gate : Exchange
         //
         string? direction = null;
         string? amount = this.safeString(item, "change");
-        if (isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringAbs(amount);
@@ -9693,10 +9693,10 @@ public partial class gate : Exchange
         {
             if ((size != null))
             {
-                if (isTrue(Precise.stringGt(size, "0")))
+                if (Precise.stringGt(size, "0"))
                 {
                     side = "buy";
-                } else if (isTrue(Precise.stringLt(size, "0")))
+                } else if (Precise.stringLt(size, "0"))
                 {
                     side = "sell";
                 }

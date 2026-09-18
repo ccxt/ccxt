@@ -724,7 +724,7 @@ public partial class backpack : Exchange
         bool? active = null;
         bool? deposit = null;
         bool? withdraw = null;
-        if (isTrue(this.isEmpty(parsedNetworks)))
+        if (this.isEmpty(parsedNetworks))
         {
             active = false;
             deposit = false;
@@ -2494,7 +2494,7 @@ public partial class backpack : Exchange
         }
         List<object> response = await this.privateGetApiV1Position(parameters);
         object positions = this.parsePositions(response);
-        if (isTrue(this.isEmpty(symbols)))
+        if (this.isEmpty(symbols))
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
@@ -2547,7 +2547,7 @@ public partial class backpack : Exchange
         string? netCost = this.safeString(position, "netCost");
         bool? hedged = false;
         string? side = "long";
-        if (isTrue(Precise.stringLt(netCost, "0")))
+        if (Precise.stringLt(netCost, "0"))
         {
             side = "short";
         }

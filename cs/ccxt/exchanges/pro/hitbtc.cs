@@ -1473,7 +1473,7 @@ public partial class hitbtc : ccxt.hitbtc
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(this.handleError(client as WebSocketClient, message)))
+        if (this.handleError(client as WebSocketClient, message))
         {
             return;
         }

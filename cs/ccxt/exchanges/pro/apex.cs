@@ -715,7 +715,7 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         string messageHash = "";
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -977,7 +977,7 @@ public partial class apex : ccxt.apex
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }

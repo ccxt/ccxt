@@ -1390,10 +1390,10 @@ public partial class coinbase : Exchange
         string? type = resource;
         if (!this.inArray(type, new List<object>() {"deposit", "withdrawal"}))
         {
-            if (isTrue(Precise.stringGt(amountString, "0")))
+            if (Precise.stringGt(amountString, "0"))
             {
                 type = "deposit";
-            } else if (isTrue(Precise.stringLt(amountString, "0")))
+            } else if (Precise.stringLt(amountString, "0"))
             {
                 type = "withdrawal";
             }
@@ -1734,7 +1734,7 @@ public partial class coinbase : Exchange
         //        num_products: '646'
         //    }
         //
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             ((IList<object>)spotUnresolvedPromises).Add(this.v3PrivateGetBrokerageTransactionSummary(parameters));
         }
@@ -3224,7 +3224,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> amountInfo = this.safeDict(item, "amount", new Dictionary<string, object>() {});
         string? amount = this.safeString(amountInfo, "amount");
         string? direction = null;
-        if (isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringNeg(amount);
@@ -5945,7 +5945,7 @@ public partial class coinbase : Exchange
             if ((authorization != null))
             {
                 authorizationString = authorization;
-            } else if ((!isEqual(this.token, "")) && !isTrue(this.checkRequiredCredentials(false)))
+            } else if ((!isEqual(this.token, "")) && !this.checkRequiredCredentials(false))
             {
                 authorizationString = add("Bearer ", this.token);
             } else

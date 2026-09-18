@@ -2051,7 +2051,7 @@ public partial class hibachi : Exchange
             timestamp = this.safeIntegerProduct(item, "timestamp", 1000);
             type = "trade";
             string? amountStr = this.safeString(item, "realizedPnl");
-            if (isTrue(Precise.stringLt(amountStr, "0")))
+            if (Precise.stringLt(amountStr, "0"))
             {
                 direction = "out";
                 amountStr = Precise.stringNeg(amountStr);

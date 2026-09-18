@@ -2746,7 +2746,7 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object uta = false;
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             uta = await this.isUTAEnabled();
         }
@@ -7310,7 +7310,7 @@ public partial class kucoin : Exchange
         string? filled = this.safeString(order, "filledSize");
         string? cost = this.safeString(order, "filledValue");
         string? average = this.safeString(order, "avgDealPrice");
-        if (((average == null)) && isTrue(Precise.stringGt(filled, "0")))
+        if (((average == null)) && Precise.stringGt(filled, "0"))
         {
             string? contractSize = this.safeString(market, "contractSize");
             if (isEqual(getValue(market, "linear"), true))
@@ -12263,10 +12263,10 @@ public partial class kucoin : Exchange
         {
             if ((size != null))
             {
-                if (isTrue(Precise.stringGt(size, "0")))
+                if (Precise.stringGt(size, "0"))
                 {
                     side = "long";
-                } else if (isTrue(Precise.stringLt(size, "0")))
+                } else if (Precise.stringLt(size, "0"))
                 {
                     side = "short";
                 }
@@ -13235,7 +13235,7 @@ public partial class kucoin : Exchange
         headers = ((bool) (!isEqual(headers, null))) ? headers : new Dictionary<string, object>() {};
         object url = getValue(getValue(this.urls, "api"), api);
         string? tradeType = this.safeString(query, "tradeType");
-        if (!isTrue(this.isEmpty(query)))
+        if (!this.isEmpty(query))
         {
             if (((isEqual(method, "GET")) || (isEqual(method, "DELETE"))) && (!isEqual(path, "orders/multi-cancel")))
             {

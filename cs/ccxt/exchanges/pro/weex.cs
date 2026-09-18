@@ -2095,7 +2095,7 @@ public partial class weex : ccxt.weex
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }
@@ -2207,7 +2207,7 @@ public partial class weex : ccxt.weex
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (this.handleErrorMessage(client as WebSocketClient, message))
         {
             return;
         }

@@ -1440,7 +1440,7 @@ public partial class okx : ccxt.okx
         }
         if ((isEqual(depth, "books-l2-tbt")) || (isEqual(depth, "books50-l2-tbt")))
         {
-            if (!isTrue(this.checkRequiredCredentials(false)))
+            if (!this.checkRequiredCredentials(false))
             {
                 throw new AuthenticationError ((string)(this.id + " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
             }
@@ -2559,7 +2559,7 @@ public partial class okx : ccxt.okx
         // filter out partial errors
         args = this.filterBy(args, "sCode", "0");
         // if empty means request failed and handle error
-        if (isTrue(this.isEmpty(args)))
+        if (this.isEmpty(args))
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);

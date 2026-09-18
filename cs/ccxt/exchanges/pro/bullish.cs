@@ -782,7 +782,7 @@ public partial class bullish : ccxt.bullish
         }
         string subscribeHash = "positions";
         string messageHash = subscribeHash;
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if ((!isEqual(symbols, null)) && !this.isEmpty(symbols))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = messageHash + ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -834,7 +834,7 @@ public partial class bullish : ccxt.bullish
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(symbolPositions)))
+            if (!this.isEmpty(symbolPositions))
             {
                 (client as WebSocketClient).resolve(symbolPositions, messageHash);
             }

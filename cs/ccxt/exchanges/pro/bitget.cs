@@ -1463,7 +1463,7 @@ public partial class bitget : ccxt.bitget
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if ((!isEqual(symbols, null)) && !this.isEmpty(symbols))
         {
             market = this.getMarketFromSymbols(symbols);
             var instTypeparametersVariable = this.getInstType("watchPositions", market, uta, parameters);
@@ -1607,7 +1607,7 @@ public partial class bitget : ccxt.bitget
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }

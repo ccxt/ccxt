@@ -1037,7 +1037,7 @@ public partial class onetrading : ccxt.onetrading
             symbol = getValue(previousOrder, "symbol");
             string? filled = this.safeString(update, "filled_amount");
             string? status = this.parseWsOrderStatus(updateType);
-            if ((updateType == "ORDER_CLOSED") && isTrue(Precise.stringEq(filled, "0")))
+            if ((updateType == "ORDER_CLOSED") && Precise.stringEq(filled, "0"))
             {
                 status = "canceled";
             }

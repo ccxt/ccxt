@@ -1431,7 +1431,7 @@ public partial class kraken : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         string? amount = this.safeString(item, "amount");
-        if (isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringAbs(amount);
@@ -2289,7 +2289,7 @@ public partial class kraken : Exchange
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
         // when type = trailing stop returns price = '+50.0000%'
-        if (((price != null)) && (((string)price).EndsWith(((string)"%")) || isTrue(Precise.stringEquals(price, "0.00000")) || isTrue(Precise.stringEquals(price, "0"))))
+        if (((price != null)) && (((string)price).EndsWith(((string)"%")) || Precise.stringEquals(price, "0.00000") || Precise.stringEquals(price, "0")))
         {
             price = null; // this is not the price we want
         }

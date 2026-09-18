@@ -3010,7 +3010,7 @@ public partial class aster : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(this.isLinear(marketType, subType)))
+        if (this.isLinear(marketType, subType))
         {
             response = await this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters));
         } else if (isEqual(marketType, "spot"))
@@ -3970,7 +3970,7 @@ public partial class aster : Exchange
         //
         string? amount = this.safeString(item, "income");
         string? direction = null;
-        if (isTrue(Precise.stringLe(amount, "0")))
+        if (Precise.stringLe(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringMul("-1", amount);
@@ -4101,7 +4101,7 @@ public partial class aster : Exchange
         for (int i = 0; i < leverageBracket.Count; postFixIncrement(ref i))
         {
             object bracket = getValue(leverageBracket, i);
-            if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
+            if (Precise.stringLt(notionalStringAbs, getValue(bracket, 0)))
             {
                 break;
             }
@@ -4118,13 +4118,13 @@ public partial class aster : Exchange
         string? marginMode = this.safeString(position, "marginType");
         if ((marginMode == null) && (isolatedMarginString != null))
         {
-            marginMode = ((bool) isTrue(Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
+            marginMode = ((bool) Precise.stringEq(isolatedMarginString, "0")) ? "cross" : "isolated";
         }
         string? side = null;
-        if (isTrue(Precise.stringGt(notionalString, "0")))
+        if (Precise.stringGt(notionalString, "0"))
         {
             side = "long";
-        } else if (isTrue(Precise.stringLt(notionalString, "0")))
+        } else if (Precise.stringLt(notionalString, "0"))
         {
             side = "short";
         }
@@ -4227,7 +4227,7 @@ public partial class aster : Exchange
         }
         double? marginRatio = null;
         double? percentage = null;
-        if (!isTrue(Precise.stringEquals(collateralString, "0")))
+        if (!Precise.stringEquals(collateralString, "0"))
         {
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
@@ -4311,7 +4311,7 @@ public partial class aster : Exchange
         {
             object rawPosition = getValue(rawPositions, i);
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
-            if (isTrue(Precise.stringGt(entryPriceString, "0")))
+            if (Precise.stringGt(entryPriceString, "0"))
             {
                 ((IList<object>)result).Add(this.parsePositionRisk(rawPosition));
             }
@@ -4455,7 +4455,7 @@ public partial class aster : Exchange
         for (int i = 0; i < leverageBracket.Count; postFixIncrement(ref i))
         {
             object bracket = getValue(leverageBracket, i);
-            if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
+            if (Precise.stringLt(notionalStringAbs, getValue(bracket, 0)))
             {
                 break;
             }
@@ -4473,7 +4473,7 @@ public partial class aster : Exchange
         if (isEqual(isolated, null))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
-            isolated = !isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
+            isolated = !Precise.stringEq(isolatedMarginRaw, "0");
         }
         string? marginMode = null;
         string? collateralString = null;
@@ -4497,12 +4497,12 @@ public partial class aster : Exchange
         double? liquidationPrice = null;
         object contractSize = this.safeValue(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
-        if (isTrue(Precise.stringEquals(notionalString, "0")))
+        if (Precise.stringEquals(notionalString, "0"))
         {
             entryPrice = null;
         } else
         {
-            side = ((bool) isTrue(Precise.stringLt(notionalString, "0"))) ? "short" : "long";
+            side = ((bool) Precise.stringLt(notionalString, "0")) ? "short" : "long";
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
             if (usdm)
@@ -5088,9 +5088,9 @@ public partial class aster : Exchange
     public async override Task<object> signIn(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.isEmptyString(this.privateKey)))
+        if (this.isEmptyString(this.privateKey))
         {
-            if (!isTrue(this.isEmptyString(this.apiKey)) || !isTrue(this.isEmptyString(this.secret)))
+            if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.secret))
             {
                 throw new NotSupported ((string)(this.id + "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
             }

@@ -265,7 +265,7 @@ public partial class mudrex : Exchange
     { "is_symbol", isSymbol },
 })));
                 }
-                if (((methodUpper == "DELETE")) && isTrue(this.isEmpty(query)))
+                if (((methodUpper == "DELETE")) && this.isEmpty(query))
                 {
                     return new Dictionary<string, object>() {
                         { "url", url },

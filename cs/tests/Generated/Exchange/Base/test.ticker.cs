@@ -111,7 +111,7 @@ public partial class testMainClass : BaseTest
         //
         string? lastString = exchange.safeString(entry, "last");
         string? closeString = exchange.safeString(entry, "close");
-        assert((((closeString == null)) && ((lastString == null))) || isTrue(Precise.stringEq(lastString, closeString)), add("`last` != `close`", logText));
+        assert((((closeString == null)) && ((lastString == null))) || Precise.stringEq(lastString, closeString), add("`last` != `close`", logText));
         string? openPrice = exchange.safeString(entry, "open");
         //
         // base & quote volumes
@@ -236,7 +236,7 @@ public partial class testMainClass : BaseTest
             // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            assert(!isTrue(valuesShouldBePositive) || isTrue(Precise.stringGe(vwap, "0")), add("vwap is not greater than zero", logText));
+            assert(!isTrue(valuesShouldBePositive) || Precise.stringGe(vwap, "0"), add("vwap is not greater than zero", logText));
             if ((baseVolume != null))
             {
                 assert((quoteVolume != null), add("baseVolume & vwap is defined, but quoteVolume is not", logText));
@@ -260,7 +260,7 @@ public partial class testMainClass : BaseTest
             string? medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             string? medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             string? medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            assert(isTrue(Precise.stringGe(lastString, medianLow)) && isTrue(Precise.stringLe(lastString, medianHigh)), add("last price should be within 1% of the bid/ask median price", logText));
+            assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), add("last price should be within 1% of the bid/ask median price", logText));
         }
         string? percentage = exchange.safeString(entry, "percentage");
         string? change = exchange.safeString(entry, "change");

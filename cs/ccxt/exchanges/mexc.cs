@@ -1433,7 +1433,7 @@ public partial class mexc : Exchange
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.checkRequiredCredentials(false)))
+        if (!this.checkRequiredCredentials(false))
         {
             return new Dictionary<string, object>() {};
         }
@@ -2520,11 +2520,11 @@ public partial class mexc : Exchange
             ask = this.safeString(ticker, "askPrice");
             bidVolume = this.safeString(ticker, "bidQty");
             askVolume = this.safeString(ticker, "askQty");
-            if (isTrue(Precise.stringEq(bidVolume, "0")))
+            if (Precise.stringEq(bidVolume, "0"))
             {
                 bidVolume = null;
             }
-            if (isTrue(Precise.stringEq(askVolume, "0")))
+            if (Precise.stringEq(askVolume, "0"))
             {
                 askVolume = null;
             }

@@ -1047,7 +1047,7 @@ public partial class bithumb : Exchange
         {
             string? computedChange = Precise.stringSub(close, open);
             // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (((change != null)) && isTrue(Precise.stringEq(change, "0")) && !isTrue(Precise.stringEq(computedChange, "0")))
+            if (((change != null)) && Precise.stringEq(change, "0") && !Precise.stringEq(computedChange, "0"))
             {
                 change = computedChange;
                 percentage = null;
@@ -1056,11 +1056,11 @@ public partial class bithumb : Exchange
         string? high = this.safeString2(ticker, "max_price", "high_price");
         string? low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if (((close != null)) && ((high != null)) && isTrue(Precise.stringGt(close, high)))
+        if (((close != null)) && ((high != null)) && Precise.stringGt(close, high))
         {
             high = close;
         }
-        if (((close != null)) && ((low != null)) && isTrue(Precise.stringLt(close, low)))
+        if (((close != null)) && ((low != null)) && Precise.stringLt(close, low))
         {
             low = close;
         }
@@ -2456,7 +2456,7 @@ public partial class bithumb : Exchange
         string? progressCount = this.safeString(order, "progress_count");
         if (((type == null)) && ((price != null)) && ((progressCount == null)))
         {
-            if (isTrue(Precise.stringEquals(price, "0")))
+            if (Precise.stringEquals(price, "0"))
             {
                 type = "market";
             } else

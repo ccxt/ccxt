@@ -2056,7 +2056,7 @@ public partial class bitrue : Exchange
         {
             if (isEqual(status, "open"))
             {
-                if (isTrue(Precise.stringGt(filled, "0")))
+                if (Precise.stringGt(filled, "0"))
                 {
                     lastTradeTimestamp = this.safeInteger(order, "updateTime");
                 } else
@@ -3659,7 +3659,7 @@ public partial class bitrue : Exchange
         {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if (((error == "200")) || isTrue(Precise.stringEquals(error, "0")))
+            if (((error == "200")) || Precise.stringEquals(error, "0"))
             {
                 return null;
             }

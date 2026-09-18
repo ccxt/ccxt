@@ -547,7 +547,7 @@ public partial class gemini : ccxt.gemini
             string? rawSide = this.safeString(entry, "side");
             double? price = this.safeNumber(entry, "price");
             string? sizeString = this.safeString(entry, "remaining");
-            if (isTrue(Precise.stringEq(sizeString, "0")))
+            if (Precise.stringEq(sizeString, "0"))
             {
                 continue;
             }

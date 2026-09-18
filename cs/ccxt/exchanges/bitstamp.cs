@@ -1274,7 +1274,7 @@ public partial class bitstamp : Exchange
     {
         string currencyType = "crypto";
         Dictionary<string, object> description = this.describe();
-        if (isTrue(this.isFiat(code)))
+        if (this.isFiat(code))
         {
             currencyType = "fiat";
         }
@@ -3100,13 +3100,13 @@ public partial class bitstamp : Exchange
             if (inOp(item, "amount"))
             {
                 string? amount = this.safeString(item, "amount");
-                direction = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "in" : "out";
+                direction = ((bool) Precise.stringGt(amount, "0")) ? "in" : "out";
             } else if ((inOp(parsedTransaction, "currency")) && !isEqual(getValue(parsedTransaction, "currency"), null))
             {
                 string? currencyCode = this.safeString(parsedTransaction, "currency");
                 currency = this.currency(((string)currencyCode));
                 string? amount = this.safeString(item, getValue(currency, "id"));
-                direction = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "in" : "out";
+                direction = ((bool) Precise.stringGt(amount, "0")) ? "in" : "out";
             }
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
@@ -3298,7 +3298,7 @@ public partial class bitstamp : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.isFiat(code)))
+        if (this.isFiat(code))
         {
             throw new NotSupported ((string)(add((this.id + " fiat fetchDepositAddress() for "), code) + " is not supported!")) ;
         }
@@ -3344,7 +3344,7 @@ public partial class bitstamp : Exchange
         };
         IDictionary<string, object> currency = null;
         object response = null;
-        if (!isTrue(this.isFiat(code)))
+        if (!this.isFiat(code))
         {
             object name = this.getCurrencyName(code);
             if (isEqual(code, "XRP"))

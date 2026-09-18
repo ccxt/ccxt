@@ -203,7 +203,7 @@ public partial class testMainClass : BaseTest
             // contract size should be defined
             assert(((inOp(skippedProperties, "contractSize")) || (contractSize != null)), add("\"contractSize\" must be defined when \"contract\" is true", logText));
             // contract size should be above zero
-            assert((inOp(skippedProperties, "contractSize")) || isTrue(Precise.stringGt(contractSize, "0")), add("\"contractSize\" must be > 0 when \"contract\" is true", logText));
+            assert((inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), add("\"contractSize\" must be > 0 when \"contract\" is true", logText));
             // settle should be defined
             assert((inOp(skippedProperties, "settle")) || (!isEqual(getValue(market, "settle"), null) && !isEqual(getValue(market, "settleId"), null)), add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText));
         } else if (!isEqual(contract, true))

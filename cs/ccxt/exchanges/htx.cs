@@ -2730,7 +2730,7 @@ public partial class htx : Exchange
             }
             string? leverageRatio = this.safeString(market, "leverage-ratio", "1");
             string? superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-            bool hasLeverage = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
+            bool hasLeverage = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -3491,7 +3491,7 @@ public partial class htx : Exchange
         string? filledPoints = this.safeString(trade, "filled-points");
         if ((filledPoints != null))
         {
-            if (((feeCost == null)) || isTrue(Precise.stringEquals(feeCost, "0")))
+            if (((feeCost == null)) || Precise.stringEquals(feeCost, "0"))
             {
                 string? feeDeductCurrency = this.safeString(trade, "fee-deduct-currency");
                 if ((feeDeductCurrency != null))

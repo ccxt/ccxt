@@ -1546,7 +1546,7 @@ public partial class lighter : ccxt.lighter
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (!this.handleErrorMessage(client as WebSocketClient, message))
         {
             return;
         }

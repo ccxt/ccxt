@@ -1249,7 +1249,7 @@ public partial class woo : ccxt.woo
         string? priceString = this.safeString(order, "price");
         double? price = this.safeNumber(order, "price");
         double? avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(Precise.stringEq(priceString, "0")) && (!isEqual(avgPrice, null)))
+        if (Precise.stringEq(priceString, "0") && (!isEqual(avgPrice, null)))
         {
             price = avgPrice;
         }
@@ -1451,7 +1451,7 @@ public partial class woo : ccxt.woo
         }
         List<object> messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols);
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             if (isEqual(symbols, null))
             {

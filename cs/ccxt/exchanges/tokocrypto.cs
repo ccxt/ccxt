@@ -995,7 +995,7 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         object response = null;
-        if (isTrue(this.isNativeMarket(market)))
+        if (this.isNativeMarket(market))
         {
             response = await this.publicGetOpenV1MarketDepth(this.extend(request, parameters));
         } else
@@ -1217,7 +1217,7 @@ public partial class tokocrypto : Exchange
         // not by the quote currency: type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
         ((IDictionary<string,object>)request)["symbol"] = this.getMarketIdByType(market);
-        if (isTrue(this.isNativeMarket(market)))
+        if (this.isNativeMarket(market))
         {
             if (!isEqual(limit, null))
             {
@@ -1457,7 +1457,7 @@ public partial class tokocrypto : Exchange
      */
     public virtual string? getMarketIdByType(object market)
     {
-        if (isTrue(this.isNativeMarket(market)))
+        if (this.isNativeMarket(market))
         {
             return this.safeString(market, "id");
         }
@@ -1481,7 +1481,7 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isTrue(this.isNativeMarket(market)))
+        if (this.isNativeMarket(market))
         {
             throw new NotSupported ((string)(add((this.id + " fetchTicker() does not support "), symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
         }
@@ -1610,7 +1610,7 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = null;
-        if (isTrue(this.isNativeMarket(market)))
+        if (this.isNativeMarket(market))
         {
             response = await this.publicGetOpenV1MarketKlines(this.extend(request, parameters));
         } else
@@ -2987,7 +2987,7 @@ public partial class tokocrypto : Exchange
         {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if (((error == "200")) || isTrue(Precise.stringEquals(error, "0")))
+            if (((error == "200")) || Precise.stringEquals(error, "0"))
             {
                 return null;
             }

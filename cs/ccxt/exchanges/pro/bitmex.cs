@@ -413,7 +413,7 @@ public partial class bitmex : ccxt.bitmex
         symbols = this.marketSymbols(symbols, null, true, true);
         List<object> messageHashes = new List<object>() {};
         List<object> subscriptionHashes = new List<object>() {};
-        if (isTrue(this.isEmpty(symbols)))
+        if (this.isEmpty(symbols))
         {
             ((IList<object>)subscriptionHashes).Add("liquidation");
             ((IList<object>)messageHashes).Add("liquidations");
@@ -794,7 +794,7 @@ public partial class bitmex : ccxt.bitmex
         await this.authenticate();
         string subscriptionHash = "position";
         string messageHash = "positions";
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = ("positions::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1005,7 +1005,7 @@ public partial class bitmex : ccxt.bitmex
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 (client as WebSocketClient).resolve(positions, messageHash);
             }

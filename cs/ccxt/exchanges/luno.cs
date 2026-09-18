@@ -489,7 +489,7 @@ public partial class luno : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.checkRequiredCredentials(false)))
+        if (!this.checkRequiredCredentials(false))
         {
             return new Dictionary<string, object>() {};
         }
@@ -1182,14 +1182,14 @@ public partial class luno : Exchange
         string? feeCost = null;
         if ((feeBaseString != null))
         {
-            if (!isTrue(Precise.stringEquals(feeBaseString, "0.0")))
+            if (!Precise.stringEquals(feeBaseString, "0.0"))
             {
                 feeCurrency = this.safeString(market, "base");
                 feeCost = feeBaseString;
             }
         } else if ((feeCounterString != null))
         {
-            if (!isTrue(Precise.stringEquals(feeCounterString, "0.0")))
+            if (!Precise.stringEquals(feeCounterString, "0.0"))
             {
                 feeCurrency = this.safeString(market, "quote");
                 feeCost = feeCounterString;
@@ -1650,24 +1650,24 @@ public partial class luno : Exchange
         object referenceId = getValue(result, "referenceId");
         string? direction = null;
         string? status = null;
-        if (!isTrue(Precise.stringEquals(balance_delta, "0.0")))
+        if (!Precise.stringEquals(balance_delta, "0.0"))
         {
             before = Precise.stringSub(after, balance_delta);
             status = "ok";
             amount = Precise.stringAbs(balance_delta);
-        } else if (isTrue(Precise.stringLt(available_delta, "0.0")))
+        } else if (Precise.stringLt(available_delta, "0.0"))
         {
             status = "pending";
             amount = Precise.stringAbs(available_delta);
-        } else if (isTrue(Precise.stringGt(available_delta, "0.0")))
+        } else if (Precise.stringGt(available_delta, "0.0"))
         {
             status = "canceled";
             amount = Precise.stringAbs(available_delta);
         }
-        if (isTrue(Precise.stringGt(balance_delta, "0")) || isTrue(Precise.stringGt(available_delta, "0")))
+        if (Precise.stringGt(balance_delta, "0") || Precise.stringGt(available_delta, "0"))
         {
             direction = "in";
-        } else if (isTrue(Precise.stringLt(balance_delta, "0")) || isTrue(Precise.stringLt(available_delta, "0")))
+        } else if (Precise.stringLt(balance_delta, "0") || Precise.stringLt(available_delta, "0"))
         {
             direction = "out";
         }

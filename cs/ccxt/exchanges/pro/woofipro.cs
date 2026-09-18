@@ -898,7 +898,7 @@ public partial class woofipro : ccxt.woofipro
         string? priceString = this.safeString(order, "price");
         double? price = this.safeNumber(order, "price");
         double? avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(Precise.stringEq(priceString, "0")) && (!isEqual(avgPrice, null)))
+        if (Precise.stringEq(priceString, "0") && (!isEqual(avgPrice, null)))
         {
             price = avgPrice;
         }
@@ -908,7 +908,7 @@ public partial class woofipro : ccxt.woofipro
         double? filled = this.safeNumber(order, "totalExecutedQuantity");
         string? totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
         string? remaining = amount;
-        if (isTrue(Precise.stringGe(amount, totalExecQuantity)))
+        if (Precise.stringGe(amount, totalExecQuantity))
         {
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
@@ -1106,7 +1106,7 @@ public partial class woofipro : ccxt.woofipro
         }
         List<object> messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols);
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             if (isEqual(symbols, null))
             {
@@ -1173,7 +1173,7 @@ public partial class woofipro : ccxt.woofipro
         {
             object position = getValue(positions, i);
             string? contracts = this.safeString(position, "contracts", "0");
-            if (isTrue(Precise.stringGt(contracts, "0")))
+            if (Precise.stringGt(contracts, "0"))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -1273,7 +1273,7 @@ public partial class woofipro : ccxt.woofipro
         market = this.safeMarket(contract, market);
         string? size = this.safeString(position, "positionQty");
         string? side = null;
-        if (isTrue(Precise.stringGt(size, "0")))
+        if (Precise.stringGt(size, "0"))
         {
             side = "long";
         } else

@@ -3388,7 +3388,7 @@ public partial class whitebit : Exchange
             { "ticker", getValue(currency, "id") },
         };
         object response = null;
-        if (isTrue(this.isFiat(code)))
+        if (this.isFiat(code))
         {
             string? provider = this.safeString(parameters, "provider");
             if ((provider == null))
@@ -3681,7 +3681,7 @@ public partial class whitebit : Exchange
         {
             ((IDictionary<string,object>)request)["memo"] = tag;
         }
-        if (isTrue(this.isFiat(code)))
+        if (this.isFiat(code))
         {
             object provider = this.safeValue(parameters, "provider");
             if ((provider == null))
