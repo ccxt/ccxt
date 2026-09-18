@@ -294,7 +294,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            Object parts = Helpers.split(topic, ".");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             String marketId = this.safeString(parts, 1);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object stats = this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
@@ -913,7 +913,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             String channel = this.safeString(parameters, "channel");
             if (!java.util.Objects.equals(channel, null))
             {
-                Object parsedChannel = Helpers.split(channel, ".");
+                Object parsedChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
                 if ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "orders"), 0)) || Helpers.isGreaterThan(Helpers.getIndexOf(channel, "trades"), 0))
                 {
                     eventVar = this.safeString(parsedChannel, 1);

@@ -1792,7 +1792,7 @@ public class TestMain extends BaseTest
         {
             return null;
         }
-        Object urlParts = Helpers.split(url, "/");
+        Object urlParts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/"))));
         Object res = "";
         for (var i = 0; i < ((List<?>)urlParts).size(); i++)
         {
@@ -1802,7 +1802,7 @@ public class TestMain extends BaseTest
                 if (Helpers.isGreaterThan(Helpers.getIndexOf(current, "?"), Helpers.opNeg(1)))
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    Object currentParts = Helpers.split(current, "?");
+                    Object currentParts = new ArrayList<Object>(Arrays.asList(((String)current).split(java.util.regex.Pattern.quote("?"))));
                     res = (res + "/");
                     res = Helpers.add(res, Helpers.GetValue(currentParts, 0));
                     break;
@@ -1817,11 +1817,11 @@ public class TestMain extends BaseTest
     public Object urlencodedToDict(Object url)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Object parts = Helpers.split(url, "&");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("&"))));
         for (var i = 0; i < ((List<?>)parts).size(); i++)
         {
             String part = (String) Helpers.GetValue(parts, i);
-            Object keyValue = Helpers.split(part, "=");
+            Object keyValue = new ArrayList<Object>(Arrays.asList(((String)part).split(java.util.regex.Pattern.quote("="))));
             Object keysLength = ((List<?>)keyValue).size();
             if (!Helpers.isEqual(keysLength, 2))
             {
@@ -2169,8 +2169,8 @@ public class TestMain extends BaseTest
         {
             if ((!java.util.Objects.equals(storedUrl, null)) && (!java.util.Objects.equals(requestUrl, null)))
             {
-                Object storedUrlParts = Helpers.split(storedUrl, "?");
-                Object newUrlParts = Helpers.split(requestUrl, "?");
+                Object storedUrlParts = new ArrayList<Object>(Arrays.asList(((String)storedUrl).split(java.util.regex.Pattern.quote("?"))));
+                Object newUrlParts = new ArrayList<Object>(Arrays.asList(((String)requestUrl).split(java.util.regex.Pattern.quote("?"))));
                 Object storedUrlQuery = exchange.safeValue(storedUrlParts, 1);
                 Object newUrlQuery = exchange.safeValue(newUrlParts, 1);
                 if ((java.util.Objects.equals(storedUrlQuery, null)) && (java.util.Objects.equals(newUrlQuery, null)))

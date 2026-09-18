@@ -1098,7 +1098,7 @@ public class Bitrue extends BitrueApi
         Object settle = null;
         if (Helpers.isTrue(isContract))
         {
-            Object symbolSplit = Helpers.split(id, "-");
+            Object symbolSplit = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
             if (java.util.Objects.equals(isLinear, true))
@@ -3224,13 +3224,13 @@ public class Bitrue extends BitrueApi
         {
             if (!java.util.Objects.equals(addressTo, null))
             {
-                Object parts = Helpers.split(addressTo, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)addressTo).split(java.util.regex.Pattern.quote("_"))));
                 addressTo = this.safeString(parts, 0);
                 tagTo = this.safeString(parts, 1);
             }
             if (!java.util.Objects.equals(addressFrom, null))
             {
-                Object parts = Helpers.split(addressFrom, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)addressFrom).split(java.util.regex.Pattern.quote("_"))));
                 addressFrom = this.safeString(parts, 0);
                 tagFrom = this.safeString(parts, 1);
             }
@@ -3247,7 +3247,7 @@ public class Bitrue extends BitrueApi
         String currencyId = this.safeString2(transaction, "symbol", "coin");
         if (!java.util.Objects.equals(currencyId, null))
         {
-            Object parts = Helpers.split(currencyId, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("_"))));
             currencyId = this.safeString(parts, 0);
             String networkId = this.safeString(parts, 1);
             if (!java.util.Objects.equals(networkId, null))
@@ -3469,7 +3469,7 @@ public class Bitrue extends BitrueApi
         String toAccount = null;
         if (!java.util.Objects.equals(transferType, null))
         {
-            Object accountSplit = Helpers.split(transferType, "_to_");
+            Object accountSplit = new ArrayList<Object>(Arrays.asList(((String)transferType).split(java.util.regex.Pattern.quote("_to_"))));
             fromAccount = this.safeString(accountSplit, 0);
             toAccount = this.safeString(accountSplit, 1);
         }

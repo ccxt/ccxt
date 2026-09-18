@@ -660,7 +660,7 @@ public class Bitbns extends BitbnsApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object parts = Helpers.split(key, "availableorder");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("availableorder"))));
             Object numParts = ((List<?>)parts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {

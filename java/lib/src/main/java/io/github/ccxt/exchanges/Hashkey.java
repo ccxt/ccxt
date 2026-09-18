@@ -1192,7 +1192,7 @@ public class Hashkey extends HashkeyApi
         Boolean isSpot = true;
         Boolean isSwap = false;
         Object suffix = "";
-        Object parts = Helpers.split(marketId, "-");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
         String secondPart = this.safeString(parts, 1);
         if (java.util.Objects.equals(secondPart, "PERPETUAL"))
         {
@@ -1699,7 +1699,7 @@ public class Hashkey extends HashkeyApi
         String side = this.safeStringLower(trade, "side"); // swap trades have side param
         if (!java.util.Objects.equals(side, null))
         {
-            side = this.safeString(Helpers.split(side, "_"), 0);
+            side = this.safeString(new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_")))), 0);
         }
         Object isBuyer = this.safeBool(trade, "isBuyer");
         if (!java.util.Objects.equals(isBuyer, null))

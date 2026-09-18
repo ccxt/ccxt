@@ -2318,7 +2318,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "ohlcv:"), 0))
         {
-            Object parts = Helpers.split(messageHash, ":");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
             String timeframe = this.safeString(parts, 1);
             String symbol = this.safeString(parts, 2);
             if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)) && (((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(timeframe)))

@@ -466,7 +466,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         String id = this.safeString(message, "id", "");
-        Object part = Helpers.split(id, "/");
+        Object part = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("/"))));
         String interval = this.safeString(part, 1);
         Object timeframe = this.findTimeframe(interval);
         String marketId = this.safeString(part, 0);

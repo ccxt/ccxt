@@ -364,7 +364,7 @@ public class Zaif extends ZaifApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing name")) ;
         }
-        var baseIdquoteIdVariable = Helpers.split(name, "/");
+        var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("/"))));
         var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
         var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
         String base = this.safeCurrencyCode(baseId);

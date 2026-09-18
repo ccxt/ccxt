@@ -1075,9 +1075,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object positions = this.filterByArray(new ArrayList<Object>(Arrays.asList(position)), "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1259,9 +1259,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 2);
-            Object symbols = Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
             Object tickersSymbols = Helpers.objectKeys(tickers);
             Object numTickers = ((List<?>)tickersSymbols).size();
@@ -1460,7 +1460,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         if (!java.util.Objects.equals(marketId, null))
         {
             String eventVar = this.safeString(message, "event", "");
-            Object splitEvent = Helpers.split(eventVar, ",");
+            Object splitEvent = new ArrayList<Object>(Arrays.asList(((String)eventVar).split(java.util.regex.Pattern.quote(","))));
             eventVar = this.safeString(splitEvent, 0, "");
             String tradeType = "spot";
             if ((!java.util.Objects.equals(data, null)) && (((Map<?, ?>)data).containsKey("fu")))

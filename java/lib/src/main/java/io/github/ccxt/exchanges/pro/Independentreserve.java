@@ -229,7 +229,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         {
             return;
         }
-        Object parts = Helpers.split(channel, "/");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
         String depth = this.safeString(parts, 1);
         String baseId = this.safeString(parts, 2);
         String quoteId = this.safeString(parts, 3);

@@ -1614,7 +1614,7 @@ public class Lighter extends LighterApi
                 Object baseId = this.safeString(market, "symbol");
                 if (!java.util.Objects.equals(baseId, null) && !Helpers.isEqual(Helpers.getIndexOf(baseId, "/"), Helpers.opNeg(1)))
                 {
-                    baseId = Helpers.GetValue(Helpers.split(baseId, "/"), 0);
+                    baseId = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)baseId).split(java.util.regex.Pattern.quote("/")))), 0);
                 }
                 String quoteId = "USDC";
                 String settleId = (((java.util.Objects.equals(type, "swap")))) ? "USDC" : null;

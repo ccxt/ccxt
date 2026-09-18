@@ -724,7 +724,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             symbol = ((Map<String, Object>)parsed).get("symbol");
         } else if (java.util.Objects.equals(updateType, "delta"))
         {
-            Object topicParts = Helpers.split(topic, ".");
+            Object topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             Object topicLength = ((List<?>)topicParts).size();
             String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, type);
@@ -989,7 +989,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic", "");
-        Object topicParts = Helpers.split(topic, ".");
+        Object topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         Object topicLength = ((List<?>)topicParts).size();
         String timeframeId = this.safeString(topicParts, 1);
         Object timeframe = this.findTimeframe(timeframeId);
@@ -1243,7 +1243,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         String topic = this.safeString(message, "topic", "");
-        Object limit = Helpers.GetValue(Helpers.split(topic, "."), 1);
+        Object limit = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote(".")))), 1);
         Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
         String type = this.safeString(message, "type");
         Boolean isSnapshot = (java.util.Objects.equals(type, "snapshot"));
@@ -1460,7 +1460,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic", "");
         Object trades = data;
-        Object parts = Helpers.split(topic, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
         String marketType = ((Helpers.isTrue((isSpot)))) ? "spot" : "contract";
         String marketId = this.safeString(parts, 1);
@@ -2035,9 +2035,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {

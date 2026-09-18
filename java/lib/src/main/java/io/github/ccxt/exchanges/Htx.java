@@ -2726,7 +2726,7 @@ public class Htx extends HtxApi
                         {
                             throw new ExchangeError((this.id + " method() missing id")) ;
                         }
-                        Object parts = Helpers.split(id, "-");
+                        Object parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                         baseId = this.safeStringLower(market, "symbol");
                         quoteId = this.safeStringLower(parts, 1);
                         settleId = ((Helpers.isTrue(inverse))) ? baseId : quoteId;
@@ -2745,7 +2745,7 @@ public class Htx extends HtxApi
                             {
                                 throw new ExchangeError((this.id + " method() missing pair")) ;
                             }
-                            Object parts = Helpers.split(pair, "-");
+                            Object parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote("-"))));
                             quoteId = this.safeStringLower(parts, 1);
                             settleId = quoteId;
                         }
@@ -3624,7 +3624,7 @@ public class Htx extends HtxApi
         String type = this.safeString(trade, "type");
         if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "-"), 0)))
         {
-            Object typeParts = Helpers.split(type, "-");
+            Object typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
             side = (String) Helpers.GetValue(typeParts, 0);
             type = (String) Helpers.GetValue(typeParts, 1);
         }
@@ -6378,7 +6378,7 @@ public class Htx extends HtxApi
             {
                 if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(rawType, "-"), 0))
                 {
-                    Object orderType = Helpers.split(rawType, "-");
+                    Object orderType = new ArrayList<Object>(Arrays.asList(((String)rawType).split(java.util.regex.Pattern.quote("-"))));
                     side = (String) Helpers.GetValue(orderType, 0);
                     type = Helpers.GetValue(orderType, 1);
                 } else if (java.util.Objects.equals(type, null))
@@ -7696,7 +7696,7 @@ public class Htx extends HtxApi
                     {
                         if ((clientOrderIds instanceof String))
                         {
-                            ((Map<String, Object>)request).put("client_order_id", Helpers.split(clientOrderIds, ","));
+                            ((Map<String, Object>)request).put("client_order_id", new ArrayList<Object>(Arrays.asList(((String)clientOrderIds).split(java.util.regex.Pattern.quote(",")))));
                         } else
                         {
                             ((Map<String, Object>)request).put("client_order_id", clientOrderIds);
@@ -7874,7 +7874,7 @@ public class Htx extends HtxApi
         Object success = null;
         if (!java.util.Objects.equals(successes, null))
         {
-            success = Helpers.split(successes, ",");
+            success = new ArrayList<Object>(Arrays.asList(((String)successes).split(java.util.regex.Pattern.quote(","))));
         } else
         {
             success = this.safeList(orders, "success", new ArrayList<Object>(Arrays.asList()));

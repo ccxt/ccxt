@@ -322,7 +322,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         Object channel = this.safeValue(subscription, "channel");
         String key = this.safeString(subscription, "key", "");
-        Object keyParts = Helpers.split(key, ":");
+        Object keyParts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote(":"))));
         String interval = this.safeString(keyParts, 1);
         Object marketId = key;
         marketId = Helpers.replace(((String)marketId), "trade:", "");
@@ -1476,7 +1476,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             type = "market";
         }
         String rawState = this.safeString(order, 13, "");
-        Object stateParts = Helpers.split(rawState, " ");
+        Object stateParts = new ArrayList<Object>(Arrays.asList(((String)rawState).split(java.util.regex.Pattern.quote(" "))));
         String trimmedStatus = this.safeString(stateParts, 0);
         String status = this.parseWsOrderStatus(trimmedStatus);
         String price = this.safeString(order, 16);

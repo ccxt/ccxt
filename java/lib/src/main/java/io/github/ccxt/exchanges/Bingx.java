@@ -1532,7 +1532,7 @@ public class Bingx extends BingxApi
     public Object parseMarket(Object market)
     {
         Object id = this.safeString(market, "symbol");
-        Object symbolParts = Helpers.split(id, "-");
+        Object symbolParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
         String baseId = (String) Helpers.GetValue(symbolParts, 0);
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
         String base = this.safeCurrencyCode(baseId);
@@ -7675,7 +7675,7 @@ public class Bingx extends BingxApi
         {
             Object tier = this.safeDict(info, i);
             Object tierString = this.safeString(tier, "tier");
-            Object tierParts = Helpers.split(tierString, " ");
+            Object tierParts = new ArrayList<Object>(Arrays.asList(((String)tierString).split(java.util.regex.Pattern.quote(" "))));
             String marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");
 final Object finalMarket = market;

@@ -632,7 +632,7 @@ public class Bitso extends BitsoApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 String id = this.safeString(market, "book");
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 Object base = ((String)baseId).toUpperCase();
@@ -1908,7 +1908,7 @@ public class Bitso extends BitsoApi
             String tag = null;
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(address, "?dt="), 0))
             {
-                Object parts = Helpers.split(address, "?dt=");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }

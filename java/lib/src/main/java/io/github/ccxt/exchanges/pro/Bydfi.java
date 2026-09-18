@@ -318,7 +318,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                     String subHash = this.safeString(subHashes, i);
                     if (!java.util.Objects.equals(subHash, null))
                     {
-                        Object parts = Helpers.split(subHash, "::");
+                        Object parts = new ArrayList<Object>(Arrays.asList(((String)subHash).split(java.util.regex.Pattern.quote("::"))));
                         String symbol = this.safeString(parts, 1);
                         if (java.util.Objects.equals(symbol, "all"))
                         {

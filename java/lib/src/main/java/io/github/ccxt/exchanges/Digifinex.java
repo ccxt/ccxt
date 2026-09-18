@@ -1025,7 +1025,7 @@ public class Digifinex extends DigifinexApi
                 {
                     throw new ExchangeError((this.id + " fetchMarketsV1() missing id")) ;
                 }
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode(baseId);
@@ -1726,7 +1726,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new ExchangeError((this.id + " parseTrade() returned no side")) ;
             }
-            Object parts = Helpers.split(side, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
             if (java.util.Objects.equals(type, null))
@@ -2754,7 +2754,7 @@ public class Digifinex extends DigifinexApi
             lastTradeTimestamp = this.safeTimestamp(order, "finished_date");
             if (!java.util.Objects.equals(side, null))
             {
-                Object parts = Helpers.split(side, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
                 Object numParts = ((List<?>)parts).size();
                 if (Helpers.isGreaterThan(numParts, 1))
                 {

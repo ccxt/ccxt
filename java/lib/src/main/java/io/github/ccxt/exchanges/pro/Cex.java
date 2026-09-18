@@ -1344,7 +1344,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             return;
         }
-        Object parts = Helpers.split(pair, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote(":"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId);

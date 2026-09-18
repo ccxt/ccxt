@@ -1820,7 +1820,7 @@ public class Hollaex extends HollaexApi
         String tag = null;
         if (!java.util.Objects.equals(address, null))
         {
-            Object parts = Helpers.split(address, ":");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -2162,7 +2162,7 @@ public class Hollaex extends HollaexApi
         Object tagFrom = null;
         if (!java.util.Objects.equals(address, null))
         {
-            Object parts = Helpers.split(address, ":");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
             addressTo = address;

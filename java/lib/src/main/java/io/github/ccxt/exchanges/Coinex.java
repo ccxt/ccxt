@@ -3965,7 +3965,7 @@ public class Coinex extends CoinexApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String coinAddress = this.safeString(depositAddress, "address", "");
-        Object parts = Helpers.split(coinAddress, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)coinAddress).split(java.util.regex.Pattern.quote(":"))));
         Object address = null;
         Object tag = null;
         Object partsLength = ((List<?>)parts).size();
@@ -6477,7 +6477,7 @@ final Object finalI = i;
             String firstPart = this.safeString(parts, 0, "");
             Object numParts = Helpers.getArrayLength(parts);
             String lastPart = this.safeString(parts, Helpers.subtract(numParts, 1), "");
-            Object lastWords = Helpers.split(lastPart, "_");
+            Object lastWords = new ArrayList<Object>(Arrays.asList(((String)lastPart).split(java.util.regex.Pattern.quote("_"))));
             Object numWords = ((List<?>)lastWords).size();
             String lastWord = this.safeString(lastWords, Helpers.subtract(numWords, 1), "");
             if ((java.util.Objects.equals(firstPart, "order")) && (java.util.Objects.equals(lastWord, "limit") || java.util.Objects.equals(lastWord, "market")))

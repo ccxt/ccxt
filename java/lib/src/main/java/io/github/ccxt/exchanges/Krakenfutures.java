@@ -593,7 +593,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Boolean swap = (java.util.Objects.equals(type, "swap"));
                 Boolean future = (java.util.Objects.equals(type, "future"));
                 Object symbol = id;
-                Object split = Helpers.split(id, "_");
+                Object split = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 String splitMarket = this.safeString(split, 1);
                 Object baseId = Helpers.slice(splitMarket, 0, Helpers.subtract(splitMarket.length(), 3));
                 String quoteId = "usd"; // always USD
@@ -3570,7 +3570,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 continue;
             }
-            Object splitCode = Helpers.split(code, "_");
+            Object splitCode = new ArrayList<Object>(Arrays.asList(((String)code).split(java.util.regex.Pattern.quote("_"))));
             Object codeLength = ((List<?>)splitCode).size();
             if (Helpers.isGreaterThan(codeLength, 1))
             {
@@ -4112,7 +4112,7 @@ final Object finalI = i;
         {
             Map<String, Object> market = (Map<String, Object>) this.market(account);
             Object marketId = ((Map<String, Object>)market).get("id");
-            Object splitId = Helpers.split(((String)marketId), "_");
+            Object splitId = new ArrayList<Object>(Arrays.asList(((String)((String)marketId)).split(java.util.regex.Pattern.quote("_"))));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 return Helpers.add("fi_", this.safeString(splitId, 1));

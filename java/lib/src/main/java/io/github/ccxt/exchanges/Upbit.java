@@ -720,7 +720,7 @@ public class Upbit extends UpbitApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing id")) ;
         }
-        var quoteIdbaseIdVariable = Helpers.split(id, "-");
+        var quoteIdbaseIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
         var quoteId = ((List<Object>) quoteIdbaseIdVariable).get(0);
         var baseId = ((List<Object>) quoteIdbaseIdVariable).get(1);
         String base = this.safeCurrencyCode(baseId);

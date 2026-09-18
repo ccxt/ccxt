@@ -409,7 +409,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         if ((!java.util.Objects.equals(symbol, null)) && !(((Map<?, ?>)this.markets).containsKey(symbol)))
         {
-            Object symbolParts = Helpers.split(symbol, "/");
+            Object symbolParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
             String baseName = this.safeString(symbolParts, 0);
             Object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new HashMap<String, Object>() {{}});
             if (((Map<?, ?>)spotCurrencyMapping).containsKey(baseName))
@@ -570,7 +570,7 @@ public class Hyperliquid extends HyperliquidApi
             Boolean isWrapped = Helpers.isTrue(fullName.startsWith(((String)"Unit "))) && Helpers.isTrue(name.startsWith(((String)"U")));
             if (Helpers.isTrue(isWrapped))
             {
-                Object parts = Helpers.split(name, "U");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("U"))));
                 Object nameWithoutU = "";
                 for (var j = 0; j < ((List<?>)parts).size(); j++)
                 {
@@ -879,7 +879,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             return 0;
         }
-        Object priceSplitted = Helpers.split(priceStr, ".");
+        Object priceSplitted = new ArrayList<Object>(Arrays.asList(((String)priceStr).split(java.util.regex.Pattern.quote("."))));
         if (Helpers.isTrue(Precise.stringEq(priceStr, "0")))
         {
             // Significant digits is always 5 in this case
@@ -1878,7 +1878,7 @@ public class Hyperliquid extends HyperliquidApi
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object priceStr = this.numberToString(price);
-        Object integerPart = Helpers.GetValue(Helpers.split(((String)priceStr), "."), 0);
+        Object integerPart = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)((String)priceStr)).split(java.util.regex.Pattern.quote(".")))), 0);
         Object significantDigits = Helpers.mathMax(5, ((String)integerPart).length());
         Object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         Object maxDecimals = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 8 : 6;
@@ -3707,7 +3707,7 @@ final Object finalClientOrderId = clientOrderId;
     public String getDexFromHip3Symbol(Object market)
     {
         String baseName = this.safeString(market, "baseName", "");
-        Object part = Helpers.split(baseName, ":");
+        Object part = new ArrayList<Object>(Arrays.asList(((String)baseName).split(java.util.regex.Pattern.quote(":"))));
         Object partsLength = ((List<?>)part).size();
         if (Helpers.isGreaterThan(partsLength, 1))
         {

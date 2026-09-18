@@ -801,7 +801,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (!java.util.Objects.equals(data, null))
         {
             String channel = this.safeString(data, "channel");
-            Object parts = Helpers.split(channel, ".");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
             String name = this.safeString(parts, 0);
             Map<String, Object> methods = new HashMap<String, Object>() {{
                 put( "trades", "handleTrade");

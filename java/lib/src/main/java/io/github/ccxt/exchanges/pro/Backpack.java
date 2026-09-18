@@ -167,7 +167,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 }
             } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "candles"), 0))
             {
-                Object splitHashes = Helpers.split(messageHash, ":");
+                Object splitHashes = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
                 String symbol = this.safeString(splitHashes, 2);
                 String timeframe = this.safeString(splitHashes, 3);
                 if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
@@ -737,7 +737,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> market = (Map<String, Object>) this.market(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String stream = this.safeString(message, "stream", "");
-        Object parts = Helpers.split(stream, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("."))));
         String timeframe = this.safeString(parts, 1, "");
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {

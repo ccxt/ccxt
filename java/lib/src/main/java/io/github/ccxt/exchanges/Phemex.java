@@ -906,9 +906,9 @@ public class Phemex extends PhemexApi
         {
             return value;
         }
-        Object parts = Helpers.split(((String)value), ",");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)((String)value)).split(java.util.regex.Pattern.quote(","))));
         value = String.join("", (List<String>)parts);
-        parts = Helpers.split(((String)value), " ");
+        parts = new ArrayList<Object>(Arrays.asList(((String)((String)value)).split(java.util.regex.Pattern.quote(" "))));
         return this.safeNumber(parts, 0);
     }
 
@@ -999,7 +999,7 @@ public class Phemex extends PhemexApi
         {
             // "1 USD"
             // "0.005 ETH"
-            Object parts = Helpers.split(contractSizeString, " ");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)contractSizeString).split(java.util.regex.Pattern.quote(" "))));
             contractSize = this.parseNumber(Helpers.GetValue(parts, 0));
         } else
         {

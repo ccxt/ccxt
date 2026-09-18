@@ -2324,7 +2324,7 @@ public class Kucoin extends KucoinApi
                 {
                     continue;
                 }
-                var baseIdquoteIdVariable = Helpers.split(id, "-");
+                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode(baseId);
@@ -9391,7 +9391,7 @@ public class Kucoin extends KucoinApi
         String txid = this.safeString(transaction, "walletTxId");
         if (!java.util.Objects.equals(txid, null))
         {
-            Object txidParts = Helpers.split(txid, "@");
+            Object txidParts = new ArrayList<Object>(Arrays.asList(((String)txid).split(java.util.regex.Pattern.quote("@"))));
             Object numTxidParts = ((List<?>)txidParts).size();
             if (Helpers.isGreaterThan(numTxidParts, 1))
             {

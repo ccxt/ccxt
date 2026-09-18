@@ -259,7 +259,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Object parts = Helpers.split(stream, "@");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("@"))));
         String interval = (String) Helpers.GetValue(parts, 1);
         Object tf = this.findTimeframe(interval);
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});

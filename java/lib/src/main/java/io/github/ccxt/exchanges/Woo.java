@@ -1091,7 +1091,7 @@ public class Woo extends WooApi
     public Object parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol", "");
-        Object parts = Helpers.split(marketId, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
         String first = this.safeString(parts, 0);
         String marketType = null;
         Boolean spot = false;

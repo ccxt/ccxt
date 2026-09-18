@@ -1213,7 +1213,7 @@ public class Bittrade extends BittradeApi
         String type = this.safeString(trade, "type");
         if (!java.util.Objects.equals(type, null))
         {
-            Object typeParts = Helpers.split(type, "-");
+            Object typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
             side = (String) Helpers.GetValue(typeParts, 0);
             type = (String) Helpers.GetValue(typeParts, 1);
         }
@@ -2336,7 +2336,7 @@ public class Bittrade extends BittradeApi
         Object success = null;
         if (!java.util.Objects.equals(successes, null))
         {
-            success = Helpers.split(successes, ",");
+            success = new ArrayList<Object>(Arrays.asList(((String)successes).split(java.util.regex.Pattern.quote(","))));
         } else
         {
             success = this.safeList(orders, "success", new ArrayList<Object>(Arrays.asList()));

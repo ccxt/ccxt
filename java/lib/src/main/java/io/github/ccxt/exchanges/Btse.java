@@ -4002,7 +4002,7 @@ public class Btse extends BtseApi
         String marketId = this.safeString(position, "positionId");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object parts = Helpers.split(marketId, "|");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("|"))));
             marketId = this.safeString(parts, 0);
         } else
         {

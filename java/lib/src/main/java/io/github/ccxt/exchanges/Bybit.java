@@ -2465,8 +2465,8 @@ public class Bybit extends BybitApi
         // support expired option contracts
         String quote = null;
         String settle = null;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        Object optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
+        Object symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String base = null;
         Object expiry = null;
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
@@ -2478,7 +2478,7 @@ public class Bybit extends BybitApi
             {
                 throw new ExchangeError((this.id + " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
-            Object splitQuote = Helpers.split(symbolQuoteAndSettle, ":");
+            Object splitQuote = new ArrayList<Object>(Arrays.asList(((String)symbolQuoteAndSettle).split(java.util.regex.Pattern.quote(":"))));
             String quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
             settle = quoteAndSettle;
@@ -3417,7 +3417,7 @@ public class Bybit extends BybitApi
                 {
                     throw new ExchangeError((this.id + " method() missing id")) ;
                 }
-                Object splitId = Helpers.split(id, "-");
+                Object splitId = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                 String strike = this.safeString(splitId, 2);
                 String optionLetter = this.safeString(splitId, 3);
                 Boolean isActive = (java.util.Objects.equals(status, "Trading"));

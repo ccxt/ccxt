@@ -930,7 +930,7 @@ public class Pacifica extends PacificaApi
         }
         if (Helpers.isTrue(isSpot))
         {
-            Object idParts = Helpers.split(id, "-");
+            Object idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
             quoteId = this.safeString(idParts, 1, quoteId);
         }
         Object isolatedOnly = this.safeBool(market, "isolated_only", false);

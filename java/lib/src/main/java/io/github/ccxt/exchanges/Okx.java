@@ -2453,8 +2453,8 @@ public class Okx extends OkxApi
     {
         // support expired option contracts
         String quote = "USD";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        Object optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
+        Object symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String base = null;
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
         {
@@ -2527,7 +2527,7 @@ public class Okx extends OkxApi
         Boolean isOption = false;
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object parts = Helpers.split(marketId, "-");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
             Object partsLength = ((List<?>)parts).size();
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
@@ -2843,14 +2843,14 @@ public class Okx extends OkxApi
         String underlying = this.safeString(market, "uly");
         if ((!java.util.Objects.equals(underlying, null)) && !Helpers.isTrue(spot))
         {
-            Object parts = Helpers.split(underlying, "-");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)underlying).split(java.util.regex.Pattern.quote("-"))));
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
         if (((java.util.Objects.equals(baseId, "")) || (java.util.Objects.equals(quoteId, ""))) && Helpers.isTrue(spot))
         {
             String instId = this.safeString(market, "instId", "");
-            Object parts = Helpers.split(instId, "-");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)instId).split(java.util.regex.Pattern.quote("-"))));
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
@@ -3157,7 +3157,7 @@ public class Okx extends OkxApi
                 // only happens for fiat 'TRY' currency
                 type = "fiat";
             }
-            Object idParts = Helpers.split(networkId, "-");
+            Object idParts = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote("-"))));
             Object parts = this.arraySlice(idParts, 1);
             Object chainPart = String.join("-", (List<String>)parts);
             Object networkCode = this.networkIdToCode(chainPart, code);
@@ -5224,7 +5224,7 @@ public class Okx extends OkxApi
          */
         if ((!java.util.Objects.equals(ids, null)) && (ids instanceof String))
         {
-            return Helpers.split(ids, ",");
+            return new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(","))));
         } else
         {
             return ids;
@@ -7649,7 +7649,7 @@ public class Okx extends OkxApi
         String chain = this.safeString(transaction, "chain");
         if (!java.util.Objects.equals(chain, null))
         {
-            Object chainParts = Helpers.split(chain, "-");
+            Object chainParts = new ArrayList<Object>(Arrays.asList(((String)chain).split(java.util.regex.Pattern.quote("-"))));
             Object networkParts = this.arraySlice(chainParts, 1);
             Object networkId = String.join("-", (List<String>)networkParts);
             if (!java.util.Objects.equals(networkId, null))
@@ -10400,7 +10400,7 @@ public class Okx extends OkxApi
                 {
                     continue;
                 }
-                Object chainSplit = Helpers.split(chain, "-");
+                Object chainSplit = new ArrayList<Object>(Arrays.asList(((String)chain).split(java.util.regex.Pattern.quote("-"))));
                 String networkId = this.safeString(chainSplit, 1);
                 Double withdrawFee = this.safeNumber(feeInfo, "fee");
                 final Object finalWithdrawFee = withdrawFee;
@@ -10635,7 +10635,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String marketId = this.safeString(market, "id", "");
-            Object optionParts = Helpers.split(marketId, "-");
+            Object optionParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "uly", Helpers.GetValue(((Map<String, Object>)market).get("info"), "uly") );
                 put( "instFamily", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily") );
@@ -10739,7 +10739,7 @@ public class Okx extends OkxApi
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     String marketId = this.safeString(market, "id", "");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    Object optionParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                     ((Map<String, Object>)request).put("uly", Helpers.GetValue(((Map<String, Object>)market).get("info"), "uly"));
                     ((Map<String, Object>)request).put("instFamily", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily"));
                     ((Map<String, Object>)request).put("expTime", this.safeString(optionParts, 2));

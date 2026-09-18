@@ -833,8 +833,8 @@ public class Deribit extends DeribitApi
         // support expired option contracts
         String quote = "USD";
         Object settle = null;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        Object optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
+        Object symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         Object base = null;
         Object expiry = null;
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
@@ -865,7 +865,7 @@ public class Deribit extends DeribitApi
         }
         if (Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1)))
         {
-            Object splitSymbol = Helpers.split(base, "_");
+            Object splitSymbol = new ArrayList<Object>(Arrays.asList(((String)base).split(java.util.regex.Pattern.quote("_"))));
             splitBase = this.safeString(splitSymbol, 0);
         }
         String strike = this.safeString(optionParts, 2);

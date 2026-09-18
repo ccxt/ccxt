@@ -1450,7 +1450,7 @@ public class Latoken extends LatokenApi
         Object side = null;
         if (!java.util.Objects.equals(orderSide, null))
         {
-            Object parts = Helpers.split(orderSide, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)orderSide).split(java.util.regex.Pattern.quote("_"))));
             Object partsLength = ((List<?>)parts).size();
             side = this.safeStringLower(parts, Helpers.subtract(partsLength, 1));
         }

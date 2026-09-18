@@ -1457,7 +1457,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new ExchangeError((this.id + " parseCurrencies() missing description")) ;
             }
-            var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
+            var baseDescriptionquoteDescriptionVariable = new ArrayList<Object>(Arrays.asList(((String)description).split(java.util.regex.Pattern.quote(" / "))));
             var baseDescription = ((List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
             var quoteDescription = ((List<Object>) baseDescriptionquoteDescriptionVariable).get(1);
             String minimumOrder = this.safeString(market, "minimum_order_value");
@@ -1465,7 +1465,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new ExchangeError((this.id + " parseCurrencies() missing minimumOrder")) ;
             }
-            Object parts = Helpers.split(minimumOrder, " ");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)minimumOrder).split(java.util.regex.Pattern.quote(" "))));
             String cost = (String) Helpers.GetValue(parts, 0);
             if ((!java.util.Objects.equals(base, null)) && !(((Map<?, ?>)result).containsKey(base)))
             {
@@ -3050,7 +3050,7 @@ public class Bitstamp extends BitstampApi
         if (!java.util.Objects.equals(address, null))
         {
             // dt (destination tag) is embedded into the address field
-            Object addressParts = Helpers.split(address, "?dt=");
+            Object addressParts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
             Object numParts = ((List<?>)addressParts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {

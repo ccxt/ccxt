@@ -1155,7 +1155,7 @@ public class Blockchaincom extends BlockchaincomApi
             String address = null;
             if (!java.util.Objects.equals(rawAddress, null))
             {
-                Object addressParts = Helpers.split(rawAddress, ";");
+                Object addressParts = new ArrayList<Object>(Arrays.asList(((String)rawAddress).split(java.util.regex.Pattern.quote(";"))));
                 // if a tag or memo is used it is separated by a colon in the 'address' value
                 tag = this.safeString(addressParts, 0);
                 address = this.safeString(addressParts, 1);

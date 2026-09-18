@@ -4137,7 +4137,7 @@ public class Grvt extends GrvtApi
             String cookie = this.safeString2(headers, "Set-Cookie", "set-cookie");
             if (!java.util.Objects.equals(cookie, null))
             {
-                Object cookieValue = Helpers.GetValue(Helpers.split(cookie, ";"), 0);
+                Object cookieValue = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)cookie).split(java.util.regex.Pattern.quote(";")))), 0);
                 Helpers.addElementToObject(this.options, "AuthCookieValue", cookieValue);
             }
             if (java.util.Objects.equals(((Map<String, Object>)this.options).get("AuthCookieValue"), null) || java.util.Objects.equals(((Map<String, Object>)this.options).get("AuthAccountId"), null))

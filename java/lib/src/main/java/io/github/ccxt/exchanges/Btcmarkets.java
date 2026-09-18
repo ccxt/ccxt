@@ -584,7 +584,7 @@ public class Btcmarkets extends BtcmarketsApi
         Object tag = null;
         if (!java.util.Objects.equals(address, null))
         {
-            Object addressParts = Helpers.split(address, "?dt=");
+            Object addressParts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
             Object numParts = ((List<?>)addressParts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {

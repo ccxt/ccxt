@@ -2642,7 +2642,7 @@ public class Cryptocom extends CryptocomApi
             var addressrawTagVariable = Helpers.split(addressString, "?");
             address = ((List<Object>) addressrawTagVariable).get(0);
             rawTag = ((List<Object>) addressrawTagVariable).get(1);
-            Object splitted = Helpers.split(((String)rawTag), "=");
+            Object splitted = new ArrayList<Object>(Arrays.asList(((String)((String)rawTag)).split(java.util.regex.Pattern.quote("="))));
             tag = Helpers.GetValue(splitted, 1);
         } else
         {

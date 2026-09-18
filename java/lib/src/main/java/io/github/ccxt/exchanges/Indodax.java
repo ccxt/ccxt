@@ -1771,7 +1771,7 @@ public class Indodax extends IndodaxApi
                             {
                                 throw new ExchangeError((this.id + " fetchDepositAddresses() missing networkId")) ;
                             }
-                            Object networkIds = Helpers.split(networkId, ",");
+                            Object networkIds = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote(","))));
                             for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                             {
                                 Object _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);

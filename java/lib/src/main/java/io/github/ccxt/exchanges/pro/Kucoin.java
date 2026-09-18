@@ -801,7 +801,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object market = null;
             if (!java.util.Objects.equals(topic, null))
             {
-                Object parts = Helpers.split(topic, ":");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote(":"))));
                 String first = this.safeString(parts, 1);
                 String marketId = null;
                 if (java.util.Objects.equals(first, "all"))
@@ -1067,7 +1067,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String topic = this.safeString(ticker, "topic");
         if (Helpers.isLessThan(Helpers.getIndexOf(topic, "contractMarket"), 0))
         {
-            Object parts = Helpers.split(topic, ":");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote(":"))));
             String marketId = (String) Helpers.GetValue(parts, 1);
             market = this.safeMarket(marketId, market);
             String symbol = this.safeString(market, "symbol");
@@ -1291,7 +1291,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String marketId = this.safeString(data, "symbol");
         Object candles = this.safeList(data, "candles", new ArrayList<Object>(Arrays.asList()));
         String topic = this.safeString(message, "topic");
-        Object parts = Helpers.split(topic, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("_"))));
         String interval = this.safeString(parts, 1);
         // use a reverse lookup in a static map instead
         Object timeframe = this.findTimeframe(interval);
@@ -2028,7 +2028,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //
         Object data = this.safeDict(message, "data");
         String topic = this.safeString(message, "topic");
-        Object topicParts = Helpers.split(topic, ":");
+        Object topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote(":"))));
         String topicSymbol = this.safeString(topicParts, 1);
         String topicChannel = this.safeString(topicParts, 0);
         String marketId = this.safeString(data, "symbol", topicSymbol);
@@ -2199,7 +2199,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (!java.util.Objects.equals(change, null))
         {
             // handling futures orderbook update
-            Object splitChange = Helpers.split(change, ",");
+            Object splitChange = new ArrayList<Object>(Arrays.asList(((String)change).split(java.util.regex.Pattern.quote(","))));
             Double price = this.safeNumber(splitChange, 0);
             String side = this.safeString(splitChange, 1);
             Double quantity = this.safeNumber(splitChange, 2);
@@ -3286,7 +3286,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String requestAccountType = null;
         if (!java.util.Objects.equals(relationEvent, null))
         {
-            Object relationEventParts = Helpers.split(relationEvent, ".");
+            Object relationEventParts = new ArrayList<Object>(Arrays.asList(((String)relationEvent).split(java.util.regex.Pattern.quote("."))));
             requestAccountType = this.safeString(relationEventParts, 0);
         }
         String topic = this.safeString(message, "topic");
@@ -3675,7 +3675,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //     }
         //
         String topic = this.safeString(message, "topic", "");
-        Object parts = Helpers.split(topic, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote(":"))));
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId, null, "");
         Object cache = this.positions;

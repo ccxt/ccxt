@@ -2069,9 +2069,9 @@ public class Gate extends GateApi
         // support expired option contracts
         String quote = "USDT";
         String settle = quote;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
-        Object marketIdBase = Helpers.split(symbol, "_");
+        Object optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
+        Object symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
+        Object marketIdBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("_"))));
         String base = null;
         String expiry = this.safeString(optionParts, 1);
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
@@ -2261,7 +2261,7 @@ public class Gate extends GateApi
                 String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode(baseId);
@@ -2503,7 +2503,7 @@ public class Gate extends GateApi
         //    }
         //
         String id = this.safeString(market, "name");
-        Object parts = Helpers.split(id, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String date = this.safeString(parts, 2);
@@ -2650,7 +2650,7 @@ public class Gate extends GateApi
                 {
                     Object market = this.safeDict(response, j, new HashMap<String, Object>() {{}});
                     String id = this.safeString(market, "name");
-                    Object parts = Helpers.split(((String)underlying), "_");
+                    Object parts = new ArrayList<Object>(Arrays.asList(((String)((String)underlying)).split(java.util.regex.Pattern.quote("_"))));
                     String baseId = this.safeString(parts, 0);
                     String quoteId = this.safeString(parts, 1);
                     String base = this.safeCurrencyCode(baseId);
@@ -4052,7 +4052,7 @@ public class Gate extends GateApi
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 Object marketId = ((Map<String, Object>)market).get("id");
-                Object optionParts = Helpers.split(((String)marketId), "-");
+                Object optionParts = new ArrayList<Object>(Arrays.asList(((String)((String)marketId)).split(java.util.regex.Pattern.quote("-"))));
                 ((Map<String, Object>)request).put("underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, query))).join();
             } else
@@ -4256,7 +4256,7 @@ public class Gate extends GateApi
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
                 String marketId = this.safeString(market, "id");
-                Object optionParts = Helpers.split(marketId, "-");
+                Object optionParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                 ((Map<String, Object>)request).put("underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
             } else
@@ -8318,7 +8318,7 @@ final Object finalRebate = rebate;
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     String marketId = this.safeString(market, "id");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    Object optionParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                     ((Map<String, Object>)request).put("underlying", this.safeString(optionParts, 0));
                 }
             } else
@@ -9435,7 +9435,7 @@ final Object finalI = i;
                 throw new NotSupported((this.id + " fetchSettlementHistory() supports option markets only")) ;
             }
             Object marketId = ((Map<String, Object>)market).get("id");
-            Object optionParts = Helpers.split(((String)marketId), "-");
+            Object optionParts = new ArrayList<Object>(Arrays.asList(((String)((String)marketId)).split(java.util.regex.Pattern.quote("-"))));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "underlying", Gate.this.safeString(optionParts, 0) );
             }};
@@ -9550,7 +9550,7 @@ final Object finalI = i;
                 } else
                 {
                     Object marketId = ((Map<String, Object>)market).get("id");
-                    Object optionParts = Helpers.split(((String)marketId), "-");
+                    Object optionParts = new ArrayList<Object>(Arrays.asList(((String)((String)marketId)).split(java.util.regex.Pattern.quote("-"))));
                     ((Map<String, Object>)request).put("underlying", this.safeString(optionParts, 0));
                 }
                 //
@@ -10146,7 +10146,7 @@ final Object finalI = i;
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 Object marketId = ((Map<String, Object>)market).get("id");
-                Object optionParts = Helpers.split(((String)marketId), "-");
+                Object optionParts = new ArrayList<Object>(Arrays.asList(((String)((String)marketId)).split(java.util.regex.Pattern.quote("-"))));
                 ((Map<String, Object>)request).put("underlying", this.safeString(optionParts, 0));
             }
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))

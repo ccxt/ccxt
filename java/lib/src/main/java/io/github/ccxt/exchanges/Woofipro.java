@@ -932,7 +932,7 @@ public class Woofipro extends WoofiproApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
         String marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
@@ -4518,7 +4518,7 @@ public class Woofipro extends WoofiproApi
             Object secret = this.secret;
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0))
             {
-                Object parts = Helpers.split(secret, "ed25519:");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                 secret = Helpers.GetValue(parts, 1);
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());

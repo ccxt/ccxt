@@ -2547,9 +2547,9 @@ public class Blofin extends BlofinApi
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not
             // survive the php conversion (false-vs-int compare; length arg)
-            Object parts = Helpers.split(chainId, "(");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)chainId).split(java.util.regex.Pattern.quote("("))));
             String tail = this.safeString(parts, 1, "");
-            Object tailParts = Helpers.split(tail, ")");
+            Object tailParts = new ArrayList<Object>(Arrays.asList(((String)tail).split(java.util.regex.Pattern.quote(")"))));
             String suffix = this.safeString(tailParts, 0);
             Object bySuffix = this.safeDict(this.options, "networkCodesBySuffix", new HashMap<String, Object>() {{}});
             return this.safeString(bySuffix, suffix, suffix);
@@ -2899,7 +2899,7 @@ public class Blofin extends BlofinApi
          */
         if ((ids instanceof String))
         {
-            return Helpers.split(ids, ",");
+            return new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(","))));
         } else
         {
             return ids;
