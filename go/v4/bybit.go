@@ -12889,7 +12889,7 @@ func (this *Bybit) Sign(path any, optionalArgs ...any) any {
 			}
 			var query map[string]any = this.Extend(map[string]any{}, params)
 			var queryEncoded string = this.Rawencode(query)
-			var auth_base any = Add(Add(ToString(timestamp), this.ApiKey), ToString(GetValue(this.Options, "recvWindow")))
+			var auth_base any = Add(Add(timestamp, this.ApiKey), ToString(GetValue(this.Options, "recvWindow")))
 			var authFull any = nil
 			if IsEqual(method, "POST") {
 				body = this.Json(query)
