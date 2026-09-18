@@ -6422,7 +6422,7 @@ public Object describe()
                 Object code = Helpers.GetValue(codes, i);
                 Object groupedCurrenciesCode = this.safeList(groupedCurrencies, code, new ArrayList<Object>(Arrays.asList()));
                 Object highestPrecisionCurrency = this.safeValue(groupedCurrenciesCode, 0);
-                for (var j = 1; Helpers.isLessThan(j, Helpers.getArrayLength(groupedCurrenciesCode)); j++)
+                for (var j = 1; j < (groupedCurrenciesCode == null ? 0 : ((List<?>)groupedCurrenciesCode).size()); j++)
                 {
                     Object currentCurrency = Helpers.GetValue(groupedCurrenciesCode, j);
                     if (Helpers.isEqual(this.precisionMode, TICK_SIZE))
@@ -6472,7 +6472,7 @@ public Object describe()
         this.codes = sourceExchange.codes;
         // check marketHelperProps
         Object sourceExchangeHelpers = this.safeList(sourceExchange.options, "marketHelperProps", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sourceExchangeHelpers)); i++)
+        for (var i = 0; i < (sourceExchangeHelpers == null ? 0 : ((List<?>)sourceExchangeHelpers).size()); i++)
         {
             Object helper = Helpers.GetValue(sourceExchangeHelpers, i);
             if (!java.util.Objects.equals(Helpers.GetValue(sourceExchange.options, helper), null))
@@ -6812,7 +6812,7 @@ public Object describe()
                 ((Map<String, Object>)tradeFee).put("rate", BaseExchange.this.safeNumber(tradeFee, "rate"));
             }
             Object entryFees = this.safeList(entry, "fees", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(entryFees)); j++)
+            for (var j = 0; j < (entryFees == null ? 0 : ((List<?>)entryFees).size()); j++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(entryFees, j), "cost", this.safeNumber(Helpers.GetValue(entryFees, j), "cost"));
             }
@@ -6926,7 +6926,7 @@ public Object describe()
         Object results = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isArray(orders)))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
                 Map<String, Object> order = this.extend(parsed, parameters);
@@ -7635,7 +7635,7 @@ public Object describe()
         Object lows = this.safeList(ohlcvs, low, new ArrayList<Object>(Arrays.asList()));
         Object closes = this.safeList(ohlcvs, close, new ArrayList<Object>(Arrays.asList()));
         Object volumes = this.safeList(ohlcvs, volume, new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(timestamps)); i++)
+        for (var i = 0; i < (timestamps == null ? 0 : ((List<?>)timestamps).size()); i++)
         {
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((Helpers.isTrue(ms))) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i))));
         }
@@ -12774,11 +12774,11 @@ public Object describe()
     {
         String topic = this.safeString(subscription, "topic");
         Object symbols = this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
-        Object symbolsLength = Helpers.getArrayLength(symbols);
+        Object symbolsLength = (symbols == null ? 0 : ((List<?>)symbols).size());
         if (java.util.Objects.equals(topic, "ohlcv"))
         {
             Object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
+            for (var i = 0; i < (symbolsAndTimeframes == null ? 0 : ((List<?>)symbolsAndTimeframes).size()); i++)
             {
                 Object symbolAndTimeFrame = Helpers.GetValue(symbolsAndTimeframes, i);
                 String symbol = this.safeString(symbolAndTimeFrame, 0);
@@ -12801,7 +12801,7 @@ public Object describe()
             }
         } else if (Helpers.isGreaterThan(symbolsLength, 0))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            for (var i = 0; i < (symbols == null ? 0 : ((List<?>)symbols).size()); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 if (java.util.Objects.equals(topic, "trades"))

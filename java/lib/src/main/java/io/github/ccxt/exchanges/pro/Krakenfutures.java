@@ -1055,7 +1055,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     messageHash = "orders:verbose";
                 }
                 // get order without symbol
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+                for (var i = 0; i < ((List<?>)orders).size(); i++)
                 {
                     Object currentOrder = Helpers.GetValue(orders, i);
                     if (Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id")))
@@ -1150,7 +1150,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
         }
-        Object length = Helpers.getArrayLength(this.orders);
+        Object length = ((List<?>)this.orders).size();
         if (Helpers.isGreaterThan(length, 0))
         {
             client.resolve(this.orders, messageHash);

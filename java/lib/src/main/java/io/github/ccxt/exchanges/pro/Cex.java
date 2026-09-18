@@ -1121,7 +1121,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         this.orders = myOrders;
         String messageHash = Helpers.add("orders:", symbol);
-        Object ordersLength = Helpers.getArrayLength(myOrders);
+        Object ordersLength = ((List<?>)myOrders).size();
         if (Helpers.isGreaterThan(ordersLength, 0))
         {
             client.resolve(myOrders, messageHash);
