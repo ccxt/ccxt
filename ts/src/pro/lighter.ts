@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import { ExchangeError, NotSupported } from '../base/errors.js';
+import { ExchangeError, NotSupported, UnsubscribeError } from '../base/errors.js';
 import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -1456,6 +1456,10 @@ export default class lighter extends lighterRest {
         //         "channel": "order_book:0"
         //     }
         //
+        // the venue keys every ack by the channel name plus one id segment, whatever the
+        // subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
+        // "account_orders:{marketId}", so parts[1] is the market id on every family below
+        //
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const name = this.safeString (parts, 0, '');
@@ -1487,9 +1491,33 @@ export default class lighter extends lighterRest {
 
     handleTickerUnSubscription (client: Client, marketId: Str) {
         if (marketId === 'all') {
-            // the all-markets channel feeds both the plural hash and every per-symbol hash
+            // a ticker hash is served by the one wire channel that created its subscription
+            // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
+            // owned by a live market_stats/<marketId> channel must survive this ack. deleting
+            // it here would make the next watchTicker re-subscribe a channel the venue still
+            // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
+            // so handleErrorMessage rejects every future on the socket
+            const subscriptionHashes = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const subscriptionHash = subscriptionHashes[i];
+                if (subscriptionHash.startsWith ('ticker')) {
+                    const subscription = this.safeDict (client.subscriptions, subscriptionHash);
+                    const subscriptionParams = this.safeDict (subscription, 'params');
+                    const subscribedChannel = this.safeString (subscriptionParams, 'channel');
+                    if (subscribedChannel === 'market_stats/all') {
+                        delete client.subscriptions[subscriptionHash];
+                        if (subscriptionHash in client.futures) {
+                            const error = new UnsubscribeError (this.id + ' ' + subscriptionHash);
+                            client.reject (error, subscriptionHash);
+                        }
+                    }
+                }
+            }
             const allMessageHash = 'unsubscribe:' + this.getMessageHash ('ticker');
-            this.cleanUnsubscription (client, 'ticker', allMessageHash, true);
+            if (allMessageHash in client.subscriptions) {
+                delete client.subscriptions[allMessageHash];
+            }
+            client.resolve (true, allMessageHash);
             const tickersStructure: Dict = {
                 'topic': 'ticker',
             };
