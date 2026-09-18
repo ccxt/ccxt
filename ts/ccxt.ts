@@ -135,6 +135,7 @@ import onetrading from  './src/onetrading.js'
 import p2b from  './src/p2b.js'
 import pacifica from  './src/pacifica.js'
 import paradex from  './src/paradex.js'
+import paribu from  './src/paribu.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
@@ -219,6 +220,7 @@ import onetradingPro from  './src/pro/onetrading.js'
 import p2bPro from  './src/pro/p2b.js'
 import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
+import paribuPro from  './src/pro/paribu.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import toobitPro from  './src/pro/toobit.js'
@@ -328,6 +330,7 @@ const exchanges = {
     'p2b':                    p2b,
     'pacifica':               pacifica,
     'paradex':                paradex,
+    'paribu':                 paribu,
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
@@ -412,6 +415,7 @@ const pro = {
     'p2b':                    p2bPro,
     'pacifica':               pacificaPro,
     'paradex':                paradexPro,
+    'paribu':                 paribuPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'toobit':                 toobitPro,
@@ -693,6 +697,7 @@ export {
     p2b,
     pacifica,
     paradex,
+    paribu,
     paymium,
     phemex,
     poloniex,
