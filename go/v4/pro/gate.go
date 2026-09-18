@@ -2626,7 +2626,12 @@ func (this *Gate) HandleSubscriptionStatus(client any, message any) {
 	if ccxt.InOp(methods, channel) {
 		var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), id)
 		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
-		var method any = ccxt.GetValue(methods, channel)
+		var method any = func() any {
+			if channel == nil {
+				return nil
+			}
+			return methods[*channel]
+		}()
 		ccxt.CallDynamically(method, client, message, subscription)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id) {

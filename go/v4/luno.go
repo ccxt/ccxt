@@ -776,8 +776,18 @@ func (this *Luno) ParseBalance(response any) any {
 		var reservedUnconfirmed *string = Precise.StringAdd(reserved, unconfirmed)
 		var balanceUnconfirmed *string = Precise.StringAdd(balance, unconfirmed)
 		if (code != nil) && (InOp(result, code)) {
-			AddElementToObject(GetValue(result, code), "used", Precise.StringAdd(GetValue(GetValue(result, code), "used"), reservedUnconfirmed))
-			AddElementToObject(GetValue(result, code), "total", Precise.StringAdd(GetValue(GetValue(result, code), "total"), balanceUnconfirmed))
+			AddElementToObject(GetValue(result, code), "used", Precise.StringAdd(GetValue(func() any {
+				if code == nil {
+					return nil
+				}
+				return result[*code]
+			}(), "used"), reservedUnconfirmed))
+			AddElementToObject(GetValue(result, code), "total", Precise.StringAdd(GetValue(func() any {
+				if code == nil {
+					return nil
+				}
+				return result[*code]
+			}(), "total"), balanceUnconfirmed))
 		} else if code != nil {
 			var account any = this.Account()
 			AddElementToObject(account, "used", reservedUnconfirmed)

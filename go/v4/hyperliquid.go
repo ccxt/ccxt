@@ -4209,7 +4209,12 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			if !(InOp(deduplicatedByOid, oid)) {
 				AddElementToObject(deduplicatedByOid, oid, rawOrder)
 			} else {
-				var existingTimestamp *int64 = this.SafeInteger(GetValue(deduplicatedByOid, oid), "statusTimestamp")
+				var existingTimestamp *int64 = this.SafeInteger(func() any {
+					if oid == nil {
+						return nil
+					}
+					return deduplicatedByOid[*oid]
+				}(), "statusTimestamp")
 				var currentTimestamp *int64 = this.SafeInteger(rawOrder, "statusTimestamp")
 				if (currentTimestamp != nil) && ((existingTimestamp == nil) || IsGreaterThan(currentTimestamp, existingTimestamp)) {
 					AddElementToObject(deduplicatedByOid, oid, rawOrder)

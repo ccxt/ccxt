@@ -4009,7 +4009,12 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 							},
 						})
 					}
-					AddElementToObject(GetValue(depositWithdrawFees, code), "networks", this.Extend(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkObject))
+					AddElementToObject(GetValue(depositWithdrawFees, code), "networks", this.Extend(GetValue(func() any {
+						if code == nil {
+							return nil
+						}
+						return depositWithdrawFees[*code]
+					}(), "networks"), networkObject))
 				}
 			}
 		}

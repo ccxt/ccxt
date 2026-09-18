@@ -1896,7 +1896,12 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			if !(ccxt.InOp(deduped, oid)) {
 				ccxt.AddElementToObject(deduped, oid, raw)
 			} else {
-				var existingTs *int64 = this.SafeInteger(ccxt.GetValue(deduped, oid), "statusTimestamp")
+				var existingTs *int64 = this.SafeInteger(func() any {
+					if oid == nil {
+						return nil
+					}
+					return deduped[*oid]
+				}(), "statusTimestamp")
 				var currentTs *int64 = this.SafeInteger(raw, "statusTimestamp")
 				if (currentTs != nil) && ((existingTs == nil) || ccxt.IsGreaterThan(currentTs, existingTs)) {
 					ccxt.AddElementToObject(deduped, oid, raw)

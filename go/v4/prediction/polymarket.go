@@ -1529,7 +1529,12 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			if (tokenId == nil) || !(ccxt.InOp(outcomesByTokenId, tokenId)) {
 				continue
 			}
-			var outcomeObj any = ccxt.GetValue(outcomesByTokenId, tokenId)
+			var outcomeObj any = func() any {
+				if tokenId == nil {
+					return nil
+				}
+				return outcomesByTokenId[*tokenId]
+			}()
 			var mid *string = this.SafeString(midpoints, tokenId)
 			var tickerInput map[string]any = map[string]any{
 				"midpoint": map[string]any{

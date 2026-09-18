@@ -5404,7 +5404,12 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 				AddElementToObject(GetValue(depositWithdrawFees, code), "info", []any{})
 			}
-			var depositWithdrawInfo any = GetValue(GetValue(depositWithdrawFees, code), "info")
+			var depositWithdrawInfo any = GetValue(func() any {
+				if code == nil {
+					return nil
+				}
+				return depositWithdrawFees[*code]
+			}(), "info")
 			AppendToArray(&depositWithdrawInfo, entry)
 			var networkId *string = this.SafeString(entry, "chain")
 			var withdrawFee any = this.SafeValue(entry, "min_withdraw_fee")
