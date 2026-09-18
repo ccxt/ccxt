@@ -8,6 +8,79 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchOpenInterest": [
+            {
+                "description": "open interest for a single market",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "funding": "0.0000125",
+                            "mark": "0.178697",
+                            "mid": "0.17853",
+                            "next_funding": "0.0000125",
+                            "open_interest": "354762",
+                            "oracle": "0.178895",
+                            "symbol": "WIF",
+                            "timestamp": 1789559317748,
+                            "volume_24h": "47283.5301",
+                            "yesterday_price": "0.17855"
+                        },
+                        {
+                            "funding": "-0.00005465",
+                            "mark": "0.004883",
+                            "mid": "0.00488",
+                            "next_funding": "-0.00003442",
+                            "open_interest": "1184448",
+                            "oracle": "0.004889",
+                            "symbol": "kSHIB",
+                            "timestamp": 1789559317748,
+                            "volume_24h": "530.31175",
+                            "yesterday_price": "0.005129"
+                        },
+                        {
+                            "funding": "0.0000125",
+                            "mark": "76214",
+                            "mid": "76213.5",
+                            "next_funding": "0.0000125",
+                            "open_interest": "456.69035",
+                            "oracle": "76215.240385",
+                            "symbol": "BTC",
+                            "timestamp": 1789559317748,
+                            "volume_24h": "386531732.59346",
+                            "yesterday_price": "76843"
+                        }
+                    ],
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "openInterestAmount": 456.69035,
+                    "openInterestValue": 34806198.3349,
+                    "timestamp": 1789559317748,
+                    "datetime": "2026-09-16T11:48:37.748Z",
+                    "info": {
+                        "funding": "0.0000125",
+                        "mark": "76214",
+                        "mid": "76213.5",
+                        "next_funding": "0.0000125",
+                        "open_interest": "456.69035",
+                        "oracle": "76215.240385",
+                        "symbol": "BTC",
+                        "timestamp": 1789559317748,
+                        "volume_24h": "386531732.59346",
+                        "yesterday_price": "76843"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
         "createSubAccount": [
             {
                 "description": "create a subaccount with an agent wallet header",
