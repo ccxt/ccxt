@@ -2359,7 +2359,7 @@ export default class lbank extends Exchange {
         //          "ts":1648075865103
         //      }
         //
-        const result = this.safeValue (response, 'data');
+        const result = this.safeDict (response, 'data');
         const address = this.safeString (result, 'address');
         const tag = this.safeString (result, 'memo');
         return {
@@ -2400,7 +2400,7 @@ export default class lbank extends Exchange {
         //          "ts":1648073818880
         //     }
         //
-        const result = this.safeValue (response, 'data');
+        const result = this.safeDict (response, 'data');
         const address = this.safeString (result, 'address');
         const tag = this.safeString (result, 'memo');
         return {

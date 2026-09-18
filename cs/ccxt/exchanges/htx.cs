@@ -2309,7 +2309,7 @@ public partial class htx : Exchange
         //         "success":true
         //     }
         //
-        List<object> data = this.safeList(response, "data", new List<object>() {});
+        object data = this.safeValue(response, "data", new List<object>() {});
         object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(first, market));
     }
@@ -2335,7 +2335,7 @@ public partial class htx : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             result[(string)symbol] = ccxt.BaseExchange.FromDict(await this.FetchTradingLimitsById(this.marketId(symbol), parameters));
         }
         return ccxt.BaseExchange.ToDict(result);
@@ -2836,7 +2836,7 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, futureMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(futureMarkets, i);
-            IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
+            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
             string? contractType = this.safeString(info, "contract_type");
             object contractSuffix = this.safeValue(futuresCharsMaps, contractType);
             // see comment on formats a bit above
@@ -3464,7 +3464,7 @@ public partial class htx : Exchange
         //
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
@@ -4194,8 +4194,8 @@ public partial class htx : Exchange
         }
         for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> account = ((IDictionary<string, object>)getValue(accounts, i));
-            object info = this.safeValue(account, "info");
+            object account = getValue(accounts, i);
+            IDictionary<string, object> info = this.safeDict(account, "info");
             string? subtype = this.safeString(info, "subtype");
             string? typeFromAccount = this.safeString(account, "type");
             if (isEqual(type, "margin"))
@@ -5444,7 +5444,7 @@ public partial class htx : Exchange
                 await this.loadAccounts();
                 for (int i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
                 {
-                    IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+                    object account = getValue(this.accounts, i);
                     if ((this.safeString(account, "type") == "spot"))
                     {
                         accountId = this.safeString(account, "id");
@@ -6858,7 +6858,7 @@ public partial class htx : Exchange
         object marginMode = null;
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
@@ -7001,7 +7001,7 @@ public partial class htx : Exchange
             } else
             {
                 object batchData = this.safeValue(response, "data", new Dictionary<string, object>() {});
-                List<object> success = this.safeList(batchData, "success", new List<object>() {});
+                object success = this.safeValue(batchData, "success", new List<object>() {});
                 object errors = this.safeValue(batchData, "errors", new List<object>() {});
                 result = this.arrayConcat(success, errors);
             }
@@ -7751,7 +7751,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        List<object> data = this.safeList(response, "data", new List<object>() {});
+        object data = this.safeValue(response, "data", new List<object>() {});
         object parsed = this.parseDepositAddresses(data, new List<object>() {GetValue(currency, "code")}, false);
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
@@ -7807,7 +7807,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        List<object> data = this.safeList(response, "data", new List<object>() {});
+        object data = this.safeValue(response, "data", new List<object>() {});
         object allAddresses = this.parseDepositAddresses(data, new List<object>() {GetValue(currency, "code")}, false);
         List<object> addresses = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(allAddresses)); postFixIncrement(ref i))
@@ -8512,9 +8512,9 @@ public partial class htx : Exchange
         //
         string? marketId = this.safeString(info, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
-        List<object> currencies = this.safeList(info, "currencies", new List<object>() {});
-        object baseData = this.safeValue(currencies, 0);
-        object quoteData = this.safeValue(currencies, 1);
+        object currencies = this.safeValue(info, "currencies", new List<object>() {});
+        IDictionary<string, object> baseData = this.safeDict(currencies, 0);
+        IDictionary<string, object> quoteData = this.safeDict(currencies, 1);
         string? baseId = this.safeString(baseData, "currency");
         string? quoteId = this.safeString(quoteData, "currency");
         return new Dictionary<string, object>() {
@@ -9466,7 +9466,7 @@ public partial class htx : Exchange
         //     }
         //
         market = this.safeMarket(this.safeString(position, "contract_code"));
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? contracts = this.safeString(position, "volume");
         object contractSize = this.safeValue(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
@@ -10077,7 +10077,7 @@ public partial class htx : Exchange
         //        "ts": 1648227062944
         //    }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> tick = this.safeList(data, "tick");
         return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(tick, market, since, limit));
     }
@@ -10429,7 +10429,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        List<object> data = this.safeList(response, "Data", new List<object>() {});
+        object data = this.safeValue(response, "Data", new List<object>() {});
         object loan = this.safeValue(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
         return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
@@ -10474,7 +10474,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        List<object> data = this.safeList(response, "Data", new List<object>() {});
+        object data = this.safeValue(response, "Data", new List<object>() {});
         object loan = this.safeValue(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
         return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
@@ -10655,7 +10655,7 @@ public partial class htx : Exchange
             object settlementsLinear = this.parseSettlements(dataLinear, market);
             return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         object settlementRecord = this.safeValue(data, "settlement_record");
         object settlements = this.parseSettlements(settlementRecord, market);
         return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));

@@ -1443,7 +1443,7 @@ public partial class binance : ccxt.binance
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -2118,7 +2118,7 @@ public partial class binance : ccxt.binance
             { "markPrice_kline", "markPriceKline" },
         };
         eventVar = this.safeString(eventMap, eventVar, eventVar);
-        object kline = this.safeValue(message, "k");
+        IDictionary<string, object> kline = this.safeDict(message, "k");
         string? marketId = this.safeString2(kline, "s", "ps");
         if (eventVar == "indexPriceKline")
         {

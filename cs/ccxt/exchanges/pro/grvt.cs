@@ -361,7 +361,7 @@ public partial class grvt : ccxt.grvt
         object trades = await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }

@@ -554,7 +554,7 @@ export default class htx extends htxRest {
             const messages = orderbook.cache;
             const firstMessage = this.safeValue (messages, 0, {});
             const snapshot = this.parseOrderBook (data, symbol);
-            const tick = this.safeValue (firstMessage, 'tick');
+            const tick = this.safeDict (firstMessage, 'tick');
             const sequence = this.safeInteger (tick, 'prevSeqNum');
             const nonce = this.safeInteger (data, 'seqNum');
             if (nonce === undefined) {
@@ -2364,7 +2364,7 @@ export default class htx extends htxRest {
             }
             const action = this.safeString (message, 'action');
             if (action === 'ping') {
-                const data = this.safeValue (message, 'data');
+                const data = this.safeDict (message, 'data');
                 const pingTs = this.safeInteger (data, 'ts');
                 await client.send ({ 'action': 'pong', 'data': { 'ts': pingTs }});
                 return;

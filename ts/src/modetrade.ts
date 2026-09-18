@@ -1435,7 +1435,7 @@ export default class modetrade extends Exchange {
         let stopLossPrice: Num = undefined;
         const childOrders = this.safeValue (order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue (childOrders, 0);
+            const first = this.safeDict (childOrders, 0);
             const innerChildOrders = this.safeList (first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {

@@ -700,7 +700,7 @@ public partial class bydfi : ccxt.bydfi
         object orders = await this.watchPrivate(messageHashes, parameters);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(orders, 0);
+            IDictionary<string, object> first = this.safeDict(orders, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(orders, "getLimit", new object[] {tradeSymbol, limitVar});
         }

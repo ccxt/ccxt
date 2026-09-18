@@ -1832,7 +1832,7 @@ export default class bingx extends bingxRest {
                 this.handleMyTrades (client, message);
             }
         }
-        const msgData = this.safeValue (message, 'data');
+        const msgData = this.safeDict (message, 'data');
         const msgEvent = this.safeString (msgData, 'e');
         if (msgEvent === '24hTicker') {
             this.handleTicker (client, message);

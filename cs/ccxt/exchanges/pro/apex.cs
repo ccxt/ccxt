@@ -109,7 +109,7 @@ public partial class apex : ccxt.apex
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }

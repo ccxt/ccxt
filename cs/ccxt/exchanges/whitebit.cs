@@ -1211,8 +1211,8 @@ public partial class whitebit : Exchange
                 }
                 ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)entry] = feeInfo;
                 string? networkId = this.safeString(splitEntry, 1);
-                object withdraw = this.safeValue(feeInfo, "withdraw");
-                object deposit = this.safeValue(feeInfo, "deposit");
+                IDictionary<string, object> withdraw = this.safeDict(feeInfo, "withdraw");
+                IDictionary<string, object> deposit = this.safeDict(feeInfo, "deposit");
                 double? withdrawFee = this.safeNumber(withdraw, "fixed");
                 double? depositFee = this.safeNumber(deposit, "fixed");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {

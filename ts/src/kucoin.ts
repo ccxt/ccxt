@@ -8383,7 +8383,7 @@ export default class kucoin extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId, currency);
         const account = this.account ();
@@ -10410,7 +10410,7 @@ export default class kucoin extends Exchange {
             //        }
             //    }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeDict (response, 'data');
             dataList = this.safeList (data, 'dataList', []);
         }
         const fees: List = [];

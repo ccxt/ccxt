@@ -1769,7 +1769,7 @@ public partial class modetrade : Exchange
         object childOrders = this.safeValue(order, "childOrders");
         if ((childOrders != null))
         {
-            object first = this.safeValue(childOrders, 0);
+            IDictionary<string, object> first = this.safeDict(childOrders, 0);
             List<object> innerChildOrders = this.safeList(first, "childOrders", new List<object>() {});
             int innerChildOrdersLength = innerChildOrders.Count;
             if (isGreaterThan(innerChildOrdersLength, 0))

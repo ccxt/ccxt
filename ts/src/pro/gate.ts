@@ -935,7 +935,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1656,7 +1656,7 @@ export default class gate extends gateRest {
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
             // inject order status
-            const info = this.safeValue (parsed, 'info');
+            const info = this.safeDict (parsed, 'info');
             const event = this.safeString (info, 'event');
             if (event === 'put' || event === 'update') {
                 parsed['status'] = 'open';

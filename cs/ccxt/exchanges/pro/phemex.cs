@@ -1668,7 +1668,7 @@ public partial class phemex : ccxt.phemex
         //     }
         // }
         //
-        object result = this.safeValue(message, "result");
+        IDictionary<string, object> result = this.safeDict(message, "result");
         string? status = this.safeString(result, "status");
         string messageHash = "authenticated";
         if (status == "success")

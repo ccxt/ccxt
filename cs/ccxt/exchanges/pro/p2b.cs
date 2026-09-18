@@ -252,7 +252,7 @@ public partial class p2b : ccxt.p2b
         object trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }

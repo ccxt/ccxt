@@ -5084,7 +5084,7 @@ public partial class mexc : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> result = this.safeList(data, "resultList", new List<object>() {});
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
@@ -6066,7 +6066,7 @@ public partial class mexc : Exchange
                 request["page_size"] = limit;
             }
             Dictionary<string, object> response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, parameters));
-            object data = this.safeValue(response, "data");
+            IDictionary<string, object> data = this.safeDict(response, "data");
             resultList = this.safeList(data, "resultList");
         }
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(resultList, currency, since, limit));

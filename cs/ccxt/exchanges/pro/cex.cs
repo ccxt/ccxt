@@ -593,7 +593,7 @@ public partial class cex : ccxt.cex
 
     public virtual void handleTransaction(WebSocketClient client, Dictionary<string, object> message)
     {
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         string? symbol2 = this.safeString(data, "symbol2");
         if ((symbol2 == null))
         {

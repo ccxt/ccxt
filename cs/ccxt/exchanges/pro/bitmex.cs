@@ -1484,7 +1484,7 @@ public partial class bitmex : ccxt.bitmex
         object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }

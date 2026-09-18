@@ -736,7 +736,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         const locked = this.safeString (result, 'locked');
         const updateTime = this.safeIntegerProduct (response, 'usIn', 0.001, this.milliseconds ());
         return {

@@ -412,7 +412,7 @@ export default class weex extends weexRest {
         }
         const trades = await this.subscribePublic (messageHashes, channels, isContract, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }

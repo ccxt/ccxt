@@ -4652,7 +4652,7 @@ export default class mexc extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const result = this.safeList (data, 'resultList', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
@@ -5561,7 +5561,7 @@ export default class mexc extends Exchange {
                 request['page_size'] = limit;
             }
             const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, params));
-            const data = this.safeValue (response, 'data');
+            const data = this.safeDict (response, 'data');
             resultList = this.safeList (data, 'resultList') as List;
             //
             //     {

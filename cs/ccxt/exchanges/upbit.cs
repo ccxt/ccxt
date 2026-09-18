@@ -548,9 +548,9 @@ public partial class upbit : Exchange
         //         }
         //     }
         //
-        object marketInfo = this.safeValue(response, "market");
-        object bid = this.safeValue(marketInfo, "bid");
-        object ask = this.safeValue(marketInfo, "ask");
+        IDictionary<string, object> marketInfo = this.safeDict(response, "market");
+        IDictionary<string, object> bid = this.safeDict(marketInfo, "bid");
+        IDictionary<string, object> ask = this.safeDict(marketInfo, "ask");
         string? marketId = this.safeString(marketInfo, "id");
         string? baseId = this.safeString(ask, "currency");
         string? quoteId = this.safeString(bid, "currency");

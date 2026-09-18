@@ -2055,7 +2055,7 @@ public partial class bingx : ccxt.bingx
                 this.handleMyTrades(client, (Dictionary<string, object>)message);
             }
         }
-        object msgData = this.safeValue(message, "data");
+        IDictionary<string, object> msgData = this.safeDict(message, "data");
         string? msgEvent = this.safeString(msgData, "e");
         if (msgEvent == "24hTicker")
         {

@@ -2610,7 +2610,7 @@ public partial class lbank : Exchange
         //          "ts":1648075865103
         //      }
         //
-        object result = this.safeValue(response, "data");
+        IDictionary<string, object> result = this.safeDict(response, "data");
         string? address = this.safeString(result, "address");
         string? tag = this.safeString(result, "memo");
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.networkIdToCode(this.safeString(result, "netWork"), code) },             { "address", address },             { "tag", tag },         });
@@ -2649,7 +2649,7 @@ public partial class lbank : Exchange
         //          "ts":1648073818880
         //     }
         //
-        object result = this.safeValue(response, "data");
+        IDictionary<string, object> result = this.safeDict(response, "data");
         string? address = this.safeString(result, "address");
         string? tag = this.safeString(result, "memo");
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });

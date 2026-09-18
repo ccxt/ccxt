@@ -305,7 +305,7 @@ export default class bitbank extends Exchange {
         //       }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const pairs = this.safeList (data, 'pairs', []);
         return this.parseMarkets (pairs);
     }
@@ -847,7 +847,7 @@ export default class bitbank extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data') as Dict;
         return this.parseOrder (data);
     }
 

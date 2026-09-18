@@ -843,7 +843,7 @@ public partial class mexc : ccxt.mexc
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        object firstDelta = this.safeValue(cache, 0);
+        IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
         if ((isEqual(nonce, null)) || (isEqual(firstDeltaNonce, null)))
         {

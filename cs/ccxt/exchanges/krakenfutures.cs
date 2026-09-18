@@ -1610,7 +1610,7 @@ public partial class krakenfutures : Exchange
         //         }
         //     }
         //
-        object sendStatus = this.safeValue(response, "sendStatus");
+        IDictionary<string, object> sendStatus = this.safeDict(response, "sendStatus");
         string? status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new List<object>() {"filled"});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(sendStatus, market));
@@ -2616,7 +2616,7 @@ public partial class krakenfutures : Exchange
                     } else if (!fixedVar)
                     {
                         string? executedPrice = this.safeString(item, "price");
-                        object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
+                        IDictionary<string, object> orderPriorExecution = this.safeDict(item, "orderPriorExecution");
                         details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
                         if ((executedPrice == null))
                         {
@@ -3341,7 +3341,7 @@ public partial class krakenfutures : Exchange
                 account["total"] = balance;
             } else
             {
-                object auxiliary = this.safeValue(response, "auxiliary");
+                IDictionary<string, object> auxiliary = this.safeDict(response, "auxiliary");
                 account["free"] = this.safeString(auxiliary, "af");
                 account["total"] = this.safeString(auxiliary, "pv");
             }
@@ -4045,7 +4045,7 @@ public partial class krakenfutures : Exchange
             throw new DDoSProtection (add(add(this.id, " "), body)) ;
         }
         object errors = this.safeValue(response, "errors");
-        object firstError = this.safeValue(errors, 0);
+        IDictionary<string, object> firstError = this.safeDict(errors, 0);
         string? firtErrorMessage = this.safeString(firstError, "message");
         string? message = this.safeString(response, "error", firtErrorMessage);
         if ((message == null))

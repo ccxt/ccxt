@@ -809,7 +809,7 @@ public partial class woo : ccxt.woo
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         object topic = this.safeValue(message, "topic");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);

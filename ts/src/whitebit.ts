@@ -927,8 +927,8 @@ export default class whitebit extends Exchange {
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
                 let networkId = this.safeString (splitEntry, 1);
-                const withdraw = this.safeValue (feeInfo, 'withdraw');
-                const deposit = this.safeValue (feeInfo, 'deposit');
+                const withdraw = this.safeDict (feeInfo, 'withdraw');
+                const deposit = this.safeDict (feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber (withdraw, 'fixed');
                 const depositFee = this.safeNumber (deposit, 'fixed');
                 const withdrawResult: Dict = {

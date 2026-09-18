@@ -818,7 +818,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data') as Dict;
         const transaction = this.parseTransaction (data, currency);
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest === true) {

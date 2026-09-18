@@ -1102,7 +1102,7 @@ public partial class onetrading : Exchange
         //         "last_sequence":461123
         //     }
         //
-        object granularity = this.safeValue(ohlcv, "granularity");
+        IDictionary<string, object> granularity = this.safeDict(ohlcv, "granularity");
         string? unit = this.safeString(granularity, "unit");
         object period = this.safeString(granularity, "period");
         Dictionary<string, object> units = new Dictionary<string, object>() {
