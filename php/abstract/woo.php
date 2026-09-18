@@ -694,6 +694,18 @@ abstract class woo extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v3_private_post_futures_defaultmarginmode_reset($params = array()) {
+        return $this->request('futures/defaultMarginMode/reset', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 60));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3_private_post_isolatedmargin_margin($params = array()) {
+        return $this->request('isolatedMargin/margin', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 60));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v3_private_post_algo_order($params = array()) {
         return $this->request('algo/order', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
@@ -726,6 +738,18 @@ abstract class woo extends \ccxt\Exchange {
      */
     public function v3_private_put_futures_positionmode($params = array()) {
         return $this->request('futures/positionMode', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3_private_put_futures_defaultmarginmode($params = array()) {
+        return $this->request('futures/defaultMarginMode', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 60));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3_private_put_futures_defaultmarginmode_symbol($params = array()) {
+        return $this->request('futures/defaultMarginMode/{symbol}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 60));
     }
     /**
      * @return array<string, mixed>
@@ -804,6 +828,12 @@ abstract class woo extends \ccxt\Exchange {
      */
     public function v3_private_delete_orders_pending($params = array()) {
         return $this->request('orders/pending', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3_private_delete_asset_wallet_withdraw_withdrawid($params = array()) {
+        return $this->request('asset/wallet/withdraw/{withdrawId}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 60));
     }
     /**
      * @return array<string, mixed>
@@ -1492,6 +1522,18 @@ abstract class woo extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v3PrivatePostFuturesDefaultMarginModeReset($params = array()) {
+        return $this->request('futures/defaultMarginMode/reset', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 60));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3PrivatePostIsolatedMarginMargin($params = array()) {
+        return $this->request('isolatedMargin/margin', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 60));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v3PrivatePostAlgoOrder($params = array()) {
         return $this->request('algo/order', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1524,6 +1566,18 @@ abstract class woo extends \ccxt\Exchange {
      */
     public function v3PrivatePutFuturesPositionMode($params = array()) {
         return $this->request('futures/positionMode', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3PrivatePutFuturesDefaultMarginMode($params = array()) {
+        return $this->request('futures/defaultMarginMode', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 60));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3PrivatePutFuturesDefaultMarginModeSymbol($params = array()) {
+        return $this->request('futures/defaultMarginMode/{symbol}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 60));
     }
     /**
      * @return array<string, mixed>
@@ -1602,5 +1656,11 @@ abstract class woo extends \ccxt\Exchange {
      */
     public function v3PrivateDeleteOrdersPending($params = array()) {
         return $this->request('orders/pending', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v3PrivateDeleteAssetWalletWithdrawWithdrawId($params = array()) {
+        return $this->request('asset/wallet/withdraw/{withdrawId}', array('v3', 'private'), 'DELETE', $params, null, null, array("cost" => 60));
     }
 }

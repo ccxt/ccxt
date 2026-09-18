@@ -193,34 +193,48 @@ class bitmex extends Exchange {
                         'trade' => array( 'cost' => 5 ),
                         'trade/bucketed' => array( 'cost' => 5 ),
                         'wallet/assets' => array( 'cost' => 5 ),
+                        'wallet/currencies' => array( 'cost' => 5 ),
+                        'wallet/haircuts' => array( 'cost' => 5 ),
                         'wallet/networks' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'address' => array( 'cost' => 5 ),
+                        'addressConfig' => array( 'cost' => 5 ),
                         'apiKey' => array( 'cost' => 5 ),
+                        'apiKey/self' => array( 'cost' => 5 ),
                         'execution' => array( 'cost' => 5 ),
                         'execution/tradeHistory' => array( 'cost' => 5 ),
                         'globalNotification' => array( 'cost' => 5 ),
                         'leaderboard/name' => array( 'cost' => 5 ),
+                        'leagueoftrader/myRankings' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/investor' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/tradingTeam' => array( 'cost' => 5 ),
                         'order' => array( 'cost' => 5 ),
                         'porl/snapshots' => array( 'cost' => 5 ),
                         'position' => array( 'cost' => 5 ),
+                        'referralCode' => array( 'cost' => 5 ),
+                        'referralCode/check/{code}' => array( 'cost' => 5 ),
+                        'referralCode/code/{code}' => array( 'cost' => 5 ),
+                        'referralCode/{id}' => array( 'cost' => 5 ),
                         'user' => array( 'cost' => 5 ),
                         'user/affiliateStatus' => array( 'cost' => 5 ),
                         'user/checkReferralCode' => array( 'cost' => 5 ),
                         'user/commission' => array( 'cost' => 5 ),
                         'user/csa' => array( 'cost' => 5 ),
                         'user/depositAddress' => array( 'cost' => 5 ),
+                        'user/depositAddressInformation' => array( 'cost' => 5 ),
                         'user/executionHistory' => array( 'cost' => 5 ),
                         'user/getWalletTransferAccounts' => array( 'cost' => 5 ),
                         'user/margin' => array( 'cost' => 5 ),
+                        'user/marginingMode' => array( 'cost' => 5 ),
                         'user/quoteFillRatio' => array( 'cost' => 5 ),
                         'user/quoteValueRatio' => array( 'cost' => 5 ),
                         'user/staking' => array( 'cost' => 5 ),
                         'user/staking/instruments' => array( 'cost' => 5 ),
                         'user/staking/tiers' => array( 'cost' => 5 ),
+                        'user/tradingSettings' => array( 'cost' => 5 ),
                         'user/tradingVolume' => array( 'cost' => 5 ),
                         'user/unstakingRequests' => array( 'cost' => 5 ),
                         'user/wallet' => array( 'cost' => 5 ),
@@ -228,6 +242,8 @@ class bitmex extends Exchange {
                         'user/walletSummary' => array( 'cost' => 5 ),
                         'userAffiliates' => array( 'cost' => 5 ),
                         'userEvent' => array( 'cost' => 5 ),
+                        'userPriceAlert' => array( 'cost' => 5 ),
+                        'userStats/volumeRank' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         'address' => array( 'cost' => 5 ),
@@ -238,33 +254,52 @@ class bitmex extends Exchange {
                         'guild/kick' => array( 'cost' => 5 ),
                         'guild/leave' => array( 'cost' => 5 ),
                         'guild/sharesTrades' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/approve' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/cancel' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/createMSA' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/reject' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/toggleTradeHistory' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/unbind' => array( 'cost' => 5 ),
                         'order' => array( 'cost' => 1 ),
                         'order/cancelAllAfter' => array( 'cost' => 5 ),
                         'order/closePosition' => array( 'cost' => 5 ),
+                        'position/crossLeverage' => array( 'cost' => 5 ),
                         'position/isolate' => array( 'cost' => 1 ),
                         'position/leverage' => array( 'cost' => 1 ),
                         'position/riskLimit' => array( 'cost' => 5 ),
                         'position/transferMargin' => array( 'cost' => 1 ),
+                        'referralCode' => array( 'cost' => 5 ),
                         'user/addSubaccount' => array( 'cost' => 5 ),
                         'user/cancelWithdrawal' => array( 'cost' => 5 ),
                         'user/communicationToken' => array( 'cost' => 5 ),
                         'user/confirmEmail' => array( 'cost' => 5 ),
                         'user/confirmWithdrawal' => array( 'cost' => 5 ),
+                        'user/createIndependentSubaccount' => array( 'cost' => 5 ),
                         'user/logout' => array( 'cost' => 5 ),
+                        'user/marginingMode' => array( 'cost' => 5 ),
+                        'user/positionMode' => array( 'cost' => 5 ),
                         'user/preferences' => array( 'cost' => 5 ),
                         'user/requestWithdrawal' => array( 'cost' => 5 ),
                         'user/unstakingRequests' => array( 'cost' => 5 ),
                         'user/updateSubaccount' => array( 'cost' => 5 ),
                         'user/walletTransfer' => array( 'cost' => 5 ),
+                        'userPriceAlert' => array( 'cost' => 5 ),
                     ),
                     'put' => array(
+                        'address' => array( 'cost' => 5 ),
                         'guild' => array( 'cost' => 5 ),
                         'order' => array( 'cost' => 1 ),
+                        'referralCode/{id}' => array( 'cost' => 5 ),
+                        'userPriceAlert/{id}' => array( 'cost' => 5 ),
                     ),
                     'delete' => array(
                         'order' => array( 'cost' => 1 ),
                         'order/all' => array( 'cost' => 1 ),
+                        'referralCode/{id}' => array( 'cost' => 5 ),
                         'user/unstakingRequests' => array( 'cost' => 5 ),
+                        'user/withdrawal' => array( 'cost' => 5 ),
+                        'userPriceAlert' => array( 'cost' => 5 ),
+                        'userPriceAlert/{id}' => array( 'cost' => 5 ),
                     ),
                 ),
             ),
@@ -277,16 +312,16 @@ class bitmex extends Exchange {
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
                     'Invalid price' => '\\ccxt\\InvalidOrder',
                     'Invalid stopPx for ordType' => '\\ccxt\\InvalidOrder',
-                    'Account is restricted' => '\\ccxt\\PermissionDenied', // array("error":array("message":"Account is restricted","name":"HTTPError"))
+                    'Account is restricted' => '\\ccxt\\PermissionDenied', // {"error":{"message":"Account is restricted","name":"HTTPError"}}
                 ),
                 'broad' => array(
                     'Signature not valid' => '\\ccxt\\AuthenticationError',
                     'overloaded' => '\\ccxt\\ExchangeNotAvailable',
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
-                    'Service unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("message":"Service unavailable","name":"HTTPError"))
-                    'Server Error' => '\\ccxt\\ExchangeError', // array("error":array("message":"Server Error","name":"HTTPError"))
+                    'Service unavailable' => '\\ccxt\\ExchangeNotAvailable', // {"error":{"message":"Service unavailable","name":"HTTPError"}}
+                    'Server Error' => '\\ccxt\\ExchangeError', // {"error":{"message":"Server Error","name":"HTTPError"}}
                     'Unable to cancel order due to existing state' => '\\ccxt\\InvalidOrder',
-                    'We require all new traders to verify' => '\\ccxt\\PermissionDenied', // array("message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError")
+                    'We require all new traders to verify' => '\\ccxt\\PermissionDenied', // {"message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError"}
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -336,10 +371,10 @@ class bitmex extends Exchange {
                         'marketBuyRequiresPrice' => false,
                         'marketBuyByCost' => false,
                         // exchange-supported features
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'iceberg' => false,
-                        // 'oco' => false,
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -446,35 +481,35 @@ class bitmex extends Exchange {
         $response = Async\await($this->publicGetWalletAssets($params));
         //
         //    {
-        //        "XBt" => {
-        //            "asset" => "XBT",
-        //            "currency" => "XBt",
-        //            "majorCurrency" => "XBT",
-        //            "name" => "Bitcoin",
-        //            "currencyType" => "Crypto",
-        //            "scale" => "8",
-        //            // "mediumPrecision" => "8",
-        //            // "shorterPrecision" => "4",
-        //            // "symbol" => "₿",
-        //            // "tickLog" => "0",
-        //            // "weight" => "1",
-        //            "enabled" => true,
-        //            "isMarginCurrency" => true,
-        //            "minDepositAmount" => "10000",
-        //            "minWithdrawalAmount" => "1000",
-        //            "maxWithdrawalAmount" => "100000000000000",
-        //            "networks" => array(
-        //                array(
-        //                    "asset" => "btc",
-        //                    "tokenAddress" => "",
-        //                    "depositEnabled" => true,
-        //                    "withdrawalEnabled" => true,
-        //                    "withdrawalFee" => "20000",
-        //                    "minFee" => "20000",
-        //                    "maxFee" => "10000000"
+        //        "XBt": {
+        //            "asset": "XBT",
+        //            "currency": "XBt",
+        //            "majorCurrency": "XBT",
+        //            "name": "Bitcoin",
+        //            "currencyType": "Crypto",
+        //            "scale": "8",
+        //            // "mediumPrecision": "8",
+        //            // "shorterPrecision": "4",
+        //            // "symbol": "₿",
+        //            // "tickLog": "0",
+        //            // "weight": "1",
+        //            "enabled": true,
+        //            "isMarginCurrency": true,
+        //            "minDepositAmount": "10000",
+        //            "minWithdrawalAmount": "1000",
+        //            "maxWithdrawalAmount": "100000000000000",
+        //            "networks": [
+        //                {
+        //                    "asset": "btc",
+        //                    "tokenAddress": "",
+        //                    "depositEnabled": true,
+        //                    "withdrawalEnabled": true,
+        //                    "withdrawalFee": "20000",
+        //                    "minFee": "20000",
+        //                    "maxFee": "10000000"
         //                }
-        //            )
-        //        ),
+        //            ]
+        //        },
         //     }
         //
         return $this->parse_currencies($response);
@@ -485,7 +520,7 @@ class bitmex extends Exchange {
         $code = $this->safe_currency_code($asset);
         $id = $this->safe_string($currency, 'currency');
         $name = $this->safe_string($currency, 'name');
-        $chains = $this->safe_value($currency, 'networks', array());
+        $chains = $this->safe_list($currency, 'networks', array());
         $depositEnabled = false;
         $withdrawEnabled = false;
         $networks = array();
@@ -632,183 +667,183 @@ class bitmex extends Exchange {
          */
         $response = Async\await($this->publicGetInstrumentActive($params));
         //
-        //  array(
-        //    array(
-        //        "symbol" => "LTCUSDT",
-        //        "rootSymbol" => "LTC",
-        //        "state" => "Open",
-        //        "typ" => "FFWCSX",
-        //        "listing" => "2021-11-10T04:00:00.000Z",
-        //        "front" => "2021-11-10T04:00:00.000Z",
-        //        "expiry" => null,
-        //        "settle" => null,
-        //        "listedSettle" => null,
-        //        "relistInterval" => null,
-        //        "inverseLeg" => "",
-        //        "sellLeg" => "",
-        //        "buyLeg" => "",
-        //        "optionStrikePcnt" => null,
-        //        "optionStrikeRound" => null,
-        //        "optionStrikePrice" => null,
-        //        "optionMultiplier" => null,
-        //        "positionCurrency" => "LTC", // can be empty for spot markets
-        //        "underlying" => "LTC",
-        //        "quoteCurrency" => "USDT",
-        //        "underlyingSymbol" => "LTCT=", // can be empty for spot markets
-        //        "reference" => "BMEX",
-        //        "referenceSymbol" => ".BLTCT", // can be empty for spot markets
-        //        "calcInterval" => null,
-        //        "publishInterval" => null,
-        //        "publishTime" => null,
-        //        "maxOrderQty" => 1000000000,
-        //        "maxPrice" => 1000000,
-        //        "lotSize" => 1000,
-        //        "tickSize" => 0.01,
-        //        "multiplier" => 100,
-        //        "settlCurrency" => "USDt", // can be empty for spot markets
-        //        "underlyingToPositionMultiplier" => 10000,
-        //        "underlyingToSettleMultiplier" => null,
-        //        "quoteToSettleMultiplier" => 1000000,
-        //        "isQuanto" => false,
-        //        "isInverse" => false,
-        //        "initMargin" => 0.03,
-        //        "maintMargin" => 0.015,
-        //        "riskLimit" => 1000000000000, // can be null for spot markets
-        //        "riskStep" => 1000000000000, // can be null for spot markets
-        //        "limit" => null,
-        //        "capped" => false,
-        //        "taxed" => true,
-        //        "deleverage" => true,
-        //        "makerFee" => -0.0001,
-        //        "takerFee" => 0.0005,
-        //        "settlementFee" => 0,
-        //        "insuranceFee" => 0,
-        //        "fundingBaseSymbol" => ".LTCBON8H", // can be empty for spot markets
-        //        "fundingQuoteSymbol" => ".USDTBON8H", // can be empty for spot markets
-        //        "fundingPremiumSymbol" => ".LTCUSDTPI8H", // can be empty for spot markets
-        //        "fundingTimestamp" => "2022-01-14T20:00:00.000Z",
-        //        "fundingInterval" => "2000-01-01T08:00:00.000Z",
-        //        "fundingRate" => 0.0001,
-        //        "indicativeFundingRate" => 0.0001,
-        //        "rebalanceTimestamp" => null,
-        //        "rebalanceInterval" => null,
-        //        "openingTimestamp" => "2022-01-14T17:00:00.000Z",
-        //        "closingTimestamp" => "2022-01-14T18:00:00.000Z",
-        //        "sessionInterval" => "2000-01-01T01:00:00.000Z",
-        //        "prevClosePrice" => 138.511,
-        //        "limitDownPrice" => null,
-        //        "limitUpPrice" => null,
-        //        "bankruptLimitDownPrice" => null,
-        //        "bankruptLimitUpPrice" => null,
-        //        "prevTotalVolume" => 12699024000,
-        //        "totalVolume" => 12702160000,
-        //        "volume" => 3136000,
-        //        "volume24h" => 114251000,
-        //        "prevTotalTurnover" => 232418052349000,
-        //        "totalTurnover" => 232463353260000,
-        //        "turnover" => 45300911000,
-        //        "turnover24h" => 1604331340000,
-        //        "homeNotional24h" => 11425.1,
-        //        "foreignNotional24h" => 1604331.3400000003,
-        //        "prevPrice24h" => 135.48,
-        //        "vwap" => 140.42165,
-        //        "highPrice" => 146.42,
-        //        "lowPrice" => 135.08,
-        //        "lastPrice" => 144.36,
-        //        "lastPriceProtected" => 144.36,
-        //        "lastTickDirection" => "MinusTick",
-        //        "lastChangePcnt" => 0.0655,
-        //        "bidPrice" => 143.75,
-        //        "midPrice" => 143.855,
-        //        "askPrice" => 143.96,
-        //        "impactBidPrice" => 143.75,
-        //        "impactMidPrice" => 143.855,
-        //        "impactAskPrice" => 143.96,
-        //        "hasLiquidity" => true,
-        //        "openInterest" => 38103000,
-        //        "openValue" => 547963053300,
-        //        "fairMethod" => "FundingRate",
-        //        "fairBasisRate" => 0.1095,
-        //        "fairBasis" => 0.004,
-        //        "fairPrice" => 143.811,
-        //        "markMethod" => "FairPrice",
-        //        "markPrice" => 143.811,
-        //        "indicativeTaxRate" => null,
-        //        "indicativeSettlePrice" => 143.807,
-        //        "optionUnderlyingPrice" => null,
-        //        "settledPriceAdjustmentRate" => null,
-        //        "settledPrice" => null,
-        //        "timestamp" => "2022-01-14T17:49:55.000Z"
-        //    ),
+        //  [
+        //    {
+        //        "symbol": "LTCUSDT",
+        //        "rootSymbol": "LTC",
+        //        "state": "Open",
+        //        "typ": "FFWCSX",
+        //        "listing": "2021-11-10T04:00:00.000Z",
+        //        "front": "2021-11-10T04:00:00.000Z",
+        //        "expiry": null,
+        //        "settle": null,
+        //        "listedSettle": null,
+        //        "relistInterval": null,
+        //        "inverseLeg": "",
+        //        "sellLeg": "",
+        //        "buyLeg": "",
+        //        "optionStrikePcnt": null,
+        //        "optionStrikeRound": null,
+        //        "optionStrikePrice": null,
+        //        "optionMultiplier": null,
+        //        "positionCurrency": "LTC", // can be empty for spot markets
+        //        "underlying": "LTC",
+        //        "quoteCurrency": "USDT",
+        //        "underlyingSymbol": "LTCT=", // can be empty for spot markets
+        //        "reference": "BMEX",
+        //        "referenceSymbol": ".BLTCT", // can be empty for spot markets
+        //        "calcInterval": null,
+        //        "publishInterval": null,
+        //        "publishTime": null,
+        //        "maxOrderQty": 1000000000,
+        //        "maxPrice": 1000000,
+        //        "lotSize": 1000,
+        //        "tickSize": 0.01,
+        //        "multiplier": 100,
+        //        "settlCurrency": "USDt", // can be empty for spot markets
+        //        "underlyingToPositionMultiplier": 10000,
+        //        "underlyingToSettleMultiplier": null,
+        //        "quoteToSettleMultiplier": 1000000,
+        //        "isQuanto": false,
+        //        "isInverse": false,
+        //        "initMargin": 0.03,
+        //        "maintMargin": 0.015,
+        //        "riskLimit": 1000000000000, // can be null for spot markets
+        //        "riskStep": 1000000000000, // can be null for spot markets
+        //        "limit": null,
+        //        "capped": false,
+        //        "taxed": true,
+        //        "deleverage": true,
+        //        "makerFee": -0.0001,
+        //        "takerFee": 0.0005,
+        //        "settlementFee": 0,
+        //        "insuranceFee": 0,
+        //        "fundingBaseSymbol": ".LTCBON8H", // can be empty for spot markets
+        //        "fundingQuoteSymbol": ".USDTBON8H", // can be empty for spot markets
+        //        "fundingPremiumSymbol": ".LTCUSDTPI8H", // can be empty for spot markets
+        //        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        //        "fundingInterval": "2000-01-01T08:00:00.000Z",
+        //        "fundingRate": 0.0001,
+        //        "indicativeFundingRate": 0.0001,
+        //        "rebalanceTimestamp": null,
+        //        "rebalanceInterval": null,
+        //        "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        //        "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        //        "sessionInterval": "2000-01-01T01:00:00.000Z",
+        //        "prevClosePrice": 138.511,
+        //        "limitDownPrice": null,
+        //        "limitUpPrice": null,
+        //        "bankruptLimitDownPrice": null,
+        //        "bankruptLimitUpPrice": null,
+        //        "prevTotalVolume": 12699024000,
+        //        "totalVolume": 12702160000,
+        //        "volume": 3136000,
+        //        "volume24h": 114251000,
+        //        "prevTotalTurnover": 232418052349000,
+        //        "totalTurnover": 232463353260000,
+        //        "turnover": 45300911000,
+        //        "turnover24h": 1604331340000,
+        //        "homeNotional24h": 11425.1,
+        //        "foreignNotional24h": 1604331.3400000003,
+        //        "prevPrice24h": 135.48,
+        //        "vwap": 140.42165,
+        //        "highPrice": 146.42,
+        //        "lowPrice": 135.08,
+        //        "lastPrice": 144.36,
+        //        "lastPriceProtected": 144.36,
+        //        "lastTickDirection": "MinusTick",
+        //        "lastChangePcnt": 0.0655,
+        //        "bidPrice": 143.75,
+        //        "midPrice": 143.855,
+        //        "askPrice": 143.96,
+        //        "impactBidPrice": 143.75,
+        //        "impactMidPrice": 143.855,
+        //        "impactAskPrice": 143.96,
+        //        "hasLiquidity": true,
+        //        "openInterest": 38103000,
+        //        "openValue": 547963053300,
+        //        "fairMethod": "FundingRate",
+        //        "fairBasisRate": 0.1095,
+        //        "fairBasis": 0.004,
+        //        "fairPrice": 143.811,
+        //        "markMethod": "FairPrice",
+        //        "markPrice": 143.811,
+        //        "indicativeTaxRate": null,
+        //        "indicativeSettlePrice": 143.807,
+        //        "optionUnderlyingPrice": null,
+        //        "settledPriceAdjustmentRate": null,
+        //        "settledPrice": null,
+        //        "timestamp": "2022-01-14T17:49:55.000Z"
+        //    },
         //
         //    other kind of markets have extra fields
         //
         //    {
-        //     "symbol" => "XBTUSD-XBTU26",
-        //     "rootSymbol" => "XBT",
-        //     "instrumentID" => "3059",
-        //     "state" => "Open",
-        //     "typ" => "FFMCSX",
-        //     "listing" => "2026-06-10T08:00:00.000Z",
-        //     "front" => "2026-06-10T08:00:00.000Z",
-        //     "expiry" => "2026-09-25T12:00:00.000Z",
-        //     "settle" => "2026-09-25T12:00:00.000Z",
-        //     "positionCurrency" => "USD",
-        //     "underlying" => "XBT",
-        //     "quoteCurrency" => "USD",
-        //     "underlyingSymbol" => "XBT=",
-        //     "referenceSymbol" => "XBTUSD",
-        //     "maxOrderQty" => "10000000",
-        //     "minPrice" => "-1000000",
-        //     "maxPrice" => "1000000",
-        //     "lotSize" => "100",
-        //     "tickSize" => "0.5",
-        //     "multiplier" => "1",
-        //     "settlCurrency" => "XBt",
-        //     "underlyingToSettleMultiplier" => "-100000000",
-        //     "isQuanto" => false,
-        //     "isInverse" => false,
-        //     "taxed" => true,
-        //     "deleverage" => true,
-        //     "makerFee" => "0.0005",
-        //     "takerFee" => "0.0005",
-        //     "limitDownPrice" => null,
-        //     "limitUpPrice" => null,
-        //     "prevTotalVolume" => "300",
-        //     "totalVolume" => "300",
-        //     "volume" => "0",
-        //     "volume24h" => "200",
-        //     "prevTotalTurnover" => "460833",
-        //     "totalTurnover" => "460833",
-        //     "turnover" => "0",
-        //     "turnover24h" => "298516",
-        //     "homeNotional24h" => "0",
-        //     "foreignNotional24h" => "0",
-        //     "prevPrice24h" => "0",
-        //     "vwap" => "577.5",
-        //     "highPrice" => "577.5",
-        //     "lowPrice" => "0",
-        //     "lastPrice" => "577.5",
-        //     "lastPriceProtected" => "577.5",
-        //     "lastTickDirection" => "ZeroPlusTick",
-        //     "lastChangePcnt" => "0",
-        //     "bidPrice" => "566.5",
-        //     "midPrice" => "567.25",
-        //     "askPrice" => "568",
-        //     "hasLiquidity" => false,
-        //     "openInterest" => "0",
-        //     "openValue" => "0",
-        //     "instantPnl" => false,
-        //     "timestamp" => "2026-06-17T05:22:50.000Z",
-        //     "capped" => false,
-        //     "closingTimestamp" => "2026-06-17T06:00:00.000Z",
-        //     "farLegSymbol" => "XBTU26",
-        //     "nearLegSymbol" => "XBTUSD",
-        //     "openingTimestamp" => "2026-06-17T05:00:00.000Z",
-        //     "pool" => "Primary",
-        //     "referencePrice" => "65728"
+        //     "symbol": "XBTUSD-XBTU26",
+        //     "rootSymbol": "XBT",
+        //     "instrumentID": "3059",
+        //     "state": "Open",
+        //     "typ": "FFMCSX",
+        //     "listing": "2026-06-10T08:00:00.000Z",
+        //     "front": "2026-06-10T08:00:00.000Z",
+        //     "expiry": "2026-09-25T12:00:00.000Z",
+        //     "settle": "2026-09-25T12:00:00.000Z",
+        //     "positionCurrency": "USD",
+        //     "underlying": "XBT",
+        //     "quoteCurrency": "USD",
+        //     "underlyingSymbol": "XBT=",
+        //     "referenceSymbol": "XBTUSD",
+        //     "maxOrderQty": "10000000",
+        //     "minPrice": "-1000000",
+        //     "maxPrice": "1000000",
+        //     "lotSize": "100",
+        //     "tickSize": "0.5",
+        //     "multiplier": "1",
+        //     "settlCurrency": "XBt",
+        //     "underlyingToSettleMultiplier": "-100000000",
+        //     "isQuanto": false,
+        //     "isInverse": false,
+        //     "taxed": true,
+        //     "deleverage": true,
+        //     "makerFee": "0.0005",
+        //     "takerFee": "0.0005",
+        //     "limitDownPrice": null,
+        //     "limitUpPrice": null,
+        //     "prevTotalVolume": "300",
+        //     "totalVolume": "300",
+        //     "volume": "0",
+        //     "volume24h": "200",
+        //     "prevTotalTurnover": "460833",
+        //     "totalTurnover": "460833",
+        //     "turnover": "0",
+        //     "turnover24h": "298516",
+        //     "homeNotional24h": "0",
+        //     "foreignNotional24h": "0",
+        //     "prevPrice24h": "0",
+        //     "vwap": "577.5",
+        //     "highPrice": "577.5",
+        //     "lowPrice": "0",
+        //     "lastPrice": "577.5",
+        //     "lastPriceProtected": "577.5",
+        //     "lastTickDirection": "ZeroPlusTick",
+        //     "lastChangePcnt": "0",
+        //     "bidPrice": "566.5",
+        //     "midPrice": "567.25",
+        //     "askPrice": "568",
+        //     "hasLiquidity": false,
+        //     "openInterest": "0",
+        //     "openValue": "0",
+        //     "instantPnl": false,
+        //     "timestamp": "2026-06-17T05:22:50.000Z",
+        //     "capped": false,
+        //     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        //     "farLegSymbol": "XBTU26",
+        //     "nearLegSymbol": "XBTUSD",
+        //     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        //     "pool": "Primary",
+        //     "referencePrice": "65728"
         //     }
-        //  )
+        //  ]
         //
         return $this->parse_markets($response);
     }
@@ -819,9 +854,9 @@ class bitmex extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $settleId = $this->safe_string($market, 'settlCurrency');
         $settle = $this->safe_currency_code($settleId);
-        // 'positionCurrency' may be empty ("", currently returns for ETHUSD)
+        // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
-        $typ = $this->safe_string($market, 'typ'); // $type definitions at => https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+        $typ = $this->safe_string($market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
         $type = null;
         $swap = false;
         $spot = false;
@@ -873,7 +908,7 @@ class bitmex extends Exchange {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
         } else {
-            // for index/exotic markets, default to $id
+            // for index/exotic markets, default to id
             $symbol = $id;
         }
         $positionId = $this->safe_string_2($market, 'positionCurrency', 'underlying');
@@ -882,7 +917,7 @@ class bitmex extends Exchange {
         $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
         $initMargin = $this->safe_string($market, 'initMargin', '1');
         $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
-        // subtype should be null for $spot markets
+        // subtype should be undefined for spot markets
         if ($spot) {
             $isInverse = null;
             $isQuanto = null;
@@ -947,7 +982,7 @@ class bitmex extends Exchange {
 
     public function parse_balance(mixed $response): array {
         //
-        //     array(
+        //     [
         //         {
         //             "account":1455728,
         //             "currency":"XBt",
@@ -991,7 +1026,7 @@ class bitmex extends Exchange {
         //             "grossLastValue":0,
         //             "commission":null
         //         }
-        //     )
+        //     ]
         //
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
@@ -1031,7 +1066,7 @@ class bitmex extends Exchange {
         );
         $response = Async\await($this->privateGetUserMargin($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
         //             "account":1455728,
         //             "currency":"XBt",
@@ -1075,7 +1110,7 @@ class bitmex extends Exchange {
         //             "grossLastValue":0,
         //             "commission":null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_balance($response);
     }
@@ -1122,7 +1157,7 @@ class bitmex extends Exchange {
             $price = $this->safe_number($order, 'price');
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
-            // the exchange sometimes returns null $price in the orderbook
+            // the exchange sometimes returns null price in the orderbook
             if ($price !== null) {
                 $result[$side][] = array( $price, $amount );
             }
@@ -1205,7 +1240,7 @@ class bitmex extends Exchange {
         }
         $request = $this->deep_extend($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
-        // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
+        // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
         if (is_array($request) && array_key_exists('filter' ?? '', $request)) {
             $request['filter'] = $this->json($request['filter']);
@@ -1254,7 +1289,7 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // Bitmex barfs if you set 'open' => false in the filter...
+        // Bitmex barfs if you set 'open': false in the filter...
         $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
         return $this->filter_by_array($orders, 'status', array( 'closed', 'canceled' ), false);
     }
@@ -1303,64 +1338,64 @@ class bitmex extends Exchange {
         }
         $request = $this->deep_extend($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
-        // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
+        // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
         if (is_array($request) && array_key_exists('filter' ?? '', $request)) {
             $request['filter'] = $this->json($request['filter']);
         }
         $response = Async\await($this->privateGetExecutionTradeHistory($request));
         //
-        //     array(
+        //     [
         //         {
-        //             "execID" => "string",
-        //             "orderID" => "string",
-        //             "clOrdID" => "string",
-        //             "clOrdLinkID" => "string",
-        //             "account" => 0,
-        //             "symbol" => "string",
-        //             "side" => "string",
-        //             "lastQty" => 0,
-        //             "lastPx" => 0,
-        //             "underlyingLastPx" => 0,
-        //             "lastMkt" => "string",
-        //             "lastLiquidityInd" => "string",
-        //             "simpleOrderQty" => 0,
-        //             "orderQty" => 0,
-        //             "price" => 0,
-        //             "displayQty" => 0,
-        //             "stopPx" => 0,
-        //             "pegOffsetValue" => 0,
-        //             "pegPriceType" => "string",
-        //             "currency" => "string",
-        //             "settlCurrency" => "string",
-        //             "execType" => "string",
-        //             "ordType" => "string",
-        //             "timeInForce" => "string",
-        //             "execInst" => "string",
-        //             "contingencyType" => "string",
-        //             "exDestination" => "string",
-        //             "ordStatus" => "string",
-        //             "triggered" => "string",
-        //             "workingIndicator" => true,
-        //             "ordRejReason" => "string",
-        //             "simpleLeavesQty" => 0,
-        //             "leavesQty" => 0,
-        //             "simpleCumQty" => 0,
-        //             "cumQty" => 0,
-        //             "avgPx" => 0,
-        //             "commission" => 0,
-        //             "tradePublishIndicator" => "string",
-        //             "multiLegReportingType" => "string",
-        //             "text" => "string",
-        //             "trdMatchID" => "string",
-        //             "execCost" => 0,
-        //             "execComm" => 0,
-        //             "homeNotional" => 0,
-        //             "foreignNotional" => 0,
-        //             "transactTime" => "2019-03-05T12:47:02.762Z",
-        //             "timestamp" => "2019-03-05T12:47:02.762Z"
+        //             "execID": "string",
+        //             "orderID": "string",
+        //             "clOrdID": "string",
+        //             "clOrdLinkID": "string",
+        //             "account": 0,
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "lastQty": 0,
+        //             "lastPx": 0,
+        //             "underlyingLastPx": 0,
+        //             "lastMkt": "string",
+        //             "lastLiquidityInd": "string",
+        //             "simpleOrderQty": 0,
+        //             "orderQty": 0,
+        //             "price": 0,
+        //             "displayQty": 0,
+        //             "stopPx": 0,
+        //             "pegOffsetValue": 0,
+        //             "pegPriceType": "string",
+        //             "currency": "string",
+        //             "settlCurrency": "string",
+        //             "execType": "string",
+        //             "ordType": "string",
+        //             "timeInForce": "string",
+        //             "execInst": "string",
+        //             "contingencyType": "string",
+        //             "exDestination": "string",
+        //             "ordStatus": "string",
+        //             "triggered": "string",
+        //             "workingIndicator": true,
+        //             "ordRejReason": "string",
+        //             "simpleLeavesQty": 0,
+        //             "leavesQty": 0,
+        //             "simpleCumQty": 0,
+        //             "cumQty": 0,
+        //             "avgPx": 0,
+        //             "commission": 0,
+        //             "tradePublishIndicator": "string",
+        //             "multiLegReportingType": "string",
+        //             "text": "string",
+        //             "trdMatchID": "string",
+        //             "execCost": 0,
+        //             "execComm": 0,
+        //             "homeNotional": 0,
+        //             "foreignNotional": 0,
+        //             "transactTime": "2019-03-05T12:47:02.762Z",
+        //             "timestamp": "2019-03-05T12:47:02.762Z"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1381,25 +1416,25 @@ class bitmex extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //         "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
-        //         "account" =>  24321,
-        //         "currency" => "XBt",
-        //         "transactType" => "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        //         "amount" =>  -1000000,
-        //         "fee" =>  300000,
-        //         "transactStatus" => "Completed", // "Canceled", ...
-        //         "address" => "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        //         "tx" => "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        //         "text" => "",
-        //         "transactTime" => "2017-03-21T20:05:14.388Z",
-        //         "walletBalance" =>  0, // balance $after
-        //         "marginBalance" =>  null,
-        //         "timestamp" => "2017-03-22T13:09:23.514Z"
+        //         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        //         "account":  24321,
+        //         "currency": "XBt",
+        //         "transactType": "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //         "amount":  -1000000,
+        //         "fee":  300000,
+        //         "transactStatus": "Completed", // "Canceled", ...
+        //         "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //         "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //         "text": "",
+        //         "transactTime": "2017-03-21T20:05:14.388Z",
+        //         "walletBalance":  0, // balance after
+        //         "marginBalance":  null,
+        //         "timestamp": "2017-03-22T13:09:23.514Z"
         //     }
         //
         // ButMEX returns the unrealized pnl from the wallet history endpoint.
-        // The unrealized pnl transaction has an empty $timestamp->
-        // It is not related to historical pnl it has $status set to "Pending".
+        // The unrealized pnl transaction has an empty timestamp.
+        // It is not related to historical pnl it has status set to "Pending".
         // Therefore it's not a part of the history at all.
         // https://github.com/ccxt/ccxt/issues/6047
         //
@@ -1433,8 +1468,8 @@ class bitmex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($item, 'transactTime'));
         if ($timestamp === null) {
             // https://github.com/ccxt/ccxt/issues/6047
-            // set the $timestamp to zero, 1970 Jan 1 00:00:00
-            // for unrealized pnl and other transactions without a $timestamp
+            // set the timestamp to zero, 1970 Jan 1 00:00:00
+            // for unrealized pnl and other transactions without a timestamp
             $timestamp = 0; // see comments above
         }
         $fee = null;
@@ -1498,10 +1533,10 @@ class bitmex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'start' => 123,
+            // 'start': 123,
         );
         //
-        //     if ($since !== null) {
+        //     if (since !== undefined) {
         //         // date-based pagination not supported
         //     }
         //
@@ -1515,24 +1550,24 @@ class bitmex extends Exchange {
         }
         $response = Async\await($this->privateGetUserWalletHistory($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
-        //             "account" =>  24321,
-        //             "currency" => "XBt",
-        //             "transactType" => "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        //             "amount" =>  -1000000,
-        //             "fee" =>  300000,
-        //             "transactStatus" => "Completed", // "Canceled", ...
-        //             "address" => "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        //             "tx" => "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        //             "text" => "",
-        //             "transactTime" => "2017-03-21T20:05:14.388Z",
-        //             "walletBalance" =>  0, // balance after
-        //             "marginBalance" =>  null,
-        //             "timestamp" => "2017-03-22T13:09:23.514Z"
+        //             "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        //             "account":  24321,
+        //             "currency": "XBt",
+        //             "transactType": "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //             "amount":  -1000000,
+        //             "fee":  300000,
+        //             "transactStatus": "Completed", // "Canceled", ...
+        //             "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //             "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //             "text": "",
+        //             "transactTime": "2017-03-21T20:05:14.388Z",
+        //             "walletBalance":  0, // balance after
+        //             "marginBalance":  null,
+        //             "timestamp": "2017-03-22T13:09:23.514Z"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
@@ -1558,10 +1593,10 @@ class bitmex extends Exchange {
         }
         $request = array(
             'currency' => 'all',
-            // 'start' => 123,
+            // 'start': 123,
         );
         //
-        //     if ($since !== null) {
+        //     if (since !== undefined) {
         //         // date-based pagination not supported
         //     }
         //
@@ -1591,31 +1626,31 @@ class bitmex extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
-        //        "transactID" => "ffe699c2-95ee-4c13-91f9-0faf41daec25",
-        //        "account" => 123456,
-        //        "currency" => "XBt",
+        //        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
+        //        "account": 123456,
+        //        "currency": "XBt",
         //        "network":'', // "tron" for USDt, etc...
-        //        "transactType" => "Withdrawal",
-        //        "amount" => -100100000,
-        //        "fee" => 100000,
-        //        "transactStatus" => "Completed",
-        //        "address" => "385cR5DM96n1HvBDMzLHPYcw89fZAXULJP",
-        //        "tx" => "3BMEXabcdefghijklmnopqrstuvwxyz123",
-        //        "text" => '',
-        //        "transactTime" => "2019-01-02T01:00:00.000Z",
-        //        "walletBalance" => 99900000, // this field might be inexistent
-        //        "marginBalance" => None, // this field might be inexistent
-        //        "timestamp" => "2019-01-02T13:00:00.000Z"
+        //        "transactType": "Withdrawal",
+        //        "amount": -100100000,
+        //        "fee": 100000,
+        //        "transactStatus": "Completed",
+        //        "address": "385cR5DM96n1HvBDMzLHPYcw89fZAXULJP",
+        //        "tx": "3BMEXabcdefghijklmnopqrstuvwxyz123",
+        //        "text": '',
+        //        "transactTime": "2019-01-02T01:00:00.000Z",
+        //        "walletBalance": 99900000, // this field might be inexistent
+        //        "marginBalance": None, // this field might be inexistent
+        //        "timestamp": "2019-01-02T13:00:00.000Z"
         //    }
         //
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
-        // For deposits, $transactTime == $timestamp
-        // For withdrawals, $transactTime is submission, $timestamp is processed
+        // For deposits, transactTime == timestamp
+        // For withdrawals, transactTime is submission, timestamp is processed
         $transactTime = $this->parse8601($this->safe_string($transaction, 'transactTime'));
         $timestamp = $this->parse8601($this->safe_string($transaction, 'timestamp'));
         $type = $this->safe_string_lower($transaction, 'transactType');
-        // Deposits have no from $address or to $address, withdrawals have both
+        // Deposits have no from address or to address, withdrawals have both
         $address = null;
         $addressFrom = null;
         $addressTo = null;
@@ -1713,7 +1748,7 @@ class bitmex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetInstrumentActiveAndIndices($params));
-        // same $response "fetchMarkets"
+        // same response as under "fetchMarkets"
         $result = array();
         $rawTickers = $this->to_array($response);
         for ($i = 0; $i < count($rawTickers); $i++) {
@@ -1805,7 +1840,7 @@ class bitmex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as $timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1815,22 +1850,22 @@ class bitmex extends Exchange {
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params));
         }
-        // send JSON key/value pairs, such as array("key" => "value")
-        // $filter by individual fields and do advanced queries on timestamps
-        // $filter = array( 'key' => 'value' );
+        // send JSON key/value pairs, such as {"key": "value"}
+        // filter by individual fields and do advanced queries on timestamps
+        // let filter: Dict = { 'key': 'value' };
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
-        // you can also send a $timeframe, e.g. XBU:monthly
-        // timeframes => daily, weekly, monthly, quarterly, and biquarterly
+        // you can also send a timeframe, e.g. XBU:monthly
+        // timeframes: daily, weekly, monthly, quarterly, and biquarterly
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'binSize' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'partial' => true,     // true == include yet-incomplete current bins
-            // 'filter' => $filter, // $filter by individual fields and do advanced queries
-            // 'columns' => array(),    // will return all columns if omitted
-            // 'start' => 0,       // starting point for results (wtf?)
-            // 'reverse' => false, // true == newest first
-            // 'endTime' => '',    // ending date $filter for results
+            // 'filter': filter, // filter by individual fields and do advanced queries
+            // 'columns': [],    // will return all columns if omitted
+            // 'start': 0,       // starting point for results (wtf?)
+            // 'reverse': false, // true == newest first
+            // 'endTime': '',    // ending date filter for results
         );
         if ($limit !== null) {
             $request['count'] = $limit; // default 100, max 500
@@ -1843,29 +1878,29 @@ class bitmex extends Exchange {
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $useOpenTimestamp = null;
         list($useOpenTimestamp, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useOpenTimestamp', true);
-        // if $since is not set, they will return candles starting from 2017-01-01
+        // if since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $timestamp = $since;
             if ($useOpenTimestamp) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
             $startTime = $this->iso8601($timestamp);
-            $request['startTime'] = $startTime; // starting date $filter for results
+            $request['startTime'] = $startTime; // starting date filter for results
         } else {
             $request['reverse'] = true;
         }
         $response = Async\await($this->publicGetTradeBucketed($this->extend($request, $params)));
         //
-        //     array(
-        //         array("timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
-        //         array("timestamp":"2015-09-25T13:39:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
-        //         array("timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0)
-        //     )
+        //     [
+        //         {"timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
+        //         {"timestamp":"2015-09-25T13:39:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
+        //         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
+        //     ]
         //
         $result = $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
         if ($useOpenTimestamp) {
-            // bitmex returns the candle's close $timestamp - https://github.com/ccxt/ccxt/issues/4446
-            // we can emulate the open $timestamp by shifting all the timestamps one place
+            // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
+            // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for ($i = 0; $i < count($result); $i++) {
                 $result[$i][0] = $this->parse_to_int($result[$i][0]) - $duration;
@@ -1879,68 +1914,68 @@ class bitmex extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "timestamp" => "2018-08-28T00:00:02.735Z",
-        //         "symbol" => "XBTUSD",
-        //         "side" => "Buy",
-        //         "size" => 2000,
-        //         "price" => 6906.5,
-        //         "tickDirection" => "PlusTick",
-        //         "trdMatchID" => "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
-        //         "grossValue" => 28958000,
-        //         "homeNotional" => 0.28958,
-        //         "foreignNotional" => 2000
+        //         "timestamp": "2018-08-28T00:00:02.735Z",
+        //         "symbol": "XBTUSD",
+        //         "side": "Buy",
+        //         "size": 2000,
+        //         "price": 6906.5,
+        //         "tickDirection": "PlusTick",
+        //         "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        //         "grossValue": 28958000,
+        //         "homeNotional": 0.28958,
+        //         "foreignNotional": 2000
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "execID" => "string",
-        //         "orderID" => "string",
-        //         "clOrdID" => "string",
-        //         "clOrdLinkID" => "string",
-        //         "account" => 0,
-        //         "symbol" => "string",
-        //         "side" => "string",
-        //         "lastQty" => 0,
-        //         "lastPx" => 0,
-        //         "underlyingLastPx" => 0,
-        //         "lastMkt" => "string",
-        //         "lastLiquidityInd" => "string",
-        //         "simpleOrderQty" => 0,
-        //         "orderQty" => 0,
-        //         "price" => 0,
-        //         "displayQty" => 0,
-        //         "stopPx" => 0,
-        //         "pegOffsetValue" => 0,
-        //         "pegPriceType" => "string",
-        //         "currency" => "string",
-        //         "settlCurrency" => "string",
-        //         "execType" => "string",
-        //         "ordType" => "string",
-        //         "timeInForce" => "string",
-        //         "execInst" => "string",
-        //         "contingencyType" => "string",
-        //         "exDestination" => "string",
-        //         "ordStatus" => "string",
-        //         "triggered" => "string",
-        //         "workingIndicator" => true,
-        //         "ordRejReason" => "string",
-        //         "simpleLeavesQty" => 0,
-        //         "leavesQty" => 0,
-        //         "simpleCumQty" => 0,
-        //         "cumQty" => 0,
-        //         "avgPx" => 0,
-        //         "commission" => 0,
-        //         "tradePublishIndicator" => "string",
-        //         "multiLegReportingType" => "string",
-        //         "text" => "string",
-        //         "trdMatchID" => "string",
-        //         "execCost" => 0,
-        //         "execComm" => 0,
-        //         "homeNotional" => 0,
-        //         "foreignNotional" => 0,
-        //         "transactTime" => "2019-03-05T12:47:02.762Z",
-        //         "timestamp" => "2019-03-05T12:47:02.762Z"
+        //         "execID": "string",
+        //         "orderID": "string",
+        //         "clOrdID": "string",
+        //         "clOrdLinkID": "string",
+        //         "account": 0,
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "lastQty": 0,
+        //         "lastPx": 0,
+        //         "underlyingLastPx": 0,
+        //         "lastMkt": "string",
+        //         "lastLiquidityInd": "string",
+        //         "simpleOrderQty": 0,
+        //         "orderQty": 0,
+        //         "price": 0,
+        //         "displayQty": 0,
+        //         "stopPx": 0,
+        //         "pegOffsetValue": 0,
+        //         "pegPriceType": "string",
+        //         "currency": "string",
+        //         "settlCurrency": "string",
+        //         "execType": "string",
+        //         "ordType": "string",
+        //         "timeInForce": "string",
+        //         "execInst": "string",
+        //         "contingencyType": "string",
+        //         "exDestination": "string",
+        //         "ordStatus": "string",
+        //         "triggered": "string",
+        //         "workingIndicator": true,
+        //         "ordRejReason": "string",
+        //         "simpleLeavesQty": 0,
+        //         "leavesQty": 0,
+        //         "simpleCumQty": 0,
+        //         "cumQty": 0,
+        //         "avgPx": 0,
+        //         "commission": 0,
+        //         "tradePublishIndicator": "string",
+        //         "multiLegReportingType": "string",
+        //         "text": "string",
+        //         "trdMatchID": "string",
+        //         "execCost": 0,
+        //         "execComm": 0,
+        //         "homeNotional": 0,
+        //         "foreignNotional": 0,
+        //         "transactTime": "2019-03-05T12:47:02.762Z",
+        //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -2147,7 +2182,7 @@ class bitmex extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $this->iso8601($since);
         } else {
-            // by default reverse=false, i.e. trades are fetched $since the time of $market inception (year 2015 for XBTUSD)
+            // by default reverse=false, i.e. trades are fetched since the time of market inception (year 2015 for XBTUSD)
             $request['reverse'] = true;
         }
         if ($limit !== null) {
@@ -2160,32 +2195,32 @@ class bitmex extends Exchange {
         }
         $response = Async\await($this->publicGetTrade($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
-        //             "timestamp" => "2018-08-28T00:00:02.735Z",
-        //             "symbol" => "XBTUSD",
-        //             "side" => "Buy",
-        //             "size" => 2000,
-        //             "price" => 6906.5,
-        //             "tickDirection" => "PlusTick",
-        //             "trdMatchID" => "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
-        //             "grossValue" => 28958000,
-        //             "homeNotional" => 0.28958,
-        //             "foreignNotional" => 2000
-        //         ),
-        //         array(
-        //             "timestamp" => "2018-08-28T00:00:03.778Z",
-        //             "symbol" => "XBTUSD",
-        //             "side" => "Sell",
-        //             "size" => 1000,
-        //             "price" => 6906,
-        //             "tickDirection" => "MinusTick",
-        //             "trdMatchID" => "0d4f1682-5270-a800-569b-4a0eb92db97c",
-        //             "grossValue" => 14480000,
-        //             "homeNotional" => 0.1448,
-        //             "foreignNotional" => 1000
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "timestamp": "2018-08-28T00:00:02.735Z",
+        //             "symbol": "XBTUSD",
+        //             "side": "Buy",
+        //             "size": 2000,
+        //             "price": 6906.5,
+        //             "tickDirection": "PlusTick",
+        //             "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        //             "grossValue": 28958000,
+        //             "homeNotional": 0.28958,
+        //             "foreignNotional": 2000
+        //         },
+        //         {
+        //             "timestamp": "2018-08-28T00:00:03.778Z",
+        //             "symbol": "XBTUSD",
+        //             "side": "Sell",
+        //             "size": 1000,
+        //             "price": 6906,
+        //             "tickDirection": "MinusTick",
+        //             "trdMatchID": "0d4f1682-5270-a800-569b-4a0eb92db97c",
+        //             "grossValue": 14480000,
+        //             "homeNotional": 0.1448,
+        //             "foreignNotional": 1000
+        //         },
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -2415,7 +2450,7 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // return Async\await($this->cancel_order($ids, $symbol, $params));
+        // return await this.cancelOrder (ids, symbol, params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2457,43 +2492,43 @@ class bitmex extends Exchange {
         }
         $response = Async\await($this->privateDeleteOrderAll($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "orderID" => "string",
-        //             "clOrdID" => "string",
-        //             "clOrdLinkID" => "string",
-        //             "account" => 0,
-        //             "symbol" => "string",
-        //             "side" => "string",
-        //             "simpleOrderQty" => 0,
-        //             "orderQty" => 0,
-        //             "price" => 0,
-        //             "displayQty" => 0,
-        //             "stopPx" => 0,
-        //             "pegOffsetValue" => 0,
-        //             "pegPriceType" => "string",
-        //             "currency" => "string",
-        //             "settlCurrency" => "string",
-        //             "ordType" => "string",
-        //             "timeInForce" => "string",
-        //             "execInst" => "string",
-        //             "contingencyType" => "string",
-        //             "exDestination" => "string",
-        //             "ordStatus" => "string",
-        //             "triggered" => "string",
-        //             "workingIndicator" => true,
-        //             "ordRejReason" => "string",
-        //             "simpleLeavesQty" => 0,
-        //             "leavesQty" => 0,
-        //             "simpleCumQty" => 0,
-        //             "cumQty" => 0,
-        //             "avgPx" => 0,
-        //             "multiLegReportingType" => "string",
-        //             "text" => "string",
-        //             "transactTime" => "2020-06-01T09:36:35.290Z",
-        //             "timestamp" => "2020-06-01T09:36:35.290Z"
+        //             "orderID": "string",
+        //             "clOrdID": "string",
+        //             "clOrdLinkID": "string",
+        //             "account": 0,
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "simpleOrderQty": 0,
+        //             "orderQty": 0,
+        //             "price": 0,
+        //             "displayQty": 0,
+        //             "stopPx": 0,
+        //             "pegOffsetValue": 0,
+        //             "pegPriceType": "string",
+        //             "currency": "string",
+        //             "settlCurrency": "string",
+        //             "ordType": "string",
+        //             "timeInForce": "string",
+        //             "execInst": "string",
+        //             "contingencyType": "string",
+        //             "exDestination": "string",
+        //             "ordStatus": "string",
+        //             "triggered": "string",
+        //             "workingIndicator": true,
+        //             "ordRejReason": "string",
+        //             "simpleLeavesQty": 0,
+        //             "leavesQty": 0,
+        //             "simpleCumQty": 0,
+        //             "cumQty": 0,
+        //             "avgPx": 0,
+        //             "multiLegReportingType": "string",
+        //             "text": "string",
+        //             "transactTime": "2020-06-01T09:36:35.290Z",
+        //             "timestamp": "2020-06-01T09:36:35.290Z"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market);
     }
@@ -2524,8 +2559,8 @@ class bitmex extends Exchange {
         $response = Async\await($this->privatePostOrderCancelAllAfter($this->extend($request, $params)));
         //
         //     {
-        //         now => '2024-04-09T09:01:56.560Z',
-        //         cancelTime => '2024-04-09T09:01:56.660Z'
+        //         now: '2024-04-09T09:01:56.560Z',
+        //         cancelTime: '2024-04-09T09:01:56.660Z'
         //     }
         //
         return $response;
@@ -2582,101 +2617,101 @@ class bitmex extends Exchange {
         }
         $response = Async\await($this->privateGetPosition($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "account" => 0,
-        //             "symbol" => "string",
-        //             "currency" => "string",
-        //             "underlying" => "string",
-        //             "quoteCurrency" => "string",
-        //             "commission" => 0,
-        //             "initMarginReq" => 0,
-        //             "maintMarginReq" => 0,
-        //             "riskLimit" => 0,
-        //             "leverage" => 0,
-        //             "crossMargin" => true,
-        //             "deleveragePercentile" => 0,
-        //             "rebalancedPnl" => 0,
-        //             "prevRealisedPnl" => 0,
-        //             "prevUnrealisedPnl" => 0,
-        //             "prevClosePrice" => 0,
-        //             "openingTimestamp" => "2020-11-09T06:53:59.892Z",
-        //             "openingQty" => 0,
-        //             "openingCost" => 0,
-        //             "openingComm" => 0,
-        //             "openOrderBuyQty" => 0,
-        //             "openOrderBuyCost" => 0,
-        //             "openOrderBuyPremium" => 0,
-        //             "openOrderSellQty" => 0,
-        //             "openOrderSellCost" => 0,
-        //             "openOrderSellPremium" => 0,
-        //             "execBuyQty" => 0,
-        //             "execBuyCost" => 0,
-        //             "execSellQty" => 0,
-        //             "execSellCost" => 0,
-        //             "execQty" => 0,
-        //             "execCost" => 0,
-        //             "execComm" => 0,
-        //             "currentTimestamp" => "2020-11-09T06:53:59.893Z",
-        //             "currentQty" => 0,
-        //             "currentCost" => 0,
-        //             "currentComm" => 0,
-        //             "realisedCost" => 0,
-        //             "unrealisedCost" => 0,
-        //             "grossOpenCost" => 0,
-        //             "grossOpenPremium" => 0,
-        //             "grossExecCost" => 0,
-        //             "isOpen" => true,
-        //             "markPrice" => 0,
-        //             "markValue" => 0,
-        //             "riskValue" => 0,
-        //             "homeNotional" => 0,
-        //             "foreignNotional" => 0,
-        //             "posState" => "string",
-        //             "posCost" => 0,
-        //             "posCost2" => 0,
-        //             "posCross" => 0,
-        //             "posInit" => 0,
-        //             "posComm" => 0,
-        //             "posLoss" => 0,
-        //             "posMargin" => 0,
-        //             "posMaint" => 0,
-        //             "posAllowance" => 0,
-        //             "taxableMargin" => 0,
-        //             "initMargin" => 0,
-        //             "maintMargin" => 0,
-        //             "sessionMargin" => 0,
-        //             "targetExcessMargin" => 0,
-        //             "varMargin" => 0,
-        //             "realisedGrossPnl" => 0,
-        //             "realisedTax" => 0,
-        //             "realisedPnl" => 0,
-        //             "unrealisedGrossPnl" => 0,
-        //             "longBankrupt" => 0,
-        //             "shortBankrupt" => 0,
-        //             "taxBase" => 0,
-        //             "indicativeTaxRate" => 0,
-        //             "indicativeTax" => 0,
-        //             "unrealisedTax" => 0,
-        //             "unrealisedPnl" => 0,
-        //             "unrealisedPnlPcnt" => 0,
-        //             "unrealisedRoePcnt" => 0,
-        //             "simpleQty" => 0,
-        //             "simpleCost" => 0,
-        //             "simpleValue" => 0,
-        //             "simplePnl" => 0,
-        //             "simplePnlPcnt" => 0,
-        //             "avgCostPrice" => 0,
-        //             "avgEntryPrice" => 0,
-        //             "breakEvenPrice" => 0,
-        //             "marginCallPrice" => 0,
-        //             "liquidationPrice" => 0,
-        //             "bankruptPrice" => 0,
-        //             "timestamp" => "2020-11-09T06:53:59.894Z",
-        //             "lastPrice" => 0,
-        //             "lastValue" => 0
+        //             "account": 0,
+        //             "symbol": "string",
+        //             "currency": "string",
+        //             "underlying": "string",
+        //             "quoteCurrency": "string",
+        //             "commission": 0,
+        //             "initMarginReq": 0,
+        //             "maintMarginReq": 0,
+        //             "riskLimit": 0,
+        //             "leverage": 0,
+        //             "crossMargin": true,
+        //             "deleveragePercentile": 0,
+        //             "rebalancedPnl": 0,
+        //             "prevRealisedPnl": 0,
+        //             "prevUnrealisedPnl": 0,
+        //             "prevClosePrice": 0,
+        //             "openingTimestamp": "2020-11-09T06:53:59.892Z",
+        //             "openingQty": 0,
+        //             "openingCost": 0,
+        //             "openingComm": 0,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "execBuyQty": 0,
+        //             "execBuyCost": 0,
+        //             "execSellQty": 0,
+        //             "execSellCost": 0,
+        //             "execQty": 0,
+        //             "execCost": 0,
+        //             "execComm": 0,
+        //             "currentTimestamp": "2020-11-09T06:53:59.893Z",
+        //             "currentQty": 0,
+        //             "currentCost": 0,
+        //             "currentComm": 0,
+        //             "realisedCost": 0,
+        //             "unrealisedCost": 0,
+        //             "grossOpenCost": 0,
+        //             "grossOpenPremium": 0,
+        //             "grossExecCost": 0,
+        //             "isOpen": true,
+        //             "markPrice": 0,
+        //             "markValue": 0,
+        //             "riskValue": 0,
+        //             "homeNotional": 0,
+        //             "foreignNotional": 0,
+        //             "posState": "string",
+        //             "posCost": 0,
+        //             "posCost2": 0,
+        //             "posCross": 0,
+        //             "posInit": 0,
+        //             "posComm": 0,
+        //             "posLoss": 0,
+        //             "posMargin": 0,
+        //             "posMaint": 0,
+        //             "posAllowance": 0,
+        //             "taxableMargin": 0,
+        //             "initMargin": 0,
+        //             "maintMargin": 0,
+        //             "sessionMargin": 0,
+        //             "targetExcessMargin": 0,
+        //             "varMargin": 0,
+        //             "realisedGrossPnl": 0,
+        //             "realisedTax": 0,
+        //             "realisedPnl": 0,
+        //             "unrealisedGrossPnl": 0,
+        //             "longBankrupt": 0,
+        //             "shortBankrupt": 0,
+        //             "taxBase": 0,
+        //             "indicativeTaxRate": 0,
+        //             "indicativeTax": 0,
+        //             "unrealisedTax": 0,
+        //             "unrealisedPnl": 0,
+        //             "unrealisedPnlPcnt": 0,
+        //             "unrealisedRoePcnt": 0,
+        //             "simpleQty": 0,
+        //             "simpleCost": 0,
+        //             "simpleValue": 0,
+        //             "simplePnl": 0,
+        //             "simplePnlPcnt": 0,
+        //             "avgCostPrice": 0,
+        //             "avgEntryPrice": 0,
+        //             "breakEvenPrice": 0,
+        //             "marginCallPrice": 0,
+        //             "liquidationPrice": 0,
+        //             "bankruptPrice": 0,
+        //             "timestamp": "2020-11-09T06:53:59.894Z",
+        //             "lastPrice": 0,
+        //             "lastValue": 0
         //         }
-        //     )
+        //     ]
         //
         $results = $this->parse_positions($response, $symbols);
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
@@ -2685,97 +2720,97 @@ class bitmex extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //     {
-        //         "account" => 9371654,
-        //         "symbol" => "ETHUSDT",
-        //         "currency" => "USDt",
-        //         "underlying" => "ETH",
-        //         "quoteCurrency" => "USDT",
-        //         "commission" => 0.00075,
-        //         "initMarginReq" => 0.3333333333333333,
-        //         "maintMarginReq" => 0.01,
-        //         "riskLimit" => 1000000000000,
-        //         "leverage" => 3,
-        //         "crossMargin" => false,
-        //         "deleveragePercentile" => 1,
-        //         "rebalancedPnl" => 0,
-        //         "prevRealisedPnl" => 0,
-        //         "prevUnrealisedPnl" => 0,
-        //         "prevClosePrice" => 2053.738,
-        //         "openingTimestamp" => "2022-05-21T04:00:00.000Z",
-        //         "openingQty" => 0,
-        //         "openingCost" => 0,
-        //         "openingComm" => 0,
-        //         "openOrderBuyQty" => 0,
-        //         "openOrderBuyCost" => 0,
-        //         "openOrderBuyPremium" => 0,
-        //         "openOrderSellQty" => 0,
-        //         "openOrderSellCost" => 0,
-        //         "openOrderSellPremium" => 0,
-        //         "execBuyQty" => 2000,
-        //         "execBuyCost" => 39260000,
-        //         "execSellQty" => 0,
-        //         "execSellCost" => 0,
-        //         "execQty" => 2000,
-        //         "execCost" => 39260000,
-        //         "execComm" => 26500,
-        //         "currentTimestamp" => "2022-05-21T04:35:16.397Z",
-        //         "currentQty" => 2000,
-        //         "currentCost" => 39260000,
-        //         "currentComm" => 26500,
-        //         "realisedCost" => 0,
-        //         "unrealisedCost" => 39260000,
-        //         "grossOpenCost" => 0,
-        //         "grossOpenPremium" => 0,
-        //         "grossExecCost" => 39260000,
-        //         "isOpen" => true,
-        //         "markPrice" => 1964.195,
-        //         "markValue" => 39283900,
-        //         "riskValue" => 39283900,
-        //         "homeNotional" => 0.02,
-        //         "foreignNotional" => -39.2839,
-        //         "posState" => "",
-        //         "posCost" => 39260000,
-        //         "posCost2" => 39260000,
-        //         "posCross" => 0,
-        //         "posInit" => 13086667,
-        //         "posComm" => 39261,
-        //         "posLoss" => 0,
-        //         "posMargin" => 13125928,
-        //         "posMaint" => 435787,
-        //         "posAllowance" => 0,
-        //         "taxableMargin" => 0,
-        //         "initMargin" => 0,
-        //         "maintMargin" => 13149828,
-        //         "sessionMargin" => 0,
-        //         "targetExcessMargin" => 0,
-        //         "varMargin" => 0,
-        //         "realisedGrossPnl" => 0,
-        //         "realisedTax" => 0,
-        //         "realisedPnl" => -26500,
-        //         "unrealisedGrossPnl" => 23900,
-        //         "longBankrupt" => 0,
-        //         "shortBankrupt" => 0,
-        //         "taxBase" => 0,
-        //         "indicativeTaxRate" => null,
-        //         "indicativeTax" => 0,
-        //         "unrealisedTax" => 0,
-        //         "unrealisedPnl" => 23900,
-        //         "unrealisedPnlPcnt" => 0.0006,
-        //         "unrealisedRoePcnt" => 0.0018,
-        //         "simpleQty" => null,
-        //         "simpleCost" => null,
-        //         "simpleValue" => null,
-        //         "simplePnl" => null,
-        //         "simplePnlPcnt" => null,
-        //         "avgCostPrice" => 1963,
-        //         "avgEntryPrice" => 1963,
-        //         "breakEvenPrice" => 1964.35,
-        //         "marginCallPrice" => 1328.5,
-        //         "liquidationPrice" => 1328.5,
-        //         "bankruptPrice" => 1308.7,
-        //         "timestamp" => "2022-05-21T04:35:16.397Z",
-        //         "lastPrice" => 1964.195,
-        //         "lastValue" => 39283900
+        //         "account": 9371654,
+        //         "symbol": "ETHUSDT",
+        //         "currency": "USDt",
+        //         "underlying": "ETH",
+        //         "quoteCurrency": "USDT",
+        //         "commission": 0.00075,
+        //         "initMarginReq": 0.3333333333333333,
+        //         "maintMarginReq": 0.01,
+        //         "riskLimit": 1000000000000,
+        //         "leverage": 3,
+        //         "crossMargin": false,
+        //         "deleveragePercentile": 1,
+        //         "rebalancedPnl": 0,
+        //         "prevRealisedPnl": 0,
+        //         "prevUnrealisedPnl": 0,
+        //         "prevClosePrice": 2053.738,
+        //         "openingTimestamp": "2022-05-21T04:00:00.000Z",
+        //         "openingQty": 0,
+        //         "openingCost": 0,
+        //         "openingComm": 0,
+        //         "openOrderBuyQty": 0,
+        //         "openOrderBuyCost": 0,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "execBuyQty": 2000,
+        //         "execBuyCost": 39260000,
+        //         "execSellQty": 0,
+        //         "execSellCost": 0,
+        //         "execQty": 2000,
+        //         "execCost": 39260000,
+        //         "execComm": 26500,
+        //         "currentTimestamp": "2022-05-21T04:35:16.397Z",
+        //         "currentQty": 2000,
+        //         "currentCost": 39260000,
+        //         "currentComm": 26500,
+        //         "realisedCost": 0,
+        //         "unrealisedCost": 39260000,
+        //         "grossOpenCost": 0,
+        //         "grossOpenPremium": 0,
+        //         "grossExecCost": 39260000,
+        //         "isOpen": true,
+        //         "markPrice": 1964.195,
+        //         "markValue": 39283900,
+        //         "riskValue": 39283900,
+        //         "homeNotional": 0.02,
+        //         "foreignNotional": -39.2839,
+        //         "posState": "",
+        //         "posCost": 39260000,
+        //         "posCost2": 39260000,
+        //         "posCross": 0,
+        //         "posInit": 13086667,
+        //         "posComm": 39261,
+        //         "posLoss": 0,
+        //         "posMargin": 13125928,
+        //         "posMaint": 435787,
+        //         "posAllowance": 0,
+        //         "taxableMargin": 0,
+        //         "initMargin": 0,
+        //         "maintMargin": 13149828,
+        //         "sessionMargin": 0,
+        //         "targetExcessMargin": 0,
+        //         "varMargin": 0,
+        //         "realisedGrossPnl": 0,
+        //         "realisedTax": 0,
+        //         "realisedPnl": -26500,
+        //         "unrealisedGrossPnl": 23900,
+        //         "longBankrupt": 0,
+        //         "shortBankrupt": 0,
+        //         "taxBase": 0,
+        //         "indicativeTaxRate": null,
+        //         "indicativeTax": 0,
+        //         "unrealisedTax": 0,
+        //         "unrealisedPnl": 23900,
+        //         "unrealisedPnlPcnt": 0.0006,
+        //         "unrealisedRoePcnt": 0.0018,
+        //         "simpleQty": null,
+        //         "simpleCost": null,
+        //         "simpleValue": null,
+        //         "simplePnl": null,
+        //         "simplePnlPcnt": null,
+        //         "avgCostPrice": 1963,
+        //         "avgEntryPrice": 1963,
+        //         "breakEvenPrice": 1964.35,
+        //         "marginCallPrice": 1328.5,
+        //         "liquidationPrice": 1328.5,
+        //         "bankruptPrice": 1308.7,
+        //         "timestamp": "2022-05-21T04:35:16.397Z",
+        //         "lastPrice": 1964.195,
+        //         "lastValue": 39283900
         //     }
         //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
@@ -2860,8 +2895,8 @@ class bitmex extends Exchange {
             'amount' => $qty,
             'address' => $address,
             'network' => $this->network_code_to_id($networkCode, $currency['code']),
-            // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
-            // 'fee' => 0.001, // bitcoin network fee
+            // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
+            // 'fee': 0.001, // bitcoin network fee
         );
         if ($this->twofa !== null) {
             $request['otpToken'] = $this->totp($this->twofa);
@@ -2869,19 +2904,19 @@ class bitmex extends Exchange {
         $response = Async\await($this->privatePostUserRequestWithdrawal($this->extend($request, $params)));
         //
         //     {
-        //         "transactID" => "3aece414-bb29-76c8-6c6d-16a477a51a1e",
-        //         "account" => 1403035,
-        //         "currency" => "USDt",
-        //         "network" => "tron",
-        //         "transactType" => "Withdrawal",
-        //         "amount" => -11000000,
-        //         "fee" => 1000000,
-        //         "transactStatus" => "Pending",
-        //         "address" => "TAf5JxcAQQsC2Nm2zu21XE2iDtnisxPo1x",
-        //         "tx" => "",
-        //         "text" => "",
-        //         "transactTime" => "2022-12-16T07:37:06.500Z",
-        //         "timestamp" => "2022-12-16T07:37:06.500Z",
+        //         "transactID": "3aece414-bb29-76c8-6c6d-16a477a51a1e",
+        //         "account": 1403035,
+        //         "currency": "USDt",
+        //         "network": "tron",
+        //         "transactType": "Withdrawal",
+        //         "amount": -11000000,
+        //         "fee": 1000000,
+        //         "transactStatus": "Pending",
+        //         "address": "TAf5JxcAQQsC2Nm2zu21XE2iDtnisxPo1x",
+        //         "tx": "",
+        //         "text": "",
+        //         "transactTime": "2022-12-16T07:37:06.500Z",
+        //         "timestamp": "2022-12-16T07:37:06.500Z",
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -2905,7 +2940,7 @@ class bitmex extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->publicGetInstrumentActiveAndIndices($params));
-        // same $response "fetchMarkets"
+        // same response as under "fetchMarkets"
         $filteredResponse = array();
         $rawItems = $this->to_array($response);
         for ($i = 0; $i < count($rawItems); $i++) {
@@ -3010,15 +3045,15 @@ class bitmex extends Exchange {
         }
         $response = Async\await($this->publicGetFunding($this->extend($request, $params)));
         //
-        //    array(
+        //    [
         //        {
-        //            "timestamp" => "2016-05-07T12:00:00.000Z",
-        //            "symbol" => "ETHXBT",
-        //            "fundingInterval" => "2000-01-02T00:00:00.000Z",
-        //            "fundingRate" => 0.0010890000000000001,
-        //            "fundingRateDaily" => 0.0010890000000000001
+        //            "timestamp": "2016-05-07T12:00:00.000Z",
+        //            "symbol": "ETHXBT",
+        //            "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //            "fundingRate": 0.0010890000000000001,
+        //            "fundingRateDaily": 0.0010890000000000001
         //        }
-        //    )
+        //    ]
         //
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
@@ -3026,11 +3061,11 @@ class bitmex extends Exchange {
     public function parse_funding_rate_history(mixed $info, ?array $market = null) {
         //
         //    {
-        //        "timestamp" => "2016-05-07T12:00:00.000Z",
-        //        "symbol" => "ETHXBT",
-        //        "fundingInterval" => "2000-01-02T00:00:00.000Z",
-        //        "fundingRate" => 0.0010890000000000001,
-        //        "fundingRateDaily" => 0.0010890000000000001
+        //        "timestamp": "2016-05-07T12:00:00.000Z",
+        //        "symbol": "ETHXBT",
+        //        "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //        "fundingRate": 0.0010890000000000001,
+        //        "fundingRateDaily": 0.0010890000000000001
         //    }
         //
         $marketId = $this->safe_string($info, 'symbol');
@@ -3162,31 +3197,31 @@ class bitmex extends Exchange {
     public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
-        //        "asset" => "XBT",
-        //        "currency" => "XBt",
-        //        "majorCurrency" => "XBT",
-        //        "name" => "Bitcoin",
-        //        "currencyType" => "Crypto",
-        //        "scale" => "8",
-        //        "enabled" => true,
-        //        "isMarginCurrency" => true,
-        //        "minDepositAmount" => "10000",
-        //        "minWithdrawalAmount" => "1000",
-        //        "maxWithdrawalAmount" => "100000000000000",
-        //        "networks" => array(
+        //        "asset": "XBT",
+        //        "currency": "XBt",
+        //        "majorCurrency": "XBT",
+        //        "name": "Bitcoin",
+        //        "currencyType": "Crypto",
+        //        "scale": "8",
+        //        "enabled": true,
+        //        "isMarginCurrency": true,
+        //        "minDepositAmount": "10000",
+        //        "minWithdrawalAmount": "1000",
+        //        "maxWithdrawalAmount": "100000000000000",
+        //        "networks": [
         //            {
-        //                "asset" => "btc",
-        //                "tokenAddress" => '',
-        //                "depositEnabled" => true,
-        //                "withdrawalEnabled" => true,
-        //                "withdrawalFee" => "20000",
-        //                "minFee" => "20000",
-        //                "maxFee" => "10000000"
+        //                "asset": "btc",
+        //                "tokenAddress": '',
+        //                "depositEnabled": true,
+        //                "withdrawalEnabled": true,
+        //                "withdrawalFee": "20000",
+        //                "minFee": "20000",
+        //                "maxFee": "10000000"
         //            }
-        //        )
+        //        ]
         //    }
         //
-        $networks = $this->safe_value($fee, 'networks', array());
+        $networks = $this->safe_list($fee, 'networks', array());
         $networksLength = count($networks);
         $result = array(
             'info' => $fee,
@@ -3244,33 +3279,33 @@ class bitmex extends Exchange {
         }
         $assets = Async\await($this->publicGetWalletAssets($params));
         //
-        //    array(
+        //    [
         //        {
-        //            "asset" => "XBT",
-        //            "currency" => "XBt",
-        //            "majorCurrency" => "XBT",
-        //            "name" => "Bitcoin",
-        //            "currencyType" => "Crypto",
-        //            "scale" => "8",
-        //            "enabled" => true,
-        //            "isMarginCurrency" => true,
-        //            "minDepositAmount" => "10000",
-        //            "minWithdrawalAmount" => "1000",
-        //            "maxWithdrawalAmount" => "100000000000000",
-        //            "networks" => array(
-        //                array(
-        //                    "asset" => "btc",
-        //                    "tokenAddress" => '',
-        //                    "depositEnabled" => true,
-        //                    "withdrawalEnabled" => true,
-        //                    "withdrawalFee" => "20000",
-        //                    "minFee" => "20000",
-        //                    "maxFee" => "10000000"
+        //            "asset": "XBT",
+        //            "currency": "XBt",
+        //            "majorCurrency": "XBT",
+        //            "name": "Bitcoin",
+        //            "currencyType": "Crypto",
+        //            "scale": "8",
+        //            "enabled": true,
+        //            "isMarginCurrency": true,
+        //            "minDepositAmount": "10000",
+        //            "minWithdrawalAmount": "1000",
+        //            "maxWithdrawalAmount": "100000000000000",
+        //            "networks": [
+        //                {
+        //                    "asset": "btc",
+        //                    "tokenAddress": '',
+        //                    "depositEnabled": true,
+        //                    "withdrawalEnabled": true,
+        //                    "withdrawalFee": "20000",
+        //                    "minFee": "20000",
+        //                    "maxFee": "10000000"
         //                }
-        //            )
-        //        ),
+        //            ]
+        //        },
         //        ...
-        //    )
+        //    ]
         //
         return $this->parse_deposit_withdraw_fees($assets, $codes, 'asset');
     }
@@ -3296,17 +3331,17 @@ class bitmex extends Exchange {
         $response = null;
         $response = Async\await($this->publicGetStats($this->extend($request, $params)));
         //
-        //    array(
+        //    [
         //        {
-        //            currency => 'XBt',
-        //            openInterest => '0',
-        //            openValue => '323890820079',
-        //            rootSymbol => 'Total',
-        //            turnover24h => '447088001322',
-        //            volume24h => '0'
+        //            currency: 'XBt',
+        //            openInterest: '0',
+        //            openValue: '323890820079',
+        //            rootSymbol: 'Total',
+        //            turnover24h: '447088001322',
+        //            volume24h: '0'
         //        }
         //        ...
-        //    )
+        //    ]
         //
         $symbols = $this->market_symbols($symbols);
         return $this->parse_open_interests($response, $symbols);
@@ -3317,12 +3352,12 @@ class bitmex extends Exchange {
         // fetchOpenInterest
         //
         //    {
-        //        currency => 'XBt',
-        //        $openInterest => '0',
-        //        $openValue => '323890820079',
-        //        rootSymbol => 'Total',
-        //        turnover24h => '447088001322',
-        //        volume24h => '0'
+        //        currency: 'XBt',
+        //        openInterest: '0',
+        //        openValue: '323890820079',
+        //        rootSymbol: 'Total',
+        //        turnover24h: '447088001322',
+        //        volume24h: '0'
         //    }
         //
         $quoteId = $this->safe_string($interest, 'currency');
@@ -3399,15 +3434,15 @@ class bitmex extends Exchange {
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = Async\await($this->publicGetLiquidation($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "orderID" => "string",
-        //             "symbol" => "string",
-        //             "side" => "string",
-        //             "price" => 0,
-        //             "leavesQty" => 0
+        //             "orderID": "string",
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "price": 0,
+        //             "leavesQty": 0
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
     }
@@ -3415,11 +3450,11 @@ class bitmex extends Exchange {
     public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
-        //         "orderID" => "string",
-        //         "symbol" => "string",
-        //         "side" => "string",
-        //         "price" => 0,
-        //         "leavesQty" => 0
+        //         "orderID": "string",
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "price": 0,
+        //         "leavesQty": 0
         //     }
         //
         $marketId = $this->safe_string($liquidation, 'symbol');
@@ -3457,120 +3492,120 @@ class bitmex extends Exchange {
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $response = Async\await($this->privateGetPosition($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "account" => 395724,
-        //             "symbol" => "XBTUSDT",
-        //             "strategy" => "OneWay",
-        //             "currency" => "USDt",
-        //             "underlying" => "XBT",
-        //             "quoteCurrency" => "USDT",
-        //             "commission" => 0.0005,
-        //             "initMarginReq" => 0.01,
-        //             "maintMarginReq" => 0.005,
-        //             "riskLimit" => 1000000000000,
-        //             "leverage" => 100,
-        //             "crossMargin" => true,
-        //             "deleveragePercentile" => 1,
-        //             "rebalancedPnl" => -4319,
-        //             "prevRealisedPnl" => 0,
-        //             "prevUnrealisedPnl" => null,
-        //             "openingQty" => null,
-        //             "openOrderBuyQty" => 0,
-        //             "openOrderBuyCost" => 0,
-        //             "openOrderBuyPremium" => 0,
-        //             "openOrderSellQty" => 0,
-        //             "openOrderSellCost" => 0,
-        //             "openOrderSellPremium" => 0,
-        //             "currentQty" => 100,
-        //             "currentCost" => 8639330,
-        //             "currentComm" => 0,
-        //             "realisedCost" => 0,
-        //             "unrealisedCost" => 8639330,
-        //             "grossOpenPremium" => 0,
-        //             "isOpen" => true,
-        //             "markPrice" => 88636.92,
-        //             "markValue" => 8863692,
-        //             "riskValue" => 8863692,
-        //             "homeNotional" => 0.0001,
-        //             "foreignNotional" => -8.863692,
-        //             "posCost" => 8639330,
-        //             "posCross" => 0,
-        //             "posComm" => 0,
-        //             "posLoss" => 0,
-        //             "posMargin" => 44061,
-        //             "posMaint" => 44061,
-        //             "posInit" => 0,
-        //             "initMargin" => 0,
-        //             "maintMargin" => 44061,
-        //             "realisedPnl" => 0,
-        //             "unrealisedPnl" => 224362,
-        //             "unrealisedPnlPcnt" => 0.026,
-        //             "unrealisedRoePcnt" => 2.597,
-        //             "avgCostPrice" => 86393.3,
-        //             "avgEntryPrice" => 86393.3,
-        //             "breakEvenPrice" => 86436.5,
-        //             "marginCallPrice" => null,
-        //             "liquidationPrice" => 0,
-        //             "bankruptPrice" => 0,
-        //             "timestamp" => "2025-12-31T07:55:50.505Z",
-        //             "positionReport" => {
-        //                 "account" => 395724,
-        //                 "avgCostPrice" => 86393.3,
-        //                 "avgEntryPrice" => 86393.3,
-        //                 "bankruptPrice" => 0,
-        //                 "breakEvenPrice" => 86436.5,
-        //                 "commission" => 0.0005,
-        //                 "crossMargin" => true,
-        //                 "currency" => "USDt",
-        //                 "currentComm" => 0,
-        //                 "currentCost" => 8639330,
-        //                 "currentQty" => 100,
-        //                 "deleveragePercentile" => 1,
-        //                 "foreignNotional" => -8.863692,
-        //                 "grossOpenPremium" => 0,
-        //                 "homeNotional" => 0.0001,
-        //                 "initMargin" => 0,
-        //                 "initMarginReq" => 0.01,
-        //                 "isOpen" => true,
-        //                 "leverage" => 100,
-        //                 "liquidationPrice" => 0,
-        //                 "maintMargin" => 44061,
-        //                 "maintMarginReq" => 0.005,
-        //                 "markPrice" => 88636.92,
-        //                 "markValue" => 8863692,
-        //                 "openOrderBuyCost" => 0,
-        //                 "openOrderBuyPremium" => 0,
-        //                 "openOrderBuyQty" => 0,
-        //                 "openOrderRealisedPnl" => 0,
-        //                 "openOrderSellCost" => 0,
-        //                 "openOrderSellPremium" => 0,
-        //                 "openOrderSellQty" => 0,
-        //                 "posComm" => 0,
-        //                 "posCost" => 8639330,
-        //                 "posCross" => 0,
-        //                 "posInit" => 0,
-        //                 "posLoss" => 0,
-        //                 "posMaint" => 44061,
-        //                 "posMargin" => 44061,
-        //                 "prevRealisedPnl" => 0,
-        //                 "quoteCurrency" => "USDT",
-        //                 "realisedCost" => 0,
-        //                 "realisedPnl" => 0,
-        //                 "rebalancedPnl" => -4319,
-        //                 "riskLimit" => 1000000000000,
-        //                 "riskValue" => 8863692,
-        //                 "strategy" => "OneWay",
-        //                 "symbol" => "XBTUSDT",
-        //                 "timestamp" => "2025-12-31T07:55:50.505Z",
-        //                 "underlying" => "XBT",
-        //                 "unrealisedCost" => 8639330,
-        //                 "unrealisedPnl" => 224362,
-        //                 "unrealisedPnlPcnt" => 0.026,
-        //                 "unrealisedRoePcnt" => 2.597
+        //             "account": 395724,
+        //             "symbol": "XBTUSDT",
+        //             "strategy": "OneWay",
+        //             "currency": "USDt",
+        //             "underlying": "XBT",
+        //             "quoteCurrency": "USDT",
+        //             "commission": 0.0005,
+        //             "initMarginReq": 0.01,
+        //             "maintMarginReq": 0.005,
+        //             "riskLimit": 1000000000000,
+        //             "leverage": 100,
+        //             "crossMargin": true,
+        //             "deleveragePercentile": 1,
+        //             "rebalancedPnl": -4319,
+        //             "prevRealisedPnl": 0,
+        //             "prevUnrealisedPnl": null,
+        //             "openingQty": null,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "currentQty": 100,
+        //             "currentCost": 8639330,
+        //             "currentComm": 0,
+        //             "realisedCost": 0,
+        //             "unrealisedCost": 8639330,
+        //             "grossOpenPremium": 0,
+        //             "isOpen": true,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "riskValue": 8863692,
+        //             "homeNotional": 0.0001,
+        //             "foreignNotional": -8.863692,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posComm": 0,
+        //             "posLoss": 0,
+        //             "posMargin": 44061,
+        //             "posMaint": 44061,
+        //             "posInit": 0,
+        //             "initMargin": 0,
+        //             "maintMargin": 44061,
+        //             "realisedPnl": 0,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "breakEvenPrice": 86436.5,
+        //             "marginCallPrice": null,
+        //             "liquidationPrice": 0,
+        //             "bankruptPrice": 0,
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "positionReport": {
+        //                 "account": 395724,
+        //                 "avgCostPrice": 86393.3,
+        //                 "avgEntryPrice": 86393.3,
+        //                 "bankruptPrice": 0,
+        //                 "breakEvenPrice": 86436.5,
+        //                 "commission": 0.0005,
+        //                 "crossMargin": true,
+        //                 "currency": "USDt",
+        //                 "currentComm": 0,
+        //                 "currentCost": 8639330,
+        //                 "currentQty": 100,
+        //                 "deleveragePercentile": 1,
+        //                 "foreignNotional": -8.863692,
+        //                 "grossOpenPremium": 0,
+        //                 "homeNotional": 0.0001,
+        //                 "initMargin": 0,
+        //                 "initMarginReq": 0.01,
+        //                 "isOpen": true,
+        //                 "leverage": 100,
+        //                 "liquidationPrice": 0,
+        //                 "maintMargin": 44061,
+        //                 "maintMarginReq": 0.005,
+        //                 "markPrice": 88636.92,
+        //                 "markValue": 8863692,
+        //                 "openOrderBuyCost": 0,
+        //                 "openOrderBuyPremium": 0,
+        //                 "openOrderBuyQty": 0,
+        //                 "openOrderRealisedPnl": 0,
+        //                 "openOrderSellCost": 0,
+        //                 "openOrderSellPremium": 0,
+        //                 "openOrderSellQty": 0,
+        //                 "posComm": 0,
+        //                 "posCost": 8639330,
+        //                 "posCross": 0,
+        //                 "posInit": 0,
+        //                 "posLoss": 0,
+        //                 "posMaint": 44061,
+        //                 "posMargin": 44061,
+        //                 "prevRealisedPnl": 0,
+        //                 "quoteCurrency": "USDT",
+        //                 "realisedCost": 0,
+        //                 "realisedPnl": 0,
+        //                 "rebalancedPnl": -4319,
+        //                 "riskLimit": 1000000000000,
+        //                 "riskValue": 8863692,
+        //                 "strategy": "OneWay",
+        //                 "symbol": "XBTUSDT",
+        //                 "timestamp": "2025-12-31T07:55:50.505Z",
+        //                 "underlying": "XBT",
+        //                 "unrealisedCost": 8639330,
+        //                 "unrealisedPnl": 224362,
+        //                 "unrealisedPnlPcnt": 0.026,
+        //                 "unrealisedRoePcnt": 2.597
         //             }
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_adl_ranks($response, $symbols);
     }
@@ -3580,115 +3615,115 @@ class bitmex extends Exchange {
         // fetchPositionsADLRank
         //
         //     {
-        //         "account" => 395724,
-        //         "symbol" => "XBTUSDT",
-        //         "strategy" => "OneWay",
-        //         "currency" => "USDt",
-        //         "underlying" => "XBT",
-        //         "quoteCurrency" => "USDT",
-        //         "commission" => 0.0005,
-        //         "initMarginReq" => 0.01,
-        //         "maintMarginReq" => 0.005,
-        //         "riskLimit" => 1000000000000,
-        //         "leverage" => 100,
-        //         "crossMargin" => true,
-        //         "deleveragePercentile" => 1,
-        //         "rebalancedPnl" => -4319,
-        //         "prevRealisedPnl" => 0,
-        //         "prevUnrealisedPnl" => null,
-        //         "openingQty" => null,
-        //         "openOrderBuyQty" => 0,
-        //         "openOrderBuyCost" => 0,
-        //         "openOrderBuyPremium" => 0,
-        //         "openOrderSellQty" => 0,
-        //         "openOrderSellCost" => 0,
-        //         "openOrderSellPremium" => 0,
-        //         "currentQty" => 100,
-        //         "currentCost" => 8639330,
-        //         "currentComm" => 0,
-        //         "realisedCost" => 0,
-        //         "unrealisedCost" => 8639330,
-        //         "grossOpenPremium" => 0,
-        //         "isOpen" => true,
-        //         "markPrice" => 88636.92,
-        //         "markValue" => 8863692,
-        //         "riskValue" => 8863692,
-        //         "homeNotional" => 0.0001,
-        //         "foreignNotional" => -8.863692,
-        //         "posCost" => 8639330,
-        //         "posCross" => 0,
-        //         "posComm" => 0,
-        //         "posLoss" => 0,
-        //         "posMargin" => 44061,
-        //         "posMaint" => 44061,
-        //         "posInit" => 0,
-        //         "initMargin" => 0,
-        //         "maintMargin" => 44061,
-        //         "realisedPnl" => 0,
-        //         "unrealisedPnl" => 224362,
-        //         "unrealisedPnlPcnt" => 0.026,
-        //         "unrealisedRoePcnt" => 2.597,
-        //         "avgCostPrice" => 86393.3,
-        //         "avgEntryPrice" => 86393.3,
-        //         "breakEvenPrice" => 86436.5,
-        //         "marginCallPrice" => null,
-        //         "liquidationPrice" => 0,
-        //         "bankruptPrice" => 0,
-        //         "timestamp" => "2025-12-31T07:55:50.505Z",
-        //         "positionReport" => {
-        //             "account" => 395724,
-        //             "avgCostPrice" => 86393.3,
-        //             "avgEntryPrice" => 86393.3,
-        //             "bankruptPrice" => 0,
-        //             "breakEvenPrice" => 86436.5,
-        //             "commission" => 0.0005,
-        //             "crossMargin" => true,
-        //             "currency" => "USDt",
-        //             "currentComm" => 0,
-        //             "currentCost" => 8639330,
-        //             "currentQty" => 100,
-        //             "deleveragePercentile" => 1,
-        //             "foreignNotional" => -8.863692,
-        //             "grossOpenPremium" => 0,
-        //             "homeNotional" => 0.0001,
-        //             "initMargin" => 0,
-        //             "initMarginReq" => 0.01,
-        //             "isOpen" => true,
-        //             "leverage" => 100,
-        //             "liquidationPrice" => 0,
-        //             "maintMargin" => 44061,
-        //             "maintMarginReq" => 0.005,
-        //             "markPrice" => 88636.92,
-        //             "markValue" => 8863692,
-        //             "openOrderBuyCost" => 0,
-        //             "openOrderBuyPremium" => 0,
-        //             "openOrderBuyQty" => 0,
-        //             "openOrderRealisedPnl" => 0,
-        //             "openOrderSellCost" => 0,
-        //             "openOrderSellPremium" => 0,
-        //             "openOrderSellQty" => 0,
-        //             "posComm" => 0,
-        //             "posCost" => 8639330,
-        //             "posCross" => 0,
-        //             "posInit" => 0,
-        //             "posLoss" => 0,
-        //             "posMaint" => 44061,
-        //             "posMargin" => 44061,
-        //             "prevRealisedPnl" => 0,
-        //             "quoteCurrency" => "USDT",
-        //             "realisedCost" => 0,
-        //             "realisedPnl" => 0,
-        //             "rebalancedPnl" => -4319,
-        //             "riskLimit" => 1000000000000,
-        //             "riskValue" => 8863692,
-        //             "strategy" => "OneWay",
-        //             "symbol" => "XBTUSDT",
-        //             "timestamp" => "2025-12-31T07:55:50.505Z",
-        //             "underlying" => "XBT",
-        //             "unrealisedCost" => 8639330,
-        //             "unrealisedPnl" => 224362,
-        //             "unrealisedPnlPcnt" => 0.026,
-        //             "unrealisedRoePcnt" => 2.597
+        //         "account": 395724,
+        //         "symbol": "XBTUSDT",
+        //         "strategy": "OneWay",
+        //         "currency": "USDt",
+        //         "underlying": "XBT",
+        //         "quoteCurrency": "USDT",
+        //         "commission": 0.0005,
+        //         "initMarginReq": 0.01,
+        //         "maintMarginReq": 0.005,
+        //         "riskLimit": 1000000000000,
+        //         "leverage": 100,
+        //         "crossMargin": true,
+        //         "deleveragePercentile": 1,
+        //         "rebalancedPnl": -4319,
+        //         "prevRealisedPnl": 0,
+        //         "prevUnrealisedPnl": null,
+        //         "openingQty": null,
+        //         "openOrderBuyQty": 0,
+        //         "openOrderBuyCost": 0,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "currentQty": 100,
+        //         "currentCost": 8639330,
+        //         "currentComm": 0,
+        //         "realisedCost": 0,
+        //         "unrealisedCost": 8639330,
+        //         "grossOpenPremium": 0,
+        //         "isOpen": true,
+        //         "markPrice": 88636.92,
+        //         "markValue": 8863692,
+        //         "riskValue": 8863692,
+        //         "homeNotional": 0.0001,
+        //         "foreignNotional": -8.863692,
+        //         "posCost": 8639330,
+        //         "posCross": 0,
+        //         "posComm": 0,
+        //         "posLoss": 0,
+        //         "posMargin": 44061,
+        //         "posMaint": 44061,
+        //         "posInit": 0,
+        //         "initMargin": 0,
+        //         "maintMargin": 44061,
+        //         "realisedPnl": 0,
+        //         "unrealisedPnl": 224362,
+        //         "unrealisedPnlPcnt": 0.026,
+        //         "unrealisedRoePcnt": 2.597,
+        //         "avgCostPrice": 86393.3,
+        //         "avgEntryPrice": 86393.3,
+        //         "breakEvenPrice": 86436.5,
+        //         "marginCallPrice": null,
+        //         "liquidationPrice": 0,
+        //         "bankruptPrice": 0,
+        //         "timestamp": "2025-12-31T07:55:50.505Z",
+        //         "positionReport": {
+        //             "account": 395724,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "bankruptPrice": 0,
+        //             "breakEvenPrice": 86436.5,
+        //             "commission": 0.0005,
+        //             "crossMargin": true,
+        //             "currency": "USDt",
+        //             "currentComm": 0,
+        //             "currentCost": 8639330,
+        //             "currentQty": 100,
+        //             "deleveragePercentile": 1,
+        //             "foreignNotional": -8.863692,
+        //             "grossOpenPremium": 0,
+        //             "homeNotional": 0.0001,
+        //             "initMargin": 0,
+        //             "initMarginReq": 0.01,
+        //             "isOpen": true,
+        //             "leverage": 100,
+        //             "liquidationPrice": 0,
+        //             "maintMargin": 44061,
+        //             "maintMarginReq": 0.005,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderRealisedPnl": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "posComm": 0,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posInit": 0,
+        //             "posLoss": 0,
+        //             "posMaint": 44061,
+        //             "posMargin": 44061,
+        //             "prevRealisedPnl": 0,
+        //             "quoteCurrency": "USDT",
+        //             "realisedCost": 0,
+        //             "realisedPnl": 0,
+        //             "rebalancedPnl": -4319,
+        //             "riskLimit": 1000000000000,
+        //             "riskValue": 8863692,
+        //             "strategy": "OneWay",
+        //             "symbol": "XBTUSDT",
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "underlying": "XBT",
+        //             "unrealisedCost": 8639330,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597
         //         }
         //     }
         //
@@ -3732,12 +3767,12 @@ class bitmex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // $symbol string Instrument $symbol-> Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
-            // filter string Generic table filter. Send JSON key/value pairs, such as array("key" => "value"). You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value => array()
+            // symbol string Instrument symbol. Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
+            // filter string Generic table filter. Send JSON key/value pairs, such as {"key": "value"}. You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value: {}
             // columns string Array of column names to fetch. If omitted, will return all columns. Note that this method will always return item keys, even when not specified, so you may receive more columns that you expect.
-            // count int32 Possible values => >= 1 and <= 500 Number of results to fetch. Must be a positive integer. Default value => 100
-            // start int32 Possible values => >= 0 Starting point for results. Default value => 0
-            // reverse boolean If true, will sort results newest first. Default value => false
+            // count int32 Possible values: >= 1 and <= 500 Number of results to fetch. Must be a positive integer. Default value: 100
+            // start int32 Possible values: >= 0 Starting point for results. Default value: 0
+            // reverse boolean If true, will sort results newest first. Default value: false
             // startTime string Starting time filter for results.
             // endTime string Ending time filter for results.
         );
@@ -3759,14 +3794,14 @@ class bitmex extends Exchange {
         }
         $response = Async\await($this->publicGetSettlement($this->extend($request, $params)));
         //
-        //    array(
+        //    [
         //        {
-        //            timestamp => '2025-03-28T12:00:00.000Z',
-        //            $symbol => 'ETHUSDH25',
-        //            settlementType => 'Settlement',
-        //            settledPrice => '1897.53'
+        //            timestamp: '2025-03-28T12:00:00.000Z',
+        //            symbol: 'ETHUSDH25',
+        //            settlementType: 'Settlement',
+        //            settledPrice: '1897.53'
         //        }
-        //    )
+        //    ]
         //
         return $this->parse_settlements($response, $market, $since, $limit);
     }
@@ -3784,10 +3819,10 @@ class bitmex extends Exchange {
     public function parse_settlement(mixed $settlement, ?array $market = null) {
         //
         //    {
-        //        timestamp => '2025-03-28T12:00:00.000Z',
-        //        symbol => 'ETHUSDH25',
-        //        settlementType => 'Settlement',
-        //        settledPrice => '1897.53'
+        //        timestamp: '2025-03-28T12:00:00.000Z',
+        //        symbol: 'ETHUSDH25',
+        //        settlementType: 'Settlement',
+        //        settledPrice: '1897.53'
         //    }
         //
         $datetime = $this->safe_string($settlement, 'timestamp');
@@ -3829,26 +3864,26 @@ class bitmex extends Exchange {
         $response = Async\await($this->privatePostOrder($this->extend($request, $params)));
         //
         //     {
-        //         "account" => 395724,
-        //         "avgPx" => 66358.8,
-        //         "cumQty" => 200,
-        //         "currency" => "USDT",
-        //         "execInst" => "Close",
-        //         "leavesQty" => 0,
-        //         "ordStatus" => "Filled",
-        //         "ordType" => "Market",
-        //         "orderID" => "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
-        //         "orderQty" => 200,
-        //         "pool" => "Primary",
-        //         "settlCurrency" => "USDt",
-        //         "side" => "Sell",
-        //         "strategy" => "OneWay",
-        //         "symbol" => "XBTUSDT",
-        //         "text" => "Submitted via API.",
-        //         "timeInForce" => "ImmediateOrCancel",
-        //         "timestamp" => "2026-04-02T05:20:26.607Z",
-        //         "transactTime" => "2026-04-02T05:20:26.606Z",
-        //         "workingIndicator" => false
+        //         "account": 395724,
+        //         "avgPx": 66358.8,
+        //         "cumQty": 200,
+        //         "currency": "USDT",
+        //         "execInst": "Close",
+        //         "leavesQty": 0,
+        //         "ordStatus": "Filled",
+        //         "ordType": "Market",
+        //         "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+        //         "orderQty": 200,
+        //         "pool": "Primary",
+        //         "settlCurrency": "USDt",
+        //         "side": "Sell",
+        //         "strategy": "OneWay",
+        //         "symbol": "XBTUSDT",
+        //         "text": "Submitted via API.",
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "timestamp": "2026-04-02T05:20:26.607Z",
+        //         "transactTime": "2026-04-02T05:20:26.606Z",
+        //         "workingIndicator": false
         //     }
         //
         return $this->parse_order($response, $market);
@@ -3870,7 +3905,7 @@ class bitmex extends Exchange {
             if ($code === 400) {
                 throw new BadRequest($feedback);
             }
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

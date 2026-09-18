@@ -20,7 +20,7 @@ class zaif(Exchange, ImplicitAPI):
             'id': 'zaif',
             'name': 'Zaif',
             'countries': ['JP'],
-            # 10 requests per second = 1000ms / 10 = 100ms between requests(public market endpoints)
+            # 10 requests per second = 1000ms / 10 = 100ms between requests (public market endpoints)
             'rateLimit': 100,
             'version': '1',
             'has': {
@@ -115,6 +115,9 @@ class zaif(Exchange, ImplicitAPI):
                         'last_price/{pair}': {'cost': 1},
                         'ticker/{pair}': {'cost': 1},
                         'trades/{pair}': {'cost': 1},
+                        'vasp_info/{vasp_master_id}': {'cost': 1},
+                        'country_info/{code}': {'cost': 1},
+                        'corp_type_id_info/{id}': {'cost': 1},
                     },
                 },
                 'private': {
@@ -249,7 +252,7 @@ class zaif(Exchange, ImplicitAPI):
         #             "item_unit_min": 0.001,
         #             "event_number": 0,
         #             "currency_pair": "btc_jpy",
-        #             "is_token": False,
+        #             "is_token": false,
         #             "aux_unit_min": 5.0,
         #             "aux_japanese": "\u65e5\u672c\u5186",
         #             "id": 1,
@@ -329,7 +332,7 @@ class zaif(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        funds = self.safe_value(balances, 'funds', {})
+        funds = self.safe_dict(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -451,7 +454,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "date": 1648559414,
@@ -660,8 +663,8 @@ class zaif(Exchange, ImplicitAPI):
             await self.load_markets()
         market = None
         request = {
-            # 'is_token': False,
-            # 'is_token_both': False,
+            # 'is_token': false,
+            # 'is_token_both': false,
         }
         if symbol is not None:
             market = self.market(symbol)
@@ -693,7 +696,7 @@ class zaif(Exchange, ImplicitAPI):
             # 'order': 'DESC',
             # 'since': 1503821051,
             # 'end': 1503821051,
-            # 'is_token': False,
+            # 'is_token': false,
         }
         if symbol is not None:
             market = self.market(symbol)
@@ -726,8 +729,8 @@ class zaif(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hi!',  # XEM and others
-            # 'opt_fee': 0.003,  # BTC and MONA only
+            # 'message': 'Hi!', // XEM and others
+            # 'opt_fee': 0.003, // BTC and MONA only
         }
         if tag is not None:
             request['message'] = tag

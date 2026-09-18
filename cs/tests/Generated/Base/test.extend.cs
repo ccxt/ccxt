@@ -64,7 +64,7 @@ public partial class BaseTest
             object obj2SnapshotB0 = getValue(getValue(obj2, "b"), 0);
             object obj2SnapshotOther2 = getValue(obj2, "other2");
             // --- test 1: basic extend ---
-            object extended = exchange.extend(obj1, obj2);
+            Dictionary<string, object> extended = exchange.extend(obj1, obj2);
             tbfeCheckExtended(extended, true);
             // --- mutation check: obj1 must NOT be mutated ---
             Assert(isEqual(getValue(obj1, "a"), obj1SnapshotA), "obj1.a was mutated after extend");
@@ -86,7 +86,7 @@ public partial class BaseTest
                 { "e", "back_to_string" },
                 { "other3", "z" },
             };
-            object extended2 = exchange.extend(extended, obj3);
+            Dictionary<string, object> extended2 = exchange.extend(extended, obj3);
             Assert(isEqual(getValue(extended2, "a"), 3), "step2: a");
             Assert(isEqual(getValue(getValue(extended2, "b"), 0), 5), "step2: b[0]");
             Assert(isEqual(getValue(getValue(extended2, "b"), 1), 6), "step2: b[1]");
@@ -120,9 +120,9 @@ public partial class BaseTest
                 { "x", 3 },
                 { "p3", true },
             };
-            object r1 = exchange.extend(bs, patch1);
-            object r2 = exchange.extend(r1, patch2);
-            object r3 = exchange.extend(r2, patch3);
+            Dictionary<string, object> r1 = exchange.extend(bs, patch1);
+            Dictionary<string, object> r2 = exchange.extend(r1, patch2);
+            Dictionary<string, object> r3 = exchange.extend(r2, patch3);
             Assert(isEqual(getValue(r3, "x"), 3), "chain: r3['x'] should be 3 after 3 patches");
             Assert(isEqual(getValue(r3, "keep"), "yes"), "chain: r3['keep'] should be preserved");
             Assert(isEqual(getValue(r3, "p1"), true), "chain: r3['p1'] should be present");
@@ -144,7 +144,7 @@ public partial class BaseTest
                 { "keep2", null },
                 { "newKey", "C" },
             };
-            object extUndef = exchange.extend(withValues, withUndefs);
+            Dictionary<string, object> extUndef = exchange.extend(withValues, withUndefs);
             // extend() merges ALL keys (including undefined ones), so undefined wins over previous value
             Assert(isEqual(getValue(extUndef, "keep1"), null), "extend: extUndef['keep1'] should be undefined");
             Assert(isEqual(getValue(extUndef, "keep2"), null), "extend: extUndef['keep2'] should be undefined");

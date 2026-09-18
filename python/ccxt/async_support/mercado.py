@@ -135,6 +135,7 @@ class mercado(Exchange, ImplicitAPI):
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -178,6 +179,16 @@ class mercado(Exchange, ImplicitAPI):
                 'v4PublicNet': {
                     'get': {
                         'candles': {'cost': 1},
+                    },
+                },
+                'v4Private': {
+                    'post': {
+                        'accounts': {'cost': 1},
+                        'accounts/{accountId}/{symbol}/transfers/internal': {'cost': 1},
+                        'oauth2/token': {'cost': 1},
+                    },
+                    'patch': {
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}': {'cost': 1},
                     },
                 },
             },
@@ -506,7 +517,7 @@ class mercado(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         data = self.safe_value(response, 'response_data', {})
-        balances = self.safe_value(data, 'balance', {})
+        balances = self.safe_dict(data, 'balance', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
@@ -560,7 +571,7 @@ class mercado(Exchange, ImplicitAPI):
         else:
             if side == 'buy':
                 if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
                 amountString = self.number_to_string(amount)
                 priceString = self.number_to_string(price)
                 cost = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
@@ -569,7 +580,7 @@ class mercado(Exchange, ImplicitAPI):
             else:
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
                 response = await self.privatePostPlaceMarketSellOrder(self.extend(request, params))
-        # TODO: replace self with a call to parseOrder for unification
+        # TODO: replace this with a call to parseOrder for unification
         return self.safe_order({
             'info': response,
             'id': str(response['response_data']['order']['order_id']),
@@ -601,7 +612,7 @@ class mercado(Exchange, ImplicitAPI):
         #                 "coin_pair": "BRLBCH",
         #                 "order_type": 2,
         #                 "status": 3,
-        #                 "has_fills": False,
+        #                 "has_fills": false,
         #                 "quantity": "0.10000000",
         #                 "limit_price": "1996.15999",
         #                 "executed_quantity": "0.00000000",
@@ -635,7 +646,7 @@ class mercado(Exchange, ImplicitAPI):
         #         "coin_pair": "BRLBTC",
         #         "order_type": 1,
         #         "status": 2,
-        #         "has_fills": True,
+        #         "has_fills": true,
         #         "quantity": "2.00000000",
         #         "limit_price": "900.00000",
         #         "executed_quantity": "1.00000000",
@@ -668,7 +679,7 @@ class mercado(Exchange, ImplicitAPI):
             'currency': market['quote'],
         }
         price = self.safe_string(order, 'limit_price')
-        # price = self.safe_number(order, 'executed_price_avg', price)
+        # price = this.safeNumber (order, 'executed_price_avg', price);
         average = self.safe_string(order, 'executed_price_avg')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed_quantity')
@@ -835,7 +846,7 @@ class mercado(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -845,7 +856,7 @@ class mercado(Exchange, ImplicitAPI):
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:
-            limit = 100  # set some default limit,'s required if user doesn't provide it
+            limit = 100  # set some default limit, as it's required if user doesn't provide it
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
@@ -930,7 +941,7 @@ class mercado(Exchange, ImplicitAPI):
     def orders_to_trades(self, orders: object):
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_value(orders[i], 'trades', [])
+            trades = self.safe_list(orders[i], 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result
@@ -962,7 +973,7 @@ class mercado(Exchange, ImplicitAPI):
         if response is None:
             return None
         #
-        # todo add a unified standard handleErrors with self.exceptions in describe()
+        # todo add a unified standard handleErrors with this.exceptions in describe()
         #
         #     {"status":503,"message":"Maintenancing, try again later","result":null}
         #

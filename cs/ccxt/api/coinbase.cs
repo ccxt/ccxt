@@ -200,6 +200,13 @@ public partial class coinbase : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v2PrivateGetUserAuth",parameters);
     }
 
+    /// <summary>Calls the v2PrivateGetSubscriptionsCoinbaseOne endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PrivateGetSubscriptionsCoinbaseOne (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PrivateGetSubscriptionsCoinbaseOne",parameters);
+    }
+
     /// <summary>Calls the v2PrivatePostAccounts endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v2PrivatePostAccounts (object parameters = null)
@@ -501,6 +508,27 @@ public partial class coinbase : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v3PrivateGetBrokerageCfmSweeps",parameters);
     }
 
+    /// <summary>Calls the v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow",parameters);
+    }
+
+    /// <summary>Calls the v3PrivateGetBrokerageCfmIntradayMarginSetting endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivateGetBrokerageCfmIntradayMarginSetting (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivateGetBrokerageCfmIntradayMarginSetting",parameters);
+    }
+
+    /// <summary>Calls the v3PrivateGetBrokerageIntxBalancesPortfolioUuid endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivateGetBrokerageIntxBalancesPortfolioUuid (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivateGetBrokerageIntxBalancesPortfolioUuid",parameters);
+    }
+
     /// <summary>Calls the v3PrivateGetBrokerageIntxPortfolioPortfolioUuid endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v3PrivateGetBrokerageIntxPortfolioPortfolioUuid (object parameters = null)
@@ -613,11 +641,25 @@ public partial class coinbase : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostBrokerageCfmSweepsSchedule",parameters);
     }
 
+    /// <summary>Calls the v3PrivatePostBrokerageCfmIntradayMarginSetting endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivatePostBrokerageCfmIntradayMarginSetting (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostBrokerageCfmIntradayMarginSetting",parameters);
+    }
+
     /// <summary>Calls the v3PrivatePostBrokerageIntxAllocate endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v3PrivatePostBrokerageIntxAllocate (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostBrokerageIntxAllocate",parameters);
+    }
+
+    /// <summary>Calls the v3PrivatePostBrokerageIntxMultiAssetCollateral endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivatePostBrokerageIntxMultiAssetCollateral (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostBrokerageIntxMultiAssetCollateral",parameters);
     }
 
     /// <summary>Calls the v3PrivatePostBrokerageOrdersClosePosition endpoint.</summary>

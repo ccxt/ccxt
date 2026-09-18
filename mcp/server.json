@@ -3,7 +3,7 @@
   "name": "io.github.ccxt/ccxt-mcp",
   "title": "CCXT",
   "description": "Official CCXT MCP server - Market data and trading across 100+ exchanges and prediction markets",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "repository": {
     "url": "https://github.com/ccxt/ccxt",
     "source": "github",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "ccxt-mcp",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "transport": {
         "type": "stdio"
       }

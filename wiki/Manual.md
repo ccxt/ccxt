@@ -155,7 +155,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                                  | luno                  | [Luno](https://www.luno.com/invite/44893A)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/developers/api)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                                | mercado               | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                             | mexc                  | [MEXC Global](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                       | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mexc.com/api-docs/spot-v3/introduction)                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
-| [![modetrade](https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24)](https://trade.mode.network?ref=MODETRADE)                                                           | modetrade             | [Mode Trade](https://trade.mode.network?ref=MODETRADE)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](undefined)                                                                          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
+| [![modetrade](https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24)](https://trade.mode.network?ref=MODETRADE)                                                           | modetrade             | [Mode Trade](https://trade.mode.network?ref=MODETRADE)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-omnichain/building-on-omnichain)              | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![mudrex](https://github.com/user-attachments/assets/72368864-84ed-43eb-8c75-d4fb77023b42)](https://mudrex.com)                                                                                    | mudrex                | [Mudrex](https://mudrex.com)                                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.trade.mudrex.com/docs)                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![myokx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.my.okx.com/join/CCXT2023)                                              | myokx                 | [MyOKX (EEA)](https://www.my.okx.com/join/CCXT2023)                                         | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://my.okx.com/docs-v5/en/#overview)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![nado](https://github.com/user-attachments/assets/811f4e1a-a8b5-4b9e-84c2-0f88997bd274)](https://nado.xyz)                                                                                        | nado                  | [Nado](https://nado.xyz)                                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.nado.xyz/)                                                             | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
@@ -2049,21 +2049,11 @@ kraken.loadMarkets(true);             // force reload
 
 ## API Methods / Endpoints
 
-Each exchange offers a set of API methods. Each method of the API is called an *endpoint*. Endpoints are HTTP URLs for querying various types of information. All endpoints return JSON in response to client requests.
-
-Usually, there is an endpoint for getting a list of markets from an exchange, an endpoint for retrieving an order book for a particular market, an endpoint for retrieving trade history, endpoints for placing and canceling orders, for money deposit and withdrawal, etc... Basically every kind of action you could perform within a particular exchange has a separate endpoint URL offered by the API.
-
-Because the set of methods differs from exchange to exchange, the ccxt library implements the following:
-- a public and private API for all possible URLs and methods
-- a unified API supporting a subset of common methods
-
-The endpoint URLs are predefined in the `api` property for each exchange. You don't have to override it, unless you are implementing a new exchange API (at least you should know what you're doing).
-
-Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
+Each exchange API has multiple endpoints (HTTP urls) where users can make a query for various types of information. Usually, there are endpoints for getting a **list of markets**, **orderbook**, **trade history**, endpoints for **placing and canceling orders**, for money **deposit and withdrawal**, etc...
 
 ## Implicit API Methods
 
-Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the `.api` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
+Each method of the API usually has its own endpoint. Unified CCXT methods (`fetchOrderBook, fetchOrders, etc...`) also use implicit API methods to query the related endpoint. Implicit API methods are different across exchanges, but CCXT defines all endpoints for each particular exchange in the `.api` property (You don't have to override it, unless you are implementing a new API). Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is how it works in JavaScript/TypeScript; the other ports do not build those closures at runtime, they ship the equivalent methods pre-generated at transpile time into the `abstract/` artifacts (e.g. `python/ccxt/abstract/kraken.py`, `php/abstract/kraken.php`, `go/v4/kraken_api.go`). Either way this is performed for all exchanges universally. In JavaScript/TypeScript, Python and PHP each generated method will be accessible in both `camelCase` and `under_score` notations (Go exposes the `PascalCase` form only).
 
 The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
@@ -2071,15 +2061,17 @@ Each implicit method gets a unique name which is constructed from the `.api` def
 
 An implicit method takes a dictionary of parameters, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. To pass a parameter, add it to the dictionary explicitly under a key equal to the parameter's name. For the examples above, this would look like `.privatePutOrderIdCancel ({ id: '41987a2b-...' })` and `.publicGetTickerPair ({ pair: 'BTC/USD' })`.
 
-The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
+The recommended way of working with exchanges is using the unified ccxt methods (instead of exchange-specific implicit methods, because they should be used as a fallback in cases when a corresponding unified method isn't implemented yet).
 
+### View implicit methods list
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
 
 ```text
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.kraken()))           # Python
-var_dump (new \ccxt\kraken ()); // PHP
+print_r (get_class_methods (new \ccxt\kraken ())); // PHP
 ```
+or view an abstract file, eg. view [coinbase](https://github.com/ccxt/ccxt/blob/master/python/ccxt/abstract/coinbase.py).
 
 ## Public/Private API
 
@@ -2120,7 +2112,7 @@ To get a list of all available methods with an exchange instance, you can simply
 ```text
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.kraken()))           # Python
-var_dump (new \ccxt\kraken ()); // PHP
+print_r (get_class_methods (new \ccxt\kraken ())); // PHP
 ```
 
 **contract only and margin only**
@@ -2255,6 +2247,14 @@ Ticker tick = ws.watchTicker("BTC/USDT");
 // WS — asynchronous (composable with allOf, anyOf, thenApply, ...)
 CompletableFuture<Ticker> stream = ws.watchTickerAsync("BTC/USDT", null);
 ```
+
+Every unified Java type (`Ticker`, `Order`, `Trade`, ..., `OHLCV`) is a *view* over the
+unified payload map the exchange produced, not a copy: `Ticker extends TypedMap` implements
+`Map<String, Object>` (and `OHLCV extends TypedList` implements `List<Object>`), so a typed
+value can be passed anywhere a plain map is accepted, serialised with `exchange.json(ticker)`,
+or read by key with `ticker.get("info")`. The public fields (`ticker.last`, `order.status`)
+are projections captured when the object was constructed; `ticker.raw()` returns the
+underlying map with the same identity the library holds internally.
 
 <!-- tabs:end -->
 

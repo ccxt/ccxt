@@ -195,6 +195,7 @@ class bittrade(Exchange, ImplicitAPI):
                         'common/timestamp': {'cost': 1},  # 查询系统当前时间
                         'common/exchange': {'cost': 1},  # order limits
                         'settings/currencys': {'cost': 1},  # ?language=en-US
+                        'retail/maintain/time': {'cost': 1},  # 零售维护时间
                     },
                 },
                 'private': {
@@ -213,9 +214,9 @@ class bittrade(Exchange, ImplicitAPI):
                         'order/orders/getClientOrder': {'cost': 0.4},
                         'order/history': {'cost': 1},  # 查询当前委托、历史委托
                         'order/matchresults': {'cost': 1},  # 查询当前成交、历史成交
-                        # 'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址（Deprecated）
+                        # 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
                         'query/deposit-withdraw': {'cost': 1},
-                        # 'margin/loan-info',  # duplicate
+                        # 'margin/loan-info', // duplicate
                         'margin/loan-orders': {'cost': 0.2},  # 借贷订单
                         'margin/accounts/balance': {'cost': 0.2},  # 借贷账户详情
                         'cross-margin/loan-orders': {'cost': 1},  # 查询借币订单
@@ -225,22 +226,23 @@ class bittrade(Exchange, ImplicitAPI):
                         'subuser/aggregate-balance': {'cost': 10},
                         'stable-coin/exchange_rate': {'cost': 1},
                         'stable-coin/quote': {'cost': 1},
+                        'retail/order/list': {'cost': 1},  # 零售订单历史
                     },
                     'post': {
                         'account/transfer': {'cost': 1},  # 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
                         'futures/transfer': {'cost': 1},
                         'order/batch-orders': {'cost': 0.4},
-                        'order/orders/place': {'cost': 0.2},  # 创建并执行一个新订单(一步下单， 推荐使用)
+                        'order/orders/place': {'cost': 0.2},  # 创建并执行一个新订单 (一步下单， 推荐使用)
                         'order/orders/submitCancelClientOrder': {'cost': 0.2},
                         'order/orders/batchCancelOpenOrders': {'cost': 0.4},
-                        # 'order/orders',  # 创建一个新的订单请求 （仅创建订单，不执行下单）
-                        # 'order/orders/{id}/place',  # 执行一个订单 （仅执行已创建的订单）
+                        # 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
+                        # 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
                         'order/orders/{id}/submitcancel': {'cost': 0.2},  # 申请撤销一个订单请求
                         'order/orders/batchcancel': {'cost': 0.4},  # 批量撤销订单
-                        # 'dw/balance/transfer',  # 资产划转
+                        # 'dw/balance/transfer', // 资产划转
                         'dw/withdraw/api/create': {'cost': 1},  # 申请提现虚拟币
-                        # 'dw/withdraw-virtual/create',  # 申请提现虚拟币
-                        # 'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现（Deprecated）
+                        # 'dw/withdraw-virtual/create', // 申请提现虚拟币
+                        # 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
                         'dw/withdraw-virtual/{id}/cancel': {'cost': 1},  # 申请取消提现虚拟币
                         'dw/transfer-in/margin': {'cost': 10},  # 现货账户划入至借贷账户
                         'dw/transfer-out/margin': {'cost': 10},  # 借贷账户划出至现货账户
@@ -252,6 +254,7 @@ class bittrade(Exchange, ImplicitAPI):
                         'cross-margin/orders/{id}/repay': {'cost': 1},  # 归还借币
                         'stable-coin/exchange': {'cost': 1},
                         'subuser/transfer': {'cost': 10},
+                        'retail/order/place': {'cost': 1},  # 零售下单
                     },
                 },
             },
@@ -362,7 +365,7 @@ class bittrade(Exchange, ImplicitAPI):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
-                    'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
+                    'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
                     'order-etp-nav-price-max-error': InvalidOrder,  # {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
                     'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
@@ -371,7 +374,7 @@ class bittrade(Exchange, ImplicitAPI):
                     'api-signature-check-failed': AuthenticationError,
                     'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                     'base-record-invalid': OrderNotFound,  # https://github.com/ccxt/ccxt/issues/5750
-                    'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for self symbol","data":null}
+                    'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
                     'base-symbol-error': BadSymbol,  # {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
                     'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     # err-msg
@@ -394,10 +397,10 @@ class bittrade(Exchange, ImplicitAPI):
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'private_get_order_orders',  # 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
-                    'method': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
+                    'method': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 },
                 'createOrder': {
                     'createMarketBuyOrderRequiresPrice': True,
@@ -421,7 +424,7 @@ class bittrade(Exchange, ImplicitAPI):
                 # https://github.com/ccxt/ccxt/issues/6081
                 # https://github.com/ccxt/ccxt/issues/3365
                 # https://github.com/ccxt/ccxt/issues/2873
-                'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+                'GET': 'Themis',  # conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
                 # https://github.com/ccxt/ccxt/issues/7399
@@ -444,9 +447,9 @@ class bittrade(Exchange, ImplicitAPI):
         return self.safe_integer(response, 'data')
 
     async def fetch_trading_limits(self, symbols: Strings = None, params={}):
-        # self method should not be called directly, use loadTradingLimits() instead
-        #  by default it will try load withdrawal fees of all currencies(with separate requests)
-        #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
+        # this method should not be called directly, use loadTradingLimits () instead
+        #  by default it will try load withdrawal fees of all currencies (with separate requests)
+        #  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         if self.markets is None:
             await self.load_markets()
         if symbols is None:
@@ -465,8 +468,8 @@ class bittrade(Exchange, ImplicitAPI):
         }
         response = await self.publicGetCommonExchange(self.extend(request, params))
         #
-        #     {status:   "ok",
-        #         "data": {                                 symbol: "aidocbtc",
+        #     { status:   "ok",
+        #         "data": {                                  symbol: "aidocbtc",
         #                              "buy-limit-must-less-than":  1.1,
         #                          "sell-limit-must-greater-than":  0.9,
         #                         "limit-order-must-greater-than":  1,
@@ -478,13 +481,13 @@ class bittrade(Exchange, ImplicitAPI):
         #                       "circuit-break-when-greater-than":  10000,
         #                          "circuit-break-when-less-than":  10,
         #                 "market-sell-order-rate-must-less-than":  0.1,
-        #                  "market-buy-order-rate-must-less-than":  0.1        }}
+        #                  "market-buy-order-rate-must-less-than":  0.1        } }
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
     def parse_trading_limits(self, limits: object, symbol: Str = None, params={}):
         #
-        #   {                                 symbol: "aidocbtc",
+        #   {                                  symbol: "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
         #              "sell-limit-must-greater-than":  0.9,
         #             "limit-order-must-greater-than":  1,
@@ -555,7 +558,7 @@ class bittrade(Exchange, ImplicitAPI):
         #         ]
         #    }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
@@ -643,9 +646,9 @@ class bittrade(Exchange, ImplicitAPI):
         #         "count": 265846,
         #         "low": 8988.0,
         #         "version": 209988544334,
-        #         "ask": [9146.87, 0.156134],
+        #         "ask": [ 9146.87, 0.156134 ],
         #         "vol": 2.3822168242201668E8,
-        #         "bid": [9146.86, 0.080758],
+        #         "bid": [ 9146.86, 0.080758 ],
         #     }
         #
         # fetchTickers
@@ -734,14 +737,14 @@ class bittrade(Exchange, ImplicitAPI):
         #         "ts": 1583474832790,
         #         "tick": {
         #             "bids": [
-        #                 [9100.290000000000000000, 0.200000000000000000],
-        #                 [9099.820000000000000000, 0.200000000000000000],
-        #                 [9099.610000000000000000, 0.205000000000000000],
+        #                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        #                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        #                 [ 9099.610000000000000000, 0.205000000000000000 ],
         #             ],
         #             "asks": [
-        #                 [9100.640000000000000000, 0.005904000000000000],
-        #                 [9101.010000000000000000, 0.287311000000000000],
-        #                 [9101.030000000000000000, 0.012121000000000000],
+        #                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        #                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        #                 [ 9101.030000000000000000, 0.012121000000000000 ],
         #             ],
         #             "ts":1583474832008,
         #             "version":104999698780
@@ -786,9 +789,9 @@ class bittrade(Exchange, ImplicitAPI):
         #             "count": 265846,
         #             "low": 8988.0,
         #             "version": 209988544334,
-        #             "ask": [9146.87, 0.156134],
+        #             "ask": [ 9146.87, 0.156134 ],
         #             "vol": 2.3822168242201668E8,
-        #             "bid": [9146.86, 0.080758],
+        #             "bid": [ 9146.86, 0.080758 ],
         #         }
         #     }
         #
@@ -810,7 +813,7 @@ class bittrade(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data', [])
+        tickers = self.safe_list(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
@@ -825,7 +828,7 @@ class bittrade(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "amount": 0.010411000000000000,
@@ -836,7 +839,7 @@ class bittrade(Exchange, ImplicitAPI):
         #         "direction": "sell"
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #          "symbol": "swftcbtc",
@@ -940,7 +943,7 @@ class bittrade(Exchange, ImplicitAPI):
             request['size'] = limit  # 1-100 orders, default is 100
         if since is not None:
             request['start-time'] = since  # a date within 120 days from today
-            # request['end-time'] = self.sum(since, 172800000)  # 48 hours window
+            # request['end-time'] = this.sum (since, 172800000); // 48 hours window
         response = await self.privateGetOrderMatchresults(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
@@ -983,14 +986,14 @@ class bittrade(Exchange, ImplicitAPI):
         #                     }
         #                 ]
         #             },
-        #             # ...
+        #             // ...
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            trades = self.safe_value(data[i], 'data', [])
+            trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
@@ -1027,7 +1030,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1107,9 +1110,9 @@ class bittrade(Exchange, ImplicitAPI):
         #                 "state":"online",
         #                 "display-name":"USDT",
         #                 "suspend-withdraw-desc":null,
-        #                 "withdraw-desc":"Minimum withdrawal amount: 10 USDT(ERC20). not >_<not To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.not >_<not Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        #                 "withdraw-desc":"Minimum withdrawal amount: 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         #                 "suspend-deposit-desc":null,
-        #                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. not >_<not Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. not >_<not Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.not >_<not Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.not >_<not Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        #                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         #                 "suspend-visible-desc":null
         #             }
         #         ]
@@ -1135,7 +1138,7 @@ class bittrade(Exchange, ImplicitAPI):
             'type': 'crypto',
             # 'payin': currency['deposit-enabled'],
             # 'payout': currency['withdraw-enabled'],
-            # 'transfer': None,
+            # 'transfer': undefined,
             'name': name,
             'active': active,
             'deposit': depositEnabled,
@@ -1161,7 +1164,7 @@ class bittrade(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response['data'], 'list', [])
+        balances = self.safe_list(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -1221,8 +1224,8 @@ class bittrade(Exchange, ImplicitAPI):
         else:
             response = await self.privateGetOrderOrders(self.extend(request, params))
         #
-        #     {"status":   "ok",
-        #         "data": [{                 id:  13997833016,
+        #     { "status":   "ok",
+        #         "data": [ {                  id:  13997833016,
         #                                "symbol": "ethbtc",
         #                          "account-id":  3398321,
         #                                "amount": "0.045000000000000000",
@@ -1235,7 +1238,7 @@ class bittrade(Exchange, ImplicitAPI):
         #                         "finished-at":  1545837948214,
         #                                "source": "spot-api",
         #                                 "state": "filled",
-        #                         "canceled-at":  0                      }  ]}
+        #                         "canceled-at":  0                      }  ] }
         #
         return self.parse_orders(response['data'], market, since, limit)
 
@@ -1356,31 +1359,31 @@ class bittrade(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        #     {                 id:  13997833014,
+        #     {                  id:  13997833014,
         #                    "symbol": "ethbtc",
         #              "account-id":  3398321,
         #                    "amount": "0.045000000000000000",
         #                     "price": "0.034014000000000000",
         #              "created-at":  1545836976871,
         #                      "type": "sell-limit",
-        #            "field-amount": "0.045000000000000000",  # they have fixed it for filled-amount
-        #       "field-cash-amount": "0.001530630000000000",  # they have fixed it for filled-cash-amount
-        #              "field-fees": "0.000003061260000000",  # they have fixed it for filled-fees
+        #            "field-amount": "0.045000000000000000", // they have fixed it for filled-amount
+        #       "field-cash-amount": "0.001530630000000000", // they have fixed it for filled-cash-amount
+        #              "field-fees": "0.000003061260000000", // they have fixed it for filled-fees
         #             "finished-at":  1545837948214,
         #                    "source": "spot-api",
         #                     "state": "filled",
         #             "canceled-at":  0                      }
         #
-        #     {                 id:  20395337822,
+        #     {                  id:  20395337822,
         #                    "symbol": "ethbtc",
         #              "account-id":  5685075,
         #                    "amount": "0.001000000000000000",
         #                     "price": "0.0",
         #              "created-at":  1545831584023,
         #                      "type": "buy-market",
-        #            "field-amount": "0.029100000000000000",  # they have fixed it for filled-amount
-        #       "field-cash-amount": "0.000999788700000000",  # they have fixed it for filled-cash-amount
-        #              "field-fees": "0.000058200000000000",  # they have fixed it for filled-fees
+        #            "field-amount": "0.029100000000000000", // they have fixed it for filled-amount
+        #       "field-cash-amount": "0.000999788700000000", // they have fixed it for filled-cash-amount
+        #              "field-fees": "0.000058200000000000", // they have fixed it for filled-fees
         #             "finished-at":  1545831584181,
         #                    "source": "spot-api",
         #                     "state": "filled",
@@ -1489,7 +1492,7 @@ class bittrade(Exchange, ImplicitAPI):
                 quoteAmount = self.amount_to_precision(symbol, cost)
             elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     # despite that cost = amount * price is in quote currency and should have quote precision
                     # the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -1671,11 +1674,11 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {
-            # 'account-id' string False NA The account id used for self cancel Refer to GET /v1/account/accounts
-            # 'symbol': market['id'],  # a list of comma-separated symbols, all symbols by default
+            # 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
+            # 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
             # 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
-            # 'side': 'buy',  # or 'sell'
-            # 'size': 100,  # the number of orders to cancel 1-100
+            # 'side': 'buy', // or 'sell'
+            # 'size': 100, // the number of orders to cancel 1-100
         }
         market = None
         if symbol is not None:
@@ -1705,7 +1708,7 @@ class bittrade(Exchange, ImplicitAPI):
         #         "currency": "usdt",
         #         "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
         #         "addressTag": "",
-        #         "chain": "usdterc20",  # trc20usdt, hrc20usdt, usdt, algousdt
+        #         "chain": "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -1878,7 +1881,7 @@ class bittrade(Exchange, ImplicitAPI):
             'reject': 'failed',
             'pass': 'pending',
             'wallet-reject': 'failed',
-            # 'confirmed': 'ok',  # present in deposit statuses
+            # 'confirmed': 'ok', // present in deposit statuses
             'confirm-error': 'failed',
             'repealed': 'failed',
             'wallet-transfer': 'pending',
@@ -1909,7 +1912,7 @@ class bittrade(Exchange, ImplicitAPI):
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
             # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt

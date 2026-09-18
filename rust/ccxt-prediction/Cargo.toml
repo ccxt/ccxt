@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-prediction"
-version = "4.5.75"
+version = "4.5.78"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed prediction-market API"
 license = "MIT"
@@ -20,15 +20,10 @@ path = "src/lib.rs"
 # (ccxt_base::prediction::<id>) and base method surface. This crate re-exports
 # ccxt-base at its root, so `ccxt_prediction::Value` / `::types::…` resolve
 # alongside the typed wrappers (`ccxt_prediction::Kalshi`).
-ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.78", features = ["transpiled-base"] }
 
-tokio = { version = "1", features = ["full"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
-rust_decimal = { version = "1", features = ["serde-str"] }
-num-bigint = "0.4"
-num-traits = "0.2"
-chrono = { version = "0.4", features = ["serde"] }
+# The generated typed wrappers (`src/prediction/*_typed.rs`, `typed.rs`, emitted
+# by build/generateRustWrappers.ts) reference exactly one external crate
+# directly: `#[async_trait::async_trait]`. Every other external type is reached
+# through the `ccxt_base::*` re-exports, so it is not re-declared here.
 async-trait = "0.1"
-futures = "0.3"
-indexmap = { version = "2", features = ["serde"] }

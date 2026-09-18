@@ -132,6 +132,16 @@ impl WoofiproCore {
         self.call_method(Value::Str("v1_public_get_public_points_epoch_dates".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PublicGetPublicPointsRankings` implicit endpoint.
+    pub async fn v1_public_get_public_points_rankings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_public_points_rankings".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicGetPublicPointsStages` implicit endpoint.
+    pub async fn v1_public_get_public_points_stages(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_public_points_stages".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PublicGetPublicReferralCheckRefCode` implicit endpoint.
     pub async fn v1_public_get_public_referral_check_ref_code(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_public_get_public_referral_check_ref_code".to_string()), optional_args).await
@@ -197,6 +207,11 @@ impl WoofiproCore {
         self.call_method(Value::Str("v1_public_get_tv_symbol_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PublicGetTvKlineHistory` implicit endpoint.
+    pub async fn v1_public_get_tv_kline_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_tv_kline_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PublicGetPublicFundingRateHistory` implicit endpoint.
     pub async fn v1_public_get_public_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_public_get_public_funding_rate_history".to_string()), optional_args).await
@@ -240,6 +255,21 @@ impl WoofiproCore {
     /// Auto-generated wrapper for the `v1PublicGetPublicFuturesSymbol` implicit endpoint.
     pub async fn v1_public_get_public_futures_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_public_get_public_futures_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicGetStakingValor2BatchInfo` implicit endpoint.
+    pub async fn v1_public_get_staking_valor2_batch_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_staking_valor2_batch_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicGetStakingValor2PoolInfo` implicit endpoint.
+    pub async fn v1_public_get_staking_valor2_pool_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_staking_valor2_pool_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicGetStakingValor2RevenueBuyback` implicit endpoint.
+    pub async fn v1_public_get_staking_valor2_revenue_buyback(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_staking_valor2_revenue_buyback".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PublicPostRegisterAccount` implicit endpoint.
@@ -332,6 +362,11 @@ impl WoofiproCore {
         self.call_method(Value::Str("v1_private_get_settle_nonce".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetTransferNonce` implicit endpoint.
+    pub async fn v1_private_get_transfer_nonce(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_transfer_nonce".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetPnlSettlementHistory` implicit endpoint.
     pub async fn v1_private_get_pnl_settlement_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_pnl_settlement_history".to_string()), optional_args).await
@@ -402,6 +437,11 @@ impl WoofiproCore {
         self.call_method(Value::Str("v1_private_get_broker_user_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetBrokerDailyFeeRevenue` implicit endpoint.
+    pub async fn v1_private_get_broker_daily_fee_revenue(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_broker_daily_fee_revenue".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetOrderbookSymbol` implicit endpoint.
     pub async fn v1_private_get_orderbook_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_orderbook_symbol".to_string()), optional_args).await
@@ -415,6 +455,66 @@ impl WoofiproCore {
     /// Auto-generated wrapper for the `v1PrivateGetClientMarginModes` implicit endpoint.
     pub async fn v1_private_get_client_margin_modes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_client_margin_modes".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetClientLeverages` implicit endpoint.
+    pub async fn v1_private_get_client_leverages(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_client_leverages".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetClientPointsUserStatistics` implicit endpoint.
+    pub async fn v1_private_get_client_points_user_statistics(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_client_points_user_statistics".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetStakingValor2Redeem` implicit endpoint.
+    pub async fn v1_private_get_staking_valor2_redeem(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_staking_valor2_redeem".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdmin` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdminInfo` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdminRefereeList` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin_referee_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin_referee_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdminSummary` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelMaxRebateRate` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_max_rebate_rate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_max_rebate_rate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelRebateInfo` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_rebate_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_rebate_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelRefereeList` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_referee_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_referee_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelStatistics` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_statistics(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_statistics".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelVolumePrerequisite` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_volume_prerequisite(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_volume_prerequisite".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostOrderlyKey` implicit endpoint.
@@ -480,6 +580,11 @@ impl WoofiproCore {
     /// Auto-generated wrapper for the `v1PrivatePostClientLeverage` implicit endpoint.
     pub async fn v1_private_post_client_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_client_leverage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostClientLeverages` implicit endpoint.
+    pub async fn v1_private_post_client_leverages(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_client_leverages".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostClientMarginMode` implicit endpoint.
@@ -552,6 +657,51 @@ impl WoofiproCore {
         self.call_method(Value::Str("v1_private_post_referral_edit_split".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivatePostReferralEditRefereeDescription` implicit endpoint.
+    pub async fn v1_private_post_referral_edit_referee_description(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_edit_referee_description".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdmin` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminCreateAffiliate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_create_affiliate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_create_affiliate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminResetAffiliate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_reset_affiliate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_reset_affiliate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminUpdate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_update".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminUpdateAffiliate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_update_affiliate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_update_affiliate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelClaimCode` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_claim_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_claim_code".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelRebateRateSetDefault` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_rebate_rate_set_default(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_rebate_rate_set_default".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelRebateRateUpdate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_rebate_rate_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_rebate_rate_update".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivatePutOrder` implicit endpoint.
     pub async fn v1_private_put_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_put_order".to_string()), optional_args).await
@@ -600,6 +750,11 @@ impl WoofiproCore {
     /// Auto-generated wrapper for the `v1PrivateDeleteClientBatchOrder` implicit endpoint.
     pub async fn v1_private_delete_client_batch_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_delete_client_batch_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v2PrivatePostInternalTransfer` implicit endpoint.
+    pub async fn v2_private_post_internal_transfer(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_private_post_internal_transfer".to_string()), optional_args).await
     }
 
 }

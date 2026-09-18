@@ -1,0 +1,89 @@
+{
+    "exchange": "independentreserve",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "orderbook snapshot plus change, both crc32 checksums above the signed-int range",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://websockets.independentreserve.com/orderbook/100?subscribe=BTC-USD",
+                "messages": [
+                    {
+                        "Channel": "orderbook/100/btc/usd",
+                        "Data": {
+                            "Bids": [
+                                {
+                                    "Price": 3423.6,
+                                    "Volume": 2.5
+                                },
+                                {
+                                    "Price": 3420.01,
+                                    "Volume": 6.456
+                                }
+                            ],
+                            "Offers": [
+                                {
+                                    "Price": 3427.19,
+                                    "Volume": 1.95730709
+                                },
+                                {
+                                    "Price": 3428.2,
+                                    "Volume": 2.5
+                                }
+                            ],
+                            "Crc32": 3857642206
+                        },
+                        "Time": 1720000000000,
+                        "Event": "OrderBookSnapshot"
+                    },
+                    {
+                        "Channel": "orderbook/100/btc/usd",
+                        "Data": {
+                            "Bids": [
+                                {
+                                    "Price": 3420.01,
+                                    "Volume": 5.5
+                                }
+                            ],
+                            "Offers": [],
+                            "Crc32": 3068267151
+                        },
+                        "Time": 1720000001000,
+                        "Event": "OrderBookChange"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                3423.6,
+                                2.5
+                            ],
+                            [
+                                3420.01,
+                                5.5
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                3427.19,
+                                1.95730709
+                            ],
+                            [
+                                3428.2,
+                                2.5
+                            ]
+                        ],
+                        "timestamp": 1720000001000,
+                        "datetime": "2024-07-03T09:46:41.000Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    }
+                ]
+            }
+        ]
+    }
+}

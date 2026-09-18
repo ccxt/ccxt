@@ -118,14 +118,19 @@ class bitbns(Exchange, ImplicitAPI):
                         'withdrawHistory/{symbol}': {'cost': 1},
                         'withdrawHistoryAll/{symbol}': {'cost': 1},
                         'depositHistoryAll/{symbol}': {'cost': 1},
+                        'userHistoryNew': {'cost': 1},
                         'listOpenOrders/{symbol}': {'cost': 1},
+                        'listOpenOrdersOther/{symbol}': {'cost': 1},
                         'listOpenStopOrders/{symbol}': {'cost': 1},
                         'getCoinAddress/{symbol}': {'cost': 1},
                         'placeSellOrder/{symbol}': {'cost': 1},
+                        'placeSellOrderOther/{symbol}': {'cost': 1},
                         'placeBuyOrder/{symbol}': {'cost': 1},
+                        'placeBuyOrderOther/{symbol}': {'cost': 1},
                         'buyStopLoss/{symbol}': {'cost': 1},
                         'sellStopLoss/{symbol}': {'cost': 1},
                         'cancelOrder/{symbol}': {'cost': 1},
+                        'cancelOrderOther/{symbol}': {'cost': 1},
                         'cancelStopLossOrder/{symbol}': {'cost': 1},
                         'listExecutedOrders/{symbol}': {'cost': 1},
                         'placeMarketOrder/{symbol}': {'cost': 1},
@@ -529,10 +534,10 @@ class bitbns(Exchange, ImplicitAPI):
         #
         #     {
         #         "data":{
-        #             "availableorderMoney":12.34,  # INR
+        #             "availableorderMoney":12.34, // INR
         #             "availableorderBTC":0,
         #             "availableorderXRP":0,
-        #             "inorderMoney":0,  # INR
+        #             "inorderMoney":0, // INR
         #             "inorderBTC":0,
         #             "inorderXRP":0,
         #             "inorderNEO":0,
@@ -554,7 +559,7 @@ class bitbns(Exchange, ImplicitAPI):
             # 'PARTIALLY_FILLED': 'open',
             # 'FILLED': 'closed',
             # 'CANCELED': 'canceled',
-            # 'PENDING_CANCEL': 'canceling',  # currently unused
+            # 'PENDING_CANCEL': 'canceling', // currently unused
             # 'REJECTED': 'rejected',
             # 'EXPIRED': 'expired',
         }
@@ -581,8 +586,8 @@ class bitbns(Exchange, ImplicitAPI):
         #        "time": "2021-04-25T17:05:42.000Z",
         #        "type": 0,
         #        "status": 0
-        #        "t_rate": 0.45,                       # only stop orders
-        #        "trail": 0                            # only stop orders
+        #        "t_rate": 0.45,                       // only stop orders
+        #        "trail": 0                            // only stop orders
         #    }
         #
         # cancelOrder
@@ -668,9 +673,9 @@ class bitbns(Exchange, ImplicitAPI):
             'side': side.upper(),
             'symbol': market['uppercaseId'],
             'quantity': self.amount_to_precision(symbol, amount),
-            # 'target_rate': self.price_to_precision(symbol, targetRate),
-            # 't_rate': self.price_to_precision(symbol, stopPrice),
-            # 'trail_rate': self.price_to_precision(symbol, trailRate),
+            # 'target_rate': this.priceToPrecision (symbol, targetRate),
+            # 't_rate': this.priceToPrecision (symbol, stopPrice),
+            # 'trail_rate': this.priceToPrecision (symbol, trailRate),
         }
         if type == 'limit':
             request['rate'] = self.price_to_precision(symbol, price)
@@ -823,9 +828,9 @@ class bitbns(Exchange, ImplicitAPI):
         #                 "time":"2021-04-25T17:05:42.000Z",
         #                 "type":0,
         #                 "status":0
-        #                 "t_rate":0.45,                       # only stop orders
-        #                 "type":1,                            # only stop orders
-        #                 "trail":0                            # only stop orders
+        #                 "t_rate":0.45,                       // only stop orders
+        #                 "type":1,                            // only stop orders
+        #                 "trail":0                            // only stop orders
         #             }
         #         ],
         #         "status":1,
@@ -1083,7 +1088,7 @@ class bitbns(Exchange, ImplicitAPI):
             },
             'withdrawal': {
                 '0': 'pending',  # Email Sent
-                '1': 'canceled',  # Cancelled(different from 1 = ok in deposits)
+                '1': 'canceled',  # Cancelled (different from 1 = ok in deposits)
                 '2': 'pending',  # Awaiting Approval
                 '3': 'failed',  # Rejected
                 '4': 'pending',  # Processing
@@ -1129,7 +1134,7 @@ class bitbns(Exchange, ImplicitAPI):
                 status = 'ok'
             elif type.find('withdraw') >= 0 or expTime.find('withdraw') >= 0:
                 type = 'withdrawal'
-        # status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
+        # const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number(transaction, 'fee')
         fee = None

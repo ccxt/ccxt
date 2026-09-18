@@ -91,7 +91,7 @@ class bitopro(ccxt.async_support.bitopro):
         #         "limit": 5,
         #         "scale": 0,
         #         "bids": [
-        #             {price: "1188178", amount: '0.0425', count: 1, total: "0.0425"},
+        #             { price: "1188178", amount: '0.0425', count: 1, total: "0.0425" },
         #         ],
         #         "asks": [
         #             {
@@ -153,7 +153,7 @@ class bitopro(ccxt.async_support.bitopro):
         #                 "timestamp": 1650116227,
         #                 "price": "1189429",
         #                 "amount": "0.0153127",
-        #                 "isBuyer": True
+        #                 "isBuyer": true
         #             },
         #         ]
         #     }
@@ -219,8 +219,8 @@ class bitopro(ccxt.async_support.bitopro):
         #             "orderID": 390733918,
         #             "orderType": "LIMIT",
         #             "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        #             "isMarket": False,
-        #             "isMaker": False
+        #             "isMarket": false,
+        #             "isMaker": false
         #         }
         #     }
         #
@@ -255,8 +255,8 @@ class bitopro(ccxt.async_support.bitopro):
         #         "orderID": 390733918,
         #         "orderType": "LIMIT",
         #         "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        #         "isMarket": False,
-        #         "isMaker": False
+        #         "isMarket": false,
+        #         "isMaker": false
         #     }
         #
         id = self.safe_string(trade, 'matchID')
@@ -336,7 +336,7 @@ class bitopro(ccxt.async_support.bitopro):
         #         "lastPrice": "1189110",
         #         "lastPriceUSD": "40919.1328",
         #         "lastPriceTWD": "1189110",
-        #         "isBuyer": True,
+        #         "isBuyer": true,
         #         "priceChange24hr": "1.23",
         #         "volume24hr": "7.2090",
         #         "volume24hrUSD": "294985.5375",
@@ -357,7 +357,7 @@ class bitopro(ccxt.async_support.bitopro):
         result['symbol'] = self.safe_string(market, 'symbol')  # symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         timestamp = self.safe_integer(message, 'timestamp')
         result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
+        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
@@ -379,7 +379,7 @@ class bitopro(ccxt.async_support.bitopro):
                 },
             },
         }
-        # self.options = self.extend(defaultOptions, self.options)
+        # this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
         headers = {
@@ -422,7 +422,7 @@ class bitopro(ccxt.async_support.bitopro):
         #             "amount": "0",
         #             "available": "0",
         #             "stake": "0",
-        #             "tradable": True
+        #             "tradable": true
         #           },
         #         }
         #     }

@@ -106,6 +106,7 @@ export default class blockchaincom extends Exchange {
                 'private': {
                     'get': {
                         'fees': { 'cost': 1 } as Endpoint<Dict>, // fetchFees
+                        'internal/orders': { 'cost': 1 } as Endpoint<Dict>, // getOrdersInternal
                         'orders': { 'cost': 1 } as Endpoint<List>, // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // fetchOrder(id)
                         'trades': { 'cost': 1 } as Endpoint<List>,

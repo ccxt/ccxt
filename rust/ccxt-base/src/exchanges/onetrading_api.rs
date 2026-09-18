@@ -52,6 +52,21 @@ impl OnetradingCore {
         self.call_method(Value::Str("public_get_time".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetFundingRate` implicit endpoint.
+    pub async fn public_get_funding_rate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_funding_rate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetFundingRateHistory` implicit endpoint.
+    pub async fn public_get_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_funding_rate_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetFundingRateSettings` implicit endpoint.
+    pub async fn public_get_funding_rate_settings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_funding_rate_settings".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAccountBalances` implicit endpoint.
     pub async fn private_get_account_balances(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_account_balances".to_string()), optional_args).await
@@ -92,9 +107,44 @@ impl OnetradingCore {
         self.call_method(Value::Str("private_get_account_trade_trade_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetAccountFuturesSummary` implicit endpoint.
+    pub async fn private_get_account_futures_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_futures_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAccountFuturesPositions` implicit endpoint.
+    pub async fn private_get_account_futures_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_futures_positions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAccountFuturesPositionsHistory` implicit endpoint.
+    pub async fn private_get_account_futures_positions_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_futures_positions_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAccountFuturesPositionsPositionIdTrades` implicit endpoint.
+    pub async fn private_get_account_futures_positions_position_id_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_futures_positions_position_id_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAccountFuturesPositionsPositionIdFundingPayments` implicit endpoint.
+    pub async fn private_get_account_futures_positions_position_id_funding_payments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_futures_positions_position_id_funding_payments".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAccountFuturesFundingPayments` implicit endpoint.
+    pub async fn private_get_account_futures_funding_payments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_futures_funding_payments".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAccountOrders` implicit endpoint.
     pub async fn private_post_account_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSubaccountsTransfers` implicit endpoint.
+    pub async fn private_post_subaccounts_transfers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_subaccounts_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteAccountOrders` implicit endpoint.

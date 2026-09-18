@@ -232,9 +232,9 @@ class aster(Exchange, ImplicitAPI):
                         'v1/klines': {'cost': 1},
                         'v3/klines': {'cost': 1},  # dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
                         'v1/indexPriceKlines': {'cost': 1},
-                        'v3/indexPriceKlines': {'cost': 1},  # same
+                        'v3/indexPriceKlines': {'cost': 1},  # same as klines
                         'v1/markPriceKlines': {'cost': 1},
-                        'v3/markPriceKlines': {'cost': 1},  # same
+                        'v3/markPriceKlines': {'cost': 1},  # same as klines
                         'v1/premiumIndex': {'cost': 1},
                         'v3/premiumIndex': {'cost': 1},
                         'v1/fundingRate': {'cost': 1},
@@ -291,6 +291,13 @@ class aster(Exchange, ImplicitAPI):
                         # builder
                         'v3/agent': {'cost': 1},
                         'v3/builder': {'cost': 1},
+                        'v3/builder/userTrades': {'cost': 5},
+                        'v3/builder/approvedUserList': {'cost': 5},
+                        'v3/stpMode': {'cost': 30},
+                        'v3/asset/migrateUser/history': {'cost': 50},
+                        # strategy
+                        'v3/strategyOpenOrder': {'cost': 5},
+                        'v3/strategyHistoryOrder': {'cost': 5},
                     },
                     'post': {
                         'v1/positionSide/dual': {'cost': 1},
@@ -324,6 +331,13 @@ class aster(Exchange, ImplicitAPI):
                         'v3/updateAgent': {'cost': 1},
                         'v3/approveBuilder': {'cost': 1},
                         'v3/updateBuilder': {'cost': 1},
+                        'v3/registerAndApproveAgent': {'cost': 50},
+                        'v3/asset/migrateUser': {'cost': 50},
+                        'v3/chase': {'cost': 1},
+                        'v3/stpMode': {'cost': 1},
+                        # strategy
+                        'v3/placeStrategyOrder': {'cost': 50},
+                        'v3/updateStrategyOrder': {'cost': 50},
                     },
                     'put': {
                         'v1/listenKey': {'cost': 1},
@@ -336,6 +350,8 @@ class aster(Exchange, ImplicitAPI):
                         'v3/allOpenOrders': {'cost': 1},
                         'v1/batchOrders': {'cost': 1},
                         'v3/batchOrders': {'cost': 1},
+                        'v3/guardedCancelOrder': {'cost': 1},
+                        'v3/guardedBatchOrders': {'cost': 1},
                         'v3/mmp': {'cost': 1},
                         'v1/listenKey': {'cost': 1},
                         'v3/listenKey': {'cost': 1},
@@ -588,7 +604,7 @@ class aster(Exchange, ImplicitAPI):
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'v3ChainId': 1666,  # Aster chain ID used for EIP-712 v3 signing
                 'createOrder': {
-                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                     'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 },
                 'accountsByType': {
@@ -608,7 +624,7 @@ class aster(Exchange, ImplicitAPI):
                     'Arbitrum': 42161,
                 },
                 'fetchOpenOrders': {
-                    'warnIfNoSymbol': True,  # set to False to suppress warning when calling fetchOpenOrders without symbol
+                    'warnIfNoSymbol': True,  # set to false to suppress warning when calling fetchOpenOrders without symbol
                 },
                 'builderFee': True,
                 'builder': '0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39',
@@ -816,8 +832,8 @@ class aster(Exchange, ImplicitAPI):
         #     [
         #         {
         #             "asset": "USDT",
-        #             "marginAvailable": True,           # only in PERP
-        #             "autoAssetExchange": "-10000"      # only in PERP
+        #             "marginAvailable": true,           // only in PERP
+        #             "autoAssetExchange": "-10000"      // only in PERP
         #         }
         #     ]
         #
@@ -888,31 +904,31 @@ class aster(Exchange, ImplicitAPI):
         #         quantityPrecision: "5",
         #         baseAssetPrecision: "8",
         #         quotePrecision: "8",
-        #         listingTime: "1756289680210",      # only in SPOT
-        #         baseAssetAddress: null,            # only in SPOT
-        #         ocoAllowed: False,                 # only in SPOT
-        #         pair: "ASTERUSDT",                 # only in PERP
-        #         contractType: "PERPETUAL",         # only in PERP
-        #         deliveryDate: "4133404800000",     # only in PERP
-        #         onboardDate: "1758178800000",      # only in PERP
-        #         maintMarginPercent: "12.5000",     # only in PERP
-        #         requiredMarginPercent: "25.0000",  # only in PERP
-        #         marginAsset: "USDT",               # only in PERP
-        #         underlyingType: "COIN",            # only in PERP
-        #         underlyingSubType: ["Top",],     # only in PERP
-        #         symbolType: "0",                   # only in PERP
-        #         tradingMode: "0",                  # only in PERP
-        #         name: "",                          # only in PERP
-        #         channel: "{}",                     # only in PERP
-        #         sequenceNo: "100",                 # only in PERP
-        #         twapMinNotional: "1000",           # only in PERP
-        #         imn: "4000.00",                    # only in PERP
-        #         tags: [],                          # only in PERP
-        #         settlePlan: "0",                   # only in PERP
-        #         triggerProtect: "0.1500",          # only in PERP
-        #         liquidationFee: "0.025000",        # only in PERP
-        #         marketTakeBound: "0.05",           # only in PERP
-        #         createTime: "1758215451058",       # only in PERP
+        #         listingTime: "1756289680210",      // only in SPOT
+        #         baseAssetAddress: null,            // only in SPOT
+        #         ocoAllowed: false,                 // only in SPOT
+        #         pair: "ASTERUSDT",                 // only in PERP
+        #         contractType: "PERPETUAL",         // only in PERP
+        #         deliveryDate: "4133404800000",     // only in PERP
+        #         onboardDate: "1758178800000",      // only in PERP
+        #         maintMarginPercent: "12.5000",     // only in PERP
+        #         requiredMarginPercent: "25.0000",  // only in PERP
+        #         marginAsset: "USDT",               // only in PERP
+        #         underlyingType: "COIN",            // only in PERP
+        #         underlyingSubType: [ "Top", ],     // only in PERP
+        #         symbolType: "0",                   // only in PERP
+        #         tradingMode: "0",                  // only in PERP
+        #         name: "",                          // only in PERP
+        #         channel: "{}",                     // only in PERP
+        #         sequenceNo: "100",                 // only in PERP
+        #         twapMinNotional: "1000",           // only in PERP
+        #         imn: "4000.00",                    // only in PERP
+        #         tags: [],                          // only in PERP
+        #         settlePlan: "0",                   // only in PERP
+        #         triggerProtect: "0.1500",          // only in PERP
+        #         liquidationFee: "0.025000",        // only in PERP
+        #         marketTakeBound: "0.05",           // only in PERP
+        #         createTime: "1758215451058",       // only in PERP
         #         filters: [
         #           {
         #             minPrice: "0.01",
@@ -943,9 +959,9 @@ class aster(Exchange, ImplicitAPI):
         #           {
         #             minNotional: "5",
         #             avgPriceMins: "5",
-        #             applyMinToMarket: True,
-        #             filterType: "NOTIONAL",            # only in SPOT
-        #             applyMaxToMarket: True,
+        #             applyMinToMarket: true,
+        #             filterType: "NOTIONAL",            // only in SPOT
+        #             applyMaxToMarket: true,
         #           },
         #           {
         #             multiplierDown: "0.2",
@@ -959,12 +975,12 @@ class aster(Exchange, ImplicitAPI):
         #             bidMultiplierDown: "0.2",
         #             avgPriceMins: "5",
         #             multiplierDecimal: "1",
-        #             filterType: "PERCENT_PRICE_BY_SIDE",  # only in SPOT
+        #             filterType: "PERCENT_PRICE_BY_SIDE",  // only in SPOT
         #             askMultiplierDown: "0.2",
         #           },
         #         ],
-        #         orderTypes: ["LIMIT", "MARKET", "STOP", "STOP_MARKET", "TAKE_PROFIT", "TAKE_PROFIT_MARKET", "TRAILING_STOP_MARKET",],
-        #         timeInForce: ["GTC", "IOC", "FOK", "GTX", "HIDDEN",],
+        #         orderTypes: [ "LIMIT", "MARKET", "STOP", "STOP_MARKET", "TAKE_PROFIT", "TAKE_PROFIT_MARKET", "TRAILING_STOP_MARKET", ],
+        #         timeInForce: [ "GTC", "IOC", "FOK", "GTX", "HIDDEN", ],
         #       }
         #     ]
         #
@@ -972,7 +988,7 @@ class aster(Exchange, ImplicitAPI):
         fapiRowsFiltered = []
         for i in range(0, len(fapiRows)):
             market = fapiRows[i]
-            # tmp skip some markets with base = None
+            # tmp skip some markets with base = undefined
             if self.safe_string(market, 'baseAsset') is not None:
                 fapiRowsFiltered.append(market)
         rows = self.array_concat(sapiRows, fapiRowsFiltered)
@@ -1109,18 +1125,18 @@ class aster(Exchange, ImplicitAPI):
         # spot:
         #
         #     [
-        #         1499040000000,  # Open time
-        #         "0.01634790",  # Open
-        #         "0.80000000",  # High
-        #         "0.01575800",  # Low
-        #         "0.01577100",  # Close
-        #         "148976.11427815",  # Volume
-        #         1499644799999,  # Close time
-        #         "2434.19055334",  # Quote asset volume
-        #         308,  # Number of trades
-        #         "1756.87402397",  # Taker buy base asset volume
-        #         "28.46694368",  # Taker buy quote asset volume
-        #         "0"  # ??
+        #         1499040000000, // Open time
+        #         "0.01634790", // Open
+        #         "0.80000000", // High
+        #         "0.01575800", // Low
+        #         "0.01577100", // Close
+        #         "148976.11427815", // Volume
+        #         1499644799999, // Close time
+        #         "2434.19055334", // Quote asset volume
+        #         308, // Number of trades
+        #         "1756.87402397", // Taker buy base asset volume
+        #         "28.46694368", // Taker buy quote asset volume
+        #         "0"  // ??
         #     ]
         #
         return [
@@ -1148,7 +1164,7 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: the latest time in ms to fetch orders for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1182,17 +1198,17 @@ class aster(Exchange, ImplicitAPI):
             #
             #  [
             #     [
-            #         1499040000000,  # Open time
-            #         "0.01634790",  # Open
-            #         "0.80000000",  # High
-            #         "0.01575800",  # Low
-            #         "0.01577100",  # Close
-            #         "148976.11427815",  # Volume
-            #         1499644799999,  # Close time
-            #         "2434.19055334",  # Quote asset volume
-            #         308,  # Number of trades
-            #         "1756.87402397",  # Taker buy base asset volume
-            #         "28.46694368",  # Taker buy quote asset volume,
+            #         1499040000000, // Open time
+            #         "0.01634790", // Open
+            #         "0.80000000", // High
+            #         "0.01575800", // Low
+            #         "0.01577100", // Close
+            #         "148976.11427815", // Volume
+            #         1499644799999, // Close time
+            #         "2434.19055334", // Quote asset volume
+            #         308, // Number of trades
+            #         "1756.87402397", // Taker buy base asset volume
+            #         "28.46694368", // Taker buy quote asset volume,
             #         "0"
             #     ]
             #  ]
@@ -1209,22 +1225,22 @@ class aster(Exchange, ImplicitAPI):
         #         "id": 3913206,
         #         "price": "644.100",
         #         "qty": "0.08",
-        #         "quoteQty": "51.528",      # present in PERP
-        #         "baseQty": "4.95049505",   # present in SPOT
+        #         "quoteQty": "51.528",      // present in PERP
+        #         "baseQty": "4.95049505",   // present in SPOT
         #         "time": 1749784506633,
-        #         "isBuyerMaker": True
+        #         "isBuyerMaker": true
         #     }
         #
         #     aggrTrades
         #
         #     {
-        #         "a": 26129,  # Aggregate tradeId
-        #         "p": "0.01633102",  # Price
-        #         "q": "4.70443515",  # Quantity
-        #         "f": 27781,  # First tradeId
-        #         "l": 27781,  # Last tradeId
-        #         "T": 1498793709153,  # Timestamp
-        #         "m": True,  # Was the buyer the maker?
+        #         "a": 26129, // Aggregate tradeId
+        #         "p": "0.01633102", // Price
+        #         "q": "4.70443515", // Quantity
+        #         "f": 27781, // First tradeId
+        #         "l": 27781, // Last tradeId
+        #         "T": 1498793709153, // Timestamp
+        #         "m": true, // Was the buyer the maker?
         #     }
         #
         # fetchMyTrades  (SPOT & PERP have similar format)
@@ -1240,13 +1256,13 @@ class aster(Exchange, ImplicitAPI):
         #     "commission": "0.00279605",
         #     "commissionAsset": "USDT",
         #     "time": 1776409179230,
-        #     "counterpartyId": 5143150,   # only in SPOT
-        #     "createUpdateId": null,      # only in SPOT
-        #     "maker": False,              # only in SPOT
-        #     "buyer": False,              # only in SPOT
-        #     "realizedPnl": "0.00029999",  # only in PERP
-        #     "marginAsset": "USDT",       # only in PERP
-        #     "positionSide": "BOTH",      # only in PERP
+        #     "counterpartyId": 5143150,   // only in SPOT
+        #     "createUpdateId": null,      // only in SPOT
+        #     "maker": false,              // only in SPOT
+        #     "buyer": false,              // only in SPOT
+        #     "realizedPnl": "0.00029999", // only in PERP
+        #     "marginAsset": "USDT",       // only in PERP
+        #     "positionSide": "BOTH",      // only in PERP
         # }
         #
         id = self.safe_string_2(trade, 'id', 'a')
@@ -1331,13 +1347,13 @@ class aster(Exchange, ImplicitAPI):
             #
             # [
             #     {
-            #         "a": 26129,  # Aggregate tradeId
-            #         "p": "0.01633102",  # Price
-            #         "q": "4.70443515",  # Quantity
-            #         "f": 27781,  # First tradeId
-            #         "l": 27781,  # Last tradeId
-            #         "T": 1498793709153,  # Timestamp
-            #         "m": True,  # Was the buyer the maker?
+            #         "a": 26129, // Aggregate tradeId
+            #         "p": "0.01633102", // Price
+            #         "q": "4.70443515", // Quantity
+            #         "f": 27781, // First tradeId
+            #         "l": 27781, // Last tradeId
+            #         "T": 1498793709153, // Timestamp
+            #         "m": true, // Was the buyer the maker?
             #     }
             # ]
             #
@@ -1354,10 +1370,10 @@ class aster(Exchange, ImplicitAPI):
             #            "id": "73620768",
             #            "price": "2324.07",
             #            "qty": "0.430",
-            #            "quoteQty": "999.35",      # only in PERP
-            #             "baseQty": "4.95049505",  # only in SPOT
+            #            "quoteQty": "999.35",      // only in PERP
+            #             "baseQty": "4.95049505",  // only in SPOT
             #            "time": "1776407252900",
-            #            "isBuyerMaker": False
+            #            "isBuyerMaker": false
             #        }, ...
             #
         return self.parse_trades(response, market, since, limit)
@@ -1408,13 +1424,13 @@ class aster(Exchange, ImplicitAPI):
         #     "commission": "0.00279605",
         #     "commissionAsset": "USDT",
         #     "time": 1776409179230,
-        #     "counterpartyId": 5143150,   # only in PERP
-        #     "createUpdateId": null,      # only in PERP
-        #     "maker": False,              # only in PERP
-        #     "buyer": False,              # only in PERP
-        #     "realizedPnl": "0.00029999",  # only in SPOT
-        #     "marginAsset": "USDT",       # only in SPOT
-        #     "positionSide": "BOTH",      # only in SPOT
+        #     "counterpartyId": 5143150,   // only in PERP
+        #     "createUpdateId": null,      // only in PERP
+        #     "maker": false,              // only in PERP
+        #     "buyer": false,              // only in PERP
+        #     "realizedPnl": "0.00029999", // only in SPOT
+        #     "marginAsset": "USDT",       // only in SPOT
+        #     "positionSide": "BOTH",      // only in SPOT
         # }
         #
         return self.parse_trades(response, market, since, limit, params)
@@ -1449,12 +1465,12 @@ class aster(Exchange, ImplicitAPI):
         #
         #     {
         #         "lastUpdateId": 1027024,
-        #         "E": 1589436922972,  #     Message output time
-        #         "T": 1589436922959,  #     Transaction time
+        #         "E": 1589436922972, //     Message output time
+        #         "T": 1589436922959, //     Transaction time
         #         "bids": [
         #             [
-        #                 "4.00000000",  #     PRICE
-        #                 "431.00000000"  #     QTY
+        #                 "4.00000000", //     PRICE
+        #                 "431.00000000" //     QTY
         #             ]
         #         ],
         #         "asks": [
@@ -1489,12 +1505,12 @@ class aster(Exchange, ImplicitAPI):
         #        "firstId": "73520536",
         #        "lastId": "73630176",
         #        "count": "109640",
-        #        "baseAsset": "BTC",            # only in SPOT
-        #        "quoteAsset": "USDT",          # only in SPOT
-        #        "bidPrice": "71125.98",        # only in SPOT
-        #        "bidQty": "0.00737",           # only in SPOT
-        #        "askPrice": "71152.10",        # only in SPOT
-        #        "askQty": "0.32399"            # only in SPOT
+        #        "baseAsset": "BTC",            // only in SPOT
+        #        "quoteAsset": "USDT",          // only in SPOT
+        #        "bidPrice": "71125.98",        // only in SPOT
+        #        "bidQty": "0.00737",           // only in SPOT
+        #        "askPrice": "71152.10",        // only in SPOT
+        #        "askQty": "0.32399"            // only in SPOT
         #    }
         #
         #
@@ -1508,7 +1524,7 @@ class aster(Exchange, ImplicitAPI):
         #            "askPrice": "0.000000",
         #            "askQty": "0.0",
         #            "time": "1776411276072",
-        #            "lastUpdateId": "453174307613"   # only in PERP
+        #            "lastUpdateId": "453174307613"   // only in PERP
         #        }, ...
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
@@ -1594,12 +1610,12 @@ class aster(Exchange, ImplicitAPI):
         #        "firstId": "73520536",
         #        "lastId": "73630176",
         #        "count": "109640",
-        #        "baseAsset": "BTC",            # only in SPOT
-        #        "quoteAsset": "USDT",          # only in SPOT
-        #        "bidPrice": "71125.98",        # only in SPOT
-        #        "bidQty": "0.00737",           # only in SPOT
-        #        "askPrice": "71152.10",        # only in SPOT
-        #        "askQty": "0.32399"            # only in SPOT
+        #        "baseAsset": "BTC",            // only in SPOT
+        #        "quoteAsset": "USDT",          // only in SPOT
+        #        "bidPrice": "71125.98",        // only in SPOT
+        #        "bidQty": "0.00737",           // only in SPOT
+        #        "askPrice": "71152.10",        // only in SPOT
+        #        "askQty": "0.32399"            // only in SPOT
         #    }
         #
         return self.parse_ticker(response, market)
@@ -1647,12 +1663,12 @@ class aster(Exchange, ImplicitAPI):
         #             "firstId": 24195078,
         #             "lastId": 24375783,
         #             "count": 180706,
-        #             "baseAsset": "BTC",              # only in SPOT
-        #             "quoteAsset": "USDT",            # only in SPOT
-        #             "bidPrice": "71125.98",          # only in SPOT
-        #             "bidQty": "0.00737",             # only in SPOT
-        #             "askPrice": "71152.10",          # only in SPOT
-        #             "askQty": "0.32399"              # only in SPOT
+        #             "baseAsset": "BTC",              // only in SPOT
+        #             "quoteAsset": "USDT",            // only in SPOT
+        #             "bidPrice": "71125.98",          // only in SPOT
+        #             "bidQty": "0.00737",             // only in SPOT
+        #             "askPrice": "71152.10",          // only in SPOT
+        #             "askQty": "0.32399"              // only in SPOT
         #         }
         #     ]
         #
@@ -1759,7 +1775,7 @@ class aster(Exchange, ImplicitAPI):
         #            "askPrice": "0.000000",
         #            "askQty": "0.0",
         #            "time": "1776411276072",
-        #            "lastUpdateId": "453174307613"   # only in PERP
+        #            "lastUpdateId": "453174307613"   // only in PERP
         #        }, ...
         #
         return self.parse_tickers(response, symbols)
@@ -1993,7 +2009,7 @@ class aster(Exchange, ImplicitAPI):
             #            "crossUnPnl": "0.00000000",
             #            "availableBalance": "878.90500233",
             #            "maxWithdrawAmount": "0.00000000",
-            #            "marginAvailable": True,
+            #            "marginAvailable": true,
             #            "updateTime": "0"
             #        }, ...
             #
@@ -2051,7 +2067,7 @@ class aster(Exchange, ImplicitAPI):
         }
         response = self.fapiPrivatePostV3MarginType(self.extend(request, params))
         #
-        #     {"code": 200,"msg": "success"}
+        #     { "code": 200,"msg": "success" }
         #
         return response
 
@@ -2068,7 +2084,7 @@ class aster(Exchange, ImplicitAPI):
         response = self.fapiPrivateGetV3PositionSideDual(params)
         #
         #     {
-        #         "dualSidePosition": True  # "true": Hedge Mode; "false": One-way Mode
+        #         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
         #     }
         #
         return {
@@ -2179,12 +2195,12 @@ class aster(Exchange, ImplicitAPI):
         #         "origQty": "0.40",
         #         "origType": "TRAILING_STOP_MARKET",
         #         "price": "0",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "side": "BUY",
         #         "positionSide": "SHORT",
         #         "status": "NEW",
         #         "stopPrice": "9300",
-        #         "closePosition": False,
+        #         "closePosition": false,
         #         "symbol": "BTCUSDT",
         #         "time": 1579276756075,
         #         "timeInForce": "GTC",
@@ -2193,7 +2209,7 @@ class aster(Exchange, ImplicitAPI):
         #         "priceRate": "0.3",
         #         "updateTime": 1579276756075,
         #         "workingType": "CONTRACT_PRICE",
-        #         "priceProtect": False
+        #         "priceProtect": false
         #     }
         #
         # spot
@@ -2205,11 +2221,11 @@ class aster(Exchange, ImplicitAPI):
         #            "symbol": "ETHUSDT",
         #            "status": "FILLED",
         #            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
-        #            "price": "0",                     # value set for unfilled
-        #            "avgPrice": "2351.580000",        # value zero for unfilled
+        #            "price": "0",                     // value set for unfilled
+        #            "avgPrice": "2351.580000",        // value zero for unfilled
         #            "origQty": "0.0054",
-        #            "executedQty": "0.0054",          # value zero for unfilled
-        #            "cumQuote": "12.69853200",        # value zero for unfilled
+        #            "executedQty": "0.0054",          // value zero for unfilled
+        #            "cumQuote": "12.69853200",        // value zero for unfilled
         #            "timeInForce": "GTC",
         #            "type": "MARKET",
         #            "side": "SELL",
@@ -2308,13 +2324,13 @@ class aster(Exchange, ImplicitAPI):
         #        "origType": "MARKET",
         #        "time": "1776800300736",
         #        "updateTime": "1776800300700",
-        #        "orderListId": "-1"                                   # only in SPOT
-        #        "positionSide": "BOTH",                               # only in SWAP
-        #        "reduceOnly": False,                                  # only in SWAP
-        #        "closePosition": False,                               # only in SWAP
-        #        "workingType": "CONTRACT_PRICE",                      # only in SWAP
-        #        "priceProtect": False,                                # only in SWAP
-        #        "newChainData": {"hash": "0x46aed5...67bdbec8ba"}   # only in SWAP
+        #        "orderListId": "-1"                                   // only in SPOT
+        #        "positionSide": "BOTH",                               // only in SWAP
+        #        "reduceOnly": false,                                  // only in SWAP
+        #        "closePosition": false,                               // only in SWAP
+        #        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        #        "priceProtect": false,                                // only in SWAP
+        #        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         #    }
         #
         return self.parse_order(response, market)
@@ -2369,13 +2385,13 @@ class aster(Exchange, ImplicitAPI):
         #        "origType": "MARKET",
         #        "time": "1776800300736",
         #        "updateTime": "1776800300700",
-        #        "orderListId": "-1"                                   # only in SPOT
-        #        "positionSide": "BOTH",                               # only in SWAP
-        #        "reduceOnly": False,                                  # only in SWAP
-        #        "closePosition": False,                               # only in SWAP
-        #        "workingType": "CONTRACT_PRICE",                      # only in SWAP
-        #        "priceProtect": False,                                # only in SWAP
-        #        "newChainData": {"hash": "0x46aed5...67bdbec8ba"}   # only in SWAP
+        #        "orderListId": "-1"                                   // only in SPOT
+        #        "positionSide": "BOTH",                               // only in SWAP
+        #        "reduceOnly": false,                                  // only in SWAP
+        #        "closePosition": false,                               // only in SWAP
+        #        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        #        "priceProtect": false,                                // only in SWAP
+        #        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         #    }
         #
         return self.parse_order(response, market)
@@ -2420,11 +2436,11 @@ class aster(Exchange, ImplicitAPI):
         #            "symbol": "ETHUSDT",
         #            "status": "FILLED",
         #            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
-        #            "price": "0",                     # value set for unfilled
-        #            "avgPrice": "2351.580000",        # value zero for unfilled
+        #            "price": "0",                     // value set for unfilled
+        #            "avgPrice": "2351.580000",        // value zero for unfilled
         #            "origQty": "0.0054",
-        #            "executedQty": "0.0054",          # value zero for unfilled
-        #            "cumQuote": "12.69853200",        # value zero for unfilled
+        #            "executedQty": "0.0054",          // value zero for unfilled
+        #            "cumQuote": "12.69853200",        // value zero for unfilled
         #            "timeInForce": "GTC",
         #            "type": "MARKET",
         #            "side": "SELL",
@@ -2432,13 +2448,13 @@ class aster(Exchange, ImplicitAPI):
         #            "origType": "MARKET",
         #            "time": "1776274219582",
         #            "updateTime": "1776274219609",
-        #            "orderListId": "-1",                                     # only in SPOT
-        #            "reduceOnly": False,                                     # only in PERP
-        #            "closePosition": False,                                  # only in PERP
-        #            "positionSide": "BOTH",                                  # only in PERP
-        #            "workingType": "CONTRACT_PRICE",                         # only in PERP
-        #            "priceProtect": False,                                   # only in PERP
-        #            "newChainData": {"hash": "0xe17d3d5b...dbca8b01"}      # only in PERP
+        #            "orderListId": "-1",                                     // only in SPOT
+        #            "reduceOnly": false,                                     // only in PERP
+        #            "closePosition": false,                                  // only in PERP
+        #            "positionSide": "BOTH",                                  // only in PERP
+        #            "workingType": "CONTRACT_PRICE",                         // only in PERP
+        #            "priceProtect": false,                                   // only in PERP
+        #            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
         #        }, ...
         #
         return self.parse_orders(response, market, since, limit)
@@ -2500,13 +2516,13 @@ class aster(Exchange, ImplicitAPI):
         #            "origType": "LIMIT",
         #            "time": "1776798208476",
         #            "updateTime": "1776798208450",
-        #            "orderListId": "-1"                                   # only in SPOT
-        #            "reduceOnly": False,                                  # only in PERP
-        #            "closePosition": False,                               # only in PERP
-        #            "positionSide": "BOTH",                               # only in PERP
-        #            "workingType": "CONTRACT_PRICE",                      # only in PERP
-        #            "priceProtect": False,                                # only in PERP
-        #            "newChainData": {"hash": "0xf8a496....a7fd5"}       # only in PERP
+        #            "orderListId": "-1"                                   // only in SPOT
+        #            "reduceOnly": false,                                  // only in PERP
+        #            "closePosition": false,                               // only in PERP
+        #            "positionSide": "BOTH",                               // only in PERP
+        #            "workingType": "CONTRACT_PRICE",                      // only in PERP
+        #            "priceProtect": false,                                // only in PERP
+        #            "newChainData": { "hash": "0xf8a496....a7fd5" }       // only in PERP
         #        }
         #    ]
         #
@@ -2564,13 +2580,13 @@ class aster(Exchange, ImplicitAPI):
         #        "origType": "MARKET",
         #        "time": "1776800300700",
         #        "updateTime": "1776800300700",
-        #        "orderListId": "-1",                              # only in SPOT
-        #        "workingType": "CONTRACT_PRICE",                  # only in PERP
-        #        "positionSide": "BOTH",                           # only in PERP
-        #        "reduceOnly": False,                              # only in PERP
-        #        "closePosition": False,                           # only in PERP
-        #        "priceProtect": False,                            # only in PERP
-        #        "newChainData": {"hash": "0x46ae....c8ba"}      # only in PERP
+        #        "orderListId": "-1",                              // only in SPOT
+        #        "workingType": "CONTRACT_PRICE",                  // only in PERP
+        #        "positionSide": "BOTH",                           // only in PERP
+        #        "reduceOnly": false,                              // only in PERP
+        #        "closePosition": false,                           // only in PERP
+        #        "priceProtect": false,                            // only in PERP
+        #        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
         #    }
         #
         return self.parse_order(response, market)
@@ -2625,13 +2641,13 @@ class aster(Exchange, ImplicitAPI):
         #            "cumQuote": "0",
         #            "timeInForce": "GTC",
         #            "type": "MARKET",
-        #            "reduceOnly": False,
-        #            "closePosition": False,
+        #            "reduceOnly": false,
+        #            "closePosition": false,
         #            "side": "BUY",
         #            "positionSide": "BOTH",
         #            "stopPrice": "0",
         #            "workingType": "CONTRACT_PRICE",
-        #            "priceProtect": False,
+        #            "priceProtect": false,
         #            "origType": "MARKET",
         #            "updateTime": 1776802276050,
         #            "newChainData": {
@@ -2701,20 +2717,11 @@ class aster(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, None, params)
         if postOnly:
             request['timeInForce'] = 'GTX'
-        #
-        # spot
-        # LIMIT timeInForce, quantity, price
-        # MARKET quantity or quoteOrderQty
-        # STOP and TAKE_PROFIT quantity, price, stopPrice
-        # STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        # future
-        # LIMIT timeInForce, quantity, price
-        # MARKET quantity
-        # STOP/TAKE_PROFIT quantity, price, stopPrice
-        # STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        # TRAILING_STOP_MARKET callbackRate
-        #
-        # additional required fields depending on the order type
+        # additional required fields per order type
+        # spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        #       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        # future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        #       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         closePosition = self.safe_bool(params, 'closePosition', False)
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -2898,20 +2905,20 @@ class aster(Exchange, ImplicitAPI):
             #            "origQty": "11",
             #            "origType": "TRAILING_STOP_MARKET",
             #            "price": "0",
-            #            "reduceOnly": False,
+            #            "reduceOnly": false,
             #            "side": "BUY",
             #            "positionSide": "SHORT",
             #            "status": "CANCELED",
-            #            "stopPrice": "9300",                  # please ignore when order type is TRAILING_STOP_MARKET
-            #            "closePosition": False,               # if Close-All
+            #            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+            #            "closePosition": false,               // if Close-All
             #            "symbol": "BTCUSDT",
             #            "timeInForce": "GTC",
             #            "type": "TRAILING_STOP_MARKET",
-            #            "activatePrice": "9020",              # activation price, only return with TRAILING_STOP_MARKET order
-            #            "priceRate": "0.3",                   # callback rate, only return with TRAILING_STOP_MARKET order
+            #            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+            #            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
             #            "updateTime": 1571110484038,
             #            "workingType": "CONTRACT_PRICE",
-            #            "priceProtect": False,                # if conditional order trigger is protected
+            #            "priceProtect": false,                // if conditional order trigger is protected
             #        },
             #        {
             #            "code": -2011,
@@ -3113,7 +3120,7 @@ class aster(Exchange, ImplicitAPI):
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory () requires a symbol argument')
         self.load_markets_and_sign_in()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
@@ -3437,7 +3444,7 @@ class aster(Exchange, ImplicitAPI):
         entryPrice = self.parse_number(entryPriceString)
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        # to notionalValue
+        # as oppose to notionalValue
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
@@ -3485,7 +3492,7 @@ class aster(Exchange, ImplicitAPI):
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
         maintenanceMarginString = Precise.string_mul(maintenanceMarginPercentageString, notionalStringAbs)
         if maintenanceMarginString is None:
-            # for a while, self new value was a backup to the existing calculations, but in future we might prioritize self
+            # for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         initialMarginString = None
@@ -3567,7 +3574,7 @@ class aster(Exchange, ImplicitAPI):
         #             "markPrice": "6679.50671178",
         #             "maxNotionalValue": "20000000",
         #             "positionSide": "LONG",
-        #             "positionAmt": "20.000",  # negative value for 'SHORT'
+        #             "positionAmt": "20.000", // negative value for 'SHORT'
         #             "symbol": "BTCUSDT",
         #             "unRealizedProfit": "2316.83423560",
         #             "updateTime": 1625474304765
@@ -3660,7 +3667,7 @@ class aster(Exchange, ImplicitAPI):
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
-        # to notionalValue
+        # as oppose to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -3801,7 +3808,9 @@ class aster(Exchange, ImplicitAPI):
         """
  @ignore
         fetch account positions
-         https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: data on account positions
@@ -4041,7 +4050,7 @@ class aster(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def hash_message(self, binaryMessage: object):
-        # binaryMessage = self.encode(message)
+        # const binaryMessage = this.encode (message);
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
         newline = self.base16_to_binary('0a')
@@ -4088,7 +4097,7 @@ class aster(Exchange, ImplicitAPI):
                     {'name': 'msg', 'type': 'string'},
                 ],
             }
-            # Build v3 params: original endpoint params + nonce(microseconds) + user + signer
+            # Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             # Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             finalParams = self.extend({
                 'nonce': str(nonce),
@@ -4099,7 +4108,7 @@ class aster(Exchange, ImplicitAPI):
             paramsToEncode: dict
             isApproveBuilder = (path.find('/approveBuilder') >= 0)
             if isApproveBuilder:
-                # domain['name'] = 'Aster'
+                # domain['name'] = 'Aster';
                 messageTypes = {
                     'ApproveBuilder': [
                         {'name': 'Builder', 'type': 'string'},
@@ -4163,10 +4172,10 @@ class aster(Exchange, ImplicitAPI):
         """
         if self.is_empty_string(self.privateKey):
             if not self.is_empty_string(self.apiKey) or not self.is_empty_string(self.secret):
-                raise NotSupported(self.id + 'after the latest upgrade(v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
+                raise NotSupported(self.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
             return False
         if len(self.privateKey) > 66:
-            raise NotSupported(self.id + ' after the latest update(v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
+            raise NotSupported(self.id + ' after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
         self.initialize_client(params)
         return True
 

@@ -165,4 +165,19 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("percentage".to_string()), Value::Str("0".to_string())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("open".to_string()), Value::Str("6.0".to_string())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
+    // CASE 10 - by open and average, the pair that derives close from average
+    let mut ticker10: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("open".to_string(), Value::Int(5));
+            m.insert("average".to_string(), Value::Float(5.5));
+        m
+    });
+    let mut result10: Value = exchange.safe_ticker(ticker10.clone(), &[]);
+    assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result10.clone(), Value::Str("close".to_string()), Value::Str("6.0".to_string())))));
+    assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result10.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
+    // the supplied average must survive untouched, and this path deliberately
+    // leaves change and percentage underived - pin that boundary
+    assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result10.clone(), Value::Str("average".to_string()), Value::Str("5.5".to_string())))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&result10, &Value::Str("change".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&result10, &Value::Str("percentage".to_string())), &Value::Null)))));
 }

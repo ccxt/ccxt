@@ -62,6 +62,16 @@ impl ExtendedCore {
         self.call_method(Value::Str("v1_public_get_info_builder_dashboard".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PublicGetInterestInfoRateCurves` implicit endpoint.
+    pub async fn v1_public_get_interest_info_rate_curves(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_interest_info_rate_curves".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicGetInterestInfoLatestRateCurves` implicit endpoint.
+    pub async fn v1_public_get_interest_info_latest_rate_curves(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_interest_info_latest_rate_curves".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetUserAccounts` implicit endpoint.
     pub async fn v1_private_get_user_accounts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_user_accounts".to_string()), optional_args).await
@@ -192,6 +202,61 @@ impl ExtendedCore {
         self.call_method(Value::Str("v1_private_get_portfolio_charts_pnl".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioChartsPnlPercentage` implicit endpoint.
+    pub async fn v1_private_get_portfolio_charts_pnl_percentage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_charts_pnl_percentage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioChartsPnlCumulative` implicit endpoint.
+    pub async fn v1_private_get_portfolio_charts_pnl_cumulative(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_charts_pnl_cumulative".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioChartsPnlCumulativePercentage` implicit endpoint.
+    pub async fn v1_private_get_portfolio_charts_pnl_cumulative_percentage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_charts_pnl_cumulative_percentage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioChartsVaultEquities` implicit endpoint.
+    pub async fn v1_private_get_portfolio_charts_vault_equities(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_charts_vault_equities".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioChartsMaxDrawdown` implicit endpoint.
+    pub async fn v1_private_get_portfolio_charts_max_drawdown(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_charts_max_drawdown".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioChartsFunding` implicit endpoint.
+    pub async fn v1_private_get_portfolio_charts_funding(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_charts_funding".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioAccountsSummary` implicit endpoint.
+    pub async fn v1_private_get_portfolio_accounts_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_accounts_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioAccountsHealth` implicit endpoint.
+    pub async fn v1_private_get_portfolio_accounts_health(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_accounts_health".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioAccountsPerformance` implicit endpoint.
+    pub async fn v1_private_get_portfolio_accounts_performance(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_accounts_performance".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioFundingStats` implicit endpoint.
+    pub async fn v1_private_get_portfolio_funding_stats(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_funding_stats".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfolioFundingHistory` implicit endpoint.
+    pub async fn v1_private_get_portfolio_funding_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolio_funding_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetVaultPublicPerformance` implicit endpoint.
     pub async fn v1_private_get_vault_public_performance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_vault_public_performance".to_string()), optional_args).await
@@ -207,9 +272,34 @@ impl ExtendedCore {
         self.call_method(Value::Str("v1_private_get_builder_trades".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetInterestKeyMetrics` implicit endpoint.
+    pub async fn v1_private_get_interest_key_metrics(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_interest_key_metrics".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetInterestDailyMetrics` implicit endpoint.
+    pub async fn v1_private_get_interest_daily_metrics(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_interest_daily_metrics".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetInterestPaymentChart` implicit endpoint.
+    pub async fn v1_private_get_interest_payment_chart(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_interest_payment_chart".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetInterestPayments` implicit endpoint.
+    pub async fn v1_private_get_interest_payments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_interest_payments".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivatePostUserOrder` implicit endpoint.
     pub async fn v1_private_post_user_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_user_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostUserOrderRfq` implicit endpoint.
+    pub async fn v1_private_post_user_order_rfq(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_user_order_rfq".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostUserOrderMassCancel` implicit endpoint.

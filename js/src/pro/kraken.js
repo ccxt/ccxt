@@ -925,7 +925,7 @@ export default class kraken extends krakenRest {
         const data = this.safeList(message, 'data', []);
         const first = this.safeDict(data, 0, {});
         const symbol = this.safeString(first, 'symbol');
-        const a = this.safeValue(first, 'asks', []);
+        const a = this.safeList(first, 'asks', []);
         const b = this.safeValue(first, 'bids', []);
         const c = this.safeInteger(first, 'checksum');
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
@@ -954,7 +954,7 @@ export default class kraken extends krakenRest {
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
                 const bookside = orderbook[key];
-                const deltas = this.safeValue(first, key, []);
+                const deltas = this.safeList(first, key, []);
                 const deltasLength = deltas.length;
                 if (deltasLength > 0) {
                     this.customHandleDeltas(bookside, deltas);
@@ -1343,7 +1343,7 @@ export default class kraken extends krakenRest {
                 const length = stored.length;
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
-                    const symbolsByOrderId = this.safeValue(this.options, 'symbolsByOrderId', {});
+                    const symbolsByOrderId = this.safeDict(this.options, 'symbolsByOrderId', {});
                     if (first['id'] in symbolsByOrderId) {
                         delete symbolsByOrderId[first['id']];
                     }

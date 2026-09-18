@@ -118,6 +118,12 @@ abstract class mexc extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function spot_private_get_apikeyinfo($params = array()) {
+        return $this->request('apiKeyInfo', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function spot_private_get_order($params = array()) {
         return $this->request('order', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -474,6 +480,12 @@ abstract class mexc extends \ccxt\Exchange {
      */
     public function spot_private_post_strategy_group($params = array()) {
         return $this->request('strategy/group', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spot_private_post_strategy_group_uid($params = array()) {
+        return $this->request('strategy/group/uid', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
@@ -1546,6 +1558,12 @@ abstract class mexc extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function spotPrivateGetApiKeyInfo($params = array()) {
+        return $this->request('apiKeyInfo', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function spotPrivateGetOrder($params = array()) {
         return $this->request('order', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1902,6 +1920,12 @@ abstract class mexc extends \ccxt\Exchange {
      */
     public function spotPrivatePostStrategyGroup($params = array()) {
         return $this->request('strategy/group', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spotPrivatePostStrategyGroupUid($params = array()) {
+        return $this->request('strategy/group/uid', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>

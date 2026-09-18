@@ -148,6 +148,12 @@ abstract class phemex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v2_get_public_index_sources($params = array()) {
+        return $this->request('public/index-sources', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v2_get_md_v2_orderbook($params = array()) {
         return $this->request('md/v2/orderbook', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -496,6 +502,54 @@ abstract class phemex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_phemex_lb_public_api_trader_performance_info($params = array()) {
+        return $this->request('phemex-lb/public/api/trader/performance-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_uta_api_risk_risk_mode($params = array()) {
+        return $this->request('uta-api/risk/risk-mode', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_uta_api_risk_risk_units($params = array()) {
+        return $this->request('uta-api/risk/risk-units', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_uta_biz_assets($params = array()) {
+        return $this->request('uta-biz/assets', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_uta_funds_contract_borrow($params = array()) {
+        return $this->request('uta-funds/contract/borrow', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_uta_funds_contract_payback($params = array()) {
+        return $this->request('uta-funds/contract/payback', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_uta_funds_contract_borrow_interests($params = array()) {
+        return $this->request('uta-funds/contract/borrow/interests', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_uta_exchanger_assets_convert($params = array()) {
+        return $this->request('uta-exchanger/assets/convert', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_spot_orders($params = array()) {
         return $this->request('spot/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -594,6 +648,18 @@ abstract class phemex extends \ccxt\Exchange {
      */
     public function private_post_phemex_withdraw_wallets_api_cancelwithdraw($params = array()) {
         return $this->request('phemex-withdraw/wallets/api/cancelWithdraw', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_uta_account_switch_mode($params = array()) {
+        return $this->request('uta-account/switch-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_uta_funds_contract_payback($params = array()) {
+        return $this->request('uta-funds/contract/payback', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -834,6 +900,12 @@ abstract class phemex extends \ccxt\Exchange {
      */
     public function v2GetPublicProductsPlus($params = array()) {
         return $this->request('public/products-plus', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2GetPublicIndexSources($params = array()) {
+        return $this->request('public/index-sources', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -1186,6 +1258,54 @@ abstract class phemex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetPhemexLbPublicApiTraderPerformanceInfo($params = array()) {
+        return $this->request('phemex-lb/public/api/trader/performance-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUtaApiRiskRiskMode($params = array()) {
+        return $this->request('uta-api/risk/risk-mode', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUtaApiRiskRiskUnits($params = array()) {
+        return $this->request('uta-api/risk/risk-units', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUtaBizAssets($params = array()) {
+        return $this->request('uta-biz/assets', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUtaFundsContractBorrow($params = array()) {
+        return $this->request('uta-funds/contract/borrow', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUtaFundsContractPayback($params = array()) {
+        return $this->request('uta-funds/contract/payback', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUtaFundsContractBorrowInterests($params = array()) {
+        return $this->request('uta-funds/contract/borrow/interests', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUtaExchangerAssetsConvert($params = array()) {
+        return $this->request('uta-exchanger/assets/convert', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostSpotOrders($params = array()) {
         return $this->request('spot/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1284,6 +1404,18 @@ abstract class phemex extends \ccxt\Exchange {
      */
     public function privatePostPhemexWithdrawWalletsApiCancelWithdraw($params = array()) {
         return $this->request('phemex-withdraw/wallets/api/cancelWithdraw', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostUtaAccountSwitchMode($params = array()) {
+        return $this->request('uta-account/switch-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostUtaFundsContractPayback($params = array()) {
+        return $this->request('uta-funds/contract/payback', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>

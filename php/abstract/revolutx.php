@@ -82,6 +82,12 @@ abstract class revolutx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>|list<mixed>
      */
+    public function private_get_1_0_transactions($params = array()) {
+        return $this->request('1.0/transactions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>|list<mixed>
+     */
     public function private_post_1_0_orders($params = array()) {
         return $this->request('1.0/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -174,6 +180,12 @@ abstract class revolutx extends \ccxt\Exchange {
      */
     public function privateGet10TradesPrivateSymbol($params = array()) {
         return $this->request('1.0/trades/private/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>|list<mixed>
+     */
+    public function privateGet10Transactions($params = array()) {
+        return $this->request('1.0/transactions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>|list<mixed>

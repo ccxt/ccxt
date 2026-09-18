@@ -27,6 +27,26 @@ pub fn testRoundTimeframe() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("30m".to_string()), testDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2019-08-12 13:30:00".to_string())))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1h".to_string()), testDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2019-08-12 14:00:00".to_string())))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1d".to_string()), testDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2019-08-13 00:00:00".to_string())))))));
+    let mut calendarDate: Value = exchange.parse8601(Value::Str("2026-09-02T00:00:00Z".to_string()));
+    if is_equal(&calendarDate, &Value::Null) {
+        return;
+    }
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1w".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_DOWN)), &exchange.parse8601(Value::Str("2026-08-31T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1M".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_DOWN)), &exchange.parse8601(Value::Str("2026-09-01T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1y".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_DOWN)), &exchange.parse8601(Value::Str("2026-01-01T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1w".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2026-09-07T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1M".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2026-10-01T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("1y".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2027-01-01T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("2w".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_DOWN)), &exchange.parse8601(Value::Str("2026-08-31T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("3M".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_DOWN)), &exchange.parse8601(Value::Str("2026-07-01T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("2w".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2026-09-14T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("3M".to_string()), calendarDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("2026-10-01T00:00:00Z".to_string())))))));
+    let mut preEpochDate: Value = exchange.parse8601(Value::Str("1960-06-15T00:00:00Z".to_string()));
+    if is_equal(&preEpochDate, &Value::Null) {
+        return;
+    }
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("2w".to_string()), preEpochDate.clone(), Value::Int(ccxt::runtime::ROUND_DOWN)), &exchange.parse8601(Value::Str("1960-06-06T00:00:00Z".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.round_timeframe(Value::Str("2w".to_string()), preEpochDate.clone(), Value::Int(ccxt::runtime::ROUND_UP)), &exchange.parse8601(Value::Str("1960-06-20T00:00:00Z".to_string())))))));
 }
 pub fn testParseTimeframe() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

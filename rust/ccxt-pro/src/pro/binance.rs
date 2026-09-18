@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -3445,6 +3449,22 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut last: Value = self.safe_string2(message.clone(), Value::Str("c".to_string()), Value::Str("price".to_string()), &[]);
+        // A coin-margined stream counts `v` in contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
+        let mut baseVolume: Value = self.safe_string_k(message.clone(), "v", &[]);
+        let mut quoteVolume: Value = self.safe_string_k(message.clone(), "q", &[]);
+        if is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)) {
+            let mut contracts: Value = baseVolume.clone();
+            baseVolume = quoteVolume.clone();
+            let mut weightedAverage: Value = self.safe_string_k(message.clone(), "w", &[]);
+            if is_equal(&weightedAverage, &Value::Null) {
+                quoteVolume = crate::precise::Precise::stringMul(&contracts, &self.safe_string_k(market.clone(), "contractSize", &[]));
+            }  else {
+                quoteVolume = crate::precise::Precise::stringMul(&baseVolume, &weightedAverage);
+            }
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -3464,8 +3484,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         m.insert("change".to_string(), self.safe_string_k(message.clone(), "p", &[]));
         m.insert("percentage".to_string(), self.safe_string_k(message.clone(), "P", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(message.clone(), "v", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(message.clone(), "q", &[]));
+        m.insert("baseVolume".to_string(), baseVolume.clone());
+        m.insert("quoteVolume".to_string(), quoteVolume.clone());
         m.insert("info".to_string(), message.clone());
     m
 }), &[market.clone()]);

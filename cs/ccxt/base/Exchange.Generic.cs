@@ -148,48 +148,6 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public object deepExtend2(params object[] objs)
-    {
-        // old implementation
-        object outDict = new Dictionary<string, object>();
-        foreach (object obj in objs)
-        {
-            var obj2 = obj;
-            if (obj2 == null)
-            {
-                obj2 = new Dictionary<string, object>();
-            }
-            if (obj2 is dict)
-            {
-                var keys = new List<string>(((dict)obj2).Keys);
-                foreach (string key in keys)
-                {
-
-                    var value = ((dict)obj2)[key];
-                    if (value != null && value is dict)
-                    {
-                        if (((dict)outDict).ContainsKey(key))
-                        {
-                            ((dict)outDict)[key] = deepExtend2(((dict)outDict)[key], value);
-                        }
-                        else
-                        {
-                            ((dict)outDict)[key] = deepExtend2(value);
-                        }
-                    }
-                    else
-                    {
-                        ((dict)outDict)[key] = value;
-                    }
-                }
-            }
-            else
-            {
-                outDict = obj;
-            }
-        }
-        return outDict;
-    }
     public Dictionary<string, object> deepExtend(params object[] objs)
     {
         object outObj = null;

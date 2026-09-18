@@ -30,7 +30,7 @@ class toobit(ccxt.async_support.toobit):
                 'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
-                # 'watchPosition': False,
+                # 'watchPosition': false,
             },
             'urls': {
                 'api': {
@@ -98,12 +98,12 @@ class toobit(ccxt.async_support.toobit):
         #                 t: 1757243788405,
         #                 p: "0.21804",
         #                 q: "80",
-        #                 m: True,
+        #                 m: true,
         #             },
         #         ],
-        #         f: True,  # initial first snapshot or not
+        #         f: true,  // initial first snapshot or not
         #         sendTime: 1757244002117,
-        #         shared: False,
+        #         shared: false,
         #     }
         #
         # private
@@ -112,10 +112,10 @@ class toobit(ccxt.async_support.toobit):
         #       {
         #         e: 'outboundContractAccountInfo',
         #         E: '1758228398234',
-        #         T: True,
-        #         W: True,
-        #         D: True,
-        #         B: [[Object]]
+        #         T: true,
+        #         W: true,
+        #         D: true,
+        #         B: [ [Object] ]
         #       }
         #     ]
         #
@@ -123,7 +123,7 @@ class toobit(ccxt.async_support.toobit):
         if self.handle_error_message(client, message) is True:
             return
         #
-        # handle ping-pong: {ping: 1758540450000}
+        # handle ping-pong: { ping: 1758540450000 }
         #
         pongTimestamp = self.safe_integer(message, 'pong')
         if pongTimestamp is not None:
@@ -225,12 +225,12 @@ class toobit(ccxt.async_support.toobit):
         #                 t: 1757243788405,
         #                 p: "0.21804",
         #                 q: "80",
-        #                 m: True,
+        #                 m: true,
         #             },
         #         ],
-        #         f: True,  # initial first snapshot or not
+        #         f: true,  // initial first snapshot or not
         #         sendTime: 1757244002117,
-        #         shared: False,
+        #         shared: false,
         #     }
         #
         marketId = self.safe_string(message, 'symbol')
@@ -264,7 +264,7 @@ class toobit(ccxt.async_support.toobit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
@@ -281,7 +281,7 @@ class toobit(ccxt.async_support.toobit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -321,7 +321,7 @@ class toobit(ccxt.async_support.toobit):
         #         symbolName: 'DOGEUSDT',
         #         klineType: '1m',
         #         topic: 'kline',
-        #         params: {realtimeInterval: '24h', klineType: '1m', binary: 'false'},
+        #         params: { realtimeInterval: '24h', klineType: '1m', binary: 'false' },
         #         data: [
         #             {
         #                 t: 1757251200000,
@@ -335,9 +335,9 @@ class toobit(ccxt.async_support.toobit):
         #                 st: 0
         #             }
         #         ],
-        #         f: True,
+        #         f: true,
         #         sendTime: 1757251217643,
-        #         shared: False
+        #         shared: false
         #     }
         #
         marketId = self.safe_string(message, 'symbol')
@@ -463,9 +463,9 @@ class toobit(ccxt.async_support.toobit):
         #                "m24h": "0.04"
         #            }
         #        ],
-        #        "f": False,
+        #        "f": false,
         #        "sendTime": 1757257643751,
-        #        "shared": False
+        #        "shared": false
         #    }
         #
         data = self.safe_list(message, 'data')
@@ -546,7 +546,7 @@ class toobit(ccxt.async_support.toobit):
         #         symbol: 'DOGEUSDT',
         #         symbolName: 'DOGEUSDT',
         #         topic: 'depth',
-        #         params: {realtimeInterval: '24h'},
+        #         params: { realtimeInterval: '24h' },
         #         data: [
         #             {
         #             e: 301,
@@ -557,9 +557,9 @@ class toobit(ccxt.async_support.toobit):
         #             o: 0
         #             }
         #         ],
-        #         f: False,
+        #         f: false,
         #         sendTime: 1757304843047,
-        #         shared: False
+        #         shared: false
         #     }
         #
         isSnapshot = self.safe_bool(message, 'f', False)
@@ -596,7 +596,7 @@ class toobit(ccxt.async_support.toobit):
         #         symbol: 'DOGEUSDT',
         #         symbolName: 'DOGEUSDT',
         #         topic: 'depth',
-        #         params: {realtimeInterval: '24h'},
+        #         params: { realtimeInterval: '24h' },
         #         data: [
         #             {
         #             e: 301,
@@ -608,9 +608,9 @@ class toobit(ccxt.async_support.toobit):
         #             o: 0
         #             }
         #         ],
-        #         f: False,
+        #         f: false,
         #         sendTime: 1757304843047,
-        #         shared: False
+        #         shared: false
         #     }
         #
         self.set_order_book_snapshot(client, message, 'depth')
@@ -682,9 +682,9 @@ class toobit(ccxt.async_support.toobit):
         #     {
         #         e: 'outboundAccountInfo',
         #         E: '1758226989725',
-        #         T: True,
-        #         W: True,
-        #         D: True,
+        #         T: true,
+        #         W: true,
+        #         D: true,
         #         B: [
         #             {
         #               a: "USDT",
@@ -701,10 +701,10 @@ class toobit(ccxt.async_support.toobit):
         #     {
         #         e: 'outboundContractAccountInfo',
         #         E: '1758226989742',
-        #         T: True,
-        #         W: True,
-        #         D: True,
-        #         B: [[Object]]
+        #         T: true,
+        #         W: true,
+        #         D: true,
+        #         B: [ [Object] ]
         #     }
         # ]
         #
@@ -783,18 +783,18 @@ class toobit(ccxt.async_support.toobit):
         #        "pt": "INPUT",
         #        "X": "NEW",
         #        "i": "2043255292855185152",
-        #        "l": "0",  # Last executed quantity
-        #        "z": "0",  # Cumulative filled quantity
-        #        "L": "0",  # Last executed price
+        #        "l": "0", // Last executed quantity
+        #        "z": "0", // Cumulative filled quantity
+        #        "L": "0", // Last executed price
         #        "n": "0",
         #        "N": "",
-        #        "u": True,
-        #        "w": True,
-        #        "m": False,
+        #        "u": true,
+        #        "w": true,
+        #        "m": false,
         #        "O": "1758311011833",
         #        "U": "1758311011841",
         #        "Z": "0",
-        #        "C": False,
+        #        "C": false,
         #        "v": "0",
         #        "rp": "0",
         #        "td": "0"
@@ -895,7 +895,7 @@ class toobit(ccxt.async_support.toobit):
         #        "o": "2043285877770284800",
         #        "c": "1758314657002",
         #        "a": "1783404067076253952",
-        #        "m": False,
+        #        "m": false,
         #        "S": "BUY"
         #    }
         #
@@ -1040,10 +1040,10 @@ class toobit(ccxt.async_support.toobit):
             position['datetime'] = self.iso8601(timestamp)
             newPositions.append(position)
             cache.append(position)
-        # no local may be named `positions` in self method: build/transpile.ts
+        # no local may be named `positions` in this method: build/transpile.ts
         # appends `$` to every local name wherever it appears, string literals
         # included, so a local `positions` rewrites the hash prefix below to
-        # ':$positions::' and find_message_hashes() matches nothing in PHP
+        # ':$positions::' and find_message_hashes () matches nothing in PHP
         messageHashes = self.find_message_hashes(client, accountType + ':positions::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -1092,17 +1092,10 @@ class toobit(ccxt.async_support.toobit):
         if time - lastAuthenticatedTime > delay:
             self.check_required_credentials()
             # single-flight leader election on a never-dialed client, see
-            # https://github.com/ccxt/ccxt/issues/29393. the election used to
-            # run on self.client(self.get_user_stream_url()), but that url
-            # embeds the listenKey it is about to mint, so the client the
-            # flight registers on is not the client the next caller looks at:
-            # the cold call elected on .../ws/None and every later call
-            # landed on .../ws/<key> with an empty subscriptions map, found
-            # the key still fresh, skipped the fetch and hung on a future
-            # nobody resolves. client.futures is the registry: client.future()
-            # is the atomic check-and-insert and client.resolve() /
-            # client.reject() settle and remove the entry under the same lock
-            # in every port
+            # https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+            # so the flight must not live on that client or later callers would look at a different one.
+            # client.futures is the registry: client.future () is the atomic check-and-insert and
+            # client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             messageHash = 'authenticate'
             client = self.client('authenticationFlights')
             if messageHash in client.futures:
@@ -1110,8 +1103,8 @@ class toobit(ccxt.async_support.toobit):
                 # settles it: the listenKey is then in the bucket
                 await client.future(messageHash)
                 return
-            # reusableFuture(), not future() - the two match in
-            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # reusableFuture (), not future () - the two match in
+            # js/py/php/cs/java, but go's Client.Future () yields a channel
             # that the trailing suspension point below would panic on
             future = client.reusableFuture(messageHash)
             try:
@@ -1119,17 +1112,17 @@ class toobit(ccxt.async_support.toobit):
                 listenKey = self.safe_string(response, 'listenKey')
                 if listenKey is None:
                     # reject instead of caching an empty credential, so waiters
-                    # retry rather than dial .../ws/None for 20 minutes
+                    # retry rather than dial .../ws/undefined for 20 minutes
                     raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
                 self.options['ws']['listenKey'] = listenKey
                 self.options['ws']['lastAuthenticatedTime'] = time
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                # settle the flight: client.resolve() removes the future from
+                # settle the flight: client.resolve () removes the future from
                 # client.futures and wakes every waiter
                 client.resolve(listenKey, messageHash)
             except Exception as e:
-                # reject the flight - waiters raise and the next caller re-leads.
-                # no reraise here, the trailing suspension point rethrows to self
+                # reject the flight - waiters throw and the next caller re-leads.
+                # no rethrow here, the trailing suspension point rethrows to this
                 # caller AND attaches the handler an alone leader needs
                 err = AuthenticationError(self.id + ' ' + self.exception_message(e))
                 client.reject(err, messageHash)

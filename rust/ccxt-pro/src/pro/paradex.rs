@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -524,8 +528,8 @@ impl ParadexCore {
         let mut inserts: Value = self.safe_list_k(data.clone(), "inserts", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i = add(&i, &Value::Int(1)); } __for_first_578 = false; is_less_than(&i, &get_array_length(&inserts)) } {
+            let mut __for_first_584: bool = true;
+            while { if !__for_first_584 { i = add(&i, &Value::Int(1)); } __for_first_584 = false; is_less_than(&i, &get_array_length(&inserts)) } {
             let mut insert: Value = self.safe_dict(inserts.clone(), i.clone(), &[]);
             let mut side: Value = self.safe_string_k(insert.clone(), "side", &[]);
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
@@ -619,8 +623,8 @@ impl ParadexCore {
         if !is_equal(&symbols, &Value::Null) && is_true(&Value::Bool(is_array(&symbols))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_579: bool = true;
-                while { if !__for_first_579 { i = add(&i, &Value::Int(1)); } __for_first_579 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_585: bool = true;
+                while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &get_value(&symbols, &i));
                 append_to_array(&mut messageHashes, messageHash.clone());
             }
@@ -872,8 +876,8 @@ impl ParadexCore {
             if is_greater_than(&symbolsLength, &Value::Int(0)) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_580: bool = true;
-                    while { if !__for_first_580 { i = add(&i, &Value::Int(1)); } __for_first_580 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                    let mut __for_first_586: bool = true;
+                    while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                     let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &get_value(&symbols, &i));
                     append_to_array(&mut messageHashes, messageHash.clone());
                 }

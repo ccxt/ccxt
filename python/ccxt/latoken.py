@@ -172,7 +172,9 @@ class latoken(Exchange, ImplicitAPI):
                     'get': {
                         'auth/account': {'cost': 1},
                         'auth/account/currency/{currency}/{type}': {'cost': 1},
+                        'auth/account/filtered': {'cost': 1},
                         'auth/order': {'cost': 1},
+                        'auth/order/active': {'cost': 1},
                         'auth/order/getOrder/{id}': {'cost': 1},
                         'auth/order/pair/{currency}/{quote}': {'cost': 1},
                         'auth/order/pair/{currency}/{quote}/active': {'cost': 1},
@@ -193,7 +195,9 @@ class latoken(Exchange, ImplicitAPI):
                         'auth/order/cancel': {'cost': 1},
                         'auth/order/cancelAll': {'cost': 1},
                         'auth/order/cancelAll/{currency}/{quote}': {'cost': 1},
+                        'auth/order/cancelBulk': {'cost': 1},
                         'auth/order/place': {'cost': 1},
+                        'auth/order/placeBulk': {'cost': 1},
                         'auth/spot/deposit': {'cost': 1},
                         'auth/spot/withdraw': {'cost': 1},
                         'auth/stopOrder/cancel': {'cost': 1},
@@ -241,8 +245,8 @@ class latoken(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
-                    'INTERNAL_ERROR': ExchangeError,  # internal server error. You can contact our support to solve self problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
-                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,  # requested information currently not available. You can contact our support to solve self problem or retry later.
+                    'INTERNAL_ERROR': ExchangeError,  # internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,  # requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED': AuthenticationError,  # user's query not authorized. Check if you are logged in.
                     'FORBIDDEN': PermissionDenied,  # you don't have enough access rights.
                     'BAD_REQUEST': BadRequest,  # some bad request, for example bad fields values or something else. Read response message for more information.
@@ -260,18 +264,18 @@ class latoken(Exchange, ImplicitAPI):
                     'INSUFFICIENT_AUTHENTICATION': AuthenticationError,  # for example, 2FA required.
                     'UNKNOWN_LOCATION': AuthenticationError,  # user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS': RateLimitExceeded,  # too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
-                    'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency(USDT), need(20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
-                    'ORDER_VALIDATION': InvalidOrder,  # {"message":"Quantity(0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
-                    'BAD_TICKS': InvalidOrder,  # {"status":"FAILURE","message":"Quantity(1.4) does not match quantity tick(10)","error":"BAD_TICKS","errors":null,"result":false}
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION': InvalidOrder,  # {"message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'BAD_TICKS': InvalidOrder,  # {"status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false}
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
                     'The API key was revoked': AuthenticationError,  # {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
-                    'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
-                    "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = None","error":"NOT_FOUND","errors":null,"result":false}
-                    'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
+                    "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = undefined","error":"NOT_FOUND","errors":null,"result":false}
+                    'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'API keys are not available for': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
@@ -396,7 +400,7 @@ class latoken(Exchange, ImplicitAPI):
         #     [
         #         {
         #             "id":"dba4289b-6b46-4d94-bf55-49eec9a163ad",
-        #             "status":"PAIR_STATUS_ACTIVE",  # CURRENCY_STATUS_INACTIVE
+        #             "status":"PAIR_STATUS_ACTIVE", // CURRENCY_STATUS_INACTIVE
         #             "baseCurrency":"fb9b53d6-bbf6-472f-b6ba-73cc0d606c9b",
         #             "quoteCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         #             "priceTick":"0.000000100000000000",
@@ -451,7 +455,7 @@ class latoken(Exchange, ImplicitAPI):
                     'swap': False,
                     'future': False,
                     'option': False,
-                    'active': (status == 'PAIR_STATUS_ACTIVE'),  # assuming True
+                    'active': (status == 'PAIR_STATUS_ACTIVE'),  # assuming true
                     'contract': False,
                     'linear': None,
                     'inverse': None,
@@ -499,7 +503,7 @@ class latoken(Exchange, ImplicitAPI):
         #         {
         #             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
         #             "status":"CURRENCY_STATUS_ACTIVE",
-        #             "type":"CURRENCY_TYPE_ALTERNATIVE",  # CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
+        #             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
         #             "name":"MyCryptoBank",
         #             "tag":"MCB",
         #             "description":"",
@@ -603,7 +607,7 @@ class latoken(Exchange, ImplicitAPI):
         types = self.safe_value(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
-        balances = self.safe_value(balancesByType, accountType, [])
+        balances = self.safe_list(balancesByType, accountType, [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -811,7 +815,7 @@ class latoken(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf",
@@ -825,7 +829,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "makerBuyer":false
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "id":"02e02533-b4bf-4ba9-9271-24e2108dfbf7",
@@ -909,8 +913,8 @@ class latoken(Exchange, ImplicitAPI):
         request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
-            # 'from': str(since),  # milliseconds
-            # 'limit': limit,  # default 100, limit 100
+            # 'from': since.toString (), // milliseconds
+            # 'limit': limit, // default 100, limit 100
         }
         if limit is not None:
             request['limit'] = min(limit, 100)  # default 100, limit 100
@@ -1016,8 +1020,8 @@ class latoken(Exchange, ImplicitAPI):
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
-            # 'from': self.milliseconds(),
-            # 'limit': limit,  # default '100'
+            # 'from': this.milliseconds (),
+            # 'limit': limit, // default '100'
         }
         market = None
         if limit is not None:
@@ -1248,8 +1252,8 @@ class latoken(Exchange, ImplicitAPI):
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
-            # 'from': self.milliseconds(),
-            # 'limit': limit,  # default '100'
+            # 'from': this.milliseconds (),
+            # 'limit': limit, // default '100'
         }
         market = None
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
@@ -1358,7 +1362,7 @@ class latoken(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.condition]: "GTC", "IOC", or  "FOK"
-        :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
+        :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id (free field for your convenience)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1374,8 +1378,8 @@ class latoken(Exchange, ImplicitAPI):
             'condition': 'GTC',  # "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
             'type': uppercaseType,  # "LIMIT", "MARKET"
             'clientOrderId': self.uuid(),  # 50 characters max
-            # 'price': self.price_to_precision(symbol, price),
-            # 'quantity': self.amount_to_precision(symbol, amount),
+            # 'price': this.priceToPrecision (symbol, price),
+            # 'quantity': this.amountToPrecision (symbol, amount),
             'quantity': self.amount_to_precision(symbol, amount),
             'timestamp': self.seconds(),
         }
@@ -1434,7 +1438,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "message": "cancellation request successfully submitted",
         #         "status": "SUCCESS",
         #         "error": "",
-        #         "errors": {}
+        #         "errors": { }
         #     }
         #
         return self.parse_order(response)
@@ -1636,7 +1640,7 @@ class latoken(Exchange, ImplicitAPI):
         response = self.privateGetAuthTransfer(params)
         #
         #     {
-        #         "hasNext": True,
+        #         "hasNext": true,
         #         "content": [
         #             {
         #             "id": "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
@@ -1653,16 +1657,16 @@ class latoken(Exchange, ImplicitAPI):
         #             "recipient": null,
         #             "sender": null,
         #             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #             "codeRequired": False,
+        #             "codeRequired": false,
         #             "fromUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
         #             "toUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
         #             "fee": 0
         #             },
         #             ...
         #         ],
-        #         "first": True,
+        #         "first": true,
         #         "pageSize": 20,
-        #         "hasContent": True
+        #         "hasContent": true
         #     }
         #
         transfers = self.safe_list(response, 'content', [])
@@ -1714,7 +1718,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "recipient": "",
         #         "sender": "",
         #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
-        #         "codeRequired": False,
+        #         "codeRequired": false,
         #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "fee": 0
@@ -1739,7 +1743,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "recipient": "",
         #         "sender": "",
         #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
-        #         "codeRequired": False,
+        #         "codeRequired": false,
         #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "fee": 0

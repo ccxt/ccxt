@@ -1152,17 +1152,10 @@ class toobit extends toobit$1["default"] {
         if (time - lastAuthenticatedTime > delay) {
             this.checkRequiredCredentials();
             // single-flight leader election on a never-dialed client, see
-            // https://github.com/ccxt/ccxt/issues/29393. the election used to
-            // run on this.client (this.getUserStreamUrl ()), but that url
-            // embeds the listenKey it is about to mint, so the client the
-            // flight registers on is not the client the next caller looks at:
-            // the cold call elected on .../ws/undefined and every later call
-            // landed on .../ws/<key> with an empty subscriptions map, found
-            // the key still fresh, skipped the fetch and hung on a future
-            // nobody resolves. client.futures is the registry: client.future ()
-            // is the atomic check-and-insert and client.resolve () /
-            // client.reject () settle and remove the entry under the same lock
-            // in every port
+            // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+            // so the flight must not live on that client or later callers would look at a different one.
+            // client.futures is the registry: client.future () is the atomic check-and-insert and
+            // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             const messageHash = 'authenticate';
             const client = this.client('authenticationFlights');
             if (messageHash in client.futures) {

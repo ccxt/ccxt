@@ -101,6 +101,7 @@ export default class bitflyer extends Exchange {
                         'getboardstate': { 'cost': 1 },
                         'getchats': { 'cost': 1 },
                         'getfundingrate': { 'cost': 1 },
+                        'getfundingratehistory': { 'cost': 1 },
                     },
                 },
                 'private': {

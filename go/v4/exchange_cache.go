@@ -57,11 +57,13 @@ func cacheKeyOf(m map[string]any, field string) string {
 // The bool reports whether the row actually carries one, so a genuine timestamp
 // of 0 is not confused with "no timestamp".
 func cacheTimestampOf(item any) (int64, bool) {
-	arr, ok := item.([]any)
+	arr, ok := derefScalar(item).([]any)
 	if !ok || len(arr) == 0 {
 		return 0, false
 	}
-	switch v := arr[0].(type) {
+	// a pointer-carried timestamp must key the row, otherwise every candle
+	// looks keyless and only the newest one survives
+	switch v := derefScalar(arr[0]).(type) {
 	case int:
 		return int64(v), true
 	case int32:
@@ -96,11 +98,11 @@ type ArrayCache struct {
 	nestedNewUpdates bool                      `json:"-"`
 	// newUpdatesBySymbol holds the resolved count per key (mirrors Cache.ts).
 	// Distinct ids/sides live in seenUpdatesBySymbol; getLimit never reads a Set.
-	newUpdatesBySymbol       map[string]int  `json:"-"`
-	seenUpdatesBySymbol      map[string]*Set `json:"-"`
+	newUpdatesBySymbol  map[string]int  `json:"-"`
+	seenUpdatesBySymbol map[string]*Set `json:"-"`
 	// the same, but cleared only by the GLOBAL GetLimit scope - the two poll
 	// scopes are independent, so each needs its own memory of what it has seen
-	seenUpdatesAll map[string]*Set `json:"-"`
+	seenUpdatesAll           map[string]*Set `json:"-"`
 	clearUpdatesBySymbol     map[string]bool `json:"-"`
 	nestedNewUpdatesBySymbol bool            `json:"-"`
 	keyField                 string          `json:"-"`
@@ -211,14 +213,21 @@ func (c *ArrayCache) Append(item any) {
 			c.Hashmap[symbol] = byId
 		}
 		if old, exists := byId[id]; exists {
-			// overwrite in-place (mirror JS behaviour where the reference is
-			// kept alive).  Shallow copy for now.
+			// merge copy-on-write: never mutate the stored map in place. Previously
+			// returned items (via ToArray -> WatchOrders etc.) share these map
+			// references and are read by user goroutines without holding c.Mu, so an
+			// in-place write here is a fatal "concurrent map read and map write"
 			if om, ok := old.(map[string]any); ok {
 				if nm, ok := item.(map[string]any); ok {
-					for k, v := range nm {
-						om[k] = v
+					merged := make(map[string]any, len(om)+len(nm))
+					for k, v := range om {
+						merged[k] = v
 					}
-					item = om // keep the original reference in the array
+					for k, v := range nm {
+						merged[k] = v
+					}
+					byId[id] = merged
+					item = merged // the array slot is replaced below
 				}
 			}
 			shouldAppend = false
@@ -287,33 +296,6 @@ func (c *ArrayCache) Append(item any) {
 	c.trackAppendLocked(symbol, id)
 }
 
-// func areArraysEqual(a any, b any) bool {
-// 	arrA, okA := a.([]any)
-// 	arrB, okB := b.([]any)
-// 	if !okA || !okB {
-// 		return false
-// 	}
-// 	if len(arrA) != len(arrB) {
-// 		return false
-// 	}
-// 	for i := range arrA {
-// 		// elems can be ints, or map[string]any etc
-// 		if !IsEqual(arrA[i], arrB[i]) {
-// 			return false
-// 		}
-// 		// if arrA[i] != arrB[i] {
-// 		// 	return false
-// 		// }
-// 	}
-// 	return true
-// }
-
-// Clear resets the nesting index along with the array. The keyed subclasses find
-// existing rows through the hashmap, so a clear () that only truncates c.Data
-// leaves the hashmap claiming rows that are gone - the next append then merges
-// into an orphaned reference and the row is silently lost. The update counters
-// have to go too, or GetLimit keeps reporting updates for rows that no longer
-// exist.
 func (c *ArrayCache) Clear() {
 	c.BaseCache.Clear()
 	c.Mu.Lock()
@@ -351,6 +333,10 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 	// return len(c.ToArray())
 	var newUpdatesValue any = nil
 
+	// a typed nil pointer is not == nil, so both arguments must be normalized
+	// or an absent symbol/limit reads as present and truncates the result
+	symbol = derefScalar(symbol)
+	limit = derefScalar(limit)
 	if symbol == nil {
 		newUpdatesValue = c.allNewUpdates
 		c.clearAllUpdates = true
@@ -635,13 +621,20 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 
 	bySide := c.Hashmap[symbol]
 
-	if _, exists := bySide[side]; exists {
-		if om, ok := bySide[side].(map[string]any); ok {
+	if old, exists := bySide[side]; exists {
+		// merge copy-on-write, same reasoning as ArrayCache.Append: previously
+		// returned items share these map references and are read without c.Mu
+		if om, ok := old.(map[string]any); ok {
 			if nm, ok := item.(map[string]any); ok {
-				for k, v := range nm {
-					om[k] = v
+				merged := make(map[string]any, len(om)+len(nm))
+				for k, v := range om {
+					merged[k] = v
 				}
-				item = om
+				for k, v := range nm {
+					merged[k] = v
+				}
+				bySide[side] = merged
+				item = merged // the array slot is replaced below
 			}
 		}
 		shouldAppend = false

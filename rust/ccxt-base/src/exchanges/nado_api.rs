@@ -32,6 +32,11 @@ impl NadoCore {
         self.call_method(Value::Str("gateway_public_post_query".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `gatewayPublicPostEdgeQuery` implicit endpoint.
+    pub async fn gateway_public_post_edge_query(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("gateway_public_post_edge_query".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `gatewayPrivatePostExecute` implicit endpoint.
     pub async fn gateway_private_post_execute(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("gateway_private_post_execute".to_string()), optional_args).await
@@ -70,6 +75,11 @@ impl NadoCore {
     /// Auto-generated wrapper for the `archiveV2PublicGetTrades` implicit endpoint.
     pub async fn archive_v2_public_get_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("archive_v2_public_get_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `archiveV2PublicGetSymbols` implicit endpoint.
+    pub async fn archive_v2_public_get_symbols(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("archive_v2_public_get_symbols".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `triggerPrivatePostExecute` implicit endpoint.

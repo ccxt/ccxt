@@ -178,6 +178,116 @@ pub fn testSortBy1() {
         m.insert("x".to_string(), Value::Int(10));
     m
 })]).clone()]);
+    // immutability - original array should not be modified (ascending)
+    let mut original: Value = Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(5));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(4));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+    m
+})]);
+    exchange.sort_by(original.clone(), Value::Str("x".to_string()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), original.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(5));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(4));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+    m
+})]).clone()]);
+    // immutability - original array should not be modified (descending)
+    let mut originalDescending: Value = Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(5));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(4));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+    m
+})]);
+    exchange.sort_by(originalDescending.clone(), Value::Str("x".to_string()), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), originalDescending.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(5));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(4));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+    m
+})]).clone()]);
+    // immutability - array rows (orderbook-style numeric keys) should not be modified
+    let mut originalRows: Value = Value::List(vec![Value::List(vec![Value::Float(3000.5), Value::Int(1)]), Value::List(vec![Value::Float(2900.5), Value::Int(2)]), Value::List(vec![Value::Float(2950.5), Value::Int(3)])]);
+    exchange.sort_by(originalRows.clone(), Value::Int(0), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), originalRows.clone(), Value::List(vec![Value::List(vec![Value::Float(3000.5), Value::Int(1)]), Value::List(vec![Value::Float(2900.5), Value::Int(2)]), Value::List(vec![Value::Float(2950.5), Value::Int(3)])]).clone()]);
+    exchange.sort_by(originalRows.clone(), Value::Int(0), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), originalRows.clone(), Value::List(vec![Value::List(vec![Value::Float(3000.5), Value::Int(1)]), Value::List(vec![Value::Float(2900.5), Value::Int(2)]), Value::List(vec![Value::Float(2950.5), Value::Int(3)])]).clone()]);
 }
 pub fn testSortBy2() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -418,6 +528,94 @@ pub fn testSortBy2() {
     // empty array
     let mut emptyArray: Value = exchange.sort_by2(Value::List(vec![]), Value::Str("x".to_string()), Value::Str("y".to_string()), &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), emptyArray.clone(), Value::List(vec![]).clone()]);
+    // immutability - original array should not be modified (ascending)
+    let mut original: Value = Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+        m.insert("y".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+        m.insert("y".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+        m.insert("y".to_string(), Value::Int(3));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+        m.insert("y".to_string(), Value::Int(4));
+    m
+})]);
+    exchange.sort_by2(original.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), original.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+        m.insert("y".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+        m.insert("y".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+        m.insert("y".to_string(), Value::Int(3));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+        m.insert("y".to_string(), Value::Int(4));
+    m
+})]).clone()]);
+    // immutability - original array should not be modified (descending)
+    let mut originalDescending: Value = Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+        m.insert("y".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+        m.insert("y".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+        m.insert("y".to_string(), Value::Int(3));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+        m.insert("y".to_string(), Value::Int(4));
+    m
+})]);
+    exchange.sort_by2(originalDescending.clone(), Value::Str("x".to_string()), Value::Str("y".to_string()), &[Value::Bool(true)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy2".to_string()).clone(), originalDescending.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+        m.insert("y".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+        m.insert("y".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+        m.insert("y".to_string(), Value::Int(3));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(0));
+        m.insert("y".to_string(), Value::Int(4));
+    m
+})]).clone()]);
 }
 pub fn testSortBy() {
     testSortBy1();

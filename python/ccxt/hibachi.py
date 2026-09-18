@@ -384,8 +384,8 @@ class hibachi(Exchange, ImplicitAPI):
         return self.parse_markets(rows)
 
     def hardcoded_currencies(self) -> Currencies:
-        # Hibachi only supports USDT on Arbitrum at self time
-        # We don't have an API endpoint to expose self information yet
+        # Hibachi only supports USDT on Arbitrum at this time
+        # We don't have an API endpoint to expose this information yet
         result = {}
         networks = {}
         networkId = 'ARBITRUM'
@@ -438,7 +438,7 @@ class hibachi(Exchange, ImplicitAPI):
         result = {
             'info': response,
         }
-        # Hibachi only supports USDT on Arbitrum at self time
+        # Hibachi only supports USDT on Arbitrum at this time
         code = self.safe_currency_code('USDT')
         account = self.account()
         account['total'] = self.safe_string(response, 'balance')
@@ -462,7 +462,7 @@ class hibachi(Exchange, ImplicitAPI):
         response = self.privateGetTradeAccountInfo(self.extend(request, params))
         #
         # {
-        #     assets: [{quantity: '3.000000', symbol: 'USDT'}],
+        #     assets: [ { quantity: '3.000000', symbol: 'USDT' } ],
         #     balance: '3.000000',
         #     maximalWithdraw: '3.000000',
         #     numFreeTransfersRemaining: '100',
@@ -955,7 +955,7 @@ class hibachi(Exchange, ImplicitAPI):
         }
         response = self.privatePostTradeOrders(self.extend(request, params))
         #
-        # {"orders": [{nonce: '1754349993908', orderId: '589642085255349248'}]}
+        # { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         #
         ret = []
         responseOrders = self.safe_list(response, 'orders', [])
@@ -1012,7 +1012,7 @@ class hibachi(Exchange, ImplicitAPI):
         request = self.edit_order_request(nonce, id, symbol, type, side, amount, price, params)
         request['accountId'] = self.get_account_id()
         self.privatePutTradeOrder(request)
-        # At self time the response body is empty. A 200 response means the update request is accepted and sent to process
+        # At this time the response body is empty. A 200 response means the update request is accepted and sent to process
         #
         # {}
         #
@@ -1053,7 +1053,7 @@ class hibachi(Exchange, ImplicitAPI):
         }
         response = self.privatePostTradeOrders(self.extend(request, params))
         #
-        # {"orders": [{"orderId": "589636801329628160"}]}
+        # { "orders": [ { "orderId": "589636801329628160" } ] }
         #
         ret = []
         responseOrders = self.safe_list(response, 'orders', [])
@@ -1091,7 +1091,7 @@ class hibachi(Exchange, ImplicitAPI):
         request = self.cancel_order_request(id)
         request['accountId'] = self.get_account_id()
         response = self.privateDeleteTradeOrder(self.extend(request, params))
-        # At self time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
+        # At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
         #
         # {}
         #
@@ -1123,7 +1123,7 @@ class hibachi(Exchange, ImplicitAPI):
         }
         response = self.privatePostTradeOrders(self.extend(request, params))
         #
-        # {"orders": [{"orderId": "589636801329628160"}]}
+        # { "orders": [ { "orderId": "589636801329628160" } ] }
         #
         ret = []
         responseOrders = self.safe_list(response, 'orders', [])
@@ -1162,7 +1162,7 @@ class hibachi(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['contractId'] = self.safe_integer(market, 'numericId')
         response = self.privateDeleteTradeOrders(self.extend(request, params))
-        # At self time the response body is empty. A 200 response means the cancel request is accepted and sent to process
+        # At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
         #
         # {}
         #
@@ -1176,7 +1176,7 @@ class hibachi(Exchange, ImplicitAPI):
         # Converting them to internal representation:
         # - Quantity: Internal = External * (10^6)
         # - maxFees: Internal = External * (10^6)
-        # We only have USDT currency time
+        # We only have USDT as our currency as this time
         USDTAssetId = 1
         USDTFactor = '1000000'
         amountStr = self.number_to_string(amount)
@@ -1239,7 +1239,7 @@ class hibachi(Exchange, ImplicitAPI):
             'signature': signature,
         }
         self.privatePostCapitalWithdraw(self.extend(request, params))
-        # At self time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
+        # At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
         #
         # {}
         #
@@ -1419,7 +1419,7 @@ class hibachi(Exchange, ImplicitAPI):
         https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
 
         :param str [symbol]: unified market symbol to filter by
-        :param int [since]: milisecond timestamp of the earliest order
+        :param int [since]: millisecond timestamp of the earliest order
         :param int [limit]: the maximum number of open orders to return
         :param dict [params]: extra parameters
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -1498,7 +1498,7 @@ class hibachi(Exchange, ImplicitAPI):
         response = self.privateGetTradeOrdersHistory(self.extend(request, params))
         #
         #     {
-        #         "hasMore": False,
+        #         "hasMore": false,
         #         "orders": [
         #             {
         #                 "accountId": 128,
@@ -1574,7 +1574,7 @@ class hibachi(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1865,7 +1865,7 @@ class hibachi(Exchange, ImplicitAPI):
         #             "id": 13116,
         #             "instantWithdrawalChain": null,
         #             "instantWithdrawalToken": null,
-        #             "isInstantWithdrawal": False,
+        #             "isInstantWithdrawal": false,
         #             "quantity": "0.040000",
         #             "status": "completed",
         #             "timestampSec": 1752542708,
@@ -2022,7 +2022,7 @@ class hibachi(Exchange, ImplicitAPI):
         #             "id": 12993,
         #             "instantWithdrawalChain": null,
         #             "instantWithdrawalToken": null,
-        #             "isInstantWithdrawal": False,
+        #             "isInstantWithdrawal": false,
         #             "quantity": "0.111930",
         #             "status": "completed",
         #             "timestampSec": 1752387891,
@@ -2157,7 +2157,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         response = self.publicGetExchangeUtcTimestamp(params)
         #
-        #     {"timestampMs":1754077574040}
+        #     { "timestampMs":1754077574040 }
         #
         return self.safe_integer(response, 'timestampMs')
 
@@ -2179,7 +2179,7 @@ class hibachi(Exchange, ImplicitAPI):
         }
         response = self.publicGetMarketDataOpenInterest(self.extend(request, params))
         #
-        #   {"totalQuantity" : "2.3299770166"}
+        #   { "totalQuantity" : "2.3299770166" }
         #
         timestamp = self.milliseconds()
         return self.safe_open_interest({

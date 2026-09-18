@@ -232,6 +232,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 - https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
 - https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
 
 
 | Param | Type | Required | Description |
@@ -240,6 +241,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.method | <code>string</code> | No | 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks' |
+| params.rpi | <code>bool</code> | No | set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries |
 
 
 ```javascript
@@ -530,7 +532,7 @@ create a trade order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' |
+| type | <code>string</code> | Yes | 'market' or 'limit', or 'rpi' for a retail price improvement maker order |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
@@ -550,6 +552,8 @@ create a trade order
 | params.tpOrdKind | <code>string</code> | No | 'condition' or 'limit', the default is 'condition' |
 | params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', the default is 'cross' |
+| params.rpiTakerAccess | <code>bool</code> | No | true to let a taker order match against retail price improvement liquidity |
+| params.rpiPxRound | <code>bool</code> | No | *rpi orders only* true to round the price outward to the nearest placeable non-crossing level |
 
 
 ```javascript
@@ -2384,12 +2388,17 @@ watches best bid & ask for symbols
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
+**See**
+
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms) |
 
 
 ```javascript

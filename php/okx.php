@@ -195,6 +195,7 @@ class okx extends Exchange {
                         'market/ticker' => array( 'cost' => 1 ),
                         'market/books' => array( 'cost' => 1 / 2 ),
                         'market/books-full' => array( 'cost' => 2 ),
+                        'market/books-rpi' => array( 'cost' => 1 / 2 ),
                         'market/candles' => array( 'cost' => 1 / 2 ),
                         'market/history-candles' => array( 'cost' => 1 ),
                         'market/trades' => array( 'cost' => 1 / 5 ),
@@ -247,6 +248,8 @@ class okx extends Exchange {
                         'public/event-contract/markets' => array( 'cost' => 1 ),
                         'public/event-contract/series' => array( 'cost' => 1 ),
                         'public/vip-interest-rate-loan-quota' => array( 'cost' => 10 ), // not documented
+                        'public/mm-instrument-types' => array( 'cost' => 4 ),
+                        'public/delta-hedge-currencies' => array( 'cost' => 1 ),
                         // rubik
                         'rubik/stat/trading-data/support-coin' => array( 'cost' => 4 ),
                         'rubik/stat/contracts/open-interest-history' => array( 'cost' => 2 ),
@@ -457,6 +460,21 @@ class okx extends Exchange {
                         'finance/flexible-loan/loan-info' => array( 'cost' => 4 ),
                         'finance/flexible-loan/loan-history' => array( 'cost' => 4 ),
                         'finance/flexible-loan/interest-accrued' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/emode-info' => array( 'cost' => 4 ),
+                        // okusd
+                        'finance/okusd/limits' => array( 'cost' => 10 ),
+                        'finance/okusd/account' => array( 'cost' => 10 ),
+                        'finance/okusd/subscribe/history' => array( 'cost' => 4 ),
+                        'finance/okusd/redeem/history' => array( 'cost' => 4 ),
+                        'finance/okusd/rewards/history' => array( 'cost' => 4 ),
+                        'finance/okusd/rate/history' => array( 'cost' => 4 ),
+                        // stable rewards
+                        'finance/stable-rewards/product-info' => array( 'cost' => 4 ),
+                        'finance/stable-rewards/balance' => array( 'cost' => 4 ),
+                        'finance/stable-rewards/apy-history' => array( 'cost' => 5 / 3 ),
+                        // glp
+                        'users/glp/todayperformance' => array( 'cost' => 4 ),
+                        'users/glp/historicalperformance' => array( 'cost' => 4 ),
                         // copytrading
                         'copytrading/current-subpositions' => array( 'cost' => 1 ),
                         'copytrading/subpositions-history' => array( 'cost' => 1 ),
@@ -492,6 +510,11 @@ class okx extends Exchange {
                         'finance/sfp/dcd/order-history' => array( 'cost' => 2 ),
                         // affiliate
                         'affiliate/invitee/detail' => array( 'cost' => 1 ),
+                        'affiliate/performance/summary' => array( 'cost' => 10 / 3 ),
+                        'affiliate/invitee/list' => array( 'cost' => 10 / 3 ),
+                        'affiliate/link/list' => array( 'cost' => 10 / 3 ),
+                        'affiliate/co-inviter/list' => array( 'cost' => 10 / 3 ),
+                        'affiliate/sub-affiliate/list' => array( 'cost' => 10 / 3 ),
                         'users/partner/if-rebate' => array( 'cost' => 1 ), // not documented
                         'support/announcements' => array( 'cost' => 4 ),
                     ),
@@ -646,6 +669,11 @@ class okx extends Exchange {
                         'finance/staking-defi/sol/cancel-redeem' => array( 'cost' => 5 ),
                         'finance/flexible-loan/max-loan' => array( 'cost' => 4 ),
                         'finance/flexible-loan/adjust-collateral' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/borrow' => array( 'cost' => 10 ),
+                        'finance/flexible-loan/repay' => array( 'cost' => 10 ),
+                        // okusd
+                        'finance/okusd/subscribe' => array( 'cost' => 20 ),
+                        'finance/okusd/redeem' => array( 'cost' => 20 ),
                         // copytrading
                         'copytrading/algo-order' => array( 'cost' => 1 ),
                         'copytrading/close-subposition' => array( 'cost' => 1 ),
@@ -708,7 +736,7 @@ class okx extends Exchange {
                     // General Class
                     '1' => '\\ccxt\\ExchangeError', // Operation failed
                     '2' => '\\ccxt\\ExchangeError', // Bulk operation partially succeeded
-                    '4088' => '\\ccxt\\ManualInteractionNeeded', // array("code":"4088","data":array(),"msg":"You can’t trade or deposit until you’ve verified your identity again. Head to Identity Verification to complete it.")
+                    '4088' => '\\ccxt\\ManualInteractionNeeded', // {"code":"4088","data":[],"msg":"You can’t trade or deposit until you’ve verified your identity again. Head to Identity Verification to complete it."}
                     '50000' => '\\ccxt\\BadRequest', // Body can not be empty
                     '50001' => '\\ccxt\\OnMaintenance', // Matching engine upgrading. Please try again later
                     '50002' => '\\ccxt\\BadRequest', // Json data format error
@@ -768,7 +796,7 @@ class okx extends Exchange {
                     '51007' => '\\ccxt\\InvalidOrder', // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
                     '51008' => '\\ccxt\\InsufficientFunds', // Order placement failed due to insufficient balance or margin
                     '51009' => '\\ccxt\\AccountSuspended', // Order placement function is blocked by the platform
-                    '51010' => '\\ccxt\\AccountNotEnabled', // Account level too low array("code":"1","data":[array("clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":"")],"msg":"Operation failed.")
+                    '51010' => '\\ccxt\\AccountNotEnabled', // Account level too low {"code":"1","data":[{"clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":""}],"msg":"Operation failed."}
                     '51011' => '\\ccxt\\InvalidOrder', // Duplicated order ID
                     '51012' => '\\ccxt\\BadSymbol', // Token does not exist
                     '51014' => '\\ccxt\\BadSymbol', // Index does not exist
@@ -798,12 +826,12 @@ class okx extends Exchange {
                     '51090' => '\\ccxt\\InvalidOrder', // You can't modify the amount of an SL order placed with a TP limit order.
                     '51091' => '\\ccxt\\InvalidOrder', // All TP orders in one order must be of the same type.
                     '51092' => '\\ccxt\\InvalidOrder', // TP order prices (tpOrdPx) in one order must be different.
-                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (is_array(one order can't be –1 (market price) && array_key_exists(tpOrdPx) ?? '', one order can't be –1 (market price)).
+                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (tpOrdPx) in one order can't be –1 (market price).
                     '51094' => '\\ccxt\\InvalidOrder', // You can't place TP limit orders in spot, margin, or options trading.
                     '51095' => '\\ccxt\\InvalidOrder', // To place TP limit orders at this endpoint, you must place an SL order at the same time.
                     '51096' => '\\ccxt\\InvalidOrder', // cxlOnClosePos needs to be true to place a TP limit order
                     '51098' => '\\ccxt\\InvalidOrder', // You can't add a new TP order to an SL order placed with a TP limit order.
-                    '51099' => '\\ccxt\\InvalidOrder', // You can't place TP limit orders lead trader.
+                    '51099' => '\\ccxt\\InvalidOrder', // You can't place TP limit orders as a lead trader.
                     '51100' => '\\ccxt\\InvalidOrder', // Trading amount does not meet the min tradable amount
                     '51101' => '\\ccxt\\InvalidOrder', // Entered amount exceeds the max pending order amount (Cont) per transaction
                     '51102' => '\\ccxt\\InvalidOrder', // Entered amount exceeds the max pending count
@@ -827,7 +855,7 @@ class okx extends Exchange {
                     '51121' => '\\ccxt\\InvalidOrder', // Order count should be the integer multiples of the lot size
                     '51122' => '\\ccxt\\InvalidOrder', // Order price should be higher than the min price {0}
                     '51124' => '\\ccxt\\InvalidOrder', // You can only place limit orders during call auction
-                    '51125' => '\\ccxt\\InvalidOrder', // Currently there are reduce . reverse position pending orders in margin trading. Please cancel all reduce . reverse position pending orders and continue
+                    '51125' => '\\ccxt\\InvalidOrder', // Currently there are reduce + reverse position pending orders in margin trading. Please cancel all reduce + reverse position pending orders and continue
                     '51126' => '\\ccxt\\InvalidOrder', // Currently there are reduce only pending orders in margin trading.Please cancel all reduce only pending orders and continue
                     '51127' => '\\ccxt\\InsufficientFunds', // Available balance is 0
                     '51128' => '\\ccxt\\InvalidOrder', // Multi-currency margin account can not do cross-margin trading
@@ -842,9 +870,9 @@ class okx extends Exchange {
                     '51137' => '\\ccxt\\InvalidOrder', // Your opening price has triggered the limit price, and the max buy price is {0}
                     '51138' => '\\ccxt\\InvalidOrder', // Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139' => '\\ccxt\\InvalidOrder', // Reduce-only feature is unavailable for the spot transactions by simple account
-                    '51155' => '\\ccxt\\RestrictedLocation', // array("code":"1","data":[array("clOrdId":"e847xxx","ordId":"","sCode":"51155","sMsg":"You can't trade this pair or borrow this crypto due to local compliance restrictions. ","tag":"e847xxx","ts":"1753979177157")],"inTime":"1753979177157408","msg":"All operations failed","outTime":"1753979177157874")
+                    '51155' => '\\ccxt\\RestrictedLocation', // {"code":"1","data":[{"clOrdId":"e847xxx","ordId":"","sCode":"51155","sMsg":"You can't trade this pair or borrow this crypto due to local compliance restrictions. ","tag":"e847xxx","ts":"1753979177157"}],"inTime":"1753979177157408","msg":"All operations failed","outTime":"1753979177157874"}
                     '51156' => '\\ccxt\\BadRequest', // You're leading trades in long/short mode and can't use this API endpoint to close positions
-                    '51159' => '\\ccxt\\BadRequest', // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction existing positions and open orders.
+                    '51159' => '\\ccxt\\BadRequest', // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
                     '51162' => '\\ccxt\\InvalidOrder', // You have {instrument} open orders. Cancel these orders and try again
                     '51163' => '\\ccxt\\InvalidOrder', // You hold {instrument} positions. Close these positions and try again
                     '51166' => '\\ccxt\\InvalidOrder', // Currently, we don't support leading trades with this instrument
@@ -860,7 +888,7 @@ class okx extends Exchange {
                     '51252' => '\\ccxt\\InvalidOrder', // Algo order price is out of the available range
                     '51253' => '\\ccxt\\InvalidOrder', // Average amount exceeds the limit of per iceberg order
                     '51254' => '\\ccxt\\InvalidOrder', // Iceberg average amount error (when user place an iceberg order)
-                    '51255' => '\\ccxt\\InvalidOrder', // Limit of per iceberg order => Total amount/1000 < x <= Total amount
+                    '51255' => '\\ccxt\\InvalidOrder', // Limit of per iceberg order: Total amount/1000 < x <= Total amount
                     '51256' => '\\ccxt\\InvalidOrder', // Iceberg order price variance error
                     '51257' => '\\ccxt\\InvalidOrder', // Trail order callback rate error
                     '51258' => '\\ccxt\\InvalidOrder', // Trail - order placement failed. The trigger price of a sell order should be higher than the last transaction price
@@ -894,26 +922,26 @@ class okx extends Exchange {
                     '51328' => '\\ccxt\\InvalidOrder', // closeFraction is only available for reduceOnly orders
                     '51329' => '\\ccxt\\InvalidOrder', // closeFraction is only available in NET mode
                     '51330' => '\\ccxt\\InvalidOrder', // closeFraction is only available for stop market orders
-                    '51400' => '\\ccxt\\OrderNotFound', // Cancellation failed order does not exist
-                    '51401' => '\\ccxt\\OrderNotFound', // Cancellation failed order is already canceled
-                    '51402' => '\\ccxt\\OrderNotFound', // Cancellation failed order is already completed
-                    '51403' => '\\ccxt\\InvalidOrder', // Cancellation failed order type does not support cancellation
+                    '51400' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order does not exist
+                    '51401' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order is already canceled
+                    '51402' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order is already completed
+                    '51403' => '\\ccxt\\InvalidOrder', // Cancellation failed as the order type does not support cancellation
                     '51404' => '\\ccxt\\InvalidOrder', // Order cancellation unavailable during the second phase of call auction
-                    '51405' => '\\ccxt\\ExchangeError', // Cancellation failed do not have any pending orders
+                    '51405' => '\\ccxt\\ExchangeError', // Cancellation failed as you do not have any pending orders
                     '51406' => '\\ccxt\\ExchangeError', // Canceled - order count exceeds the limit {0}
                     '51407' => '\\ccxt\\BadRequest', // Either order ID or client order ID is required
                     '51408' => '\\ccxt\\ExchangeError', // Pair ID or name does not match the order info
                     '51409' => '\\ccxt\\ExchangeError', // Either pair ID or pair name ID is required
-                    '51410' => '\\ccxt\\CancelPending', // Cancellation failed order is already under cancelling status
+                    '51410' => '\\ccxt\\CancelPending', // Cancellation failed as the order is already under cancelling status
                     '51500' => '\\ccxt\\ExchangeError', // Either order price or amount is required
                     '51501' => '\\ccxt\\ExchangeError', // Maximum {0} orders can be modified
                     '51502' => '\\ccxt\\InsufficientFunds', // Order modification failed for insufficient margin or balance
-                    '51503' => '\\ccxt\\ExchangeError', // Order modification failed order does not exist
+                    '51503' => '\\ccxt\\ExchangeError', // Order modification failed as the order does not exist
                     '51506' => '\\ccxt\\ExchangeError', // Order modification unavailable for the order type
                     '51508' => '\\ccxt\\ExchangeError', // Orders are not allowed to be modified during the call auction
-                    '51509' => '\\ccxt\\ExchangeError', // Modification failed order has been canceled
-                    '51510' => '\\ccxt\\ExchangeError', // Modification failed order has been completed
-                    '51511' => '\\ccxt\\ExchangeError', // Modification failed order price did not meet the requirement for Post Only
+                    '51509' => '\\ccxt\\ExchangeError', // Modification failed as the order has been canceled
+                    '51510' => '\\ccxt\\ExchangeError', // Modification failed as the order has been completed
+                    '51511' => '\\ccxt\\ExchangeError', // Modification failed as the order price did not meet the requirement for Post Only
                     '51600' => '\\ccxt\\ExchangeError', // Status not found
                     '51601' => '\\ccxt\\ExchangeError', // Order status and order ID cannot exist at the same time
                     '51602' => '\\ccxt\\ExchangeError', // Either order status or order ID is required
@@ -943,15 +971,16 @@ class okx extends Exchange {
                     '54008' => '\\ccxt\\InvalidOrder', // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009' => '\\ccxt\\InvalidOrder', // The range of {param0} should be [{param1}, {param2}].
                     '54011' => '\\ccxt\\InvalidOrder', // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54051' => '\\ccxt\\InvalidOrder', // RPI order rejected. The order value is below the minimum required
                     '54072' => '\\ccxt\\ExchangeError', // This contract is currently view-only and not tradable.
                     '54073' => '\\ccxt\\BadRequest', // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
-                    '54074' => '\\ccxt\\ExchangeError', // Your settings failed have positions, bot or open orders for USD contracts.
+                    '54074' => '\\ccxt\\ExchangeError', // Your settings failed as you have positions, bot or open orders for USD contracts.
                     '54094' => '\\ccxt\\InvalidOrder', // Order rejected. The cool-off period is active for the current instId.
                     // Trading bot Error Code from 55100 to 55999
-                    '55100' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be within the range of {parameter1}-{parameter2}
-                    '55101' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be within the range of {parameter1}-{parameter2}
-                    '55102' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be greater than the current bot’s PnL%
-                    '55103' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be less than the current bot’s PnL%
+                    '55100' => '\\ccxt\\InvalidOrder', // Take profit % should be within the range of {parameter1}-{parameter2}
+                    '55101' => '\\ccxt\\InvalidOrder', // Stop loss % should be within the range of {parameter1}-{parameter2}
+                    '55102' => '\\ccxt\\InvalidOrder', // Take profit % should be greater than the current bot’s PnL%
+                    '55103' => '\\ccxt\\InvalidOrder', // Stop loss % should be less than the current bot’s PnL%
                     '55104' => '\\ccxt\\InvalidOrder', // Only futures grid supports take profit or stop loss based on profit percentage
                     '55111' => '\\ccxt\\InvalidOrder', // This signal name is in use, please try a new name
                     '55112' => '\\ccxt\\InvalidOrder', // This signal does not exist
@@ -961,12 +990,12 @@ class okx extends Exchange {
                     '58001' => '\\ccxt\\AuthenticationError', // Incorrect trade password
                     '58002' => '\\ccxt\\PermissionDenied', // Please activate Savings Account first
                     '58003' => '\\ccxt\\ExchangeError', // Currency type is not supported by Savings Account
-                    '58004' => '\\ccxt\\AccountSuspended', // Account blocked (transfer & withdrawal endpoint => either end of the account does not authorize the transfer)
+                    '58004' => '\\ccxt\\AccountSuspended', // Account blocked (transfer & withdrawal endpoint: either end of the account does not authorize the transfer)
                     '58005' => '\\ccxt\\ExchangeError', // The redeemed amount must be no greater than {0}
                     '58006' => '\\ccxt\\ExchangeError', // Service unavailable for token {0}
                     '58007' => '\\ccxt\\ExchangeError', // Abnormal Assets interface. Please try again later
                     '58100' => '\\ccxt\\ExchangeError', // The trading product triggers risk control, and the platform has suspended the fund transfer-out function with related users. Please wait patiently
-                    '58101' => '\\ccxt\\AccountSuspended', // Transfer suspended (transfer endpoint => either end of the account does not authorize the transfer)
+                    '58101' => '\\ccxt\\AccountSuspended', // Transfer suspended (transfer endpoint: either end of the account does not authorize the transfer)
                     '58102' => '\\ccxt\\RateLimitExceeded', // Too frequent transfer (transfer too frequently)
                     '58103' => '\\ccxt\\ExchangeError', // Parent account user id does not match sub-account user id
                     '58104' => '\\ccxt\\ExchangeError', // Since your P2P transaction is abnormal, you are restricted from making fund transfers. Please contact customer support to remove the restriction
@@ -976,7 +1005,7 @@ class okx extends Exchange {
                     '58108' => '\\ccxt\\ExchangeError', // Please enable the account for option contract
                     '58109' => '\\ccxt\\ExchangeError', // Please enable the account for swap contract
                     '58110' => '\\ccxt\\ExchangeError', // The contract triggers risk control, and the platform has suspended the fund transfer function of it. Please wait patiently
-                    '58111' => '\\ccxt\\ExchangeError', // Funds transfer unavailable perpetual contract is charging the funding fee. Please try again later
+                    '58111' => '\\ccxt\\ExchangeError', // Funds transfer unavailable as the perpetual contract is charging the funding fee. Please try again later
                     '58112' => '\\ccxt\\ExchangeError', // Your fund transfer failed. Please try again later
                     '58114' => '\\ccxt\\ExchangeError', // Transfer amount must be more than 0
                     '58115' => '\\ccxt\\ExchangeError', // Sub-account does not exist
@@ -997,7 +1026,7 @@ class okx extends Exchange {
                     '58208' => '\\ccxt\\ExchangeError', // Withdrawal failed. Please link your email
                     '58209' => '\\ccxt\\ExchangeError', // Withdrawal failed. Withdraw feature is not available for sub-accounts
                     '58210' => '\\ccxt\\ExchangeError', // Withdrawal fee exceeds the upper limit
-                    '58211' => '\\ccxt\\ExchangeError', // Withdrawal fee is lower than the lower limit (withdrawal endpoint => incorrect fee)
+                    '58211' => '\\ccxt\\ExchangeError', // Withdrawal fee is lower than the lower limit (withdrawal endpoint: incorrect fee)
                     '58212' => '\\ccxt\\ExchangeError', // Withdrawal fee should be {0}% of the withdrawal amount
                     '58213' => '\\ccxt\\AuthenticationError', // Please set trading password before withdrawal
                     '58221' => '\\ccxt\\BadRequest', // Missing label of withdrawal address.
@@ -1009,8 +1038,8 @@ class okx extends Exchange {
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     // Account error codes 59000-59999
-                    '59000' => '\\ccxt\\ExchangeError', // Your settings failed have positions or open orders
-                    '59001' => '\\ccxt\\ExchangeError', // Switching unavailable have borrowings
+                    '59000' => '\\ccxt\\ExchangeError', // Your settings failed as you have positions or open orders
+                    '59001' => '\\ccxt\\ExchangeError', // Switching unavailable as you have borrowings
                     '59100' => '\\ccxt\\ExchangeError', // You have open positions. Please cancel all open positions before changing the leverage
                     '59101' => '\\ccxt\\ExchangeError', // You have pending orders with isolated positions. Please cancel all the pending orders and adjust the leverage
                     '59102' => '\\ccxt\\ExchangeError', // Leverage exceeds the maximum leverage. Please adjust the leverage
@@ -1050,12 +1079,12 @@ class okx extends Exchange {
                     '59516' => '\\ccxt\\ExchangeError', // Please create the Copper custody funding account first.
                     '59517' => '\\ccxt\\ExchangeError', // Please create the Komainu custody funding account first.
                     '59518' => '\\ccxt\\ExchangeError', // You can’t create a sub-account using the API; please use the app or web.
-                    '59519' => '\\ccxt\\ExchangeError', // You can’t use this function/feature while it's frozen, due to => {freezereason}
+                    '59519' => '\\ccxt\\ExchangeError', // You can’t use this function/feature while it's frozen, due to: {freezereason}
                     '59642' => '\\ccxt\\BadRequest', // Lead and copy traders can only use margin-free or single-currency margin account modes
-                    '59643' => '\\ccxt\\ExchangeError', // Couldn’t switch account modes’re currently copying spot trades
-                    '59683' => '\\ccxt\\ExchangeError', // Set this crypto collateral crypto before selecting it settlement currency.
+                    '59643' => '\\ccxt\\ExchangeError', // Couldn’t switch account modes as you’re currently copying spot trades
+                    '59683' => '\\ccxt\\ExchangeError', // Set this crypto as your collateral crypto before selecting it as your settlement currency.
                     '59684' => '\\ccxt\\BadRequest', // Borrowing isn’t supported for this currency.
-                    '59686' => '\\ccxt\\BadRequest', // This crypto can’t be set settlement currency.
+                    '59686' => '\\ccxt\\BadRequest', // This crypto can’t be set as a settlement currency.
                     // WebSocket error Codes from 60000-63999
                     '60001' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_KEY" can not be empty
                     '60002' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_SIGN" can not be empty
@@ -1071,7 +1100,7 @@ class okx extends Exchange {
                     '60012' => '\\ccxt\\BadRequest', // Illegal request
                     '60013' => '\\ccxt\\BadRequest', // Invalid args
                     '60014' => '\\ccxt\\RateLimitExceeded', // Requests too frequent
-                    '60015' => '\\ccxt\\NetworkError', // Connection closed was no data transmission in the last 30 seconds
+                    '60015' => '\\ccxt\\NetworkError', // Connection closed as there was no data transmission in the last 30 seconds
                     '60016' => '\\ccxt\\ExchangeNotAvailable', // Buffer is full, cannot write data
                     '60017' => '\\ccxt\\BadRequest', // Invalid url path
                     '60018' => '\\ccxt\\BadRequest', // The {0} {1} {2} {3} {4} does not exist
@@ -1090,9 +1119,9 @@ class okx extends Exchange {
                     '60031' => '\\ccxt\\AuthenticationError', // The WebSocket endpoint does not support multiple account batch login,
                     '60032' => '\\ccxt\\AuthenticationError', // API key doesn't exist,
                     '63999' => '\\ccxt\\ExchangeError', // Internal system error
-                    '64000' => '\\ccxt\\BadRequest', // Subscription parameter uly is unavailable anymore, please replace uly with instFamily. More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
-                    '64001' => '\\ccxt\\BadRequest', // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
-                    '64002' => '\\ccxt\\BadRequest', // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64000' => '\\ccxt\\BadRequest', // Subscription parameter uly is unavailable anymore, please replace uly with instFamily. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64001' => '\\ccxt\\BadRequest', // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64002' => '\\ccxt\\BadRequest', // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64003' => '\\ccxt\\AccountNotEnabled', // Your trading fee tier doesnt meet the requirement to access this channel
                     '64004' => '\\ccxt\\BadRequest', // Subscribe to both {channelName} and books-l2-tbt for {instId} is not allowed. Unsubscribe books-l2-tbt first.
                     '64008' => '\\ccxt\\NetworkError', // The connection will soon be closed for a service upgrade. Please reconnect.
@@ -1117,8 +1146,8 @@ class okx extends Exchange {
                     '4008' => '\\ccxt\\RateLimitExceeded',  // The number of subscribed channels exceeds the maximum limit.
                 ),
                 'broad' => array(
-                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error")
-                    'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
+                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
+                    'server error' => '\\ccxt\\ExchangeNotAvailable', // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 ),
             ),
             'httpExceptions' => array(
@@ -1168,7 +1197,7 @@ class okx extends Exchange {
                     'CELO' => 'CELO',
                     'XCH' => 'Chia',
                     'BABY' => 'Babylon',
-                    // 'CHZ' => 'Chiliz', TBD => Chiliz Chain New vs Chiliz Chain
+                    // 'CHZ': 'Chiliz', TBD: Chiliz Chain New vs Chiliz Chain
                     'ATOM' => 'Cosmos',
                     'DGB' => 'Digibyte',
                     'DOGE' => 'Dogecoin',
@@ -1178,7 +1207,7 @@ class okx extends Exchange {
                     'CORE' => 'CORE',
                     'ETC' => 'Ethereum Classic',
                     'ETHW' => 'EthereumPow',
-                    // 'FTM' => 'Fantom', 'Sonic' TBD
+                    // 'FTM': 'Fantom', 'Sonic' TBD
                     'FIL' => 'Filecoin',
                     'HBAR' => 'Hedera',
                     'HYPER' => 'HyperEVM',
@@ -1198,7 +1227,7 @@ class okx extends Exchange {
                     'NULS' => 'NULS',
                     'OASYS' => 'OASYS',
                     'ONT' => 'Ontology',
-                    'OP' => 'Optimism', // TBD => OPTIMISM vs OPTIMISM (V2)
+                    'OP' => 'Optimism', // TBD: OPTIMISM vs OPTIMISM (V2)
                     'DOT' => 'Polkadot',
                     'MATIC' => 'Polygon',
                     'RVN' => 'Ravencoin',
@@ -1228,7 +1257,7 @@ class okx extends Exchange {
                     'AELF' => 'AELF',
                     'BERA' => 'Berachain',
                     'TEMPO' => 'Tempo',
-                    // tbd 'STARK' => 'Starknet',
+                    // tbd 'STARK': 'Starknet',
                     // tbd Story(IP)
                     'MONAD' => 'Monad',
                     'PLASMA' => 'Plasma',
@@ -1265,7 +1294,7 @@ class okx extends Exchange {
                     ),
                 ),
                 'fetchOHLCV' => array(
-                    // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone' => 'UTC', // UTC, HK
                 ),
                 'fetchPositions' => array(
@@ -1279,13 +1308,13 @@ class okx extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
-                // 'fetchBalance' => array(
-                //     'type' => 'spot', // 'funding', 'trading', 'spot'
-                // ),
+                // 'fetchBalance': {
+                //     'type': 'spot', // 'funding', 'trading', 'spot'
+                // },
                 'fetchLedger' => array(
                     'method' => 'privateGetAccountBills', // privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 ),
-                // 6 => Funding account, 18 => Trading account
+                // 6: Funding account, 18: Trading account
                 'fetchOrder' => array(
                     'method' => 'privateGetTradeOrder', // privateGetTradeOrdersAlgoHistory
                 ),
@@ -1544,10 +1573,10 @@ class okx extends Exchange {
             $parts = explode('-', $marketId);
             $partsLength = count($parts);
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
-            // e.g. the $market id BTC-USD-220325-194000-P (5 $parts) or the unified symbol
-            // BTC/USD:USD-260611-54000-C (4 $parts). Requiring more than 3 dash-separated $parts avoids
-            // misclassifying ordinary ids that merely contain "-C"/"-P" (such SPOT id like
-            // "PERFTESTA-PERFTESTB") options, which would crash createExpiredOptionMarket
+            // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
+            // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
+            // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
+            // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
             $isOption = ($partsLength > 3) && (str_ends_with($marketId, '-C') || str_ends_with($marketId, '-P'));
         }
@@ -1572,20 +1601,20 @@ class okx extends Exchange {
         // Note, if there is no maintenance around, the 'data' array is empty
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array(
-        //                 "begin" => "1621328400000",
-        //                 "end" => "1621329000000",
-        //                 "href" => "https://www.okx.com/support/hc/en-us/articles/360060882172",
-        //                 "scheDesc" => "",
-        //                 "serviceType" => "1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
-        //                 "state" => "scheduled", // ongoing, completed, canceled
-        //                 "system" => "classic", // classic, unified
-        //                 "title" => "Classic Spot System Upgrade"
-        //             ),
-        //         )
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "begin": "1621328400000",
+        //                 "end": "1621329000000",
+        //                 "href": "https://www.okx.com/support/hc/en-us/articles/360060882172",
+        //                 "scheDesc": "",
+        //                 "serviceType": "1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
+        //                 "state": "scheduled", // ongoing, completed, canceled
+        //                 "system": "classic", // classic, unified
+        //                 "title": "Classic Spot System Upgrade"
+        //             },
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1627,11 +1656,11 @@ class okx extends Exchange {
         $response = $this->publicGetPublicTime($params);
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array("ts" => "1621247923668")
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {"ts": "1621247923668"}
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1651,40 +1680,40 @@ class okx extends Exchange {
         $response = $this->privateGetAccountConfig($params);
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "acctLv" => "2",
-        //                 "acctStpMode" => "cancel_maker",
-        //                 "autoLoan" => false,
-        //                 "ctIsoMode" => "automatic",
-        //                 "enableSpotBorrow" => false,
-        //                 "greeksType" => "PA",
-        //                 "feeType" => "0",
-        //                 "ip" => "",
-        //                 "type" => "0",
-        //                 "kycLv" => "3",
-        //                 "label" => "v5 test",
-        //                 "level" => "Lv1",
-        //                 "levelTmp" => "",
-        //                 "liquidationGear" => "-1",
-        //                 "mainUid" => "44705892343619584",
-        //                 "mgnIsoMode" => "automatic",
-        //                 "opAuth" => "1",
-        //                 "perm" => "read_only,withdraw,trade",
-        //                 "posMode" => "long_short_mode",
-        //                 "roleType" => "0",
-        //                 "spotBorrowAutoRepay" => false,
-        //                 "spotOffsetType" => "",
-        //                 "spotRoleType" => "0",
-        //                 "spotTraderInsts" => array(),
-        //                 "traderInsts" => array(),
-        //                 "uid" => "44705892343619584",
-        //                 "settleCcy" => "USDT",
-        //                 "settleCcyList" => ["USD", "USDC", "USDG"],
+        //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
+        //                 "autoLoan": false,
+        //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
+        //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
+        //                 "level": "Lv1",
+        //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
+        //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
+        //                 "posMode": "long_short_mode",
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1742,59 +1771,59 @@ class okx extends Exchange {
     public function parse_market(array $market): array {
         //
         //     {
-        //         "alias" => "", // this_week, next_week, quarter, next_quarter
-        //         "baseCcy" => "BTC",
-        //         "category" => "1",
-        //         "ctMult" => "",
-        //         "ctType" => "", // inverse, linear
-        //         "ctVal" => "",
-        //         "ctValCcy" => "",
-        //         "expTime" => "",
-        //         "instId" => "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
-        //         "instType" => "SPOT", // SPOT, FUTURES, SWAP, OPTION
-        //         "lever" => "10",
-        //         "listTime" => "1548133413000",
-        //         "lotSz" => "0.00000001",
-        //         "minSz" => "0.00001",
-        //         "optType" => "",
-        //         "quoteCcy" => "USDT",
-        //         "settleCcy" => "",
-        //         "state" => "live",
-        //         "stk" => "",
-        //         "tickSz" => "0.1",
-        //         "uly" => ""
+        //         "alias": "", // this_week, next_week, quarter, next_quarter
+        //         "baseCcy": "BTC",
+        //         "category": "1",
+        //         "ctMult": "",
+        //         "ctType": "", // inverse, linear
+        //         "ctVal": "",
+        //         "ctValCcy": "",
+        //         "expTime": "",
+        //         "instId": "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        //         "instType": "SPOT", // SPOT, FUTURES, SWAP, OPTION
+        //         "lever": "10",
+        //         "listTime": "1548133413000",
+        //         "lotSz": "0.00000001",
+        //         "minSz": "0.00001",
+        //         "optType": "",
+        //         "quoteCcy": "USDT",
+        //         "settleCcy": "",
+        //         "state": "live",
+        //         "stk": "",
+        //         "tickSz": "0.1",
+        //         "uly": ""
         //     }
         //
         //     {
-        //         "alias" => "",
-        //         "baseCcy" => "",
-        //         "category" => "1",
-        //         "ctMult" => "0.1",
-        //         "ctType" => "",
-        //         "ctVal" => "1",
-        //         "ctValCcy" => "BTC",
-        //         "expTime" => "1648195200000",
-        //         "instId" => "BTC-USD-220325-194000-P",
-        //         "instType" => "OPTION",
-        //         "lever" => "",
-        //         "listTime" => "1631262612280",
-        //         "contTdSwTime" => "1631262812280",
-        //         "lotSz" => "1",
-        //         "minSz" => "1",
-        //         "optType" => "P",
-        //         "quoteCcy" => "",
-        //         "settleCcy" => "BTC",
-        //         "state" => "live",
-        //         "stk" => "194000",
-        //         "tickSz" => "0.0005",
-        //         "uly" => "BTC-USD"
+        //         "alias": "",
+        //         "baseCcy": "",
+        //         "category": "1",
+        //         "ctMult": "0.1",
+        //         "ctType": "",
+        //         "ctVal": "1",
+        //         "ctValCcy": "BTC",
+        //         "expTime": "1648195200000",
+        //         "instId": "BTC-USD-220325-194000-P",
+        //         "instType": "OPTION",
+        //         "lever": "",
+        //         "listTime": "1631262612280",
+        //         "contTdSwTime": "1631262812280",
+        //         "lotSz": "1",
+        //         "minSz": "1",
+        //         "optType": "P",
+        //         "quoteCcy": "",
+        //         "settleCcy": "BTC",
+        //         "state": "live",
+        //         "stk": "194000",
+        //         "tickSz": "0.0005",
+        //         "uly": "BTC-USD"
         //     }
         //
-        // for $swap "preopen" markets, only `$instId` and `instType` are present
+        // for swap "preopen" markets, only `instId` and `instType` are present
         //
-        //         $instId => "ETH-USD_UM-SWAP",
-        //         instType => "SWAP",
-        //         state => "preopen",
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
         //
         $id = $this->safe_string($market, 'instId', '');
         $type = $this->safe_string_lower($market, 'instType');
@@ -1806,7 +1835,7 @@ class okx extends Exchange {
         $swap = ($type === 'swap');
         $option = ($type === 'option');
         $contract = $swap || $future || $option;
-        $baseId = $this->safe_string($market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty $baseId
+        $baseId = $this->safe_string($market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty baseId
         $quoteId = $this->safe_string($market, 'quoteCcy', '');
         $settleId = $this->safe_string($market, 'settleCcy');
         $settle = $this->safe_currency_code($settleId);
@@ -1941,33 +1970,33 @@ class okx extends Exchange {
         // spot, future, swap, option
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "alias" => "", // this_week, next_week, quarter, next_quarter
-        //                 "baseCcy" => "BTC",
-        //                 "category" => "1",
-        //                 "ctMult" => "",
-        //                 "ctType" => "", // inverse, linear
-        //                 "ctVal" => "",
-        //                 "ctValCcy" => "",
-        //                 "expTime" => "",
-        //                 "instId" => "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
-        //                 "instType" => "SPOT", // SPOT, FUTURES, SWAP, OPTION
-        //                 "lever" => "10",
-        //                 "listTime" => "1548133413000",
-        //                 "lotSz" => "0.00000001",
-        //                 "minSz" => "0.00001",
-        //                 "optType" => "",
-        //                 "quoteCcy" => "USDT",
-        //                 "settleCcy" => "",
-        //                 "state" => "live",
-        //                 "stk" => "",
-        //                 "tickSz" => "0.1",
-        //                 "uly" => ""
+        //                 "alias": "", // this_week, next_week, quarter, next_quarter
+        //                 "baseCcy": "BTC",
+        //                 "category": "1",
+        //                 "ctMult": "",
+        //                 "ctType": "", // inverse, linear
+        //                 "ctVal": "",
+        //                 "ctValCcy": "",
+        //                 "expTime": "",
+        //                 "instId": "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        //                 "instType": "SPOT", // SPOT, FUTURES, SWAP, OPTION
+        //                 "lever": "10",
+        //                 "listTime": "1548133413000",
+        //                 "lotSz": "0.00000001",
+        //                 "minSz": "0.00001",
+        //                 "optType": "",
+        //                 "quoteCcy": "USDT",
+        //                 "settleCcy": "",
+        //                 "state": "live",
+        //                 "stk": "",
+        //                 "tickSz": "0.1",
+        //                 "uly": ""
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $dataResponse = $this->safe_list($response, 'data', array());
@@ -1976,7 +2005,7 @@ class okx extends Exchange {
             $data = $dataResponse[$i];
             $instId = $this->safe_string($data, 'instId', '');
             if ($instId === '') {
-                continue; // skip broken "preopen" placeholder instruments that have no $instId
+                continue; // skip broken "preopen" placeholder instruments that have no instId
             }
             if ($this->isSandboxModeEnabled) {
                 $instFamily = $this->safe_string($data, 'instFamily', '');
@@ -2001,7 +2030,7 @@ class okx extends Exchange {
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
-        // and fallback to generating the $currencies from the markets
+        // and fallback to generating the currencies from the markets
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if (!$this->check_required_credentials(false) || ($isSandboxMode === true)) {
             return array();
@@ -2009,50 +2038,50 @@ class okx extends Exchange {
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
         //
-        //     array("msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103")
+        //     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         //
         $response = $this->privateGetAssetCurrencies($params);
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
-        //            array(
-        //                "canDep" => true,
-        //                "canInternal" => false,
-        //                "canWd" => true,
-        //                "ccy" => "USDT",
-        //                "chain" => "USDT-TRC20",
-        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-        //                "mainNet" => false,
-        //                "maxFee" => "1.6",
-        //                "maxWd" => "8852150",
-        //                "minFee" => "0.8",
-        //                "minWd" => "2",
-        //                "name" => "Tether",
-        //                "usedWdQuota" => "0",
-        //                "wdQuota" => "500",
-        //                "wdTickSz" => "3"
-        //            ),
-        //            array(
-        //                "canDep" => true,
-        //                "canInternal" => false,
-        //                "canWd" => true,
-        //                "ccy" => "USDT",
-        //                "chain" => "USDT-ERC20",
-        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-        //                "mainNet" => false,
-        //                "maxFee" => "16",
-        //                "maxWd" => "8852150",
-        //                "minFee" => "8",
-        //                "minWd" => "2",
-        //                "name" => "Tether",
-        //                "usedWdQuota" => "0",
-        //                "wdQuota" => "500",
-        //                "wdTickSz" => "3"
-        //            ),
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-TRC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "1.6",
+        //                "maxWd": "8852150",
+        //                "minFee": "0.8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-ERC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "16",
+        //                "maxWd": "8852150",
+        //                "minFee": "8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
         //            ...
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2063,7 +2092,7 @@ class okx extends Exchange {
 
     public function parse_currency(array $currency): array {
         $chains = $currency;
-        // currencies are grouped by $chain entries, so there is at least one entry
+        // currencies are grouped by chain entries, so there is at least one entry
         $firstChain = $this->safe_dict($chains, 0, array());
         $currencyId = $this->safe_string($firstChain, 'ccy');
         $code = $this->safe_currency_code($currencyId);
@@ -2075,7 +2104,7 @@ class okx extends Exchange {
             // allow empty string for rare fiat-currencies, e.g. TRY
             $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if ($networkId === '') {
-                // only happens for fiat 'TRY' $currency
+                // only happens for fiat 'TRY' currency
                 $type = 'fiat';
             }
             $idParts = explode('-', $networkId);
@@ -2128,11 +2157,13 @@ class okx extends Exchange {
          *
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-order-book
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-full-order-book
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-$rpi-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+         * @param {bool} [$params->rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -2142,41 +2173,54 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
+        $rpi = false;
+        list($rpi, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'rpi');
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if ($method === 'publicGetMarketBooksFull' && $limit === null) {
             $limit = 5000;
         }
         $limit = ($limit === null) ? 100 : $limit;
+        if ($rpi && ($limit > 400)) {
+            // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            // including the 5000 that publicGetMarketBooksFull defaults to
+            $limit = 400;
+        }
         if ($limit !== null) {
             $request['sz'] = $limit; // max 400
         }
         $response = null;
-        if (($method === 'publicGetMarketBooksFull') || ($limit > 400)) {
+        if ($rpi) {
+            $response = $this->publicGetMarketBooksRpi($this->extend($request, $params));
+        } elseif (($method === 'publicGetMarketBooksFull') || ($limit > 400)) {
             $response = $this->publicGetMarketBooksFull($this->extend($request, $params));
         } else {
             $response = $this->publicGetMarketBooks($this->extend($request, $params));
         }
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "asks" => array(
+        //                 "asks": [
         //                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
         //                     ["0.0723","299.880364","0","2"],
         //                     ["0.07231","3.72832","0","1"],
-        //                 ),
-        //                 "bids" => array(
+        //                 ],
+        //                 "bids": [
         //                     ["0.07221","18.5","0","1"],
         //                     ["0.0722","18.5","0","1"],
         //                     ["0.07219","0.505407","0","1"],
-        //                 ),
-        //                 "ts" => "1621438475342"
+        //                 ],
+        //                 "ts": "1621438475342"
         //             }
-        //         )
+        //         ]
         //     }
+        //
+        // the rpi book has the same envelope, but each level is
+        // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
+        // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
@@ -2187,34 +2231,34 @@ class okx extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "instType" => "SPOT", // SPOT, SWAP, etc
-        //         "instId" => "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
-        //         "last" => "0.07319",
-        //         "lastSz" => "0.044378", // base size for $spot, or contracts amount for derivatives
-        //         "askPx" => "0.07322",
-        //         "askSz" => "4.2",
-        //         "bidPx" => "0.0732",
-        //         "bidSz" => "6.050058",
-        //         "open24h" => "0.07801",
-        //         "high24h" => "0.07975",
-        //         "low24h" => "0.06019",
-        //         "volCcy24h" => "11788.887619", // note, for derivatives this is base-amount
-        //         "vol24h" => "167493.829229",
-        //         "ts" => "1621440583784",
-        //         "sodUtc0" => "0.07872",
-        //         "sodUtc8" => "0.07345"
+        //         "instType": "SPOT", // SPOT, SWAP, etc
+        //         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
+        //         "last": "0.07319",
+        //         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
+        //         "askPx": "0.07322",
+        //         "askSz": "4.2",
+        //         "bidPx": "0.0732",
+        //         "bidSz": "6.050058",
+        //         "open24h": "0.07801",
+        //         "high24h": "0.07975",
+        //         "low24h": "0.06019",
+        //         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
+        //         "vol24h": "167493.829229",
+        //         "ts": "1621440583784",
+        //         "sodUtc0": "0.07872",
+        //         "sodUtc8": "0.07345"
         //     }
         //
-        //     array(
-        //          instId => 'LTC-USDT',
-        //          idxPx => '65.74',
-        //          open24h => '65.37',
-        //          high24h => '66.15',
-        //          low24h => '64.97',
-        //          sodUtc0 => '65.68',
-        //          sodUtc8 => '65.54',
-        //          ts => '1728467346900'
-        //     ),
+        //     {
+        //          instId: 'LTC-USDT',
+        //          idxPx: '65.74',
+        //          open24h: '65.37',
+        //          high24h: '66.15',
+        //          low24h: '64.97',
+        //          sodUtc0: '65.68',
+        //          sodUtc8: '65.54',
+        //          ts: '1728467346900'
+        //     },
         //
         $instType = $this->safe_string($ticker, 'instType');
         $marketType = null;
@@ -2278,28 +2322,28 @@ class okx extends Exchange {
         $response = $this->publicGetMarketTicker($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "instType" => "SPOT",
-        //                 "instId" => "ETH-BTC",
-        //                 "last" => "0.07319",
-        //                 "lastSz" => "0.044378",
-        //                 "askPx" => "0.07322",
-        //                 "askSz" => "4.2",
-        //                 "bidPx" => "0.0732",
-        //                 "bidSz" => "6.050058",
-        //                 "open24h" => "0.07801",
-        //                 "high24h" => "0.07975",
-        //                 "low24h" => "0.06019",
-        //                 "volCcy24h" => "11788.887619",
-        //                 "vol24h" => "167493.829229",
-        //                 "ts" => "1621440583784",
-        //                 "sodUtc0" => "0.07872",
-        //                 "sodUtc8" => "0.07345"
+        //                 "instType": "SPOT",
+        //                 "instId": "ETH-BTC",
+        //                 "last": "0.07319",
+        //                 "lastSz": "0.044378",
+        //                 "askPx": "0.07322",
+        //                 "askSz": "4.2",
+        //                 "bidPx": "0.0732",
+        //                 "bidSz": "6.050058",
+        //                 "open24h": "0.07801",
+        //                 "high24h": "0.07975",
+        //                 "low24h": "0.06019",
+        //                 "volCcy24h": "11788.887619",
+        //                 "vol24h": "167493.829229",
+        //                 "ts": "1621440583784",
+        //                 "sodUtc0": "0.07872",
+        //                 "sodUtc8": "0.07345"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2339,28 +2383,28 @@ class okx extends Exchange {
         $response = $this->publicGetMarketTickers($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array(
-        //                 "instType" => "SPOT",
-        //                 "instId" => "BCD-BTC",
-        //                 "last" => "0.0000769",
-        //                 "lastSz" => "5.4788",
-        //                 "askPx" => "0.0000777",
-        //                 "askSz" => "3.2197",
-        //                 "bidPx" => "0.0000757",
-        //                 "bidSz" => "4.7509",
-        //                 "open24h" => "0.0000885",
-        //                 "high24h" => "0.0000917",
-        //                 "low24h" => "0.0000596",
-        //                 "volCcy24h" => "9.2877",
-        //                 "vol24h" => "124824.1985",
-        //                 "ts" => "1621441741434",
-        //                 "sodUtc0" => "0.0000905",
-        //                 "sodUtc8" => "0.0000729"
-        //             ),
-        //         )
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "SPOT",
+        //                 "instId": "BCD-BTC",
+        //                 "last": "0.0000769",
+        //                 "lastSz": "5.4788",
+        //                 "askPx": "0.0000777",
+        //                 "askSz": "3.2197",
+        //                 "bidPx": "0.0000757",
+        //                 "bidSz": "4.7509",
+        //                 "open24h": "0.0000885",
+        //                 "high24h": "0.0000917",
+        //                 "low24h": "0.0000596",
+        //                 "volCcy24h": "9.2877",
+        //                 "vol24h": "124824.1985",
+        //                 "ts": "1621441741434",
+        //                 "sodUtc0": "0.0000905",
+        //                 "sodUtc8": "0.0000729"
+        //             },
+        //         ]
         //     }
         //
         $tickers = $this->safe_list($response, 'data', array());
@@ -2387,16 +2431,16 @@ class okx extends Exchange {
         $response = $this->publicGetPublicMarkPrice($this->extend($request, $params));
         //
         // {
-        //     "code" => "0",
-        //     "data" => array(
+        //     "code": "0",
+        //     "data": [
         //         {
-        //             "instId" => "ETH-USDT",
-        //             "instType" => "MARGIN",
-        //             "markPx" => "2403.98",
-        //             "ts" => "1728578500703"
+        //             "instId": "ETH-USDT",
+        //             "instType": "MARGIN",
+        //             "markPx": "2403.98",
+        //             "ts": "1728578500703"
         //         }
-        //     ),
-        //     "msg" => ""
+        //     ],
+        //     "msg": ""
         // }
         //
         $data = $this->safe_list($response, 'data');
@@ -2442,49 +2486,49 @@ class okx extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "instId" => "ETH-BTC",
-        //         "side" => "sell",
-        //         "sz" => "0.119501",
-        //         "px" => "0.07065",
-        //         "tradeId" => "15826757",
-        //         "ts" => "1621446178316"
+        //         "instId": "ETH-BTC",
+        //         "side": "sell",
+        //         "sz": "0.119501",
+        //         "px": "0.07065",
+        //         "tradeId": "15826757",
+        //         "ts": "1621446178316"
         //     }
         //
-        // option => fetchTrades
+        // option: fetchTrades
         //
         //     {
-        //         "fillVol" => "0.46387625976562497",
-        //         "fwdPx" => "26299.754935451125",
-        //         "indexPx" => "26309.7",
-        //         "instFamily" => "BTC-USD",
-        //         "instId" => "BTC-USD-230526-26000-C",
-        //         "markPx" => "0.042386283557554236",
-        //         "optType" => "C",
-        //         "px" => "0.0415",
-        //         "side" => "sell",
-        //         "sz" => "90",
-        //         "tradeId" => "112",
-        //         "ts" => "1683907480154"
+        //         "fillVol": "0.46387625976562497",
+        //         "fwdPx": "26299.754935451125",
+        //         "indexPx": "26309.7",
+        //         "instFamily": "BTC-USD",
+        //         "instId": "BTC-USD-230526-26000-C",
+        //         "markPx": "0.042386283557554236",
+        //         "optType": "C",
+        //         "px": "0.0415",
+        //         "side": "sell",
+        //         "sz": "90",
+        //         "tradeId": "112",
+        //         "ts": "1683907480154"
         //     }
         //
         // private fetchMyTrades
         //
         //     {
-        //         "side" => "buy",
-        //         "fillSz" => "0.007533",
-        //         "fillPx" => "2654.98",
-        //         "fee" => "-0.000007533",
-        //         "ordId" => "317321390244397056",
-        //         "instType" => "SPOT",
-        //         "instId" => "ETH-USDT",
-        //         "clOrdId" => "",
-        //         "posSide" => "net",
-        //         "billId" => "317321390265368576",
-        //         "tag" => "0",
-        //         "execType" => "T",
-        //         "tradeId" => "107601752",
-        //         "feeCcy" => "ETH",
-        //         "ts" => "1621927314985"
+        //         "side": "buy",
+        //         "fillSz": "0.007533",
+        //         "fillPx": "2654.98",
+        //         "fee": "-0.000007533",
+        //         "ordId": "317321390244397056",
+        //         "instType": "SPOT",
+        //         "instId": "ETH-USDT",
+        //         "clOrdId": "",
+        //         "posSide": "net",
+        //         "billId": "317321390265368576",
+        //         "tag": "0",
+        //         "execType": "T",
+        //         "tradeId": "107601752",
+        //         "feeCcy": "ETH",
+        //         "ts": "1621927314985"
         //     }
         //
         $id = $this->safe_string($trade, 'tradeId');
@@ -2575,36 +2619,36 @@ class okx extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array("instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"),
-        //             array("instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"),
-        //             array("instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"),
-        //         )
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {"instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"},
+        //             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
+        //             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
+        //         ]
         //     }
         //
         // option
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "fillVol" => "0.46387625976562497",
-        //                 "fwdPx" => "26299.754935451125",
-        //                 "indexPx" => "26309.7",
-        //                 "instFamily" => "BTC-USD",
-        //                 "instId" => "BTC-USD-230526-26000-C",
-        //                 "markPx" => "0.042386283557554236",
-        //                 "optType" => "C",
-        //                 "px" => "0.0415",
-        //                 "side" => "sell",
-        //                 "sz" => "90",
-        //                 "tradeId" => "112",
-        //                 "ts" => "1683907480154"
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "fillVol": "0.46387625976562497",
+        //                 "fwdPx": "26299.754935451125",
+        //                 "indexPx": "26309.7",
+        //                 "instFamily": "BTC-USD",
+        //                 "instId": "BTC-USD-230526-26000-C",
+        //                 "markPx": "0.042386283557554236",
+        //                 "optType": "C",
+        //                 "px": "0.0415",
+        //                 "side": "sell",
+        //                 "sz": "90",
+        //                 "tradeId": "112",
+        //                 "ts": "1683907480154"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2613,7 +2657,7 @@ class okx extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         "1678928760000", // timestamp
         //         "24341.4", // open
         //         "24344", // high
@@ -2623,7 +2667,7 @@ class okx extends Exchange {
         //         "2.5819", // base volume
         //         "62800", // quote volume
         //         "0" // candlestick state
-        //     )
+        //     ]
         //
         $res = $this->handle_market_type_and_params('fetchOHLCV', $market, null);
         $type = $res[0];
@@ -2659,7 +2703,7 @@ class okx extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {string} [$params->type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2684,7 +2728,7 @@ class okx extends Exchange {
         }
         $duration = $this->parse_timeframe($timeframe);
         $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        if (($timezone === 'UTC') && ($duration >= 21600)) { // if utc and $timeframe >= 6h
+        if (($timezone === 'UTC') && ($duration >= 21600)) { // if utc and timeframe >= 6h
             $bar .= strtolower($timezone);
         }
         $request = array(
@@ -2696,7 +2740,7 @@ class okx extends Exchange {
         if ($since !== null) {
             $now = $this->milliseconds();
             $durationInMilliseconds = $duration * 1000;
-            // switch to history candles if $since is past the cutoff for current candles
+            // switch to history candles if since is past the cutoff for current candles
             $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
             if ($since < $historyBorder) {
                 $defaultType = 'HistoryCandles';
@@ -2743,13 +2787,13 @@ class okx extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             ["1678928760000","24341.4","24344","24313.2","24323","628","2.5819","62800","0"],
         //             ["1678928700000","24324.1","24347.6","24321.7","24341.4","2565","10.5401","256500","1"],
         //             ["1678928640000","24300.2","24324.1","24288","24324.1","3304","13.5937","330400","1"],
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2795,14 +2839,14 @@ class okx extends Exchange {
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "instType":"SWAP",
         //                 "instId":"BTC-USDT-SWAP",
         //                 "fundingRate":"0.018",
         //                 "realizedRate":"0.017",
         //                 "fundingTime":"1597026383085"
-        //             ),
+        //             },
         //             {
         //                 "instType":"SWAP",
         //                 "instId":"BTC-USDT-SWAP",
@@ -2810,7 +2854,7 @@ class okx extends Exchange {
         //                 "realizedRate":"0.017",
         //                 "fundingTime":"1597026383085"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $rates = array();
@@ -2888,23 +2932,23 @@ class okx extends Exchange {
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
-        // https://www.okx.com/docs-v5/en/#rest-api-account-get-$fee-rates
+        // https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
         //
         //     {
-        //         "category" => "1",
-        //         "delivery" => "",
-        //         "exercise" => "",
-        //         "instType" => "SPOT",
-        //         "level" => "Lv1",
-        //         "maker" => "-0.0008",
-        //         "taker" => "-0.001",
-        //         "ts" => "1639043138472"
+        //         "category": "1",
+        //         "delivery": "",
+        //         "exercise": "",
+        //         "instType": "SPOT",
+        //         "level": "Lv1",
+        //         "maker": "-0.0008",
+        //         "taker": "-0.001",
+        //         "ts": "1639043138472"
         //     }
         //
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
-            // OKX returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
             'percentage' => null,
@@ -2928,9 +2972,9 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instType' => $this->convert_to_instrument_type($market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // "instId" => $market["id"], // only applicable to SPOT/MARGIN
-            // "uly" => $market["id"], // only applicable to FUTURES/SWAP/OPTION
-            // "category" => "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
+            // "instId": market["id"], // only applicable to SPOT/MARGIN
+            // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
+            // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         );
         if ($market['spot'] === true) {
             $request['instId'] = $market['id'];
@@ -2942,20 +2986,20 @@ class okx extends Exchange {
         $response = $this->privateGetAccountTradeFee($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "category" => "1",
-        //                 "delivery" => "",
-        //                 "exercise" => "",
-        //                 "instType" => "SPOT",
-        //                 "level" => "Lv1",
-        //                 "maker" => "-0.0008",
-        //                 "taker" => "-0.001",
-        //                 "ts" => "1639043138472"
+        //                 "category": "1",
+        //                 "delivery": "",
+        //                 "exercise": "",
+        //                 "instType": "SPOT",
+        //                 "level": "Lv1",
+        //                 "maker": "-0.0008",
+        //                 "taker": "-0.001",
+        //                 "ts": "1639043138472"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2979,7 +3023,7 @@ class okx extends Exchange {
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $request = array(
-            // 'ccy' => 'BTC,ETH', // comma-separated list of currency ids
+            // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         );
         $response = null;
         if ($marketType === 'funding') {
@@ -2989,104 +3033,104 @@ class okx extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "adjEq" => "",
-        //                 "details" => array(
+        //                 "adjEq": "",
+        //                 "details": [
         //                     {
-        //                         "availBal" => "",
-        //                         "availEq" => "28.21006347",
-        //                         "cashBal" => "28.21006347",
-        //                         "ccy" => "USDT",
-        //                         "crossLiab" => "",
-        //                         "disEq" => "28.2687404020176",
+        //                         "availBal": "",
+        //                         "availEq": "28.21006347",
+        //                         "cashBal": "28.21006347",
+        //                         "ccy": "USDT",
+        //                         "crossLiab": "",
+        //                         "disEq": "28.2687404020176",
         //                         "eq":"28 .21006347",
-        //                         "eqUsd" => "28.2687404020176",
-        //                         "frozenBal" => "0",
-        //                         "interest" => "",
-        //                         "isoEq" => "0",
-        //                         "isoLiab" => "",
-        //                         "liab" => "",
-        //                         "maxLoan" => "",
-        //                         "mgnRatio" => "",
-        //                         "notionalLever" => "0",
-        //                         "ordFrozen" => "0",
-        //                         "twap" => "0",
-        //                         "uTime" => "1621556539861",
-        //                         "upl" => "0",
-        //                         "uplLiab" => ""
+        //                         "eqUsd": "28.2687404020176",
+        //                         "frozenBal": "0",
+        //                         "interest": "",
+        //                         "isoEq": "0",
+        //                         "isoLiab": "",
+        //                         "liab": "",
+        //                         "maxLoan": "",
+        //                         "mgnRatio": "",
+        //                         "notionalLever": "0",
+        //                         "ordFrozen": "0",
+        //                         "twap": "0",
+        //                         "uTime": "1621556539861",
+        //                         "upl": "0",
+        //                         "uplLiab": ""
         //                     }
-        //                 ),
-        //                 "imr" => "",
-        //                 "isoEq" => "0",
-        //                 "mgnRatio" => "",
-        //                 "mmr" => "",
-        //                 "notionalUsd" => "",
-        //                 "ordFroz" => "",
-        //                 "totalEq" => "28.2687404020176",
-        //                 "uTime" => "1621556553510"
+        //                 ],
+        //                 "imr": "",
+        //                 "isoEq": "0",
+        //                 "mgnRatio": "",
+        //                 "mmr": "",
+        //                 "notionalUsd": "",
+        //                 "ordFroz": "",
+        //                 "totalEq": "28.2687404020176",
+        //                 "uTime": "1621556553510"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "adjEq" => "",
-        //                 "details" => array(
+        //                 "adjEq": "",
+        //                 "details": [
         //                     {
-        //                         "availBal" => "0.049",
-        //                         "availEq" => "",
-        //                         "cashBal" => "0.049",
-        //                         "ccy" => "BTC",
-        //                         "crossLiab" => "",
-        //                         "disEq" => "1918.55678",
-        //                         "eq" => "0.049",
-        //                         "eqUsd" => "1918.55678",
-        //                         "frozenBal" => "0",
-        //                         "interest" => "",
-        //                         "isoEq" => "",
-        //                         "isoLiab" => "",
-        //                         "liab" => "",
-        //                         "maxLoan" => "",
-        //                         "mgnRatio" => "",
-        //                         "notionalLever" => "",
-        //                         "ordFrozen" => "0",
-        //                         "twap" => "0",
-        //                         "uTime" => "1621973128591",
-        //                         "upl" => "",
-        //                         "uplLiab" => ""
+        //                         "availBal": "0.049",
+        //                         "availEq": "",
+        //                         "cashBal": "0.049",
+        //                         "ccy": "BTC",
+        //                         "crossLiab": "",
+        //                         "disEq": "1918.55678",
+        //                         "eq": "0.049",
+        //                         "eqUsd": "1918.55678",
+        //                         "frozenBal": "0",
+        //                         "interest": "",
+        //                         "isoEq": "",
+        //                         "isoLiab": "",
+        //                         "liab": "",
+        //                         "maxLoan": "",
+        //                         "mgnRatio": "",
+        //                         "notionalLever": "",
+        //                         "ordFrozen": "0",
+        //                         "twap": "0",
+        //                         "uTime": "1621973128591",
+        //                         "upl": "",
+        //                         "uplLiab": ""
         //                     }
-        //                 ),
-        //                 "imr" => "",
-        //                 "isoEq" => "",
-        //                 "mgnRatio" => "",
-        //                 "mmr" => "",
-        //                 "notionalUsd" => "",
-        //                 "ordFroz" => "",
-        //                 "totalEq" => "1918.55678",
-        //                 "uTime" => "1622045126908"
+        //                 ],
+        //                 "imr": "",
+        //                 "isoEq": "",
+        //                 "mgnRatio": "",
+        //                 "mmr": "",
+        //                 "notionalUsd": "",
+        //                 "ordFroz": "",
+        //                 "totalEq": "1918.55678",
+        //                 "uTime": "1622045126908"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         // funding
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "availBal" => "0.00005426",
-        //                 "bal" => 0.0000542600000000,
-        //                 "ccy" => "BTC",
-        //                 "frozenBal" => "0"
+        //                 "availBal": "0.00005426",
+        //                 "bal": 0.0000542600000000,
+        //                 "ccy": "BTC",
+        //                 "frozenBal": "0"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         return $this->parse_balance_by_type($marketType, $response);
@@ -3155,29 +3199,29 @@ class okx extends Exchange {
         $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $request = array(
             'instId' => $market['id'],
-            // 'ccy' => $currency['id'], // only applicable to cross MARGIN orders in single-$currency $margin
-            // 'clOrdId' => $clientOrderId, // up to 32 characters, must be unique
-            // 'tag' => tag, // up to 8 characters
+            // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
+            // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
+            // 'tag': tag, // up to 8 characters
             'side' => $side,
-            // 'posSide' => 'long', // long, short, // required in the long/short mode, and can only be long or short (only for future or swap)
+            // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short (only for future or swap)
             'ordType' => $type,
-            // 'ordType' => $type, // privatePostTradeOrder => $market, limit, post_only, $fok, $ioc, optimal_limit_ioc
-            // 'ordType' => $type, // privatePostTradeOrderAlgo => $conditional, oco, $trigger, move_order_stop, iceberg, twap
-            // 'sz' => $this->amount_to_precision($symbol, $amount),
-            // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
-            // 'reduceOnly' => false,
+            // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
+            // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
+            // 'sz': this.amountToPrecision (symbol, amount),
+            // 'px': this.priceToPrecision (symbol, price), // limit orders only
+            // 'reduceOnly': false,
             //
-            // 'triggerPx' => 10, // stopPrice ($trigger orders)
-            // 'orderPx' => 10, // Order $price if -1, the order will be executed at the $market $price-> ($trigger orders)
-            // 'triggerPxType' => 'last', // Conditional default is last, mark or index ($trigger orders)
+            // 'triggerPx': 10, // stopPrice (trigger orders)
+            // 'orderPx': 10, // Order price if -1, the order will be executed at the market price. (trigger orders)
+            // 'triggerPxType': 'last', // Conditional default is last, mark or index (trigger orders)
             //
-            // 'tpTriggerPx' => 10, // $takeProfitPrice ($conditional orders)
-            // 'tpTriggerPxType' => 'last', // Conditional default is last, mark or index ($conditional orders)
-            // 'tpOrdPx' => 10, // Order $price for Take-Profit orders, if -1 will be executed at $market $price ($conditional orders)
+            // 'tpTriggerPx': 10, // takeProfitPrice (conditional orders)
+            // 'tpTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
+            // 'tpOrdPx': 10, // Order price for Take-Profit orders, if -1 will be executed at market price (conditional orders)
             //
-            // 'slTriggerPx' => 10, // $stopLossPrice ($conditional orders)
-            // 'slTriggerPxType' => 'last', // Conditional default is last, mark or index ($conditional orders)
-            // 'slOrdPx' => 10, // Order $price for Stop-Loss orders, if -1 will be executed at $market $price ($conditional orders)
+            // 'slTriggerPx': 10, // stopLossPrice (conditional orders)
+            // 'slTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
+            // 'slOrdPx': 10, // Order price for Stop-Loss orders, if -1 will be executed at market price (conditional orders)
         );
         $isConditionalOrOCO = $conditional || ($type === 'oco');
         $closeFraction = $this->safe_string($params, 'closeFraction');
@@ -3189,10 +3233,10 @@ class okx extends Exchange {
         $contract = $market['contract'];
         $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
-        // $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         $tpOrdPx = $this->safe_number($params, 'tpOrdPx', $price);
         $tpTriggerPxType = $this->safe_string($params, 'tpTriggerPxType', 'last');
-        // $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
+        // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
         $slOrdPx = $this->safe_number($params, 'slOrdPx', $price);
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
@@ -3207,7 +3251,7 @@ class okx extends Exchange {
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $isReduceOnly = ($this->safe_bool($params, 'reduceOnly', false) === true) || ($closeFraction !== null);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so be extended into the $request
+        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
         $margin = false;
         if (($marginMode !== null) && ($marginMode !== 'cash')) {
             $margin = true;
@@ -3236,7 +3280,7 @@ class okx extends Exchange {
                         $isBuy = ($side === 'buy');
                         $isProtective = ($takeProfitPrice !== null) || ($stopLossPrice !== null) || $isReduceOnly;
                         if ($isProtective) {
-                            // in case of protective orders, the posSide should be opposite of position $side
+                            // in case of protective orders, the posSide should be opposite of position side
                             // reduceOnly is emulated and not natively supported by the exchange
                             $request['posSide'] = $isBuy ? 'short' : 'long';
                             if ($isReduceOnly) {
@@ -3256,7 +3300,7 @@ class okx extends Exchange {
         $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
-        // $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
+        // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
@@ -3266,10 +3310,10 @@ class okx extends Exchange {
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
             if (($spot === true) && ($side === 'buy')) {
-                // $spot $market buy => "sz" can refer either to base $currency units or to quote $currency units
-                // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
+                // spot market buy: "sz" can refer either to base currency units or to quote currency units
+                // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
-                    // quote_ccy => sz refers to units of quote $currency
+                    // quote_ccy: sz refers to units of quote currency
                     $createMarketBuyOrderRequiresPrice = true;
                     list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                     $notional = $this->safe_number_2($params, 'cost', 'sz');
@@ -3342,7 +3386,7 @@ class okx extends Exchange {
                 } elseif ($stopLossLimitPrice !== null) {
                     $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl order
                 } else {
-                    $slOrder['slOrdPx'] = '-1'; // $market sl order
+                    $slOrder['slOrdPx'] = '-1'; // market sl order
                 }
                 $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if ($stopLossTriggerPriceType !== null) {
@@ -3381,7 +3425,7 @@ class okx extends Exchange {
                     $tpOrder['tpOrdKind'] = 'limit';
                     $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp order
                 } else {
-                    $tpOrder['tpOrdPx'] = '-1'; // $market tp order
+                    $tpOrder['tpOrdPx'] = '-1'; // market tp order
                 }
                 $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if ($takeProfitTriggerPriceType !== null) {
@@ -3407,7 +3451,7 @@ class okx extends Exchange {
             $request['ordType'] = 'conditional';
             $twoWayCondition = (($takeProfitPrice !== null) && ($stopLossPrice !== null));
             // if TP and SL are sent together
-            // 'conditional' only stop-loss order will be applied
+            // as ordType 'conditional' only stop-loss order will be applied
             // tpOrdKind is 'condition' which is the default
             if ($twoWayCondition) {
                 $request['ordType'] = 'oco';
@@ -3417,7 +3461,7 @@ class okx extends Exchange {
             }
             if ($this->safe_string($request, 'tdMode') === 'cash') {
                 // for some reason tdMode = cash throws
-                // array("code":"1","data":[array("algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":"")],"msg":"")
+                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 $request['tdMode'] = $marginMode;
             }
             if ($takeProfitPrice !== null) {
@@ -3454,20 +3498,20 @@ class okx extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
-         * create a trade $order
+         * create $a trade $order
          *
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-place-$order
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-place-multiple-orders
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-place-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'market' or 'limit', or 'rpi' for $a retail $price improvement maker $order
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin, swap and future orders
-         * @param {bool} [$params->postOnly] true to place a post only $order
+         * @param {bool} [$params->reduceOnly] $a mark to reduce the position size for margin, swap and future orders
+         * @param {bool} [$params->postOnly] true to place $a post only $order
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {float} [$params->takeProfit.price] used for take profit limit orders, not used for take profit $market $price orders
@@ -3481,6 +3525,8 @@ class okx extends Exchange {
          * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode
          * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
+         * @param {bool} [$params->rpiTakerAccess] true to $a taker $order match against retail $price improvement liquidity
+         * @param {bool} [$params->rpiPxRound] *rpi orders only* true to round the $price outward to the nearest placeable non-crossing level
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -3497,8 +3543,8 @@ class okx extends Exchange {
             throw new ExchangeError($this->id . ' createOrder() $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
         }
         if ($method === 'privatePostTradeBatchOrders') {
-            // keep the $request body the same
-            // submit a single $order in an array to the batch $order endpoint
+            // keep the request body the same
+            // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
             $request = array( $request );
         }
@@ -3543,32 +3589,32 @@ class okx extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
             $ordersRequests[] = $orderRequest;
         }
         $response = $this->privatePostTradeBatchOrders($ordersRequests);
         // {
-        //     "code" => "0",
-        //     "data" => array(
-        //        array(
-        //           "clOrdId" => "e847386590ce4dBCc7f2a1b4c4509f82",
-        //           "ordId" => "636305438765568000",
-        //           "sCode" => "0",
-        //           "sMsg" => "Order placed",
-        //           "tag" => "e847386590ce4dBC"
-        //        ),
+        //     "code": "0",
+        //     "data": [
         //        {
-        //           "clOrdId" => "e847386590ce4dBC0b9993fe642d8f62",
-        //           "ordId" => "636305438765568001",
-        //           "sCode" => "0",
-        //           "sMsg" => "Order placed",
-        //           "tag" => "e847386590ce4dBC"
+        //           "clOrdId": "e847386590ce4dBCc7f2a1b4c4509f82",
+        //           "ordId": "636305438765568000",
+        //           "sCode": "0",
+        //           "sMsg": "Order placed",
+        //           "tag": "e847386590ce4dBC"
+        //        },
+        //        {
+        //           "clOrdId": "e847386590ce4dBC0b9993fe642d8f62",
+        //           "ordId": "636305438765568001",
+        //           "sCode": "0",
+        //           "sMsg": "Order placed",
+        //           "tag": "e847386590ce4dBC"
         //        }
-        //     ),
-        //     "inTime" => "1697979038584486",
-        //     "msg" => "",
-        //     "outTime" => "1697979038586493"
+        //     ],
+        //     "inTime": "1697979038584486",
+        //     "msg": "",
+        //     "outTime": "1697979038586493"
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
@@ -3717,17 +3763,17 @@ class okx extends Exchange {
         }
         //
         //     {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                 "clOrdId" => "e847386590ce4dBCc1a045253497a547",
-        //                 "ordId" => "559176536793178112",
-        //                 "reqId" => "",
-        //                 "sCode" => "0",
-        //                 "sMsg" => ""
+        //                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //                 "ordId": "559176536793178112",
+        //                 "reqId": "",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
         //            }
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -3768,8 +3814,8 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
-            // 'ordId' => $id, // either ordId or clOrdId is required
-            // 'clOrdId' => $clientOrderId,
+            // 'ordId': id, // either ordId or clOrdId is required
+            // 'clOrdId': clientOrderId,
         );
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -3779,7 +3825,7 @@ class okx extends Exchange {
         }
         $query = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
         $response = $this->privatePostTradeCancelOrder($this->extend($request, $query));
-        // array("code":"0","data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
+        // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         $data = $this->safe_list($response, 'data', array());
         $order = $this->safe_dict($data, 0);
         return $this->parse_order($order, $market);
@@ -3812,7 +3858,7 @@ class okx extends Exchange {
          * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing orders
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
+        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -3872,42 +3918,42 @@ class okx extends Exchange {
         }
         $response = null;
         if ($method === 'privatePostTradeCancelAlgos') {
-            $response = $this->privatePostTradeCancelAlgos($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelAlgos($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
-            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
-        //                 "ordId" => "405071912345641543",
-        //                 "sCode" => "0",
-        //                 "sMsg" => ""
-        //             ),
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
         //             ...
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         // Algo order
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "algoId" => "431375349042380800",
-        //                 "sCode" => "0",
-        //                 "sMsg" => ""
+        //                 "algoId": "431375349042380800",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $ordersData = $this->safe_list($response, 'data', array());
-        // the $request-only keys must not be merged onto every parsed order => a clientOrderIdarray()
-        // $request would otherwise come back list under the unified string field
+        // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
+        // request would otherwise come back as a list under the unified string field
         $orderParams = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'algoId', 'stop', 'trigger', 'trailing', 'method' ));
         return $this->parse_orders($ordersData, $market, null, null, $orderParams);
     }
@@ -3961,37 +4007,37 @@ class okx extends Exchange {
         }
         $response = null;
         if ($method === 'privatePostTradeCancelAlgos') {
-            $response = $this->privatePostTradeCancelAlgos($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelAlgos($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
-            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
-        //                 "ordId" => "405071912345641543",
-        //                 "sCode" => "0",
-        //                 "sMsg" => ""
-        //             ),
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
         //             ...
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
-        // Algo $order
+        // Algo order
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "algoId" => "431375349042380800",
-        //                 "sCode" => "0",
-        //                 "sMsg" => ""
+        //                 "algoId": "431375349042380800",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $ordersData = $this->safe_list($response, 'data', array());
@@ -4023,12 +4069,12 @@ class okx extends Exchange {
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "triggerTime":"1587971460",
         //                 "ts":"1587971400"
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $response;
@@ -4038,8 +4084,10 @@ class okx extends Exchange {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
+            'mmp_canceled' => 'canceled',
             'live' => 'open',
             'partially_filled' => 'open',
+            'partially_effective' => 'open',
             'filled' => 'closed',
             'effective' => 'closed',
         );
@@ -4054,183 +4102,183 @@ class okx extends Exchange {
         // createOrder
         //
         //     {
-        //         "clOrdId" => "oktswap6",
-        //         "ordId" => "312269865356374016",
-        //         "tag" => "",
-        //         "sCode" => "0",
-        //         "sMsg" => ""
+        //         "clOrdId": "oktswap6",
+        //         "ordId": "312269865356374016",
+        //         "tag": "",
+        //         "sCode": "0",
+        //         "sMsg": ""
         //     }
         //
         // editOrder
         //
         //     {
-        //         "clOrdId" => "e847386590ce4dBCc1a045253497a547",
-        //         "ordId" => "559176536793178112",
-        //         "reqId" => "",
-        //         "sCode" => "0",
-        //         "sMsg" => ""
+        //         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //         "ordId": "559176536793178112",
+        //         "reqId": "",
+        //         "sCode": "0",
+        //         "sMsg": ""
         //     }
         //
         // Spot and Swap fetchOrder, fetchOpenOrders
         //
         //     {
-        //         "accFillSz" => "0",
-        //         "avgPx" => "",
-        //         "cTime" => "1621910749815",
-        //         "category" => "normal",
-        //         "ccy" => "",
-        //         "clOrdId" => "",
-        //         "fee" => "0",
-        //         "feeCcy" => "ETH",
-        //         "fillPx" => "",
-        //         "fillSz" => "0",
-        //         "fillTime" => "",
-        //         "instId" => "ETH-USDT",
-        //         "instType" => "SPOT",
-        //         "lever" => "",
-        //         "ordId" => "317251910906576896",
-        //         "ordType" => "limit",
-        //         "pnl" => "0",
-        //         "posSide" => "net",
-        //         "px" => "2000",
-        //         "rebate" => "0",
-        //         "rebateCcy" => "USDT",
-        //         "side" => "buy",
-        //         "slOrdPx" => "",
-        //         "slTriggerPx" => "",
-        //         "state" => "live",
-        //         "sz" => "0.001",
-        //         "tag" => "",
-        //         "tdMode" => "cash",
-        //         "tpOrdPx" => "",
-        //         "tpTriggerPx" => "",
-        //         "tradeId" => "",
-        //         "uTime" => "1621910749815"
+        //         "accFillSz": "0",
+        //         "avgPx": "",
+        //         "cTime": "1621910749815",
+        //         "category": "normal",
+        //         "ccy": "",
+        //         "clOrdId": "",
+        //         "fee": "0",
+        //         "feeCcy": "ETH",
+        //         "fillPx": "",
+        //         "fillSz": "0",
+        //         "fillTime": "",
+        //         "instId": "ETH-USDT",
+        //         "instType": "SPOT",
+        //         "lever": "",
+        //         "ordId": "317251910906576896",
+        //         "ordType": "limit",
+        //         "pnl": "0",
+        //         "posSide": "net",
+        //         "px": "2000",
+        //         "rebate": "0",
+        //         "rebateCcy": "USDT",
+        //         "side": "buy",
+        //         "slOrdPx": "",
+        //         "slTriggerPx": "",
+        //         "state": "live",
+        //         "sz": "0.001",
+        //         "tag": "",
+        //         "tdMode": "cash",
+        //         "tpOrdPx": "",
+        //         "tpTriggerPx": "",
+        //         "tradeId": "",
+        //         "uTime": "1621910749815"
         //     }
         //
         // watchOrders & fetchClosedOrders
         //
         //    {
-        //        "algoClOrdId" => "",
-        //        "algoId" => "",
-        //        "attachAlgoClOrdId" => "",
-        //        "attachAlgoOrds" => array(),
-        //        "cancelSource" => "",
-        //        "cancelSourceReason" => "", // not present in WS, but present in fetchClosedOrders
-        //        "category" => "normal",
-        //        "ccy" => "", // empty in WS, but eg. `USDT` in fetchClosedOrders
-        //        "clOrdId" => "",
-        //        "cTime" => "1751705801423",
-        //        "feeCcy" => "USDT",
-        //        "instId" => "LINK-USDT-SWAP",
-        //        "instType" => "SWAP",
-        //        "isTpLimit" => "false",
-        //        "lever" => "3",
-        //        "linkedAlgoOrd" => array( "algoId" => "" ),
-        //        "ordId" => "2657625147249614848",
-        //        "ordType" => "limit",
-        //        "posSide" => "net",
-        //        "px" => "13.142",
-        //        "pxType" => "",
-        //        "pxUsd" => "",
-        //        "pxVol" => "",
-        //        "quickMgnType" => "",
-        //        "rebate" => "0",
-        //        "rebateCcy" => "USDT",
-        //        "reduceOnly" => "true",
-        //        "side" => "sell",
-        //        "slOrdPx" => "",
-        //        "slTriggerPx" => "",
-        //        "slTriggerPxType" => "",
-        //        "source" => "",
-        //        "stpId" => "",
-        //        "stpMode" => "cancel_maker",
-        //        "sz" => "0.1",
-        //        "tag" => "",
-        //        "tdMode" => "isolated",
-        //        "tgtCcy" => "",
-        //        "tpOrdPx" => "",
-        //        "tpTriggerPx" => "",
-        //        "tpTriggerPxType" => "",
-        //        "uTime" => "1751705807467",
-        //        "reqId" => "",                      // field present only in WS
-        //        "msg" => "",                        // field present only in WS
-        //        "amendResult" => "",                // field present only in WS
-        //        "amendSource" => "",                // field present only in WS
-        //        "code" => "0",                      // field present only in WS
-        //        "fillFwdPx" => "",                  // field present only in WS
-        //        "fillMarkVol" => "",                // field present only in WS
-        //        "fillPxUsd" => "",                  // field present only in WS
-        //        "fillPxVol" => "",                  // field present only in WS
-        //        "lastPx" => "13.142",               // field present only in WS
-        //        "notionalUsd" => "1.314515408",     // field present only in WS
+        //        "algoClOrdId": "",
+        //        "algoId": "",
+        //        "attachAlgoClOrdId": "",
+        //        "attachAlgoOrds": [],
+        //        "cancelSource": "",
+        //        "cancelSourceReason": "", // not present in WS, but present in fetchClosedOrders
+        //        "category": "normal",
+        //        "ccy": "", // empty in WS, but eg. `USDT` in fetchClosedOrders
+        //        "clOrdId": "",
+        //        "cTime": "1751705801423",
+        //        "feeCcy": "USDT",
+        //        "instId": "LINK-USDT-SWAP",
+        //        "instType": "SWAP",
+        //        "isTpLimit": "false",
+        //        "lever": "3",
+        //        "linkedAlgoOrd": { "algoId": "" },
+        //        "ordId": "2657625147249614848",
+        //        "ordType": "limit",
+        //        "posSide": "net",
+        //        "px": "13.142",
+        //        "pxType": "",
+        //        "pxUsd": "",
+        //        "pxVol": "",
+        //        "quickMgnType": "",
+        //        "rebate": "0",
+        //        "rebateCcy": "USDT",
+        //        "reduceOnly": "true",
+        //        "side": "sell",
+        //        "slOrdPx": "",
+        //        "slTriggerPx": "",
+        //        "slTriggerPxType": "",
+        //        "source": "",
+        //        "stpId": "",
+        //        "stpMode": "cancel_maker",
+        //        "sz": "0.1",
+        //        "tag": "",
+        //        "tdMode": "isolated",
+        //        "tgtCcy": "",
+        //        "tpOrdPx": "",
+        //        "tpTriggerPx": "",
+        //        "tpTriggerPxType": "",
+        //        "uTime": "1751705807467",
+        //        "reqId": "",                      // field present only in WS
+        //        "msg": "",                        // field present only in WS
+        //        "amendResult": "",                // field present only in WS
+        //        "amendSource": "",                // field present only in WS
+        //        "code": "0",                      // field present only in WS
+        //        "fillFwdPx": "",                  // field present only in WS
+        //        "fillMarkVol": "",                // field present only in WS
+        //        "fillPxUsd": "",                  // field present only in WS
+        //        "fillPxVol": "",                  // field present only in WS
+        //        "lastPx": "13.142",               // field present only in WS
+        //        "notionalUsd": "1.314515408",     // field present only in WS
         //
-        //     #### these below fields are empty on first omit from websocket, because of "creation" event. however, if $order is executed, it also immediately sends another update with these fields $filled  ###
+        //     #### these below fields are empty on first omit from websocket, because of "creation" event. however, if order is executed, it also immediately sends another update with these fields filled  ###
         //
-        //        "pnl" => "-0.0001",
-        //        "accFillSz" => "0.1",
-        //        "avgPx" => "13.142",
-        //        "state" => "filled",
-        //        "fee" => "-0.00026284",
-        //        "fillPx" => "13.142",
-        //        "tradeId" => "293429690",
-        //        "fillSz" => "0.1",
-        //        "fillTime" => "1751705807467",
-        //        "fillNotionalUsd" => "1.314515408", // field present only in WS
-        //        "fillPnl" => "-0.0001",             // field present only in WS
-        //        "fillFee" => "-0.00026284",         // field present only in WS
-        //        "fillFeeCcy" => "USDT",             // field present only in WS
-        //        "execType" => "M",                  // field present only in WS
-        //        "fillMarkPx" => "13.141",           // field present only in WS
-        //        "fillIdxPx" => "13.147"             // field present only in WS
+        //        "pnl": "-0.0001",
+        //        "accFillSz": "0.1",
+        //        "avgPx": "13.142",
+        //        "state": "filled",
+        //        "fee": "-0.00026284",
+        //        "fillPx": "13.142",
+        //        "tradeId": "293429690",
+        //        "fillSz": "0.1",
+        //        "fillTime": "1751705807467",
+        //        "fillNotionalUsd": "1.314515408", // field present only in WS
+        //        "fillPnl": "-0.0001",             // field present only in WS
+        //        "fillFee": "-0.00026284",         // field present only in WS
+        //        "fillFeeCcy": "USDT",             // field present only in WS
+        //        "execType": "M",                  // field present only in WS
+        //        "fillMarkPx": "13.141",           // field present only in WS
+        //        "fillIdxPx": "13.147"             // field present only in WS
         //    }
         //
         //
         // Algo Order fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         //
         //     {
-        //         "activePx" => "",
-        //         "activePxType" => "",
-        //         "actualPx" => "",
-        //         "actualSide" => "buy",
-        //         "actualSz" => "0",
-        //         "algoId" => "431375349042380800",
-        //         "cTime" => "1649119897778",
-        //         "callbackRatio" => "",
-        //         "callbackSpread" => "",
-        //         "ccy" => "",
-        //         "ctVal" => "0.01",
-        //         "instId" => "BTC-USDT-SWAP",
-        //         "instType" => "SWAP",
-        //         "last" => "46538.9",
-        //         "lever" => "125",
-        //         "moveTriggerPx" => "",
-        //         "notionalUsd" => "467.059",
-        //         "ordId" => "",
-        //         "ordPx" => "50000",
-        //         "ordType" => "trigger",
-        //         "posSide" => "long",
-        //         "pxLimit" => "",
-        //         "pxSpread" => "",
-        //         "pxVar" => "",
-        //         "side" => "buy",
-        //         "slOrdPx" => "",
-        //         "slTriggerPx" => "",
-        //         "slTriggerPxType" => "",
-        //         "state" => "live",
-        //         "sz" => "1",
-        //         "szLimit" => "",
-        //         "tag" => "",
-        //         "tdMode" => "isolated",
-        //         "tgtCcy" => "",
-        //         "timeInterval" => "",
-        //         "tpOrdPx" => "",
-        //         "tpTriggerPx" => "",
-        //         "tpTriggerPxType" => "",
-        //         "triggerPx" => "50000",
-        //         "triggerPxType" => "last",
-        //         "triggerTime" => "",
-        //         "uly" => "BTC-USDT"
+        //         "activePx": "",
+        //         "activePxType": "",
+        //         "actualPx": "",
+        //         "actualSide": "buy",
+        //         "actualSz": "0",
+        //         "algoId": "431375349042380800",
+        //         "cTime": "1649119897778",
+        //         "callbackRatio": "",
+        //         "callbackSpread": "",
+        //         "ccy": "",
+        //         "ctVal": "0.01",
+        //         "instId": "BTC-USDT-SWAP",
+        //         "instType": "SWAP",
+        //         "last": "46538.9",
+        //         "lever": "125",
+        //         "moveTriggerPx": "",
+        //         "notionalUsd": "467.059",
+        //         "ordId": "",
+        //         "ordPx": "50000",
+        //         "ordType": "trigger",
+        //         "posSide": "long",
+        //         "pxLimit": "",
+        //         "pxSpread": "",
+        //         "pxVar": "",
+        //         "side": "buy",
+        //         "slOrdPx": "",
+        //         "slTriggerPx": "",
+        //         "slTriggerPxType": "",
+        //         "state": "live",
+        //         "sz": "1",
+        //         "szLimit": "",
+        //         "tag": "",
+        //         "tdMode": "isolated",
+        //         "tgtCcy": "",
+        //         "timeInterval": "",
+        //         "tpOrdPx": "",
+        //         "tpTriggerPx": "",
+        //         "tpTriggerPxType": "",
+        //         "triggerPx": "50000",
+        //         "triggerPxType": "last",
+        //         "triggerTime": "",
+        //         "uly": "BTC-USDT"
         //     }
         //
         $scode = $this->safe_string($order, 'sCode');
@@ -4259,6 +4307,10 @@ class okx extends Exchange {
         } elseif ($type === 'ioc') {
             $timeInForce = 'IOC';
             $type = 'limit';
+        } elseif ($type === 'rpi') {
+            // retail price improvement orders are maker-only limit orders
+            $postOnly = true;
+            $type = 'limit';
         }
         $marketId = $this->safe_string($order, 'instId');
         $market = $this->safe_market($marketId, $market);
@@ -4270,16 +4322,16 @@ class okx extends Exchange {
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = null;
         $cost = null;
-        // spot $market buy => "sz" can refer either to base currency units or to quote currency units
-        // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-$order
+        // spot market buy: "sz" can refer either to base currency units or to quote currency units
+        // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($order, 'tgtCcy', $defaultTgtCcy);
         $instType = $this->safe_string($order, 'instType');
         if (($side === 'buy') && ($type === 'market') && ($instType === 'SPOT') && ($tgtCcy === 'quote_ccy')) {
-            // "sz" refers to the $cost
+            // "sz" refers to the cost
             $cost = $this->safe_string($order, 'sz');
         } else {
-            // "sz" refers to the trade currency $amount
+            // "sz" refers to the trade currency amount
             $amount = $this->safe_string($order, 'sz');
         }
         $fee = null;
@@ -4294,13 +4346,13 @@ class okx extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clOrdId');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
-            $clientOrderId = null; // fix empty $clientOrderId string
+            $clientOrderId = null; // fix empty clientOrderId string
         }
         $stopLossPrice = $this->safe_number_2($order, 'slTriggerPx', 'slOrdPx');
         $takeProfitPrice = $this->safe_number_2($order, 'tpTriggerPx', 'tpOrdPx');
         $reduceOnlyRaw = $this->safe_string($order, 'reduceOnly');
         $reduceOnly = false;
-        if ($reduceOnly !== null) {
+        if ($reduceOnlyRaw !== null) {
             $reduceOnly = ($reduceOnlyRaw === 'true');
         }
         return $this->safe_order(array(
@@ -4354,9 +4406,9 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
-            // 'clOrdId' => 'abcdef12345', // optional, [a-z0-9]array(1,32)
-            // 'ordId' => $id,
-            // 'instType' => // spot, swap, futures, margin
+            // 'clOrdId': 'abcdef12345', // optional, [a-z0-9]{1,32}
+            // 'ordId': id,
+            // 'instType': // spot, swap, futures, margin
         );
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         $options = $this->safe_dict($this->options, 'fetchOrder', array());
@@ -4389,51 +4441,51 @@ class okx extends Exchange {
         // Spot and Swap
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "accFillSz" => "0",
-        //                 "avgPx" => "",
-        //                 "cTime" => "1621910749815",
-        //                 "category" => "normal",
-        //                 "ccy" => "",
-        //                 "clOrdId" => "",
-        //                 "fee" => "0",
-        //                 "feeCcy" => "ETH",
-        //                 "fillPx" => "",
-        //                 "fillSz" => "0",
-        //                 "fillTime" => "",
-        //                 "instId" => "ETH-USDT",
-        //                 "instType" => "SPOT",
-        //                 "lever" => "",
-        //                 "ordId" => "317251910906576896",
-        //                 "ordType" => "limit",
-        //                 "pnl" => "0",
-        //                 "posSide" => "net",
+        //                 "accFillSz": "0",
+        //                 "avgPx": "",
+        //                 "cTime": "1621910749815",
+        //                 "category": "normal",
+        //                 "ccy": "",
+        //                 "clOrdId": "",
+        //                 "fee": "0",
+        //                 "feeCcy": "ETH",
+        //                 "fillPx": "",
+        //                 "fillSz": "0",
+        //                 "fillTime": "",
+        //                 "instId": "ETH-USDT",
+        //                 "instType": "SPOT",
+        //                 "lever": "",
+        //                 "ordId": "317251910906576896",
+        //                 "ordType": "limit",
+        //                 "pnl": "0",
+        //                 "posSide": "net",
         //                 "px":"20 00",
-        //                 "rebate" => "0",
-        //                 "rebateCcy" => "USDT",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "state" => "live",
+        //                 "rebate": "0",
+        //                 "rebateCcy": "USDT",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "state": "live",
         //                 "sz":"0. 001",
-        //                 "tag" => "",
-        //                 "tdMode" => "cash",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tradeId" => "",
-        //                 "uTime" => "1621910749815"
+        //                 "tag": "",
+        //                 "tdMode": "cash",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tradeId": "",
+        //                 "uTime": "1621910749815"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
-        // Algo $order
+        // Algo order
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "instType":"FUTURES",
         //                 "instId":"BTC-USD-200329",
@@ -4447,7 +4499,7 @@ class okx extends Exchange {
         //                 "side":"buy",
         //                 "posSide":"long",
         //                 "tdMode":"cross",
-        //                 "tgtCcy" => "",
+        //                 "tgtCcy": "",
         //                 "state":"effective",
         //                 "lever":"20",
         //                 "tpTriggerPx":"",
@@ -4465,20 +4517,20 @@ class okx extends Exchange {
         //                 "pxSpread":"",
         //                 "pxLimit":"",
         //                 "szLimit":"",
-        //                 "tag" => "adadadadad",
+        //                 "tag": "adadadadad",
         //                 "timeInterval":"",
         //                 "callbackRatio":"",
         //                 "callbackSpread":"",
         //                 "activePx":"",
         //                 "moveTriggerPx":"",
-        //                 "reduceOnly" => "false",
+        //                 "reduceOnly": "false",
         //                 "triggerTime":"1597026383085",
-        //                 "last" => "16012",
-        //                 "failCode" => "",
-        //                 "algoClOrdId" => "",
+        //                 "last": "16012",
+        //                 "failCode": "",
+        //                 "algoClOrdId": "",
         //                 "cTime":"1597026383000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4514,14 +4566,14 @@ class okx extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, $maxLimit);
         }
         $request = array(
-            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // 'uly' => currency['id'],
-            // 'instId' => $market['id'],
-            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated, stop orders => conditional, oco, $trigger, move_order_stop, iceberg, or twap
-            // 'state' => 'live', // live, partially_filled
-            // 'after' => orderId,
-            // 'before' => orderId,
-            // 'limit' => $limit, // default 100, max 100
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly': currency['id'],
+            // 'instId': market['id'],
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated, stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state': 'live', // live, partially_filled
+            // 'after': orderId,
+            // 'before': orderId,
+            // 'limit': limit, // default 100, max 100
         );
         $market = null;
         if ($symbol !== null) {
@@ -4556,97 +4608,97 @@ class okx extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "accFillSz" => "0",
-        //                 "avgPx" => "",
-        //                 "cTime" => "1621910749815",
-        //                 "category" => "normal",
-        //                 "ccy" => "",
-        //                 "clOrdId" => "",
-        //                 "fee" => "0",
-        //                 "feeCcy" => "ETH",
-        //                 "fillPx" => "",
-        //                 "fillSz" => "0",
-        //                 "fillTime" => "",
-        //                 "instId" => "ETH-USDT",
-        //                 "instType" => "SPOT",
-        //                 "lever" => "",
-        //                 "ordId" => "317251910906576896",
-        //                 "ordType" => "limit",
-        //                 "pnl" => "0",
-        //                 "posSide" => "net",
+        //                 "accFillSz": "0",
+        //                 "avgPx": "",
+        //                 "cTime": "1621910749815",
+        //                 "category": "normal",
+        //                 "ccy": "",
+        //                 "clOrdId": "",
+        //                 "fee": "0",
+        //                 "feeCcy": "ETH",
+        //                 "fillPx": "",
+        //                 "fillSz": "0",
+        //                 "fillTime": "",
+        //                 "instId": "ETH-USDT",
+        //                 "instType": "SPOT",
+        //                 "lever": "",
+        //                 "ordId": "317251910906576896",
+        //                 "ordType": "limit",
+        //                 "pnl": "0",
+        //                 "posSide": "net",
         //                 "px":"20 00",
-        //                 "rebate" => "0",
-        //                 "rebateCcy" => "USDT",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "state" => "live",
+        //                 "rebate": "0",
+        //                 "rebateCcy": "USDT",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "state": "live",
         //                 "sz":"0. 001",
-        //                 "tag" => "",
-        //                 "tdMode" => "cash",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tradeId" => "",
-        //                 "uTime" => "1621910749815"
+        //                 "tag": "",
+        //                 "tdMode": "cash",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tradeId": "",
+        //                 "uTime": "1621910749815"
         //             }
-        //         ),
+        //         ],
         //         "msg":""
         //     }
         //
         // Algo order
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "activePx" => "",
-        //                 "activePxType" => "",
-        //                 "actualPx" => "",
-        //                 "actualSide" => "buy",
-        //                 "actualSz" => "0",
-        //                 "algoId" => "431375349042380800",
-        //                 "cTime" => "1649119897778",
-        //                 "callbackRatio" => "",
-        //                 "callbackSpread" => "",
-        //                 "ccy" => "",
-        //                 "ctVal" => "0.01",
-        //                 "instId" => "BTC-USDT-SWAP",
-        //                 "instType" => "SWAP",
-        //                 "last" => "46538.9",
-        //                 "lever" => "125",
-        //                 "moveTriggerPx" => "",
-        //                 "notionalUsd" => "467.059",
-        //                 "ordId" => "",
-        //                 "ordPx" => "50000",
-        //                 "ordType" => "trigger",
-        //                 "posSide" => "long",
-        //                 "pxLimit" => "",
-        //                 "pxSpread" => "",
-        //                 "pxVar" => "",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "slTriggerPxType" => "",
-        //                 "state" => "live",
-        //                 "sz" => "1",
-        //                 "szLimit" => "",
-        //                 "tag" => "",
-        //                 "tdMode" => "isolated",
-        //                 "tgtCcy" => "",
-        //                 "timeInterval" => "",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tpTriggerPxType" => "",
-        //                 "triggerPx" => "50000",
-        //                 "triggerPxType" => "last",
-        //                 "triggerTime" => "",
-        //                 "uly" => "BTC-USDT"
+        //                 "activePx": "",
+        //                 "activePxType": "",
+        //                 "actualPx": "",
+        //                 "actualSide": "buy",
+        //                 "actualSz": "0",
+        //                 "algoId": "431375349042380800",
+        //                 "cTime": "1649119897778",
+        //                 "callbackRatio": "",
+        //                 "callbackSpread": "",
+        //                 "ccy": "",
+        //                 "ctVal": "0.01",
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "last": "46538.9",
+        //                 "lever": "125",
+        //                 "moveTriggerPx": "",
+        //                 "notionalUsd": "467.059",
+        //                 "ordId": "",
+        //                 "ordPx": "50000",
+        //                 "ordType": "trigger",
+        //                 "posSide": "long",
+        //                 "pxLimit": "",
+        //                 "pxSpread": "",
+        //                 "pxVar": "",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "state": "live",
+        //                 "sz": "1",
+        //                 "szLimit": "",
+        //                 "tag": "",
+        //                 "tdMode": "isolated",
+        //                 "tgtCcy": "",
+        //                 "timeInterval": "",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "triggerPx": "50000",
+        //                 "triggerPxType": "last",
+        //                 "triggerTime": "",
+        //                 "uly": "BTC-USDT"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4675,15 +4727,15 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // 'uly' => currency['id'],
-            // 'instId' => $market['id'],
-            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated stop orders => conditional, oco, $trigger, move_order_stop, iceberg, or twap
-            // 'state' => 'canceled', // filled, canceled
-            // 'after' => orderId,
-            // 'before' => orderId,
-            // 'limit' => $limit, // default 100, max 100
-            // 'algoId' => "'433845797218942976'", // Algo order
+            // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly': currency['id'],
+            // 'instId': market['id'],
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state': 'canceled', // filled, canceled
+            // 'after': orderId,
+            // 'before': orderId,
+            // 'limit': limit, // default 100, max 100
+            // 'algoId': "'433845797218942976'", // Algo order
         );
         $market = null;
         if ($symbol !== null) {
@@ -4739,101 +4791,101 @@ class okx extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "accFillSz" => "0",
-        //                 "avgPx" => "",
-        //                 "cTime" => "1644037822494",
-        //                 "category" => "normal",
-        //                 "ccy" => "",
-        //                 "clOrdId" => "",
-        //                 "fee" => "0",
-        //                 "feeCcy" => "BTC",
-        //                 "fillPx" => "",
-        //                 "fillSz" => "0",
-        //                 "fillTime" => "",
-        //                 "instId" => "BTC-USDT",
-        //                 "instType" => "SPOT",
-        //                 "lever" => "",
-        //                 "ordId" => "410059580352409602",
-        //                 "ordType" => "limit",
-        //                 "pnl" => "0",
-        //                 "posSide" => "net",
-        //                 "px" => "30000",
-        //                 "rebate" => "0",
-        //                 "rebateCcy" => "USDT",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "slTriggerPxType" => "",
-        //                 "source" => "",
-        //                 "state" => "canceled",
-        //                 "sz" => "0.0005452",
-        //                 "tag" => "",
-        //                 "tdMode" => "cash",
-        //                 "tgtCcy" => "",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tpTriggerPxType" => "",
-        //                 "tradeId" => "",
-        //                 "uTime" => "1644038165667"
+        //                 "accFillSz": "0",
+        //                 "avgPx": "",
+        //                 "cTime": "1644037822494",
+        //                 "category": "normal",
+        //                 "ccy": "",
+        //                 "clOrdId": "",
+        //                 "fee": "0",
+        //                 "feeCcy": "BTC",
+        //                 "fillPx": "",
+        //                 "fillSz": "0",
+        //                 "fillTime": "",
+        //                 "instId": "BTC-USDT",
+        //                 "instType": "SPOT",
+        //                 "lever": "",
+        //                 "ordId": "410059580352409602",
+        //                 "ordType": "limit",
+        //                 "pnl": "0",
+        //                 "posSide": "net",
+        //                 "px": "30000",
+        //                 "rebate": "0",
+        //                 "rebateCcy": "USDT",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "source": "",
+        //                 "state": "canceled",
+        //                 "sz": "0.0005452",
+        //                 "tag": "",
+        //                 "tdMode": "cash",
+        //                 "tgtCcy": "",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "tradeId": "",
+        //                 "uTime": "1644038165667"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         // Algo order
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "activePx" => "",
-        //                 "activePxType" => "",
-        //                 "actualPx" => "",
-        //                 "actualSide" => "buy",
-        //                 "actualSz" => "0",
-        //                 "algoId" => "433845797218942976",
-        //                 "cTime" => "1649708898523",
-        //                 "callbackRatio" => "",
-        //                 "callbackSpread" => "",
-        //                 "ccy" => "",
-        //                 "ctVal" => "0.01",
-        //                 "instId" => "BTC-USDT-SWAP",
-        //                 "instType" => "SWAP",
-        //                 "last" => "39950.4",
-        //                 "lever" => "125",
-        //                 "moveTriggerPx" => "",
-        //                 "notionalUsd" => "1592.1760000000002",
-        //                 "ordId" => "",
-        //                 "ordPx" => "29000",
-        //                 "ordType" => "trigger",
-        //                 "posSide" => "long",
-        //                 "pxLimit" => "",
-        //                 "pxSpread" => "",
-        //                 "pxVar" => "",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "slTriggerPxType" => "",
-        //                 "state" => "canceled",
-        //                 "sz" => "4",
-        //                 "szLimit" => "",
-        //                 "tag" => "",
-        //                 "tdMode" => "isolated",
-        //                 "tgtCcy" => "",
-        //                 "timeInterval" => "",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tpTriggerPxType" => "",
-        //                 "triggerPx" => "30000",
-        //                 "triggerPxType" => "last",
-        //                 "triggerTime" => "",
-        //                 "uly" => "BTC-USDT"
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "activePx": "",
+        //                 "activePxType": "",
+        //                 "actualPx": "",
+        //                 "actualSide": "buy",
+        //                 "actualSz": "0",
+        //                 "algoId": "433845797218942976",
+        //                 "cTime": "1649708898523",
+        //                 "callbackRatio": "",
+        //                 "callbackSpread": "",
+        //                 "ccy": "",
+        //                 "ctVal": "0.01",
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "last": "39950.4",
+        //                 "lever": "125",
+        //                 "moveTriggerPx": "",
+        //                 "notionalUsd": "1592.1760000000002",
+        //                 "ordId": "",
+        //                 "ordPx": "29000",
+        //                 "ordType": "trigger",
+        //                 "posSide": "long",
+        //                 "pxLimit": "",
+        //                 "pxSpread": "",
+        //                 "pxVar": "",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "state": "canceled",
+        //                 "sz": "4",
+        //                 "szLimit": "",
+        //                 "tag": "",
+        //                 "tdMode": "isolated",
+        //                 "tgtCcy": "",
+        //                 "timeInterval": "",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "triggerPx": "30000",
+        //                 "triggerPxType": "last",
+        //                 "triggerTime": "",
+        //                 "uly": "BTC-USDT"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4871,15 +4923,15 @@ class okx extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params, $maxLimit);
         }
         $request = array(
-            // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // 'uly' => currency['id'],
-            // 'instId' => $market['id'],
-            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated stop orders => conditional, oco, $trigger, move_order_stop, iceberg, or twap
-            // 'state' => 'filled', // filled, effective
-            // 'after' => orderId,
-            // 'before' => orderId,
-            // 'limit' => $limit, // default 100, max 100
-            // 'algoId' => "'433845797218942976'", // Algo order
+            // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly': currency['id'],
+            // 'instId': market['id'],
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state': 'filled', // filled, effective
+            // 'after': orderId,
+            // 'before': orderId,
+            // 'limit': limit, // default 100, max 100
+            // 'algoId': "'433845797218942976'", // Algo order
         );
         $market = null;
         if ($symbol !== null) {
@@ -4931,97 +4983,97 @@ class okx extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "accFillSz" => "0",
-        //                 "avgPx" => "",
-        //                 "cTime" => "1621910749815",
-        //                 "category" => "normal",
-        //                 "ccy" => "",
-        //                 "clOrdId" => "",
-        //                 "fee" => "0",
-        //                 "feeCcy" => "ETH",
-        //                 "fillPx" => "",
-        //                 "fillSz" => "0",
-        //                 "fillTime" => "",
-        //                 "instId" => "ETH-USDT",
-        //                 "instType" => "SPOT",
-        //                 "lever" => "",
-        //                 "ordId" => "317251910906576896",
-        //                 "ordType" => "limit",
-        //                 "pnl" => "0",
-        //                 "posSide" => "net",
-        //                 "px" => "2000",
-        //                 "rebate" => "0",
-        //                 "rebateCcy" => "USDT",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "state" => "live",
-        //                 "sz" => "0.001",
-        //                 "tag" => "",
-        //                 "tdMode" => "cash",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tradeId" => "",
-        //                 "uTime" => "1621910749815"
+        //                 "accFillSz": "0",
+        //                 "avgPx": "",
+        //                 "cTime": "1621910749815",
+        //                 "category": "normal",
+        //                 "ccy": "",
+        //                 "clOrdId": "",
+        //                 "fee": "0",
+        //                 "feeCcy": "ETH",
+        //                 "fillPx": "",
+        //                 "fillSz": "0",
+        //                 "fillTime": "",
+        //                 "instId": "ETH-USDT",
+        //                 "instType": "SPOT",
+        //                 "lever": "",
+        //                 "ordId": "317251910906576896",
+        //                 "ordType": "limit",
+        //                 "pnl": "0",
+        //                 "posSide": "net",
+        //                 "px": "2000",
+        //                 "rebate": "0",
+        //                 "rebateCcy": "USDT",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "state": "live",
+        //                 "sz": "0.001",
+        //                 "tag": "",
+        //                 "tdMode": "cash",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tradeId": "",
+        //                 "uTime": "1621910749815"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         // Algo order
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "activePx" => "",
-        //                 "activePxType" => "",
-        //                 "actualPx" => "",
-        //                 "actualSide" => "buy",
-        //                 "actualSz" => "0",
-        //                 "algoId" => "433845797218942976",
-        //                 "cTime" => "1649708898523",
-        //                 "callbackRatio" => "",
-        //                 "callbackSpread" => "",
-        //                 "ccy" => "",
-        //                 "ctVal" => "0.01",
-        //                 "instId" => "BTC-USDT-SWAP",
-        //                 "instType" => "SWAP",
-        //                 "last" => "39950.4",
-        //                 "lever" => "125",
-        //                 "moveTriggerPx" => "",
-        //                 "notionalUsd" => "1592.1760000000002",
-        //                 "ordId" => "",
-        //                 "ordPx" => "29000",
-        //                 "ordType" => "trigger",
-        //                 "posSide" => "long",
-        //                 "pxLimit" => "",
-        //                 "pxSpread" => "",
-        //                 "pxVar" => "",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "slTriggerPxType" => "",
-        //                 "state" => "effective",
-        //                 "sz" => "4",
-        //                 "szLimit" => "",
-        //                 "tag" => "",
-        //                 "tdMode" => "isolated",
-        //                 "tgtCcy" => "",
-        //                 "timeInterval" => "",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tpTriggerPxType" => "",
-        //                 "triggerPx" => "30000",
-        //                 "triggerPxType" => "last",
-        //                 "triggerTime" => "",
-        //                 "uly" => "BTC-USDT"
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "activePx": "",
+        //                 "activePxType": "",
+        //                 "actualPx": "",
+        //                 "actualSide": "buy",
+        //                 "actualSz": "0",
+        //                 "algoId": "433845797218942976",
+        //                 "cTime": "1649708898523",
+        //                 "callbackRatio": "",
+        //                 "callbackSpread": "",
+        //                 "ccy": "",
+        //                 "ctVal": "0.01",
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "last": "39950.4",
+        //                 "lever": "125",
+        //                 "moveTriggerPx": "",
+        //                 "notionalUsd": "1592.1760000000002",
+        //                 "ordId": "",
+        //                 "ordPx": "29000",
+        //                 "ordType": "trigger",
+        //                 "posSide": "long",
+        //                 "pxLimit": "",
+        //                 "pxSpread": "",
+        //                 "pxVar": "",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "state": "effective",
+        //                 "sz": "4",
+        //                 "szLimit": "",
+        //                 "tag": "",
+        //                 "tdMode": "isolated",
+        //                 "tgtCcy": "",
+        //                 "timeInterval": "",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "triggerPx": "30000",
+        //                 "triggerPxType": "last",
+        //                 "triggerTime": "",
+        //                 "uly": "BTC-USDT"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5051,13 +5103,13 @@ class okx extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
         }
         $request = array(
-            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // 'uly' => currency['id'],
-            // 'instId' => $market['id'],
-            // 'ordId' => orderId,
-            // 'after' => billId,
-            // 'before' => billId,
-            // 'limit' => $limit, // default 100, max 100
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly': currency['id'],
+            // 'instId': market['id'],
+            // 'ordId': orderId,
+            // 'after': billId,
+            // 'before': billId,
+            // 'limit': limit, // default 100, max 100
         );
         $market = null;
         if ($symbol !== null) {
@@ -5070,33 +5122,33 @@ class okx extends Exchange {
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         list($type, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request['instType'] = $this->convert_to_instrument_type($type);
-        if (($limit !== null) && ($since === null)) {  // $limit = n, okx will return the n most recent results, instead of the n results after $limit, so $limit should only be sent when $since is null
+        if (($limit !== null) && ($since === null)) {  // let limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is undefined
             $request['limit'] = $limit; // default 100, max 100
         }
         $response = $this->privateGetTradeFillsHistory($this->extend($request, $query));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "side" => "buy",
-        //                 "fillSz" => "0.007533",
-        //                 "fillPx" => "2654.98",
-        //                 "fee" => "-0.000007533",
-        //                 "ordId" => "317321390244397056",
-        //                 "instType" => "SPOT",
-        //                 "instId" => "ETH-USDT",
-        //                 "clOrdId" => "",
-        //                 "posSide" => "net",
-        //                 "billId" => "317321390265368576",
-        //                 "tag" => "0",
-        //                 "execType" => "T",
-        //                 "tradeId" => "107601752",
-        //                 "feeCcy" => "ETH",
-        //                 "ts" => "1621927314985"
+        //                 "side": "buy",
+        //                 "fillSz": "0.007533",
+        //                 "fillPx": "2654.98",
+        //                 "fee": "-0.000007533",
+        //                 "ordId": "317321390244397056",
+        //                 "instType": "SPOT",
+        //                 "instId": "ETH-USDT",
+        //                 "clOrdId": "",
+        //                 "posSide": "net",
+        //                 "billId": "317321390265368576",
+        //                 "tag": "0",
+        //                 "execType": "T",
+        //                 "tradeId": "107601752",
+        //                 "feeCcy": "ETH",
+        //                 "ts": "1621927314985"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5117,11 +5169,11 @@ class okx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $request = array(
-            // 'instrument_id' => market['id'],
+            // 'instrument_id': market['id'],
             'ordId' => $id,
-            // 'after' => '1', // return the page after the specified page number
-            // 'before' => '1', // return the page before the specified page number
-            // 'limit' => $limit, // optional, number of results per $request, default = maximum = 100
+            // 'after': '1', // return the page after the specified page number
+            // 'before': '1', // return the page before the specified page number
+            // 'limit': limit, // optional, number of results per request, default = maximum = 100
         );
         return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
@@ -5156,17 +5208,17 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $method);
         $params = $this->omit($params, 'method');
         $request = array(
-            // 'instType' => null, // 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
-            // 'ccy' => null, // $currency['id'],
-            // 'mgnMode' => null, // 'isolated', 'cross'
-            // 'ctType' => null, // 'linear', 'inverse', only applicable to FUTURES/SWAP
-            // 'type' => varies depending the 'method' endpoint :
+            // 'instType': undefined, // 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
+            // 'ccy': undefined, // currency['id'],
+            // 'mgnMode': undefined, // 'isolated', 'cross'
+            // 'ctType': undefined, // 'linear', 'inverse', only applicable to FUTURES/SWAP
+            // 'type': varies depending the 'method' endpoint :
             //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
             //     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
             //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
-            // 'after' => 'id', // return records earlier than the requested bill id
-            // 'before' => 'id', // return records newer than the requested bill id
-            // 'limit' => 100, // default 100, max 100
+            // 'after': 'id', // return records earlier than the requested bill id
+            // 'before': 'id', // return records newer than the requested bill id
+            // 'limit': 100, // default 100, max 100
         );
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLedger', $params);
@@ -5203,48 +5255,48 @@ class okx extends Exchange {
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "bal" => "0.0000819307998198",
-        //                 "balChg" => "-664.2679586599999802",
-        //                 "billId" => "310394313544966151",
-        //                 "ccy" => "USDT",
-        //                 "fee" => "0",
-        //                 "from" => "",
-        //                 "instId" => "LTC-USDT",
-        //                 "instType" => "SPOT",
-        //                 "mgnMode" => "cross",
-        //                 "notes" => "",
-        //                 "ordId" => "310394313519800320",
-        //                 "pnl" => "0",
-        //                 "posBal" => "0",
-        //                 "posBalChg" => "0",
-        //                 "subType" => "2",
-        //                 "sz" => "664.26795866",
-        //                 "to" => "",
-        //                 "ts" => "1620275771196",
-        //                 "type" => "2"
+        //                 "bal": "0.0000819307998198",
+        //                 "balChg": "-664.2679586599999802",
+        //                 "billId": "310394313544966151",
+        //                 "ccy": "USDT",
+        //                 "fee": "0",
+        //                 "from": "",
+        //                 "instId": "LTC-USDT",
+        //                 "instType": "SPOT",
+        //                 "mgnMode": "cross",
+        //                 "notes": "",
+        //                 "ordId": "310394313519800320",
+        //                 "pnl": "0",
+        //                 "posBal": "0",
+        //                 "posBalChg": "0",
+        //                 "subType": "2",
+        //                 "sz": "664.26795866",
+        //                 "to": "",
+        //                 "ts": "1620275771196",
+        //                 "type": "2"
         //             }
-        //         )
+        //         ]
         //     }
         //
         // privateGetAssetBills
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "billId" => "12344",
-        //                 "ccy" => "BTC",
-        //                 "balChg" => "2",
-        //                 "bal" => "12",
-        //                 "type" => "1",
-        //                 "ts" => "1597026383085"
+        //                 "billId": "12344",
+        //                 "ccy": "BTC",
+        //                 "balChg": "2",
+        //                 "bal": "12",
+        //                 "type": "1",
+        //                 "ts": "1597026383085"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5273,36 +5325,36 @@ class okx extends Exchange {
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
         //     {
-        //         "bal" => "0.0000819307998198",
-        //         "balChg" => "-664.2679586599999802",
-        //         "billId" => "310394313544966151",
-        //         "ccy" => "USDT",
-        //         "fee" => "0",
-        //         "from" => "",
-        //         "instId" => "LTC-USDT",
-        //         "instType" => "SPOT",
-        //         "mgnMode" => "cross",
-        //         "notes" => "",
-        //         "ordId" => "310394313519800320",
-        //         "pnl" => "0",
-        //         "posBal" => "0",
-        //         "posBalChg" => "0",
-        //         "subType" => "2",
-        //         "sz" => "664.26795866",
-        //         "to" => "",
-        //         "ts" => "1620275771196",
-        //         "type" => "2"
+        //         "bal": "0.0000819307998198",
+        //         "balChg": "-664.2679586599999802",
+        //         "billId": "310394313544966151",
+        //         "ccy": "USDT",
+        //         "fee": "0",
+        //         "from": "",
+        //         "instId": "LTC-USDT",
+        //         "instType": "SPOT",
+        //         "mgnMode": "cross",
+        //         "notes": "",
+        //         "ordId": "310394313519800320",
+        //         "pnl": "0",
+        //         "posBal": "0",
+        //         "posBalChg": "0",
+        //         "subType": "2",
+        //         "sz": "664.26795866",
+        //         "to": "",
+        //         "ts": "1620275771196",
+        //         "type": "2"
         //     }
         //
         // privateGetAssetBills
         //
         //     {
-        //         "billId" => "12344",
-        //         "ccy" => "BTC",
-        //         "balChg" => "2",
-        //         "bal" => "12",
-        //         "type" => "1",
-        //         "ts" => "1597026383085"
+        //         "billId": "12344",
+        //         "ccy": "BTC",
+        //         "balChg": "2",
+        //         "bal": "12",
+        //         "type": "1",
+        //         "ts": "1597026383085"
         //     }
         //
         $currencyId = $this->safe_string($item, 'ccy');
@@ -5341,13 +5393,13 @@ class okx extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
-        //         "addr" => "okbtothemoon",
-        //         "memo" => "971668", // may be missing
+        //         "addr": "okbtothemoon",
+        //         "memo": "971668", // may be missing
         //         "tag":"52055", // may be missing
-        //         "pmtId" => "", // may be missing
-        //         "ccy" => "BTC",
-        //         "to" => "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
-        //         "selected" => true
+        //         "pmtId": "", // may be missing
+        //         "ccy": "BTC",
+        //         "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
+        //         "selected": true
         //     }
         //
         //     {
@@ -5358,13 +5410,13 @@ class okx extends Exchange {
         //     }
         //
         //     {
-        //        "chain" => "ETH-OKExChain",
-        //        "addrEx" => array( "comment" => "6040348" ), // some currencies like TON may have this field,
-        //        "ctAddr" => "72315c",
-        //        "ccy" => "ETH",
-        //        "to" => "6",
-        //        "addr" => "0x1c9f2244d1ccaa060bd536827c18925db10db102",
-        //        "selected" => true
+        //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field,
+        //        "ctAddr": "72315c",
+        //        "ccy": "ETH",
+        //        "to": "6",
+        //        "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        //        "selected": true
         //     }
         //
         $address = $this->safe_string($depositAddress, 'addr');
@@ -5381,45 +5433,45 @@ class okx extends Exchange {
         $networksById = $this->index_by($networks, 'id');
         $networkData = ($chain === null) ? null : $this->safe_dict($networksById, $chain);
         // inconsistent naming responses from exchange
-        // with respect to $network naming provided in $currency info vs $address $chain-names and ids
+        // with respect to network naming provided in currency info vs address chain-names and ids
         //
-        // response from $address endpoint:
+        // response from address endpoint:
         //      {
-        //          "chain" => "USDT-Polygon",
-        //          "ctAddr" => "",
-        //          "ccy" => "USDT",
+        //          "chain": "USDT-Polygon",
+        //          "ctAddr": "",
+        //          "ccy": "USDT",
         //          "to":"6" ,
-        //          "addr" => "0x1903441e386cc49d937f6302955b5feb4286dcfa",
-        //          "selected" => true
+        //          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected": true
         //      }
-        // $network information from $currency['networks'] field:
-        // Polygon => {
-        //        info => array(
-        //            canDep => false,
-        //            canInternal => false,
-        //            canWd => false,
-        //            ccy => 'USDT',
-        //            $chain => 'USDT-Polygon-Bridge',
-        //            mainNet => false,
-        //            maxFee => '26.879528',
-        //            minFee => '13.439764',
-        //            minWd => '0.001',
-        //            name => ''
-        //        ),
-        //        id => 'USDT-Polygon-Bridge',
-        //        $network => 'Polygon',
-        //        active => false,
-        //        deposit => false,
-        //        withdraw => false,
-        //        fee => 13.439764,
-        //        precision => null,
-        //        limits => {
-        //            withdraw => array(
-        //                min => 0.001,
-        //                max => null
+        // network information from currency['networks'] field:
+        // Polygon: {
+        //        info: {
+        //            canDep: false,
+        //            canInternal: false,
+        //            canWd: false,
+        //            ccy: 'USDT',
+        //            chain: 'USDT-Polygon-Bridge',
+        //            mainNet: false,
+        //            maxFee: '26.879528',
+        //            minFee: '13.439764',
+        //            minWd: '0.001',
+        //            name: ''
+        //        },
+        //        id: 'USDT-Polygon-Bridge',
+        //        network: 'Polygon',
+        //        active: false,
+        //        deposit: false,
+        //        withdraw: false,
+        //        fee: 13.439764,
+        //        precision: undefined,
+        //        limits: {
+        //            withdraw: {
+        //                min: 0.001,
+        //                max: undefined
         //            }
         //        }
-        //     ),
+        //     },
         //
         if ($chain === 'USDT-Polygon') {
             $networkData = $this->safe_dict_2($networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
@@ -5456,23 +5508,23 @@ class okx extends Exchange {
         $response = $this->privateGetAssetDepositAddress($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array(
-        //                 "addr" => "okbtothemoon",
-        //                 "memo" => "971668", // may be missing
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "addr": "okbtothemoon",
+        //                 "memo": "971668", // may be missing
         //                 "tag":"52055", // may be missing
-        //                 "pmtId" => "", // may be missing
-        //                 "ccy" => "BTC",
-        //                 "to" => "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
-        //                 "selected" => true
-        //             ),
-        //             // array("ccy":"usdt-erc20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true),
-        //             // array("ccy":"usdt-trc20","to":"6","addr":"TRrd5SiSZrfQVRKm4e9SRSbn2LNTYqCjqx","selected":true),
-        //             // array("ccy":"usdt_okexchain","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true),
-        //             // array("ccy":"usdt_kip20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true),
-        //         )
+        //                 "pmtId": "", // may be missing
+        //                 "ccy": "BTC",
+        //                 "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
+        //                 "selected": true
+        //             },
+        //             // {"ccy":"usdt-erc20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //             // {"ccy":"usdt-trc20","to":"6","addr":"TRrd5SiSZrfQVRKm4e9SRSbn2LNTYqCjqx","selected":true},
+        //             // {"ccy":"usdt_okexchain","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //             // {"ccy":"usdt_kip20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5512,7 +5564,7 @@ class okx extends Exchange {
         if (($codeNetwork !== null) && (is_array($response) && array_key_exists($codeNetwork ?? '', $response))) {
             return $response[$codeNetwork];
         }
-        // if the $network is not specified, return the $first address
+        // if the network is not specified, return the first address
         $keys = is_array($response) ? array_keys($response) : array();
         $first = $this->safe_string($keys, 0, '');
         return $this->safe_dict($response, $first);
@@ -5564,20 +5616,20 @@ class okx extends Exchange {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a "fee" string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set "0". Withdrawing to external digital asset $address requires $network $transaction $fee->');
             }
         }
-        $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
+        $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
         $query = $this->omit($params, array( 'fee' ));
         $response = $this->privatePostAssetWithdrawal($this->extend($request, $query));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "amt" => "0.1",
-        //                 "wdId" => "67485",
-        //                 "ccy" => "BTC"
+        //                 "amt": "0.1",
+        //                 "wdId": "67485",
+        //                 "ccy": "BTC"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5608,11 +5660,11 @@ class okx extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params);
         }
         $request = array(
-            // 'ccy' => $currency['id'],
-            // 'state' => 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
-            // 'after' => $since,
-            // 'before' $this->milliseconds(),
-            // 'limit' => $limit, // default 100, max 100
+            // 'ccy': currency['id'],
+            // 'state': 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
+            // 'after': since,
+            // 'before' this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
         );
         $currency = null;
         if ($code !== null) {
@@ -5629,40 +5681,40 @@ class okx extends Exchange {
         $response = $this->privateGetAssetDepositHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array(
-        //                 "amt" => "0.01044408",
-        //                 "txId" => "1915737_3_0_0_asset",
-        //                 "ccy" => "BTC",
-        //                 "from" => "13801825426",
-        //                 "to" => "",
-        //                 "ts" => "1597026383085",
-        //                 "state" => "2",
-        //                 "depId" => "4703879"
-        //             ),
-        //             array(
-        //                 "amt" => "491.6784211",
-        //                 "txId" => "1744594_3_184_0_asset",
-        //                 "ccy" => "OKB",
-        //                 "from" => "",
-        //                 "to" => "",
-        //                 "ts" => "1597026383085",
-        //                 "state" => "2",
-        //                 "depId" => "4703809"
-        //             ),
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "amt" => "223.18782496",
-        //                 "txId" => "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
-        //                 "ccy" => "USDT",
-        //                 "from" => "",
-        //                 "to" => "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
-        //                 "ts" => "1597026383085",
-        //                 "state" => "2",
-        //                 "depId" => "4703779"
+        //                 "amt": "0.01044408",
+        //                 "txId": "1915737_3_0_0_asset",
+        //                 "ccy": "BTC",
+        //                 "from": "13801825426",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703879"
+        //             },
+        //             {
+        //                 "amt": "491.6784211",
+        //                 "txId": "1744594_3_184_0_asset",
+        //                 "ccy": "OKB",
+        //                 "from": "",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703809"
+        //             },
+        //             {
+        //                 "amt": "223.18782496",
+        //                 "txId": "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
+        //                 "ccy": "USDT",
+        //                 "from": "",
+        //                 "to": "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703779"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5720,11 +5772,11 @@ class okx extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params);
         }
         $request = array(
-            // 'ccy' => $currency['id'],
-            // 'state' => 2, // -3 => pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
-            // 'after' => $since,
-            // 'before' => $this->milliseconds(),
-            // 'limit' => $limit, // default 100, max 100
+            // 'ccy': currency['id'],
+            // 'state': 2, // -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
+            // 'after': since,
+            // 'before': this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
         );
         $currency = null;
         if ($code !== null) {
@@ -5741,32 +5793,32 @@ class okx extends Exchange {
         $response = $this->privateGetAssetWithdrawalHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array(
-        //                 "amt" => "0.094",
-        //                 "wdId" => "4703879",
-        //                 "fee" => "0.01000000eth",
-        //                 "txId" => "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
-        //                 "ccy" => "ETH",
-        //                 "from" => "13426335357",
-        //                 "to" => "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //                 "ts" => "1597026383085",
-        //                 "state" => "2"
-        //             ),
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "amt" => "0.01",
-        //                 "wdId" => "4703879",
-        //                 "fee" => "0.00000000btc",
-        //                 "txId" => "",
-        //                 "ccy" => "BTC",
-        //                 "from" => "13426335357",
-        //                 "to" => "13426335357",
-        //                 "ts" => "1597026383085",
-        //                 "state" => "2"
+        //                 "amt": "0.094",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.01000000eth",
+        //                 "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //                 "ccy": "ETH",
+        //                 "from": "13426335357",
+        //                 "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
+        //             },
+        //             {
+        //                 "amt": "0.01",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.00000000btc",
+        //                 "txId": "",
+        //                 "ccy": "BTC",
+        //                 "from": "13426335357",
+        //                 "to": "13426335357",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5798,23 +5850,23 @@ class okx extends Exchange {
         $response = $this->privateGetAssetWithdrawalHistory($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "chain" => "USDT-TRC20",
-        //                "clientId" => '',
-        //                "fee" => "0.8",
-        //                "ccy" => "USDT",
-        //                "amt" => "54.561",
-        //                "txId" => "00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70",
-        //                "from" => "example@email.com",
-        //                "to" => "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
-        //                "state" => "2",
-        //                "ts" => "1641376485000",
-        //                "wdId" => "25147041"
+        //                "chain": "USDT-TRC20",
+        //                "clientId": '',
+        //                "fee": "0.8",
+        //                "ccy": "USDT",
+        //                "amt": "54.561",
+        //                "txId": "00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70",
+        //                "from": "example@email.com",
+        //                "to": "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
+        //                "state": "2",
+        //                "ts": "1641376485000",
+        //                "wdId": "25147041"
         //            }
-        //        ),
-        //        "msg" => ''
+        //        ],
+        //        "msg": ''
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5824,26 +5876,26 @@ class okx extends Exchange {
 
     public function parse_transaction_status(?string $status) {
         //
-        // deposit $statuses
+        // deposit statuses
         //
         //     {
-        //         "0" => "waiting for confirmation",
-        //         "1" => "deposit credited",
-        //         "2" => "deposit successful"
+        //         "0": "waiting for confirmation",
+        //         "1": "deposit credited",
+        //         "2": "deposit successful"
         //     }
         //
-        // withdrawal $statuses
+        // withdrawal statuses
         //
         //     {
-        //        '-3' => "pending cancel",
-        //        "-2" => "canceled",
-        //        "-1" => "failed",
-        //         "0" => "pending",
-        //         "1" => "sending",
-        //         "2" => "sent",
-        //         "3" => "awaiting email verification",
-        //         "4" => "awaiting manual verification",
-        //         "5" => "awaiting identity verification"
+        //        '-3': "pending cancel",
+        //        "-2": "canceled",
+        //        "-1": "failed",
+        //         "0": "pending",
+        //         "1": "sending",
+        //         "2": "sent",
+        //         "3": "awaiting email verification",
+        //         "4": "awaiting manual verification",
+        //         "5": "awaiting identity verification"
         //     }
         //
         $statuses = array(
@@ -5876,39 +5928,39 @@ class okx extends Exchange {
         // withdraw
         //
         //     {
-        //         "amt" => "0.1",
-        //         "wdId" => "67485",
-        //         "ccy" => "BTC"
+        //         "amt": "0.1",
+        //         "wdId": "67485",
+        //         "ccy": "BTC"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "amt" => "0.094",
-        //         "wdId" => "4703879",
-        //         "fee" => "0.01000000eth",
-        //         "txId" => "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
-        //         "ccy" => "ETH",
-        //         "from" => "13426335357",
-        //         "to" => "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //         "amt": "0.094",
+        //         "wdId": "4703879",
+        //         "fee": "0.01000000eth",
+        //         "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //         "ccy": "ETH",
+        //         "from": "13426335357",
+        //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
         //         "tag",
         //         "pmtId",
         //         "memo",
-        //         "ts" => "1597026383085",
-        //         "state" => "2"
+        //         "ts": "1597026383085",
+        //         "state": "2"
         //     }
         //
         // fetchDeposits
         //
         //     {
-        //         "amt" => "0.01044408",
-        //         "txId" => "1915737_3_0_0_asset",
-        //         "ccy" => "BTC",
-        //         "from" => "13801825426",
-        //         "to" => "",
-        //         "ts" => "1597026383085",
-        //         "state" => "2",
-        //         "depId" => "4703879"
+        //         "amt": "0.01044408",
+        //         "txId": "1915737_3_0_0_asset",
+        //         "ccy": "BTC",
+        //         "from": "13801825426",
+        //         "to": "",
+        //         "ts": "1597026383085",
+        //         "state": "2",
+        //         "depId": "4703879"
         //     }
         //
         $type = null;
@@ -5994,7 +6046,7 @@ class okx extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -6007,16 +6059,16 @@ class okx extends Exchange {
         $response = $this->privateGetAccountLeverageInfo($this->extend($request, $params));
         //
         //     {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "instId" => "BTC-USDT-SWAP",
-        //                "lever" => "5.00000000",
-        //                "mgnMode" => "isolated",
-        //                "posSide" => "net"
+        //                "instId": "BTC-USDT-SWAP",
+        //                "lever": "5.00000000",
+        //                "mgnMode": "isolated",
+        //                "posSide": "net"
         //            }
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6068,9 +6120,9 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
         $request = array(
-            // instType 'strval' No Instrument $type, MARGIN, SWAP, FUTURES, OPTION
+            // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
             'instId' => $market['id'],
-            // posId 'strval' No Single $position ID or multiple $position IDs (no more than 20) separated with comma
+            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         );
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
@@ -6078,48 +6130,48 @@ class okx extends Exchange {
         $response = $this->privateGetAccountPositions($this->extend($request, $query));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "adl" => "1",
-        //                 "availPos" => "1",
-        //                 "avgPx" => "2566.31",
-        //                 "cTime" => "1619507758793",
-        //                 "ccy" => "ETH",
-        //                 "deltaBS" => "",
-        //                 "deltaPA" => "",
-        //                 "gammaBS" => "",
-        //                 "gammaPA" => "",
-        //                 "imr" => "",
-        //                 "instId" => "ETH-USD-210430",
-        //                 "instType" => "FUTURES",
-        //                 "interest" => "0",
-        //                 "last" => "2566.22",
-        //                 "lever" => "10",
-        //                 "liab" => "",
-        //                 "liabCcy" => "",
-        //                 "liqPx" => "2352.8496681818233",
-        //                 "margin" => "0.0003896645377994",
-        //                 "mgnMode" => "isolated",
-        //                 "mgnRatio" => "11.731726509588816",
-        //                 "mmr" => "0.0000311811092368",
-        //                 "optVal" => "",
-        //                 "pTime" => "1619507761462",
-        //                 "pos" => "1",
-        //                 "posCcy" => "",
-        //                 "posId" => "307173036051017730",
-        //                 "posSide" => "long",
-        //                 "thetaBS" => "",
-        //                 "thetaPA" => "",
-        //                 "tradeId" => "109844",
-        //                 "uTime" => "1619507761462",
-        //                 "upl" => "-0.0000009932766034",
-        //                 "uplRatio" => "-0.0025490556801078",
-        //                 "vegaBS" => "",
-        //                 "vegaPA" => ""
+        //                 "adl": "1",
+        //                 "availPos": "1",
+        //                 "avgPx": "2566.31",
+        //                 "cTime": "1619507758793",
+        //                 "ccy": "ETH",
+        //                 "deltaBS": "",
+        //                 "deltaPA": "",
+        //                 "gammaBS": "",
+        //                 "gammaPA": "",
+        //                 "imr": "",
+        //                 "instId": "ETH-USD-210430",
+        //                 "instType": "FUTURES",
+        //                 "interest": "0",
+        //                 "last": "2566.22",
+        //                 "lever": "10",
+        //                 "liab": "",
+        //                 "liabCcy": "",
+        //                 "liqPx": "2352.8496681818233",
+        //                 "margin": "0.0003896645377994",
+        //                 "mgnMode": "isolated",
+        //                 "mgnRatio": "11.731726509588816",
+        //                 "mmr": "0.0000311811092368",
+        //                 "optVal": "",
+        //                 "pTime": "1619507761462",
+        //                 "pos": "1",
+        //                 "posCcy": "",
+        //                 "posId": "307173036051017730",
+        //                 "posSide": "long",
+        //                 "thetaBS": "",
+        //                 "thetaPA": "",
+        //                 "tradeId": "109844",
+        //                 "uTime": "1619507761462",
+        //                 "upl": "-0.0000009932766034",
+        //                 "uplRatio": "-0.0025490556801078",
+        //                 "vegaBS": "",
+        //                 "vegaPA": ""
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6146,9 +6198,9 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'instType' => 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
-            // 'instId' => $market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
-            // 'posId' => '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
+            // 'instType': 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
+            // 'instId': market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
+            // 'posId': '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
         );
         if ($symbols !== null) {
             $marketIds = array();
@@ -6172,48 +6224,48 @@ class okx extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "adl" => "1",
-        //                 "availPos" => "1",
-        //                 "avgPx" => "2566.31",
-        //                 "cTime" => "1619507758793",
-        //                 "ccy" => "ETH",
-        //                 "deltaBS" => "",
-        //                 "deltaPA" => "",
-        //                 "gammaBS" => "",
-        //                 "gammaPA" => "",
-        //                 "imr" => "",
-        //                 "instId" => "ETH-USD-210430",
-        //                 "instType" => "FUTURES",
-        //                 "interest" => "0",
-        //                 "last" => "2566.22",
-        //                 "lever" => "10",
-        //                 "liab" => "",
-        //                 "liabCcy" => "",
-        //                 "liqPx" => "2352.8496681818233",
-        //                 "margin" => "0.0003896645377994",
-        //                 "mgnMode" => "isolated",
-        //                 "mgnRatio" => "11.731726509588816",
-        //                 "mmr" => "0.0000311811092368",
-        //                 "optVal" => "",
-        //                 "pTime" => "1619507761462",
-        //                 "pos" => "1",
-        //                 "posCcy" => "",
-        //                 "posId" => "307173036051017730",
-        //                 "posSide" => "long",
-        //                 "thetaBS" => "",
-        //                 "thetaPA" => "",
-        //                 "tradeId" => "109844",
-        //                 "uTime" => "1619507761462",
-        //                 "upl" => "-0.0000009932766034",
-        //                 "uplRatio" => "-0.0025490556801078",
-        //                 "vegaBS" => "",
-        //                 "vegaPA" => ""
+        //                 "adl": "1",
+        //                 "availPos": "1",
+        //                 "avgPx": "2566.31",
+        //                 "cTime": "1619507758793",
+        //                 "ccy": "ETH",
+        //                 "deltaBS": "",
+        //                 "deltaPA": "",
+        //                 "gammaBS": "",
+        //                 "gammaPA": "",
+        //                 "imr": "",
+        //                 "instId": "ETH-USD-210430",
+        //                 "instType": "FUTURES",
+        //                 "interest": "0",
+        //                 "last": "2566.22",
+        //                 "lever": "10",
+        //                 "liab": "",
+        //                 "liabCcy": "",
+        //                 "liqPx": "2352.8496681818233",
+        //                 "margin": "0.0003896645377994",
+        //                 "mgnMode": "isolated",
+        //                 "mgnRatio": "11.731726509588816",
+        //                 "mmr": "0.0000311811092368",
+        //                 "optVal": "",
+        //                 "pTime": "1619507761462",
+        //                 "pos": "1",
+        //                 "posCcy": "",
+        //                 "posId": "307173036051017730",
+        //                 "posSide": "long",
+        //                 "thetaBS": "",
+        //                 "thetaPA": "",
+        //                 "tradeId": "109844",
+        //                 "uTime": "1619507761462",
+        //                 "upl": "-0.0000009932766034",
+        //                 "uplRatio": "-0.0025490556801078",
+        //                 "vegaBS": "",
+        //                 "vegaPA": ""
         //             }
-        //         )
+        //         ]
         //     }
         //
         $positions = $this->safe_list($response, 'data', array());
@@ -6241,43 +6293,43 @@ class okx extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //     {
-        //        "adl" => "3",
-        //        "availPos" => "1",
-        //        "avgPx" => "34131.1",
-        //        "cTime" => "1627227626502",
-        //        "ccy" => "USDT",
-        //        "deltaBS" => "",
-        //        "deltaPA" => "",
-        //        "gammaBS" => "",
-        //        "gammaPA" => "",
-        //        "imr" => "170.66093041794787",
-        //        "instId" => "BTC-USDT-SWAP",
-        //        "instType" => "SWAP",
-        //        "interest" => "0",
-        //        "last" => "34134.4",
-        //        "lever" => "2",
-        //        "liab" => "",
-        //        "liabCcy" => "",
-        //        "liqPx" => "12608.959083877446",
-        //        "markPx" => "4786.459271773621",
-        //        "margin" => "",
-        //        "mgnMode" => "cross",
-        //        "mgnRatio" => "140.49930117599155",
-        //        "mmr" => "1.3652874433435829",
-        //        "notionalUsd" => "341.5130010779638",
-        //        "optVal" => "",
-        //        "pos" => "1",
-        //        "posCcy" => "",
-        //        "posId" => "339552508062380036",
-        //        "posSide" => "long",
-        //        "thetaBS" => "",
-        //        "thetaPA" => "",
-        //        "tradeId" => "98617799",
-        //        "uTime" => "1627227626502",
-        //        "upl" => "0.0108608358957281",
-        //        "uplRatio" => "0.0000636418743944",
-        //        "vegaBS" => "",
-        //        "vegaPA" => ""
+        //        "adl": "3",
+        //        "availPos": "1",
+        //        "avgPx": "34131.1",
+        //        "cTime": "1627227626502",
+        //        "ccy": "USDT",
+        //        "deltaBS": "",
+        //        "deltaPA": "",
+        //        "gammaBS": "",
+        //        "gammaPA": "",
+        //        "imr": "170.66093041794787",
+        //        "instId": "BTC-USDT-SWAP",
+        //        "instType": "SWAP",
+        //        "interest": "0",
+        //        "last": "34134.4",
+        //        "lever": "2",
+        //        "liab": "",
+        //        "liabCcy": "",
+        //        "liqPx": "12608.959083877446",
+        //        "markPx": "4786.459271773621",
+        //        "margin": "",
+        //        "mgnMode": "cross",
+        //        "mgnRatio": "140.49930117599155",
+        //        "mmr": "1.3652874433435829",
+        //        "notionalUsd": "341.5130010779638",
+        //        "optVal": "",
+        //        "pos": "1",
+        //        "posCcy": "",
+        //        "posId": "339552508062380036",
+        //        "posSide": "long",
+        //        "thetaBS": "",
+        //        "thetaPA": "",
+        //        "tradeId": "98617799",
+        //        "uTime": "1627227626502",
+        //        "upl": "0.0108608358957281",
+        //        "uplRatio": "0.0000636418743944",
+        //        "vegaBS": "",
+        //        "vegaPA": ""
         //    }
         // history
         //    {
@@ -6308,13 +6360,13 @@ class okx extends Exchange {
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $market['symbol'];
-        $pos = $this->safe_string($position, 'pos'); // 'pos' field => One way mode => 0 if $position is not open, 1 if open | Two way (hedge) mode => -1 if short, 1 if long, 0 if $position is not open
+        $pos = $this->safe_string($position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         $contractsAbs = Precise::string_abs($pos);
         $side = $this->safe_string_2($position, 'posSide', 'direction');
         $hedged = $side !== 'net';
         $contracts = $this->parse_number($contractsAbs);
         if ($market['margin'] === true) {
-            // margin $position
+            // margin position
             if ($side === 'net') {
                 $posCcy = $this->safe_string($position, 'posCcy');
                 $parsedCurrency = $this->safe_currency_code($posCcy);
@@ -6436,12 +6488,12 @@ class okx extends Exchange {
             'ccy' => $currency['id'],
             'amt' => $this->currency_to_precision($code, $amount),
             'type' => '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account (Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
-            'from' => $fromId, // remitting account, 6 => Funding account, 18 => Trading account
-            'to' => $toId, // beneficiary account, 6 => Funding account, 18 => Trading account
-            // 'subAcct' => 'sub-account-name', // optional, only required when type is 1, 2 or 4
-            // 'loanTrans' => false, // Whether or not borrowed coins can be transferred out under Multi-$currency margin and Portfolio margin. The default is false
-            // 'clientId' => 'client-supplied id', // A combination of case-sensitive alphanumerics, all numbers, or all letters of up to 32 characters
-            // 'omitPosRisk' => false, // Ignore position risk. Default is false. Applicable to Portfolio margin
+            'from' => $fromId, // remitting account, 6: Funding account, 18: Trading account
+            'to' => $toId, // beneficiary account, 6: Funding account, 18: Trading account
+            // 'subAcct': 'sub-account-name', // optional, only required when type is 1, 2 or 4
+            // 'loanTrans': false, // Whether or not borrowed coins can be transferred out under Multi-currency margin and Portfolio margin. The default is false
+            // 'clientId': 'client-supplied id', // A combination of case-sensitive alphanumerics, all numbers, or all letters of up to 32 characters
+            // 'omitPosRisk': false, // Ignore position risk. Default is false. Applicable to Portfolio margin
         );
         if ($fromId === 'master') {
             $request['type'] = '1';
@@ -6457,17 +6509,17 @@ class okx extends Exchange {
         $response = $this->privatePostAssetTransfer($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "transId" => "754147",
-        //                 "ccy" => "USDT",
-        //                 "from" => "6",
-        //                 "amt" => "0.1",
-        //                 "to" => "18"
+        //                 "transId": "754147",
+        //                 "ccy": "USDT",
+        //                 "from": "6",
+        //                 "amt": "0.1",
+        //                 "to": "18"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6477,55 +6529,55 @@ class okx extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // transfer
         //
         //     {
-        //         "transId" => "754147",
-        //         "ccy" => "USDT",
-        //         "from" => "6",
-        //         "amt" => "0.1",
-        //         "to" => "18"
+        //         "transId": "754147",
+        //         "ccy": "USDT",
+        //         "from": "6",
+        //         "amt": "0.1",
+        //         "to": "18"
         //     }
         //
         // fetchTransfer
         //
         //     {
-        //         "amt" => "5",
-        //         "ccy" => "USDT",
-        //         "from" => "18",
-        //         "instId" => "",
-        //         "state" => "success",
-        //         "subAcct" => "",
-        //         "to" => "6",
-        //         "toInstId" => "",
-        //         "transId" => "464424732",
-        //         "type" => "0"
+        //         "amt": "5",
+        //         "ccy": "USDT",
+        //         "from": "18",
+        //         "instId": "",
+        //         "state": "success",
+        //         "subAcct": "",
+        //         "to": "6",
+        //         "toInstId": "",
+        //         "transId": "464424732",
+        //         "type": "0"
         //     }
         //
         // fetchTransfers
         //
         //     {
-        //         "bal" => "70.6874353780312913",
-        //         "balChg" => "-4.0000000000000000", // negative means "to funding", positive meand "from funding"
-        //         "billId" => "588900695232225299",
-        //         "ccy" => "USDT",
-        //         "execType" => "",
-        //         "fee" => "",
-        //         "from" => "18",
-        //         "instId" => "",
-        //         "instType" => "",
-        //         "mgnMode" => "",
-        //         "notes" => "To Funding Account",
-        //         "ordId" => "",
-        //         "pnl" => "",
-        //         "posBal" => "",
-        //         "posBalChg" => "",
-        //         "price" => "0",
-        //         "subType" => "12",
-        //         "sz" => "-4",
-        //         "to" => "6",
-        //         "ts" => "1686676866989",
-        //         "type" => "1"
+        //         "bal": "70.6874353780312913",
+        //         "balChg": "-4.0000000000000000", // negative means "to funding", positive meand "from funding"
+        //         "billId": "588900695232225299",
+        //         "ccy": "USDT",
+        //         "execType": "",
+        //         "fee": "",
+        //         "from": "18",
+        //         "instId": "",
+        //         "instType": "",
+        //         "mgnMode": "",
+        //         "notes": "To Funding Account",
+        //         "ordId": "",
+        //         "pnl": "",
+        //         "posBal": "",
+        //         "posBalChg": "",
+        //         "price": "0",
+        //         "subType": "12",
+        //         "sz": "-4",
+        //         "to": "6",
+        //         "ts": "1686676866989",
+        //         "type": "1"
         //     }
         //
         $id = $this->safe_string_2($transfer, 'transId', 'billId');
@@ -6579,27 +6631,27 @@ class okx extends Exchange {
         }
         $request = array(
             'transId' => $id,
-            // 'type' => 0, // default is 0 $transfer within account, 1 master to sub, 2 sub to master
+            // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
         );
         $response = $this->privateGetAssetTransferState($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "amt" => "5",
-        //                 "ccy" => "USDT",
-        //                 "from" => "18",
-        //                 "instId" => "",
-        //                 "state" => "success",
-        //                 "subAcct" => "",
-        //                 "to" => "6",
-        //                 "toInstId" => "",
-        //                 "transId" => "464424732",
-        //                 "type" => "0"
+        //                 "amt": "5",
+        //                 "ccy": "USDT",
+        //                 "from": "18",
+        //                 "instId": "",
+        //                 "state": "success",
+        //                 "subAcct": "",
+        //                 "to": "6",
+        //                 "toInstId": "",
+        //                 "transId": "464424732",
+        //                 "type": "0"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6639,34 +6691,34 @@ class okx extends Exchange {
         $response = $this->privateGetAccountBillsArchive($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
-        //            array(
-        //                "bal" => "70.6874353780312913",
-        //                "balChg" => "-4.0000000000000000",
-        //                "billId" => "588900695232225299",
-        //                "ccy" => "USDT",
-        //                "execType" => "",
-        //                "fee" => "",
-        //                "from" => "18",
-        //                "instId" => "",
-        //                "instType" => "",
-        //                "mgnMode" => "",
-        //                "notes" => "To Funding Account",
-        //                "ordId" => "",
-        //                "pnl" => "",
-        //                "posBal" => "",
-        //                "posBalChg" => "",
-        //                "price" => "0",
-        //                "subType" => "12",
-        //                "sz" => "-4",
-        //                "to" => "6",
-        //                "ts" => "1686676866989",
-        //                "type" => "1"
-        //            ),
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "bal": "70.6874353780312913",
+        //                "balChg": "-4.0000000000000000",
+        //                "billId": "588900695232225299",
+        //                "ccy": "USDT",
+        //                "execType": "",
+        //                "fee": "",
+        //                "from": "18",
+        //                "instId": "",
+        //                "instType": "",
+        //                "mgnMode": "",
+        //                "notes": "To Funding Account",
+        //                "ordId": "",
+        //                "pnl": "",
+        //                "posBal": "",
+        //                "posBalChg": "",
+        //                "price": "0",
+        //                "subType": "12",
+        //                "sz": "-4",
+        //                "to": "6",
+        //                "ts": "1686676866989",
+        //                "type": "1"
+        //            },
         //            ...
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $transfers = $this->safe_list($response, 'data', array());
@@ -6678,14 +6730,14 @@ class okx extends Exchange {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
-        // $type = $this->getPathAuthenticationType($path);
+        // const type = this.getPathAuthenticationType (path);
         if ($api === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
             $this->check_required_credentials();
-            // inject id in implicit $api call
+            // inject id in implicit api call
             if ($method === 'POST' && ($path === 'trade/batch-orders' || $path === 'trade/order-algo' || $path === 'trade/order')) {
                 $brokerId = $this->safe_string($this->options, 'brokerId', '6b9ad766b55dBCDE');
                 if ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
@@ -6711,9 +6763,9 @@ class okx extends Exchange {
                 'OK-ACCESS-KEY' => $this->apiKey,
                 'OK-ACCESS-PASSPHRASE' => $this->password,
                 'OK-ACCESS-TIMESTAMP' => $timestamp,
-                // 'OK-FROM' => '',
-                // 'OK-TO' => '',
-                // 'OK-LIMIT' => '',
+                // 'OK-FROM': '',
+                // 'OK-TO': '',
+                // 'OK-LIMIT': '',
             );
             $auth = $timestamp . $method . $request;
             if ($method === 'GET') {
@@ -6738,12 +6790,12 @@ class okx extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
-        //        "fundingRate" => "0.00027815",
-        //        "fundingTime" => "1634256000000",
-        //        "instId" => "BTC-USD-SWAP",
-        //        "instType" => "SWAP",
-        //        "nextFundingRate" => "0.00017",
-        //        "nextFundingTime" => "1634284800000"
+        //        "fundingRate": "0.00027815",
+        //        "fundingTime": "1634256000000",
+        //        "instId": "BTC-USD-SWAP",
+        //        "instType": "SWAP",
+        //        "nextFundingRate": "0.00017",
+        //        "nextFundingTime": "1634284800000"
         //    }
         // ws
         //     {
@@ -6751,18 +6803,18 @@ class okx extends Exchange {
         //        "fundingTime":"1700726400000",
         //        "instId":"BTC-USD-SWAP",
         //        "instType":"SWAP",
-        //        "method" => "next_period",
+        //        "method": "next_period",
         //        "maxFundingRate":"0.00375",
         //        "minFundingRate":"-0.00375",
         //        "nextFundingRate":"0.0002608059239328",
         //        "nextFundingTime":"1700755200000",
-        //        "premium" => "0.0001233824646391",
+        //        "premium": "0.0001233824646391",
         //        "settFundingRate":"0.0001699799259033",
         //        "settState":"settled",
         //        "ts":"1700724675402"
         //     }
         //
-        // in the response above $nextFundingRate is actually two funding rates from now
+        // in the response above nextFundingRate is actually two funding rates from now
         //
         $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         $marketId = $this->safe_string($contract, 'instId');
@@ -6847,18 +6899,18 @@ class okx extends Exchange {
         $response = $this->publicGetPublicFundingRate($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "fundingRate" => "0.00027815",
-        //                "fundingTime" => "1634256000000",
-        //                "instId" => "BTC-USD-SWAP",
-        //                "instType" => "SWAP",
-        //                "nextFundingRate" => "0.00017",
-        //                "nextFundingTime" => "1634284800000"
+        //                "fundingRate": "0.00027815",
+        //                "fundingTime": "1634256000000",
+        //                "instId": "BTC-USD-SWAP",
+        //                "instType": "SWAP",
+        //                "nextFundingRate": "0.00017",
+        //                "nextFundingTime": "1634284800000"
         //            }
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6895,18 +6947,18 @@ class okx extends Exchange {
         $response = $this->publicGetPublicFundingRate($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "fundingRate" => "0.00027815",
-        //                "fundingTime" => "1634256000000",
-        //                "instId" => "BTC-USD-SWAP",
-        //                "instType" => "SWAP",
-        //                "nextFundingRate" => "0.00017",
-        //                "nextFundingTime" => "1634284800000"
+        //                "fundingRate": "0.00027815",
+        //                "fundingTime": "1634256000000",
+        //                "instId": "BTC-USD-SWAP",
+        //                "instType": "SWAP",
+        //                "nextFundingRate": "0.00017",
+        //                "nextFundingTime": "1634284800000"
         //            }
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6929,13 +6981,13 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // 'ccy' => currency['id'],
-            // 'mgnMode' => 'isolated', // isolated, cross
-            // 'ctType' => 'linear', // linear, inverse, only applicable to FUTURES/SWAP
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'ccy': currency['id'],
+            // 'mgnMode': 'isolated', // isolated, cross
+            // 'ctType': 'linear', // linear, inverse, only applicable to FUTURES/SWAP
             'type' => '8',
             //
-            // supported values for $type
+            // supported values for type
             //
             //     1 Transfer
             //     2 Trade
@@ -6951,7 +7003,7 @@ class okx extends Exchange {
             //     12 Strategy transfer
             //     13 ddh
             //
-            // 'subType' => '',
+            // 'subType': '',
             //
             // supported values for subType
             //
@@ -7000,9 +7052,9 @@ class okx extends Exchange {
             //     202 System transfer out
             //     203 Manually transfer out
             //
-            // "after" => "id", // earlier than the requested bill ID
-            // "before" => "id", // newer than the requested bill ID
-            // "limit" => "100", // default 100, max 100
+            // "after": "id", // earlier than the requested bill ID
+            // "before": "id", // newer than the requested bill ID
+            // "limit": "100", // default 100, max 100
         );
         if ($limit !== null) {
             $request['limit'] = (string) $limit; // default 100, max 100
@@ -7025,30 +7077,30 @@ class okx extends Exchange {
         if ($type === 'swap') {
             $request['instType'] = $this->convert_to_instrument_type($type);
         }
-        // AccountBillsArchive has the same cost but supports three months of $data
+        // AccountBillsArchive has the same cost as AccountBills but supports three months of data
         $response = $this->privateGetAccountBillsArchive($this->extend($request, $query));
         //
         //    {
-        //        "bal" => "0.0242946200998573",
-        //        "balChg" => "0.0000148752712240",
-        //        "billId" => "377970609204146187",
-        //        "ccy" => "ETH",
-        //        "execType" => "",
-        //        "fee" => "0",
-        //        "from" => "",
-        //        "instId" => "ETH-USD-SWAP",
-        //        "instType" => "SWAP",
-        //        "mgnMode" => "isolated",
-        //        "notes" => "",
-        //        "ordId" => "",
-        //        "pnl" => "0.000014875271224",
-        //        "posBal" => "0",
-        //        "posBalChg" => "0",
-        //        "subType" => "174",
-        //        "sz" => "9",
-        //        "to" => "",
-        //        "ts" => "1636387215588",
-        //        "type" => "8"
+        //        "bal": "0.0242946200998573",
+        //        "balChg": "0.0000148752712240",
+        //        "billId": "377970609204146187",
+        //        "ccy": "ETH",
+        //        "execType": "",
+        //        "fee": "0",
+        //        "from": "",
+        //        "instId": "ETH-USD-SWAP",
+        //        "instType": "SWAP",
+        //        "mgnMode": "isolated",
+        //        "notes": "",
+        //        "ordId": "",
+        //        "pnl": "0.000014875271224",
+        //        "posBal": "0",
+        //        "posBalChg": "0",
+        //        "subType": "174",
+        //        "sz": "9",
+        //        "to": "",
+        //        "ts": "1636387215588",
+        //        "type": "8"
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7098,7 +7150,7 @@ class okx extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
             throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
@@ -7110,7 +7162,7 @@ class okx extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -7130,16 +7182,16 @@ class okx extends Exchange {
         $response = $this->privatePostAccountSetLeverage($this->extend($request, $params));
         //
         //     {
-        //       "code" => "0",
-        //       "data" => array(
+        //       "code": "0",
+        //       "data": [
         //         {
-        //           "instId" => "BTC-USDT-SWAP",
-        //           "lever" => "5",
-        //           "mgnMode" => "isolated",
-        //           "posSide" => "long"
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5",
+        //           "mgnMode": "isolated",
+        //           "posSide": "long"
         //         }
-        //       ),
-        //       "msg" => ""
+        //       ],
+        //       "msg": ""
         //     }
         //
         return $response;
@@ -7202,13 +7254,13 @@ class okx extends Exchange {
         $response = $this->privatePostAccountSetPositionMode($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "posMode" => "net_mode"
+        //                "posMode": "net_mode"
         //            }
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         return $response;
@@ -7229,7 +7281,7 @@ class okx extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         $marginMode = strtolower($marginMode);
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
@@ -7252,16 +7304,16 @@ class okx extends Exchange {
         $response = $this->privatePostAccountSetLeverage($this->extend($request, $params));
         //
         //     {
-        //       "code" => "0",
-        //       "data" => array(
+        //       "code": "0",
+        //       "data": [
         //         {
-        //           "instId" => "BTC-USDT-SWAP",
-        //           "lever" => "5",
-        //           "mgnMode" => "isolated",
-        //           "posSide" => "long"
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5",
+        //           "mgnMode": "isolated",
+        //           "posSide": "long"
         //         }
-        //       ),
-        //       "msg" => ""
+        //       ],
+        //       "msg": ""
         //     }
         //
         return $response;
@@ -7282,18 +7334,18 @@ class okx extends Exchange {
         $response = $this->privateGetAccountInterestRate($params);
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "ccy" => "BTC",
-        //                "interestRate" => "0.00000833"
+        //                "ccy": "BTC",
+        //                "interestRate": "0.00000833"
         //            }
         //            ...
-        //        ),
+        //        ],
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        // $code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by $code
+        // code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $rate = $this->parse_borrow_rate($data[$i]);
@@ -7325,15 +7377,15 @@ class okx extends Exchange {
         $response = $this->privateGetAccountInterestRate($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //             {
-        //                "ccy" => "USDT",
-        //                "interestRate" => "0.00002065"
+        //                "ccy": "USDT",
+        //                "interestRate": "0.00002065"
         //             }
         //             ...
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7344,10 +7396,10 @@ class okx extends Exchange {
     public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         //    {
-        //        "amt" => "992.10341195",
-        //        "ccy" => "BTC",
-        //        "rate" => "0.01",
-        //        "ts" => "1643954400000"
+        //        "amt": "992.10341195",
+        //        "ccy": "BTC",
+        //        "rate": "0.01",
+        //        "ts": "1643954400000"
         //    }
         //
         $ccy = $this->safe_string($info, 'ccy');
@@ -7364,15 +7416,15 @@ class okx extends Exchange {
 
     public function parse_borrow_rate_histories(mixed $response, mixed $codes, mixed $since, mixed $limit) {
         //
-        //    array(
-        //        array(
-        //            "amt" => "992.10341195",
-        //            "ccy" => "BTC",
-        //            "rate" => "0.01",
-        //            "ts" => "1643954400000"
-        //        ),
+        //    [
+        //        {
+        //            "amt": "992.10341195",
+        //            "ccy": "BTC",
+        //            "rate": "0.01",
+        //            "ts": "1643954400000"
+        //        },
         //        ...
-        //    )
+        //    ]
         //
         $borrowRateHistories = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -7413,10 +7465,10 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'ccy' => currency['id'],
-            // 'after' => $this->milliseconds(), // Pagination of $data to return records earlier than the requested ts,
-            // 'before' => $since, // Pagination of $data to return records newer than the requested ts,
-            // 'limit' => $limit, // default is 100 and maximum is 100
+            // 'ccy': currency['id'],
+            // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
+            // 'before': since, // Pagination of data to return records newer than the requested ts,
+            // 'limit': limit, // default is 100 and maximum is 100
         );
         if ($since !== null) {
             $request['before'] = $since;
@@ -7427,16 +7479,16 @@ class okx extends Exchange {
         $response = $this->publicGetFinanceSavingsLendingRateHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "amt" => "992.10341195",
-        //                 "ccy" => "BTC",
-        //                 "rate" => "0.01",
-        //                 "ts" => "1643954400000"
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "992.10341195",
+        //                 "ccy": "BTC",
+        //                 "rate": "0.01",
+        //                 "ts": "1643954400000"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7461,9 +7513,9 @@ class okx extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'ccy' => $currency['id'],
-            // 'after' => $this->milliseconds(), // Pagination of $data to return records earlier than the requested ts,
-            // 'before' => $since, // Pagination of $data to return records newer than the requested ts,
-            // 'limit' => $limit, // default is 100 and maximum is 100
+            // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
+            // 'before': since, // Pagination of data to return records newer than the requested ts,
+            // 'limit': limit, // default is 100 and maximum is 100
         );
         if ($since !== null) {
             $request['before'] = $since;
@@ -7474,16 +7526,16 @@ class okx extends Exchange {
         $response = $this->publicGetFinanceSavingsLendingRateHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "amt" => "992.10341195",
-        //                 "ccy" => "BTC",
-        //                 "rate" => "0.01",
-        //                 "ts" => "1643954400000"
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "992.10341195",
+        //                 "ccy": "BTC",
+        //                 "rate": "0.01",
+        //                 "ts": "1643954400000"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7506,16 +7558,16 @@ class okx extends Exchange {
         $response = $this->privatePostAccountPositionMarginBalance($this->extend($request, $params));
         //
         //     {
-        //       "code" => "0",
-        //       "data" => array(
+        //       "code": "0",
+        //       "data": [
         //         {
-        //           "amt" => "0.01",
-        //           "instId" => "ETH-USD-SWAP",
-        //           "posSide" => "net",
-        //           "type" => "reduce"
+        //           "amt": "0.01",
+        //           "instId": "ETH-USD-SWAP",
+        //           "posSide": "net",
+        //           "type": "reduce"
         //         }
-        //       ),
-        //       "msg" => ""
+        //       ],
+        //       "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7531,52 +7583,52 @@ class okx extends Exchange {
         // addMargin/reduceMargin
         //
         //    {
-        //        "amt" => "0.01",
-        //        "instId" => "ETH-USD-SWAP",
-        //        "posSide" => "net",
-        //        "type" => "reduce"
+        //        "amt": "0.01",
+        //        "instId": "ETH-USD-SWAP",
+        //        "posSide": "net",
+        //        "type": "reduce"
         //    }
         //
         // fetchMarginAdjustmentHistory
         //
         //    {
-        //        bal => '67621.4325135010619812',
-        //        balChg => '-10.0000000000000000',
-        //        billId => '691293628710342659',
-        //        ccy => 'USDT',
-        //        clOrdId => '',
-        //        execType => '',
-        //        fee => '0',
-        //        fillFwdPx => '',
-        //        fillIdxPx => '',
-        //        fillMarkPx => '',
-        //        fillMarkVol => '',
-        //        fillPxUsd => '',
-        //        fillPxVol => '',
-        //        fillTime => '1711089244850',
-        //        from => '',
-        //        instId => 'XRP-USDT-SWAP',
-        //        instType => 'SWAP',
-        //        interest => '0',
-        //        mgnMode => 'isolated',
-        //        notes => '',
-        //        ordId => '',
-        //        pnl => '0',
-        //        posBal => '73.12',
-        //        posBalChg => '10.00',
-        //        px => '',
-        //        subType => '160',
-        //        sz => '10',
-        //        tag => '',
-        //        to => '',
-        //        tradeId => '0',
-        //        ts => '1711089244699',
-        //        $type => '6'
+        //        bal: '67621.4325135010619812',
+        //        balChg: '-10.0000000000000000',
+        //        billId: '691293628710342659',
+        //        ccy: 'USDT',
+        //        clOrdId: '',
+        //        execType: '',
+        //        fee: '0',
+        //        fillFwdPx: '',
+        //        fillIdxPx: '',
+        //        fillMarkPx: '',
+        //        fillMarkVol: '',
+        //        fillPxUsd: '',
+        //        fillPxVol: '',
+        //        fillTime: '1711089244850',
+        //        from: '',
+        //        instId: 'XRP-USDT-SWAP',
+        //        instType: 'SWAP',
+        //        interest: '0',
+        //        mgnMode: 'isolated',
+        //        notes: '',
+        //        ordId: '',
+        //        pnl: '0',
+        //        posBal: '73.12',
+        //        posBalChg: '10.00',
+        //        px: '',
+        //        subType: '160',
+        //        sz: '10',
+        //        tag: '',
+        //        to: '',
+        //        tradeId: '0',
+        //        ts: '1711089244699',
+        //        type: '6'
         //    }
         //
         $amountRaw = $this->safe_string_2($data, 'amt', 'posBalChg');
         $typeRaw = $this->safe_string($data, 'type');
-        // ledger uses numeric '6' (+/- $amount); addMargin/reduceMargin already send 'add'/'reduce'
+        // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
         $type = null;
         if ($typeRaw === '6') {
             $type = Precise::string_gt($amountRaw, '0') ? 'add' : 'reduce';
@@ -7656,7 +7708,7 @@ class okx extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'tdMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'tdMode', 'cross'); // cross as default marginMode
         }
         $request = array(
             'instType' => $type,
@@ -7669,23 +7721,23 @@ class okx extends Exchange {
         $response = $this->publicGetPublicPositionTiers($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
-        //            array(
-        //                "baseMaxLoan" => "500",
-        //                "imr" => "0.1",
-        //                "instId" => "ETH-USDT",
-        //                "maxLever" => "10",
-        //                "maxSz" => "500",
-        //                "minSz" => "0",
-        //                "mmr" => "0.03",
-        //                "optMgnFactor" => "0",
-        //                "quoteMaxLoan" => "200000",
-        //                "tier" => "1",
-        //                "uly" => ""
-        //            ),
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "baseMaxLoan": "500",
+        //                "imr": "0.1",
+        //                "instId": "ETH-USDT",
+        //                "maxLever": "10",
+        //                "maxSz": "500",
+        //                "minSz": "0",
+        //                "mmr": "0.03",
+        //                "optMgnFactor": "0",
+        //                "quoteMaxLoan": "200000",
+        //                "tier": "1",
+        //                "uly": ""
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7699,22 +7751,22 @@ class okx extends Exchange {
          * @param {array} $market CCXT $market
          */
         //
-        //    array(
-        //        array(
-        //            "baseMaxLoan" => "500",
-        //            "imr" => "0.1",
-        //            "instId" => "ETH-USDT",
-        //            "maxLever" => "10",
-        //            "maxSz" => "500",
-        //            "minSz" => "0",
-        //            "mmr" => "0.03",
-        //            "optMgnFactor" => "0",
-        //            "quoteMaxLoan" => "200000",
-        //            "tier" => "1",
-        //            "uly" => ""
-        //        ),
+        //    [
+        //        {
+        //            "baseMaxLoan": "500",
+        //            "imr": "0.1",
+        //            "instId": "ETH-USDT",
+        //            "maxLever": "10",
+        //            "maxSz": "500",
+        //            "minSz": "0",
+        //            "mmr": "0.03",
+        //            "optMgnFactor": "0",
+        //            "quoteMaxLoan": "200000",
+        //            "tier": "1",
+        //            "uly": ""
+        //        },
         //        ...
-        //    )
+        //    ]
         //
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
@@ -7755,7 +7807,7 @@ class okx extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default marginMode
         }
         $request = array(
             'mgnMode' => $marginMode,
@@ -7778,21 +7830,21 @@ class okx extends Exchange {
         $response = $this->privateGetAccountInterestAccrued($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
-        //            array(
-        //                "ccy" => "USDT",
-        //                "instId" => "",
-        //                "interest" => "0.0003960833333334",
-        //                "interestRate" => "0.0000040833333333",
-        //                "liab" => "97",
-        //                "mgnMode" => "",
-        //                "ts" => "1637312400000",
-        //                "type" => "1"
-        //            ),
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "ccy": "USDT",
+        //                "instId": "",
+        //                "interest": "0.0003960833333334",
+        //                "interestRate": "0.0000040833333333",
+        //                "liab": "97",
+        //                "mgnMode": "",
+        //                "ts": "1637312400000",
+        //                "type": "1"
+        //            },
         //            ...
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7842,17 +7894,17 @@ class okx extends Exchange {
         $response = $this->privatePostAccountBorrowRepay($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "amt" => "102",
-        //                 "ccy" => "USDT",
-        //                 "ordId" => "544199684697214976",
-        //                 "side" => "borrow",
-        //                 "state" => "1"
+        //                 "amt": "102",
+        //                 "ccy": "USDT",
+        //                 "ordId": "544199684697214976",
+        //                 "side": "borrow",
+        //                 "state": "1"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7890,17 +7942,17 @@ class okx extends Exchange {
         $response = $this->privatePostAccountBorrowRepay($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "amt" => "102",
-        //                 "ccy" => "USDT",
-        //                 "ordId" => "544199684697214976",
-        //                 "side" => "repay",
-        //                 "state" => "1"
+        //                 "amt": "102",
+        //                 "ccy": "USDT",
+        //                 "ordId": "544199684697214976",
+        //                 "side": "repay",
+        //                 "state": "1"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7911,13 +7963,13 @@ class okx extends Exchange {
     public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
-        //         "amt" => "102",
-        //         "availLoan" => "97",
-        //         "ccy" => "USDT",
-        //         "loanQuota" => "6000000",
-        //         "posLoan" => "0",
-        //         "side" => "repay",
-        //         "usedLoan" => "97"
+        //         "amt": "102",
+        //         "availLoan": "97",
+        //         "ccy": "USDT",
+        //         "loanQuota": "6000000",
+        //         "posLoan": "0",
+        //         "side": "repay",
+        //         "usedLoan": "97"
         //     }
         //
         $currencyId = $this->safe_string($info, 'ccy');
@@ -7959,17 +8011,17 @@ class okx extends Exchange {
         $response = $this->publicGetPublicOpenInterest($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "instId" => "BTC-USDT-SWAP",
-        //                 "instType" => "SWAP",
-        //                 "oi" => "2125419",
-        //                 "oiCcy" => "21254.19",
-        //                 "ts" => "1664005108969"
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "oi": "2125419",
+        //                 "oiCcy": "21254.19",
+        //                 "ts": "1664005108969"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8020,17 +8072,17 @@ class okx extends Exchange {
         $response = $this->publicGetPublicOpenInterest($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "instId" => "BTC-USDT-SWAP",
-        //                 "instType" => "SWAP",
-        //                 "oi" => "2125419",
-        //                 "oiCcy" => "21254.19",
-        //                 "ts" => "1664005108969"
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "oi": "2125419",
+        //                 "oiCcy": "21254.19",
+        //                 "ts": "1664005108969"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8046,10 +8098,10 @@ class okx extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $currency code or unified $symbol
          * @param {string} $timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
-         * @param {int} [$since] The time in ms of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] Not used by okx, but parsed internally by CCXT
          * @param {array} [$params] Exchange specific parameters
-         * @param {int} [$params->until] The time in ms of the latest record to retrieve unix timestamp
+         * @param {int} [$params->until] The time in ms of the latest record to retrieve as a unix timestamp
          * @return An array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
         $options = $this->safe_dict($this->options, 'fetchOpenInterestHistory', array());
@@ -8061,7 +8113,7 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        // handle unified $currency code or $symbol
+        // handle unified currency code or symbol
         $currencyId = null;
         $market = null;
         if ((($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) || (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($symbol ?? '', $this->markets_by_id)))) {
@@ -8093,16 +8145,16 @@ class okx extends Exchange {
         }
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
-        //            array(
+        //        "code": "0",
+        //        "data": [
+        //            [
         //                "1648221300000",  // timestamp
         //                "2183354317.945",  // open interest (USD)
         //                "74285877.617",  // volume (USD)
-        //            ),
+        //            ],
         //            ...
-        //        ),
-        //        "msg" => ''
+        //        ],
+        //        "msg": ''
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8113,21 +8165,21 @@ class okx extends Exchange {
         //
         // fetchOpenInterestHistory
         //
-        //    array(
-        //        "1648221300000",  // $timestamp
-        //        "2183354317.945",  // open $interest (USD) - (coin) for options
+        //    [
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
         //        "74285877.617",  // volume (USD) - (coin) for options
-        //    )
+        //    ]
         //
         // fetchOpenInterest
         //
         //     {
-        //         "instId" => "BTC-USD-230520-25500-P",
-        //         "instType" => "OPTION",
-        //         "oi" => "300",
-        //         "oiCcy" => "3",
-        //         "oiUsd" => "3",
-        //         "ts" => "1684551166251"
+        //         "instId": "BTC-USD-230520-25500-P",
+        //         "instType": "OPTION",
+        //         "oi": "300",
+        //         "oiCcy": "3",
+        //         "oiUsd": "3",
+        //         "ts": "1684551166251"
         //     }
         //
         $id = $this->safe_string($interest, 'instId');
@@ -8195,45 +8247,45 @@ class okx extends Exchange {
         $response = $this->privateGetAssetCurrencies($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
-        //            array(
-        //                "canDep" => true,
-        //                "canInternal" => false,
-        //                "canWd" => true,
-        //                "ccy" => "USDT",
-        //                "chain" => "USDT-TRC20",
-        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-        //                "mainNet" => false,
-        //                "maxFee" => "1.6",
-        //                "maxWd" => "8852150",
-        //                "minFee" => "0.8",
-        //                "minWd" => "2",
-        //                "name" => "Tether",
-        //                "usedWdQuota" => "0",
-        //                "wdQuota" => "500",
-        //                "wdTickSz" => "3"
-        //            ),
-        //            array(
-        //                "canDep" => true,
-        //                "canInternal" => false,
-        //                "canWd" => true,
-        //                "ccy" => "USDT",
-        //                "chain" => "USDT-ERC20",
-        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-        //                "mainNet" => false,
-        //                "maxFee" => "16",
-        //                "maxWd" => "8852150",
-        //                "minFee" => "8",
-        //                "minWd" => "2",
-        //                "name" => "Tether",
-        //                "usedWdQuota" => "0",
-        //                "wdQuota" => "500",
-        //                "wdTickSz" => "3"
-        //            ),
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-TRC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "1.6",
+        //                "maxWd": "8852150",
+        //                "minFee": "0.8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-ERC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "16",
+        //                "maxWd": "8852150",
+        //                "minFee": "8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
         //            ...
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data');
@@ -8242,25 +8294,25 @@ class okx extends Exchange {
 
     public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, mixed $currencyIdKey = null) {
         //
-        // array(
+        // [
         //   {
-        //       "canDep" => true,
-        //       "canInternal" => false,
-        //       "canWd" => true,
-        //       "ccy" => "USDT",
-        //       "chain" => "USDT-TRC20",
-        //       "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-        //       "mainNet" => false,
-        //       "maxFee" => "1.6",
-        //       "maxWd" => "8852150",
-        //       "minFee" => "0.8",
-        //       "minWd" => "2",
-        //       "name" => "Tether",
-        //       "usedWdQuota" => "0",
-        //       "wdQuota" => "500",
-        //       "wdTickSz" => "3"
+        //       "canDep": true,
+        //       "canInternal": false,
+        //       "canWd": true,
+        //       "ccy": "USDT",
+        //       "chain": "USDT-TRC20",
+        //       "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //       "mainNet": false,
+        //       "maxFee": "1.6",
+        //       "maxWd": "8852150",
+        //       "minFee": "0.8",
+        //       "minWd": "2",
+        //       "name": "Tether",
+        //       "usedWdQuota": "0",
+        //       "wdQuota": "500",
+        //       "wdTickSz": "3"
         //   }
-        // )
+        // ]
         //
         $depositWithdrawFees = array();
         $codes = $this->market_codes($codes);
@@ -8346,20 +8398,20 @@ class okx extends Exchange {
         $response = $this->publicGetPublicDeliveryExerciseHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "details" => array(
-        //                     array(
-        //                         "insId" => "BTC-USD-230523-25750-C",
-        //                         "px" => "27290.1486867000556483",
-        //                         "type" => "exercised"
-        //                     ),
-        //                 ),
+        //                 "details": [
+        //                     {
+        //                         "insId": "BTC-USD-230523-25750-C",
+        //                         "px": "27290.1486867000556483",
+        //                         "type": "exercised"
+        //                     },
+        //                 ],
         //                 "ts":"1684656000000"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8371,9 +8423,9 @@ class okx extends Exchange {
     public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
-        //         "insId" => "BTC-USD-230521-28500-P",
-        //         "px" => "27081.2007345984751516",
-        //         "type" => "exercised"
+        //         "insId": "BTC-USD-230521-28500-P",
+        //         "px": "27081.2007345984751516",
+        //         "type": "exercised"
         //     }
         //
         $marketId = $this->safe_string($settlement, 'insId');
@@ -8389,13 +8441,13 @@ class okx extends Exchange {
     public function parse_settlements(mixed $settlements, mixed $market) {
         //
         //     {
-        //         "details" => array(
-        //             array(
-        //                 "insId" => "BTC-USD-230523-25750-C",
-        //                 "px" => "27290.1486867000556483",
-        //                 "type" => "exercised"
-        //             ),
-        //         ),
+        //         "details": [
+        //             {
+        //                 "insId": "BTC-USD-230523-25750-C",
+        //                 "px": "27290.1486867000556483",
+        //                 "type": "exercised"
+        //             },
+        //         ],
         //         "ts":"1684656000000"
         //     }
         //
@@ -8442,14 +8494,14 @@ class okx extends Exchange {
         $response = $this->publicGetPublicUnderlying($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
+        //         "code": "0",
+        //         "data": [
+        //             [
         //                 "BTC-USD",
         //                 "ETH-USD"
-        //             )
-        //         ),
-        //         "msg" => ""
+        //             ]
+        //         ],
+        //         "msg": ""
         //     }
         //
         $underlyings = $this->safe_list($response, 'data', array());
@@ -8480,31 +8532,31 @@ class okx extends Exchange {
         $response = $this->publicGetPublicOptSummary($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "askVol" => "0",
-        //                 "bidVol" => "0",
-        //                 "delta" => "0.5105464486882039",
-        //                 "deltaBS" => "0.7325502184143025",
-        //                 "fwdPx" => "37675.80158694987186",
-        //                 "gamma" => "-0.13183515090501083",
-        //                 "gammaBS" => "0.000024139685826358558",
-        //                 "instId" => "BTC-USD-240329-32000-C",
-        //                 "instType" => "OPTION",
-        //                 "lever" => "4.504428015946619",
-        //                 "markVol" => "0.5916253554539876",
-        //                 "realVol" => "0",
-        //                 "theta" => "-0.0004202992014012855",
-        //                 "thetaBS" => "-18.52354631567909",
-        //                 "ts" => "1699586421976",
-        //                 "uly" => "BTC-USD",
-        //                 "vega" => "0.0020207455080045846",
-        //                 "vegaBS" => "74.44022302387287",
-        //                 "volLv" => "0.5948549730405797"
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "askVol": "0",
+        //                 "bidVol": "0",
+        //                 "delta": "0.5105464486882039",
+        //                 "deltaBS": "0.7325502184143025",
+        //                 "fwdPx": "37675.80158694987186",
+        //                 "gamma": "-0.13183515090501083",
+        //                 "gammaBS": "0.000024139685826358558",
+        //                 "instId": "BTC-USD-240329-32000-C",
+        //                 "instType": "OPTION",
+        //                 "lever": "4.504428015946619",
+        //                 "markVol": "0.5916253554539876",
+        //                 "realVol": "0",
+        //                 "theta": "-0.0004202992014012855",
+        //                 "thetaBS": "-18.52354631567909",
+        //                 "ts": "1699586421976",
+        //                 "uly": "BTC-USD",
+        //                 "vega": "0.0020207455080045846",
+        //                 "vegaBS": "74.44022302387287",
+        //                 "volLv": "0.5948549730405797"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8567,31 +8619,31 @@ class okx extends Exchange {
         $response = $this->publicGetPublicOptSummary($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "askVol" => "0",
-        //                 "bidVol" => "0",
-        //                 "delta" => "0.5105464486882039",
-        //                 "deltaBS" => "0.7325502184143025",
-        //                 "fwdPx" => "37675.80158694987186",
-        //                 "gamma" => "-0.13183515090501083",
-        //                 "gammaBS" => "0.000024139685826358558",
-        //                 "instId" => "BTC-USD-240329-32000-C",
-        //                 "instType" => "OPTION",
-        //                 "lever" => "4.504428015946619",
-        //                 "markVol" => "0.5916253554539876",
-        //                 "realVol" => "0",
-        //                 "theta" => "-0.0004202992014012855",
-        //                 "thetaBS" => "-18.52354631567909",
-        //                 "ts" => "1699586421976",
-        //                 "uly" => "BTC-USD",
-        //                 "vega" => "0.0020207455080045846",
-        //                 "vegaBS" => "74.44022302387287",
-        //                 "volLv" => "0.5948549730405797"
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "askVol": "0",
+        //                 "bidVol": "0",
+        //                 "delta": "0.5105464486882039",
+        //                 "deltaBS": "0.7325502184143025",
+        //                 "fwdPx": "37675.80158694987186",
+        //                 "gamma": "-0.13183515090501083",
+        //                 "gammaBS": "0.000024139685826358558",
+        //                 "instId": "BTC-USD-240329-32000-C",
+        //                 "instType": "OPTION",
+        //                 "lever": "4.504428015946619",
+        //                 "markVol": "0.5916253554539876",
+        //                 "realVol": "0",
+        //                 "theta": "-0.0004202992014012855",
+        //                 "thetaBS": "-18.52354631567909",
+        //                 "ts": "1699586421976",
+        //                 "uly": "BTC-USD",
+        //                 "vega": "0.0020207455080045846",
+        //                 "vegaBS": "74.44022302387287",
+        //                 "volLv": "0.5948549730405797"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8601,25 +8653,25 @@ class okx extends Exchange {
     public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
-        //         "askVol" => "0",
-        //         "bidVol" => "0",
-        //         "delta" => "0.5105464486882039",
-        //         "deltaBS" => "0.7325502184143025",
-        //         "fwdPx" => "37675.80158694987186",
-        //         "gamma" => "-0.13183515090501083",
-        //         "gammaBS" => "0.000024139685826358558",
-        //         "instId" => "BTC-USD-240329-32000-C",
-        //         "instType" => "OPTION",
-        //         "lever" => "4.504428015946619",
-        //         "markVol" => "0.5916253554539876",
-        //         "realVol" => "0",
-        //         "theta" => "-0.0004202992014012855",
-        //         "thetaBS" => "-18.52354631567909",
-        //         "ts" => "1699586421976",
-        //         "uly" => "BTC-USD",
-        //         "vega" => "0.0020207455080045846",
-        //         "vegaBS" => "74.44022302387287",
-        //         "volLv" => "0.5948549730405797"
+        //         "askVol": "0",
+        //         "bidVol": "0",
+        //         "delta": "0.5105464486882039",
+        //         "deltaBS": "0.7325502184143025",
+        //         "fwdPx": "37675.80158694987186",
+        //         "gamma": "-0.13183515090501083",
+        //         "gammaBS": "0.000024139685826358558",
+        //         "instId": "BTC-USD-240329-32000-C",
+        //         "instType": "OPTION",
+        //         "lever": "4.504428015946619",
+        //         "markVol": "0.5916253554539876",
+        //         "realVol": "0",
+        //         "theta": "-0.0004202992014012855",
+        //         "thetaBS": "-18.52354631567909",
+        //         "ts": "1699586421976",
+        //         "uly": "BTC-USD",
+        //         "vega": "0.0020207455080045846",
+        //         "vegaBS": "74.44022302387287",
+        //         "volLv": "0.5948549730405797"
         //     }
         //
         $timestamp = $this->safe_integer($greeks, 'ts');
@@ -8655,7 +8707,7 @@ class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-close-positions
          *
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} [$side] 'buy' or 'sell', leave in net mode
+         * @param {string} [$side] 'buy' or 'sell', leave as null in net mode
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique identifier for the $order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
@@ -8697,8 +8749,8 @@ class okx extends Exchange {
         $response = $this->privatePostTradeClosePosition($this->extend($request, $params));
         //
         //    {
-        //        "code" => "1",
-        //        "data" => array(
+        //        "code": "1",
+        //        "data": [
         //            {
         //                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
         //                "ordId":"",
@@ -8706,10 +8758,10 @@ class okx extends Exchange {
         //                "sMsg":"Parameter posSide error ",
         //                "tag":"e847386590ce4dBC"
         //            }
-        //        ),
-        //        "inTime" => "1701877077101064",
-        //        "msg" => "All operations failed",
-        //        "outTime" => "1701877077102579"
+        //        ],
+        //        "inTime": "1701877077101064",
+        //        "msg": "All operations failed",
+        //        "outTime": "1701877077102579"
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8737,28 +8789,28 @@ class okx extends Exchange {
         $response = $this->publicGetMarketTicker($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "instType" => "OPTION",
-        //                 "instId" => "BTC-USD-241227-60000-P",
-        //                 "last" => "",
-        //                 "lastSz" => "0",
-        //                 "askPx" => "",
-        //                 "askSz" => "0",
-        //                 "bidPx" => "",
-        //                 "bidSz" => "0",
-        //                 "open24h" => "",
-        //                 "high24h" => "",
-        //                 "low24h" => "",
-        //                 "volCcy24h" => "0",
-        //                 "vol24h" => "0",
-        //                 "ts" => "1711176035035",
-        //                 "sodUtc0" => "",
-        //                 "sodUtc8" => ""
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-241227-60000-P",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176035035",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
         //             }
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'data', array());
@@ -8788,28 +8840,28 @@ class okx extends Exchange {
         $response = $this->publicGetMarketTickers($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array(
-        //                 "instType" => "OPTION",
-        //                 "instId" => "BTC-USD-240323-52000-C",
-        //                 "last" => "",
-        //                 "lastSz" => "0",
-        //                 "askPx" => "",
-        //                 "askSz" => "0",
-        //                 "bidPx" => "",
-        //                 "bidSz" => "0",
-        //                 "open24h" => "",
-        //                 "high24h" => "",
-        //                 "low24h" => "",
-        //                 "volCcy24h" => "0",
-        //                 "vol24h" => "0",
-        //                 "ts" => "1711176207008",
-        //                 "sodUtc0" => "",
-        //                 "sodUtc8" => ""
-        //             ),
-        //         )
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-240323-52000-C",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176207008",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
+        //             },
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'data', array());
@@ -8819,22 +8871,22 @@ class okx extends Exchange {
     public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
-        //         "instType" => "OPTION",
-        //         "instId" => "BTC-USD-241227-60000-P",
-        //         "last" => "",
-        //         "lastSz" => "0",
-        //         "askPx" => "",
-        //         "askSz" => "0",
-        //         "bidPx" => "",
-        //         "bidSz" => "0",
-        //         "open24h" => "",
-        //         "high24h" => "",
-        //         "low24h" => "",
-        //         "volCcy24h" => "0",
-        //         "vol24h" => "0",
-        //         "ts" => "1711176035035",
-        //         "sodUtc0" => "",
-        //         "sodUtc8" => ""
+        //         "instType": "OPTION",
+        //         "instId": "BTC-USD-241227-60000-P",
+        //         "last": "",
+        //         "lastSz": "0",
+        //         "askPx": "",
+        //         "askSz": "0",
+        //         "bidPx": "",
+        //         "bidSz": "0",
+        //         "open24h": "",
+        //         "high24h": "",
+        //         "low24h": "",
+        //         "volCcy24h": "0",
+        //         "vol24h": "0",
+        //         "ts": "1711176035035",
+        //         "sodUtc0": "",
+        //         "sodUtc8": ""
         //     }
         //
         $marketId = $this->safe_string($chain, 'instId');
@@ -8886,25 +8938,25 @@ class okx extends Exchange {
         $response = $this->privatePostAssetConvertEstimateQuote($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "baseCcy" => "ETH",
-        //                 "baseSz" => "0.01023052",
-        //                 "clQReqId" => "",
-        //                 "cnvtPx" => "2932.40104429",
-        //                 "origRfqSz" => "30",
-        //                 "quoteCcy" => "USDT",
-        //                 "quoteId" => "quoterETH-USDT16461885104612381",
-        //                 "quoteSz" => "30",
-        //                 "quoteTime" => "1646188510461",
-        //                 "rfqSz" => "30",
-        //                 "rfqSzCcy" => "USDT",
-        //                 "side" => "buy",
-        //                 "ttlMs" => "10000"
+        //                 "baseCcy": "ETH",
+        //                 "baseSz": "0.01023052",
+        //                 "clQReqId": "",
+        //                 "cnvtPx": "2932.40104429",
+        //                 "origRfqSz": "30",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "quoteSz": "30",
+        //                 "quoteTime": "1646188510461",
+        //                 "rfqSz": "30",
+        //                 "rfqSzCcy": "USDT",
+        //                 "side": "buy",
+        //                 "ttlMs": "10000"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8943,24 +8995,24 @@ class okx extends Exchange {
         $response = $this->privatePostAssetConvertTrade($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "baseCcy" => "ETH",
-        //                 "clTReqId" => "",
-        //                 "fillBaseSz" => "0.01023052",
-        //                 "fillPx" => "2932.40104429",
-        //                 "fillQuoteSz" => "30",
-        //                 "instId" => "ETH-USDT",
-        //                 "quoteCcy" => "USDT",
-        //                 "quoteId" => "quoterETH-USDT16461885104612381",
-        //                 "side" => "buy",
-        //                 "state" => "fullyFilled",
-        //                 "tradeId" => "trader16461885203381437",
-        //                 "ts" => "1646188520338"
+        //                 "baseCcy": "ETH",
+        //                 "clTReqId": "",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "fillPx": "2932.40104429",
+        //                 "fillQuoteSz": "30",
+        //                 "instId": "ETH-USDT",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "side": "buy",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "ts": "1646188520338"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8992,23 +9044,23 @@ class okx extends Exchange {
         $response = $this->privateGetAssetConvertHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "clTReqId" => "",
-        //                 "instId" => "ETH-USDT",
-        //                 "side" => "buy",
-        //                 "fillPx" => "2932.401044",
-        //                 "baseCcy" => "ETH",
-        //                 "quoteCcy" => "USDT",
-        //                 "fillBaseSz" => "0.01023052",
-        //                 "state" => "fullyFilled",
-        //                 "tradeId" => "trader16461885203381437",
-        //                 "fillQuoteSz" => "30",
-        //                 "ts" => "1646188520000"
+        //                 "clTReqId": "",
+        //                 "instId": "ETH-USDT",
+        //                 "side": "buy",
+        //                 "fillPx": "2932.401044",
+        //                 "baseCcy": "ETH",
+        //                 "quoteCcy": "USDT",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "fillQuoteSz": "30",
+        //                 "ts": "1646188520000"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -9053,23 +9105,23 @@ class okx extends Exchange {
         $response = $this->privateGetAssetConvertHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "clTReqId" => "",
-        //                 "instId" => "ETH-USDT",
-        //                 "side" => "buy",
-        //                 "fillPx" => "2932.401044",
-        //                 "baseCcy" => "ETH",
-        //                 "quoteCcy" => "USDT",
-        //                 "fillBaseSz" => "0.01023052",
-        //                 "state" => "fullyFilled",
-        //                 "tradeId" => "trader16461885203381437",
-        //                 "fillQuoteSz" => "30",
-        //                 "ts" => "1646188520000"
+        //                 "clTReqId": "",
+        //                 "instId": "ETH-USDT",
+        //                 "side": "buy",
+        //                 "fillPx": "2932.401044",
+        //                 "baseCcy": "ETH",
+        //                 "quoteCcy": "USDT",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "fillQuoteSz": "30",
+        //                 "ts": "1646188520000"
         //             }
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
@@ -9081,52 +9133,52 @@ class okx extends Exchange {
         // fetchConvertQuote
         //
         //     {
-        //         "baseCcy" => "ETH",
-        //         "baseSz" => "0.01023052",
-        //         "clQReqId" => "",
-        //         "cnvtPx" => "2932.40104429",
-        //         "origRfqSz" => "30",
-        //         "quoteCcy" => "USDT",
-        //         "quoteId" => "quoterETH-USDT16461885104612381",
-        //         "quoteSz" => "30",
-        //         "quoteTime" => "1646188510461",
-        //         "rfqSz" => "30",
-        //         "rfqSzCcy" => "USDT",
-        //         "side" => "buy",
-        //         "ttlMs" => "10000"
+        //         "baseCcy": "ETH",
+        //         "baseSz": "0.01023052",
+        //         "clQReqId": "",
+        //         "cnvtPx": "2932.40104429",
+        //         "origRfqSz": "30",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "quoteSz": "30",
+        //         "quoteTime": "1646188510461",
+        //         "rfqSz": "30",
+        //         "rfqSzCcy": "USDT",
+        //         "side": "buy",
+        //         "ttlMs": "10000"
         //     }
         //
         // createConvertTrade
         //
         //     {
-        //         "baseCcy" => "ETH",
-        //         "clTReqId" => "",
-        //         "fillBaseSz" => "0.01023052",
-        //         "fillPx" => "2932.40104429",
-        //         "fillQuoteSz" => "30",
-        //         "instId" => "ETH-USDT",
-        //         "quoteCcy" => "USDT",
-        //         "quoteId" => "quoterETH-USDT16461885104612381",
-        //         "side" => "buy",
-        //         "state" => "fullyFilled",
-        //         "tradeId" => "trader16461885203381437",
-        //         "ts" => "1646188520338"
+        //         "baseCcy": "ETH",
+        //         "clTReqId": "",
+        //         "fillBaseSz": "0.01023052",
+        //         "fillPx": "2932.40104429",
+        //         "fillQuoteSz": "30",
+        //         "instId": "ETH-USDT",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "side": "buy",
+        //         "state": "fullyFilled",
+        //         "tradeId": "trader16461885203381437",
+        //         "ts": "1646188520338"
         //     }
         //
         // fetchConvertTrade, fetchConvertTradeHistory
         //
         //     {
-        //         "clTReqId" => "",
-        //         "instId" => "ETH-USDT",
-        //         "side" => "buy",
-        //         "fillPx" => "2932.401044",
-        //         "baseCcy" => "ETH",
-        //         "quoteCcy" => "USDT",
-        //         "fillBaseSz" => "0.01023052",
-        //         "state" => "fullyFilled",
-        //         "tradeId" => "trader16461885203381437",
-        //         "fillQuoteSz" => "30",
-        //         "ts" => "1646188520000"
+        //         "clTReqId": "",
+        //         "instId": "ETH-USDT",
+        //         "side": "buy",
+        //         "fillPx": "2932.401044",
+        //         "baseCcy": "ETH",
+        //         "quoteCcy": "USDT",
+        //         "fillBaseSz": "0.01023052",
+        //         "state": "fullyFilled",
+        //         "tradeId": "trader16461885203381437",
+        //         "fillQuoteSz": "30",
+        //         "ts": "1646188520000"
         //     }
         //
         $timestamp = $this->safe_integer_2($conversion, 'quoteTime', 'ts');
@@ -9163,15 +9215,15 @@ class okx extends Exchange {
         $response = $this->privateGetAssetConvertCurrencies($params);
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             array(
-        //                 "ccy" => "BTC",
-        //                 "max" => "",
-        //                 "min" => ""
-        //             ),
-        //         ),
-        //         "msg" => ""
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "ccy": "BTC",
+        //                 "max": "",
+        //                 "min": ""
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         $result = array();
@@ -9216,26 +9268,26 @@ class okx extends Exchange {
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         //
         //    {
-        //        "code" => "1",
-        //        "data" => array(
-        //            array(
-        //                "clOrdId" => "",
-        //                "ordId" => "",
-        //                "sCode" => "51119",
-        //                "sMsg" => "Order placement failed due to insufficient balance. ",
-        //                "tag" => ""
+        //        "code": "1",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "",
+        //                "sCode": "51119",
+        //                "sMsg": "Order placement failed due to insufficient balance. ",
+        //                "tag": ""
         //            }
-        //        ),
-        //        "msg" => ""
-        //    ),
+        //        ],
+        //        "msg": ""
+        //    },
         //    {
-        //        "code" => "58001",
-        //        "data" => array(),
-        //        "msg" => "Incorrect trade password"
+        //        "code": "58001",
+        //        "data": [],
+        //        "msg": "Incorrect trade password"
         //    }
         //
         $code = $this->safe_string($response, 'code');
@@ -9250,7 +9302,7 @@ class okx extends Exchange {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }
@@ -9314,44 +9366,44 @@ class okx extends Exchange {
         }
         //
         //    {
-        //        code => '0',
-        //        $data => array(
+        //        code: '0',
+        //        data: [
         //            {
-        //                bal => '67621.4325135010619812',
-        //                balChg => '-10.0000000000000000',
-        //                billId => '691293628710342659',
-        //                ccy => 'USDT',
-        //                clOrdId => '',
-        //                execType => '',
-        //                fee => '0',
-        //                fillFwdPx => '',
-        //                fillIdxPx => '',
-        //                fillMarkPx => '',
-        //                fillMarkVol => '',
-        //                fillPxUsd => '',
-        //                fillPxVol => '',
-        //                fillTime => '1711089244850',
-        //                from => '',
-        //                instId => 'XRP-USDT-SWAP',
-        //                instType => 'SWAP',
-        //                interest => '0',
-        //                mgnMode => 'isolated',
-        //                notes => '',
-        //                ordId => '',
-        //                pnl => '0',
-        //                posBal => '73.12',
-        //                posBalChg => '10.00',
-        //                px => '',
-        //                $subType => '160',
-        //                sz => '10',
-        //                tag => '',
-        //                to => '',
-        //                tradeId => '0',
-        //                ts => '1711089244699',
-        //                $type => '6'
+        //                bal: '67621.4325135010619812',
+        //                balChg: '-10.0000000000000000',
+        //                billId: '691293628710342659',
+        //                ccy: 'USDT',
+        //                clOrdId: '',
+        //                execType: '',
+        //                fee: '0',
+        //                fillFwdPx: '',
+        //                fillIdxPx: '',
+        //                fillMarkPx: '',
+        //                fillMarkVol: '',
+        //                fillPxUsd: '',
+        //                fillPxVol: '',
+        //                fillTime: '1711089244850',
+        //                from: '',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                interest: '0',
+        //                mgnMode: 'isolated',
+        //                notes: '',
+        //                ordId: '',
+        //                pnl: '0',
+        //                posBal: '73.12',
+        //                posBalChg: '10.00',
+        //                px: '',
+        //                subType: '160',
+        //                sz: '10',
+        //                tag: '',
+        //                to: '',
+        //                tradeId: '0',
+        //                ts: '1711089244699',
+        //                type: '6'
         //            }
-        //        ),
-        //        msg => ''
+        //        ],
+        //        msg: ''
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -9407,35 +9459,35 @@ class okx extends Exchange {
         $response = $this->privateGetAccountPositionsHistory($this->extend($request, $params));
         //
         //    {
-        //        code => '0',
-        //        $data => array(
-        //            array(
-        //                cTime => '1708735940395',
-        //                ccy => 'USDT',
-        //                closeAvgPx => '0.6330444444444444',
-        //                closeTotalPos => '27',
-        //                direction => 'long',
-        //                fee => '-1.69566',
-        //                fundingFee => '-11.870404179341788',
-        //                instId => 'XRP-USDT-SWAP',
-        //                $instType => 'SWAP',
-        //                lever => '3.0',
-        //                liqPenalty => '0',
-        //                mgnMode => 'cross',
-        //                openAvgPx => '0.623',
-        //                openMaxPos => '15',
-        //                pnl => '27.11999999999988',
-        //                pnlRatio => '0.0241732402722634',
-        //                posId => '681423155054862336',
-        //                realizedPnl => '13.553935820658092',
-        //                triggerPx => '',
-        //                type => '2',
-        //                uTime => '1711088748170',
-        //                uly => 'XRP-USDT'
-        //            ),
+        //        code: '0',
+        //        data: [
+        //            {
+        //                cTime: '1708735940395',
+        //                ccy: 'USDT',
+        //                closeAvgPx: '0.6330444444444444',
+        //                closeTotalPos: '27',
+        //                direction: 'long',
+        //                fee: '-1.69566',
+        //                fundingFee: '-11.870404179341788',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                lever: '3.0',
+        //                liqPenalty: '0',
+        //                mgnMode: 'cross',
+        //                openAvgPx: '0.623',
+        //                openMaxPos: '15',
+        //                pnl: '27.11999999999988',
+        //                pnlRatio: '0.0241732402722634',
+        //                posId: '681423155054862336',
+        //                realizedPnl: '13.553935820658092',
+        //                triggerPx: '',
+        //                type: '2',
+        //                uTime: '1711088748170',
+        //                uly: 'XRP-USDT'
+        //            },
         //            ...
-        //        ),
-        //        msg => ''
+        //        ],
+        //        msg: ''
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -9484,13 +9536,13 @@ class okx extends Exchange {
         $response = $this->publicGetRubikStatContractsLongShortAccountRatioContract($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "data" => array(
+        //         "code": "0",
+        //         "data": [
         //             ["1729323600000", "0.9398602814619824"],
         //             ["1729323300000", "0.9398602814619824"],
         //             ["1729323000000", "0.9398602814619824"],
-        //         ),
-        //         "msg" => ""
+        //         ],
+        //         "msg": ""
         //     }
         //
         $data = $this->safe_list($response, 'data', array());

@@ -101,9 +101,9 @@ class coinbase extends \ccxt\async\coinbase {
             'type' => 'subscribe',
             'product_ids' => $productIds,
             'channel' => $name,
-            // 'api_key' => $this->apiKey,
-            // 'timestamp' => timestamp,
-            // 'signature' => $this->hmac($this->encode(auth), $this->encode($this->secret), 'sha256'),
+            // 'api_key': this.apiKey,
+            // 'timestamp': timestamp,
+            // 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         );
         if ($isPrivate) {
             $subscribe = $this->extend($subscribe, $this->create_ws_auth($name, $productIds));
@@ -156,7 +156,7 @@ class coinbase extends \ccxt\async\coinbase {
             $productIds = array( $market['id'] );
         }
         $url = $this->urls['api']['ws'];
-        // 'array("type" => "unsubscribe", "product_ids" => ["BTC-USD", "ETH-USD"], "channel" => "ticker")'
+        // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         $message = array(
             'type' => 'unsubscribe',
             'product_ids' => $productIds,
@@ -299,7 +299,7 @@ class coinbase extends \ccxt\async\coinbase {
             $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
             $seconds = $this->seconds();
             if ($currentToken === null || $tokenTimestamp + 120 < $seconds) {
-                // we should generate new $token
+                // we should generate new token
                 $token = $this->create_auth_token($seconds);
                 $this->options['wsToken'] = $token;
                 $this->options['wsTokenTimestamp'] = $seconds;
@@ -408,90 +408,90 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_tickers(Client $client, mixed $message) {
         //
         //    {
-        //        "channel" => "ticker",
-        //        "client_id" => "",
-        //        "timestamp" => "2023-02-09T20:30:37.167359596Z",
-        //        "sequence_num" => 0,
-        //        "events" => array(
+        //        "channel": "ticker",
+        //        "client_id": "",
+        //        "timestamp": "2023-02-09T20:30:37.167359596Z",
+        //        "sequence_num": 0,
+        //        "events": [
         //            {
-        //                "type" => "snapshot",
-        //                "tickers" => array(
+        //                "type": "snapshot",
+        //                "tickers": [
         //                    {
-        //                        "type" => "ticker",
-        //                        "product_id" => "BTC-USD",
-        //                        "price" => "21932.98",
-        //                        "volume_24_h" => "16038.28770938",
-        //                        "low_24_h" => "21835.29",
-        //                        "high_24_h" => "23011.18",
-        //                        "low_52_w" => "15460",
-        //                        "high_52_w" => "48240",
-        //                        "price_percent_chg_24_h" => "-4.15775596190603"
-        // new 2024-04-12
+        //                        "type": "ticker",
+        //                        "product_id": "BTC-USD",
+        //                        "price": "21932.98",
+        //                        "volume_24_h": "16038.28770938",
+        //                        "low_24_h": "21835.29",
+        //                        "high_24_h": "23011.18",
+        //                        "low_52_w": "15460",
+        //                        "high_52_w": "48240",
+        //                        "price_percent_chg_24_h": "-4.15775596190603"
+        // new as of 2024-04-12
         //                        "best_bid":"21835.29",
-        //                        "best_bid_quantity" => "0.02000000",
+        //                        "best_bid_quantity": "0.02000000",
         //                        "best_ask":"23011.18",
-        //                        "best_ask_quantity" => "0.01500000"
+        //                        "best_ask_quantity": "0.01500000"
         //                    }
-        //                )
+        //                ]
         //            }
-        //        )
+        //        ]
         //    }
         //
         //    {
-        //        "channel" => "ticker_batch",
-        //        "client_id" => "",
-        //        "timestamp" => "2023-03-01T12:15:18.382173051Z",
-        //        "sequence_num" => 0,
-        //        "events" => array(
+        //        "channel": "ticker_batch",
+        //        "client_id": "",
+        //        "timestamp": "2023-03-01T12:15:18.382173051Z",
+        //        "sequence_num": 0,
+        //        "events": [
         //            {
-        //                "type" => "snapshot",
-        //                "tickers" => array(
+        //                "type": "snapshot",
+        //                "tickers": [
         //                    {
-        //                        "type" => "ticker",
-        //                        "product_id" => "DOGE-USD",
-        //                        "price" => "0.08212",
-        //                        "volume_24_h" => "242556423.3",
-        //                        "low_24_h" => "0.07989",
-        //                        "high_24_h" => "0.08308",
-        //                        "low_52_w" => "0.04908",
-        //                        "high_52_w" => "0.1801",
-        //                        "price_percent_chg_24_h" => "0.50177456859626"
-        // new 2024-04-12
+        //                        "type": "ticker",
+        //                        "product_id": "DOGE-USD",
+        //                        "price": "0.08212",
+        //                        "volume_24_h": "242556423.3",
+        //                        "low_24_h": "0.07989",
+        //                        "high_24_h": "0.08308",
+        //                        "low_52_w": "0.04908",
+        //                        "high_52_w": "0.1801",
+        //                        "price_percent_chg_24_h": "0.50177456859626"
+        // new as of 2024-04-12
         //                        "best_bid":"0.07989",
-        //                        "best_bid_quantity" => "500.0",
+        //                        "best_bid_quantity": "500.0",
         //                        "best_ask":"0.08308",
-        //                        "best_ask_quantity" => "300.0"
+        //                        "best_ask_quantity": "300.0"
         //                    }
-        //                )
+        //                ]
         //            }
-        //        )
+        //        ]
         //    }
         //
         // note! seems coinbase might also send empty data like:
         //
         //    {
-        //        "channel" => "ticker_batch",
-        //        "client_id" => "",
-        //        "timestamp" => "2024-05-24T18:22:24.546809523Z",
-        //        "sequence_num" => 1,
-        //        "events" => array(
+        //        "channel": "ticker_batch",
+        //        "client_id": "",
+        //        "timestamp": "2024-05-24T18:22:24.546809523Z",
+        //        "sequence_num": 1,
+        //        "events": [
         //            {
-        //                "type" => "snapshot",
-        //                "tickers" => array(
+        //                "type": "snapshot",
+        //                "tickers": [
         //                    {
-        //                        "type" => "ticker",
-        //                        "product_id" => "",
-        //                        "price" => "",
-        //                        "volume_24_h" => "",
-        //                        "low_24_h" => "",
-        //                        "high_24_h" => "",
-        //                        "low_52_w" => "",
-        //                        "high_52_w" => "",
-        //                        "price_percent_chg_24_h" => ""
+        //                        "type": "ticker",
+        //                        "product_id": "",
+        //                        "price": "",
+        //                        "volume_24_h": "",
+        //                        "low_24_h": "",
+        //                        "high_24_h": "",
+        //                        "low_52_w": "",
+        //                        "high_52_w": "",
+        //                        "price_percent_chg_24_h": ""
         //                    }
-        //                )
+        //                ]
         //            }
-        //        )
+        //        ]
         //    }
         //
         //
@@ -527,20 +527,20 @@ class coinbase extends \ccxt\async\coinbase {
     public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
-        //         "type" => "ticker",
-        //         "product_id" => "DOGE-USD",
-        //         "price" => "0.08212",
-        //         "volume_24_h" => "242556423.3",
-        //         "low_24_h" => "0.07989",
-        //         "high_24_h" => "0.08308",
-        //         "low_52_w" => "0.04908",
-        //         "high_52_w" => "0.1801",
-        //         "price_percent_chg_24_h" => "0.50177456859626"
-        // new 2024-04-12
+        //         "type": "ticker",
+        //         "product_id": "DOGE-USD",
+        //         "price": "0.08212",
+        //         "volume_24_h": "242556423.3",
+        //         "low_24_h": "0.07989",
+        //         "high_24_h": "0.08308",
+        //         "low_52_w": "0.04908",
+        //         "high_52_w": "0.1801",
+        //         "price_percent_chg_24_h": "0.50177456859626"
+        // new as of 2024-04-12
         //         "best_bid":"0.07989",
-        //         "best_bid_quantity" => "500.0",
+        //         "best_bid_quantity": "500.0",
         //         "best_ask":"0.08308",
-        //         "best_ask_quantity" => "300.0"
+        //         "best_ask_quantity": "300.0"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'product_id');
@@ -790,25 +790,25 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_trade(mixed $client, mixed $message) {
         //
         //    {
-        //        "channel" => "market_trades",
-        //        "client_id" => "",
-        //        "timestamp" => "2023-02-09T20:19:35.39625135Z",
-        //        "sequence_num" => 0,
-        //        "events" => array(
+        //        "channel": "market_trades",
+        //        "client_id": "",
+        //        "timestamp": "2023-02-09T20:19:35.39625135Z",
+        //        "sequence_num": 0,
+        //        "events": [
         //            {
-        //                "type" => "snapshot",
-        //                "trades" => array(
+        //                "type": "snapshot",
+        //                "trades": [
         //                    {
-        //                        "trade_id" => "000000000",
-        //                        "product_id" => "ETH-USD",
-        //                        "price" => "1260.01",
-        //                        "size" => "0.3",
-        //                        "side" => "BUY",
-        //                        "time" => "2019-08-14T20:42:27.265Z",
+        //                        "trade_id": "000000000",
+        //                        "product_id": "ETH-USD",
+        //                        "price": "1260.01",
+        //                        "size": "0.3",
+        //                        "side": "BUY",
+        //                        "time": "2019-08-14T20:42:27.265Z",
         //                    }
-        //                )
+        //                ]
         //            }
-        //        )
+        //        ]
         //    }
         //
         $events = $this->safe_list($message, 'events');
@@ -833,7 +833,7 @@ class coinbase extends \ccxt\async\coinbase {
             if ($currentTrades === null) {
                 continue;
             }
-            // coinbase sends $trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
+            // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             $tradesLength = count($currentTrades);
             for ($j = 0; $j < $tradesLength; $j++) {
                 $item = $currentTrades[$tradesLength - $j - 1];
@@ -847,30 +847,30 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_order(mixed $client, mixed $message) {
         //
         //    {
-        //        "channel" => "user",
-        //        "client_id" => "",
-        //        "timestamp" => "2023-02-09T20:33:57.609931463Z",
-        //        "sequence_num" => 0,
-        //        "events" => array(
+        //        "channel": "user",
+        //        "client_id": "",
+        //        "timestamp": "2023-02-09T20:33:57.609931463Z",
+        //        "sequence_num": 0,
+        //        "events": [
         //            {
-        //                "type" => "snapshot",
-        //                "orders" => array(
-        //                    array(
-        //                        "order_id" => "XXX",
-        //                        "client_order_id" => "YYY",
-        //                        "cumulative_quantity" => "0",
-        //                        "leaves_quantity" => "0.000994",
-        //                        "avg_price" => "0",
-        //                        "total_fees" => "0",
-        //                        "status" => "OPEN",
-        //                        "product_id" => "BTC-USD",
-        //                        "creation_time" => "2022-12-07T19:42:18.719312Z",
-        //                        "order_side" => "BUY",
-        //                        "order_type" => "Limit"
-        //                    ),
-        //                )
+        //                "type": "snapshot",
+        //                "orders": [
+        //                    {
+        //                        "order_id": "XXX",
+        //                        "client_order_id": "YYY",
+        //                        "cumulative_quantity": "0",
+        //                        "leaves_quantity": "0.000994",
+        //                        "avg_price": "0",
+        //                        "total_fees": "0",
+        //                        "status": "OPEN",
+        //                        "product_id": "BTC-USD",
+        //                        "creation_time": "2022-12-07T19:42:18.719312Z",
+        //                        "order_side": "BUY",
+        //                        "order_type": "Limit"
+        //                    },
+        //                ]
         //            }
-        //        )
+        //        ]
         //    }
         //
         $events = $this->safe_list($message, 'events');
@@ -914,17 +914,17 @@ class coinbase extends \ccxt\async\coinbase {
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
-        //        "order_id" => "XXX",
-        //        "client_order_id" => "YYY",
-        //        "cumulative_quantity" => "0",
-        //        "leaves_quantity" => "0.000994",
-        //        "avg_price" => "0",
-        //        "total_fees" => "0",
-        //        "status" => "OPEN",
-        //        "product_id" => "BTC-USD",
-        //        "creation_time" => "2022-12-07T19:42:18.719312Z",
-        //        "order_side" => "BUY",
-        //        "order_type" => "Limit"
+        //        "order_id": "XXX",
+        //        "client_order_id": "YYY",
+        //        "cumulative_quantity": "0",
+        //        "leaves_quantity": "0.000994",
+        //        "avg_price": "0",
+        //        "total_fees": "0",
+        //        "status": "OPEN",
+        //        "product_id": "BTC-USD",
+        //        "creation_time": "2022-12-07T19:42:18.719312Z",
+        //        "order_side": "BUY",
+        //        "order_type": "Limit"
         //    }
         //
         $id = $this->safe_string($order, 'order_id');
@@ -977,30 +977,30 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_order_book(mixed $client, mixed $message) {
         //
         //    {
-        //        "channel" => "l2_data",
-        //        "client_id" => "",
-        //        "timestamp" => "2023-02-09T20:32:50.714964855Z",
-        //        "sequence_num" => 0,
-        //        "events" => array(
+        //        "channel": "l2_data",
+        //        "client_id": "",
+        //        "timestamp": "2023-02-09T20:32:50.714964855Z",
+        //        "sequence_num": 0,
+        //        "events": [
         //            {
-        //                "type" => "snapshot",
-        //                "product_id" => "BTC-USD",
-        //                "updates" => array(
-        //                    array(
-        //                        "side" => "bid",
-        //                        "event_time" => "1970-01-01T00:00:00Z",
-        //                        "price_level" => "21921.74",
-        //                        "new_quantity" => "0.06317902"
-        //                    ),
-        //                    array(
-        //                        "side" => "bid",
-        //                        "event_time" => "1970-01-01T00:00:00Z",
-        //                        "price_level" => "21921.3",
-        //                        "new_quantity" => "0.02"
-        //                    ),
-        //                )
+        //                "type": "snapshot",
+        //                "product_id": "BTC-USD",
+        //                "updates": [
+        //                    {
+        //                        "side": "bid",
+        //                        "event_time": "1970-01-01T00:00:00Z",
+        //                        "price_level": "21921.74",
+        //                        "new_quantity": "0.06317902"
+        //                    },
+        //                    {
+        //                        "side": "bid",
+        //                        "event_time": "1970-01-01T00:00:00Z",
+        //                        "price_level": "21921.3",
+        //                        "new_quantity": "0.02"
+        //                    },
+        //                ]
         //            }
-        //        )
+        //        ]
         //    }
         //
         $events = $this->safe_list($message, 'events');
@@ -1012,7 +1012,7 @@ class coinbase extends \ccxt\async\coinbase {
             $event = $events[$i];
             $updates = $this->safe_list($event, 'updates', array());
             $marketId = $this->safe_string($event, 'product_id');
-            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, are aliases
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $messageHash = 'level2::' . $symbol;
@@ -1022,7 +1022,7 @@ class coinbase extends \ccxt\async\coinbase {
             if ($type === 'snapshot') {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
-            // unknown bug, can't reproduce, but sometimes $orderbook is null
+            // unknown bug, can't reproduce, but sometimes orderbook is undefined
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) && $this->orderbooks[$symbol] === null) {
                 continue;
             }
@@ -1045,26 +1045,26 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "subscriptions",
-        //         "channels" => array(
+        //         "type": "subscriptions",
+        //         "channels": [
         //             {
-        //                 "name" => "level2",
-        //                 "product_ids" => array( "ETH-BTC" )
+        //                 "name": "level2",
+        //                 "product_ids": [ "ETH-BTC" ]
         //             }
-        //         )
+        //         ]
         //     }
         //
         //
         //      {
-        //        channel => 'subscriptions',
-        //        client_id => '',
-        //        timestamp => '2025-09-15T17:02:49.90120868Z',
-        //        sequence_num => 3,
-        //        $events => array( array( subscriptions => array() ) )
+        //        channel: 'subscriptions',
+        //        client_id: '',
+        //        timestamp: '2025-09-15T17:02:49.90120868Z',
+        //        sequence_num: 3,
+        //        events: [ { subscriptions: {} } ]
         //      }
         //
         $events = $this->safe_list($message, 'events', array());
-        $firstEvent = $this->safe_value($events, 0, array());
+        $firstEvent = $this->safe_dict($events, 0, array());
         $isUnsub = (is_array($firstEvent) && array_key_exists('subscriptions' ?? '', $firstEvent));
         $subKeys = is_array($firstEvent['subscriptions']) ? array_keys($firstEvent['subscriptions']) : array();
         $subKeysLength = count($subKeys);
@@ -1084,19 +1084,19 @@ class coinbase extends \ccxt\async\coinbase {
 
     public function handle_heartbeats(Client $client, mixed $message) {
         // although the subscription takes a product_ids parameter (i.e. symbol),
-        // there is no (clear) way of mapping the $message back to the symbol.
+        // there is no (clear) way of mapping the message back to the symbol.
         //
         //     {
-        //         "channel" => "heartbeats",
-        //         "client_id" => "",
-        //         "timestamp" => "2023-06-23T20:31:26.122969572Z",
-        //         "sequence_num" => 0,
-        //         "events" => array(
+        //         "channel": "heartbeats",
+        //         "client_id": "",
+        //         "timestamp": "2023-06-23T20:31:26.122969572Z",
+        //         "sequence_num": 0,
+        //         "events": [
         //           {
-        //               "current_time" => "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
-        //               "heartbeat_counter" => "3049"
+        //               "current_time": "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
+        //               "heartbeat_counter": "3049"
         //           }
-        //         )
+        //         ]
         //     }
         //
         return $message;

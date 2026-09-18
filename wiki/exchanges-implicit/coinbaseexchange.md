@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinbaseexchange API documentation:** [docs.cloud.coinbase.com](https://docs.cloud.coinbase.com/exchange/docs/)
 
-> 82 implicit endpoints across 2 access groups.
+> 103 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -74,6 +74,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTime` | GET | `time` | 1 |
 | `publicGetProductsSparkLines` | GET | `products/spark-lines` | 1 |
 | `publicGetProductsVolumeSummary` | GET | `products/volume-summary` | 1 |
+| `publicGetWrappedAssets` | GET | `wrapped-assets` | 1 |
+| `publicGetWrappedAssetsWrappedAssetId` | GET | `wrapped-assets/{wrapped_asset_id}` | 1 |
+| `publicGetWrappedAssetsWrappedAssetIdConversionRate` | GET | `wrapped-assets/{wrapped_asset_id}/conversion-rate` | 1 |
 
 ## private
 
@@ -82,6 +85,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privateGetAddressBook` | GET | `address-book` | 1 |
+| `privateGetAddressBookCounterparty` | GET | `address-book/counterparty` | 1 |
 | `privateGetAccounts` | GET | `accounts` | 1 |
 | `privateGetAccountsId` | GET | `accounts/{id}` | 1 |
 | `privateGetAccountsIdHolds` | GET | `accounts/{id}/holds` | 1 |
@@ -111,9 +115,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetReportsReportId` | GET | `reports/{report_id}` | 1 |
 | `privateGetTransfers` | GET | `transfers` | 1 |
 | `privateGetTransfersTransferId` | GET | `transfers/{transfer_id}` | 1 |
+| `privateGetTravelRules` | GET | `travel-rules` | 1 |
 | `privateGetUsersSelfExchangeLimits` | GET | `users/self/exchange-limits` | 1 |
 | `privateGetUsersSelfHoldBalances` | GET | `users/self/hold-balances` | 1 |
 | `privateGetUsersSelfTrailingVolume` | GET | `users/self/trailing-volume` | 1 |
+| `privateGetUsersUserIdTradingVolumes` | GET | `users/{user_id}/trading-volumes` | 1 |
 | `privateGetWithdrawalsFeeEstimate` | GET | `withdrawals/fee-estimate` | 1 |
 | `privateGetConversionsConversionId` | GET | `conversions/{conversion_id}` | 1 |
 | `privateGetConversions` | GET | `conversions` | 1 |
@@ -129,10 +135,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetLoansInterest` | GET | `loans/interest` | 1 |
 | `privateGetLoansAssets` | GET | `loans/assets` | 1 |
 | `privateGetLoans` | GET | `loans` | 1 |
+| `privateGetLoansOptions` | GET | `loans/options` | 1 |
+| `privateGetWrappedAssetsRedeem` | GET | `wrapped-assets/redeem` | 1 |
+| `privateGetWrappedAssetsRedeemRedeemId` | GET | `wrapped-assets/redeem/{redeem_id}` | 1 |
+| `privateGetWrappedAssetsStakeWrap` | GET | `wrapped-assets/stake-wrap` | 1 |
+| `privateGetWrappedAssetsStakeWrapStakeWrapId` | GET | `wrapped-assets/stake-wrap/{stake_wrap_id}` | 1 |
 | `privatePostConversions` | POST | `conversions` | 1 |
 | `privatePostDepositsCoinbaseAccount` | POST | `deposits/coinbase-account` | 1 |
 | `privatePostDepositsPaymentMethod` | POST | `deposits/payment-method` | 1 |
 | `privatePostCoinbaseAccountsIdAddresses` | POST | `coinbase-accounts/{id}/addresses` | 1 |
+| `privatePostAddressBook` | POST | `address-book` | 1 |
 | `privatePostFundingRepay` | POST | `funding/repay` | 1 |
 | `privatePostOrders` | POST | `orders` | 1 |
 | `privatePostPositionClose` | POST | `position/close` | 1 |
@@ -142,14 +154,23 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostReports` | POST | `reports` | 1 |
 | `privatePostWithdrawalsCoinbase` | POST | `withdrawals/coinbase` | 1 |
 | `privatePostWithdrawalsCoinbaseAccount` | POST | `withdrawals/coinbase-account` | 1 |
+| `privatePostWithdrawalsCounterparty` | POST | `withdrawals/counterparty` | 1 |
 | `privatePostWithdrawalsCrypto` | POST | `withdrawals/crypto` | 1 |
 | `privatePostWithdrawalsPaymentMethod` | POST | `withdrawals/payment-method` | 1 |
+| `privatePostTransfersTransferIdTravelRules` | POST | `transfers/{transfer_id}/travel-rules` | 1 |
+| `privatePostTravelRules` | POST | `travel-rules` | 1 |
+| `privatePostUsersUserIdSettlementPreferences` | POST | `users/{user_id}/settlement-preferences` | 1 |
+| `privatePostWrappedAssetsRedeem` | POST | `wrapped-assets/redeem` | 1 |
+| `privatePostWrappedAssetsStakeWrap` | POST | `wrapped-assets/stake-wrap` | 1 |
 | `privatePostLoansOpen` | POST | `loans/open` | 1 |
 | `privatePostLoansRepayInterest` | POST | `loans/repay-interest` | 1 |
 | `privatePostLoansRepayPrincipal` | POST | `loans/repay-principal` | 1 |
 | `privateDeleteOrders` | DELETE | `orders` | 1 |
 | `privateDeleteOrdersClientClientOid` | DELETE | `orders/client:{client_oid}` | 1 |
 | `privateDeleteOrdersId` | DELETE | `orders/{id}` | 1 |
+| `privateDeleteAddressBookId` | DELETE | `address-book/{id}` | 1 |
+| `privateDeleteTravelRulesId` | DELETE | `travel-rules/{id}` | 1 |
 | `privatePutProfilesIdDeactivate` | PUT | `profiles/{id}/deactivate` | 1 |
 | `privatePutProfilesId` | PUT | `profiles/{id}` | 1 |
+| `privatePutAddressBookId` | PUT | `address-book/{id}` | 1 |
 

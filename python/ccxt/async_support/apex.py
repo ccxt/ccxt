@@ -190,6 +190,7 @@ class apex(Exchange, ImplicitAPI):
                         'v3/open-orders': {'cost': 1},
                         'v3/transfers': {'cost': 1},
                         'v3/transfer': {'cost': 1},
+                        'v3/stock/account': {'cost': 1},
                     },
                     'post': {
                         'v3/delete-open-orders': {'cost': 1},
@@ -199,6 +200,10 @@ class apex(Exchange, ImplicitAPI):
                         'v3/set-initial-margin-rate': {'cost': 1},
                         'v3/transfer-out': {'cost': 1},
                         'v3/contract-transfer-out': {'cost': 1},
+                        'v3/contract-transfer-to': {'cost': 1},
+                        'v3/submit-withdraw-claim': {'cost': 1},
+                        'v3/stock/register-account': {'cost': 1},
+                        'v3/stock/generate-api': {'cost': 1},
                     },
                 },
             },
@@ -207,7 +212,7 @@ class apex(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 # Uncodumented explanation of error strings:
-                # - oc_diff: order cost needed to place self order
+                # - oc_diff: order cost needed to place this order
                 # - new_oc: total order cost of open orders including the order you are trying to open
                 # - ob: order balance - the total cost of current open orders
                 # - ab: available balance
@@ -419,10 +424,10 @@ class apex(Exchange, ImplicitAPI):
         #             "showStep": "0.01",
         #             "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
         #             "l2WithdrawFee": "0",
-        #             "enableCollateral": True,
-        #             "enableCrossCollateral": False,
+        #             "enableCollateral": true,
+        #             "enableCrossCollateral": false,
         #             "crossCollateralDiscountRate": null,
-        #             "isGray": False
+        #             "isGray": false
         #         }
         #     ],
         # "multiChain": {
@@ -435,11 +440,11 @@ class apex(Exchange, ImplicitAPI):
         #          "chainIconUrl": "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
         #          "contractAddress": "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
         #          "swapContractAddress": "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
-        #          "stopDeposit": False,
-        #          "feeLess": False,
-        #          "gasLess": False,
+        #          "stopDeposit": false,
+        #          "feeLess": false,
+        #          "gasLess": false,
         #          "gasToken": "ETH",
-        #          "dynamicFee": True,
+        #          "dynamicFee": true,
         #          "gasTokenDecimals": 18,
         #          "feeGasLimit": 300000,
         #          "blockTimeSeconds": 2,
@@ -450,19 +455,19 @@ class apex(Exchange, ImplicitAPI):
         #          "webTxUrl": "https://arbiscan.io/tx/",
         #          "backupRpcUrl": "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
         #          "txConfirm": 20,
-        #          "withdrawGasFeeLess": False,
+        #          "withdrawGasFeeLess": false,
         #          "tokens": [
         #              {
         #                  "decimals": 6,
         #                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
         #                  "token": "USDT",
         #                  "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-        #                  "pullOff": False,
-        #                  "withdrawEnable": True,
+        #                  "pullOff": false,
+        #                  "withdrawEnable": true,
         #                  "slippage": "",
-        #                  "isDefaultToken": False,
+        #                  "isDefaultToken": false,
         #                  "displayToken": "USDT",
-        #                  "needResetApproval": True,
+        #                  "needResetApproval": true,
         #                  "minFee": "2",
         #                  "maxFee": "40",
         #                  "feeRate": "0.0001",
@@ -471,19 +476,19 @@ class apex(Exchange, ImplicitAPI):
         #                  "minWithdraw": "",
         #                  "maxFastWithdrawAmount": "40000",
         #                  "minFastWithdrawAmount": "1",
-        #                  "isGray": False
+        #                  "isGray": false
         #              },
         #              {
         #                  "decimals": 6,
         #                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
         #                  "token": "USDC",
         #                  "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
-        #                  "pullOff": False,
-        #                  "withdrawEnable": True,
+        #                  "pullOff": false,
+        #                  "withdrawEnable": true,
         #                  "slippage": "",
-        #                  "isDefaultToken": False,
+        #                  "isDefaultToken": false,
         #                  "displayToken": "USDC",
-        #                  "needResetApproval": True,
+        #                  "needResetApproval": true,
         #                  "minFee": "2",
         #                  "maxFee": "20",
         #                  "feeRate": "0.0001",
@@ -492,7 +497,7 @@ class apex(Exchange, ImplicitAPI):
         #                  "minWithdraw": "",
         #                  "maxFastWithdrawAmount": "1",
         #                  "minFastWithdrawAmount": "1",
-        #                  "isGray": False
+        #                  "isGray": false
         #              }
         #          ]
         #        }
@@ -596,9 +601,9 @@ class apex(Exchange, ImplicitAPI):
         #             "digitMerge": "0.1,0.2,0.4,1,2",
         #             "displayMaxLeverage": "100",
         #             "displayMinLeverage": "1",
-        #             "enableDisplay": True,
-        #             "enableOpenPosition": True,
-        #             "enableTrade": True,
+        #             "enableDisplay": true,
+        #             "enableOpenPosition": true,
+        #             "enableTrade": true,
         #             "fundingImpactMarginNotional": "6",
         #             "fundingInterestRate": "0.0003",
         #             "incrementalInitialMarginRate": "0.00250",
@@ -620,21 +625,21 @@ class apex(Exchange, ImplicitAPI):
         #             "maxPositionValue": "5000000.0000",
         #             "tagIconUrl": "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
         #             "tag": "HOT",
-        #             "riskTip": False,
+        #             "riskTip": false,
         #             "defaultInitialMarginRate": "0.05",
         #             "klineStartTime": 0,
         #             "maxMarketSizeBuffer": "0.98",
-        #             "enableFundingSettlement": True,
+        #             "enableFundingSettlement": true,
         #             "indexPriceDecimals": 2,
         #             "indexPriceVarRate": "0.001",
         #             "openPositionOiLimitRate": "0.05",
         #             "fundingMaxRate": "0.000234",
         #             "fundingMinRate": "-0.000234",
         #             "fundingMaxValue": "",
-        #             "enableFundingMxValue": True,
+        #             "enableFundingMxValue": true,
         #             "l2PairId": "50001",
         #             "settleTimeStamp": 0,
-        #             "isPrelaunch": False,
+        #             "isPrelaunch": false,
         #             "riskLimitConfig": {},
         #             "category": "L1"
         #         }
@@ -811,7 +816,7 @@ class apex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1129,9 +1134,9 @@ class apex(Exchange, ImplicitAPI):
         #     "expiresAt": 1647502440973,
         #     "status": "PENDING",
         #     "timeInForce": "GOOD_TIL_CANCEL",
-        #     "postOnly": False,
-        #     "reduceOnly": False,
-        #     "stopPnl": False,
+        #     "postOnly": false,
+        #     "reduceOnly": false,
+        #     "stopPnl": false,
         #     "latestMatchFillPrice": "reason",
         #     "cumMatchFillSize": "0.1",
         #     "cumMatchFillValue": "1000",
@@ -1140,9 +1145,9 @@ class apex(Exchange, ImplicitAPI):
         #     "cumSuccessFillValue": "1000",
         #     "cumSuccessFillFee": "1",
         #     "triggerPriceType": "INDEX",
-        #     "isOpenTpslOrder": True,
-        #     "isSetOpenTp": True,
-        #     "isSetOpenSl": False,
+        #     "isOpenTpslOrder": true,
+        #     "isSetOpenTp": true,
+        #     "isSetOpenSl": false,
         #     "openTpParam": {
         #     "side": "SELL",
         #         "price": "18000",
@@ -1174,7 +1179,7 @@ class apex(Exchange, ImplicitAPI):
         orderType = self.safe_string(order, 'type')
         status = self.safe_string(order, 'status')
         side = self.safe_string_lower(order, 'side')
-        # average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
+        # const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         remaining = self.omit_zero(self.safe_string(order, 'remainingSize'))
         lastUpdateTimestamp = self.safe_integer(order, 'updatedTime')
         return self.safe_order({
@@ -1228,7 +1233,7 @@ class apex(Exchange, ImplicitAPI):
                 'UNTRIGGERED': 'open',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {
@@ -1275,7 +1280,7 @@ class apex(Exchange, ImplicitAPI):
     def get_seeds(self):
         seeds = self.safe_string(self.options, 'seeds')
         if seeds is None:
-            raise ArgumentsRequired(self.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it.options["seeds"] = XXXX')
+            raise ArgumentsRequired(self.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX')
         return seeds
 
     async def get_account_id(self):

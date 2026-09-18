@@ -305,27 +305,27 @@ class weex extends \ccxt\async\weex {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "e" => "ticker",
-        //         "E" => 1776081628845,
-        //         "s" => "ETHUSDT",
-        //         "d" => array(
+        //         "e": "ticker",
+        //         "E": 1776081628845,
+        //         "s": "ETHUSDT",
+        //         "d": [
         //             {
-        //                 "p" => "-18.93",
-        //                 "P" => "-0.008592",
-        //                 "w" => "2192.40298388",
-        //                 "c" => "2184.20",
-        //                 "o" => "2203.13",
-        //                 "h" => "2217.34",
-        //                 "l" => "2173.32",
-        //                 "v" => "359395.800",
-        //                 "q" => "787940424.31399",
-        //                 "O" => 1775995200000,
-        //                 "C" => 1776081600000,
-        //                 "n" => 485169,
-        //                 "m" => "2184.28",
-        //                 "i" => "2185.2025"
+        //                 "p": "-18.93",
+        //                 "P": "-0.008592",
+        //                 "w": "2192.40298388",
+        //                 "c": "2184.20",
+        //                 "o": "2203.13",
+        //                 "h": "2217.34",
+        //                 "l": "2173.32",
+        //                 "v": "359395.800",
+        //                 "q": "787940424.31399",
+        //                 "O": 1775995200000,
+        //                 "C": 1776081600000,
+        //                 "n": 485169,
+        //                 "m": "2184.28",
+        //                 "i": "2185.2025"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
@@ -344,20 +344,20 @@ class weex extends \ccxt\async\weex {
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "p" => "-18.93",
-        //         "P" => "-0.008592",
-        //         "w" => "2192.40298388",
-        //         "c" => "2184.20",
-        //         "o" => "2203.13",
-        //         "h" => "2217.34",
-        //         "l" => "2173.32",
-        //         "v" => "359395.800",
-        //         "q" => "787940424.31399",
-        //         "O" => 1775995200000,
-        //         "C" => 1776081600000,
-        //         "n" => 485169,
-        //         "m" => "2184.28",
-        //         "i" => "2185.2025"
+        //         "p": "-18.93",
+        //         "P": "-0.008592",
+        //         "w": "2192.40298388",
+        //         "c": "2184.20",
+        //         "o": "2203.13",
+        //         "h": "2217.34",
+        //         "l": "2173.32",
+        //         "v": "359395.800",
+        //         "q": "787940424.31399",
+        //         "O": 1775995200000,
+        //         "C": 1776081600000,
+        //         "n": 485169,
+        //         "m": "2184.28",
+        //         "i": "2185.2025"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'C');
@@ -510,19 +510,19 @@ class weex extends \ccxt\async\weex {
     public function handle_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "e" => "trade",
-        //         "E" => 1776104608321,
-        //         "s" => "ETHUSDT",
-        //         "d" => array(
+        //         "e": "trade",
+        //         "E": 1776104608321,
+        //         "s": "ETHUSDT",
+        //         "d": [
         //             {
-        //                 "T" => 1776104608298,
-        //                 "t" => "41099265-7985-4f4c-af93-2cc3bc1cf13b",
-        //                 "p" => "2225.15",
-        //                 "q" => "0.02525",
-        //                 "v" => "56.1850375",
-        //                 "m" => false
+        //                 "T": 1776104608298,
+        //                 "t": "41099265-7985-4f4c-af93-2cc3bc1cf13b",
+        //                 "p": "2225.15",
+        //                 "q": "0.02525",
+        //                 "v": "56.1850375",
+        //                 "m": false
         //             }
-        //         )
+        //         ]
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
@@ -555,16 +555,23 @@ class weex extends \ccxt\async\weex {
     public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
-        //         "T" => 1776089287762,
-        //         "t" => "df4d1af1-71e8-400d-9571-f2cee2e6bea8",
-        //         "p" => "2203.73",
-        //         "q" => "7.214",
-        //         "v" => "15897.70822",
-        //         "m" => false
+        //         "T": 1776089287762,
+        //         "t": "df4d1af1-71e8-400d-9571-f2cee2e6bea8",
+        //         "p": "2203.73",
+        //         "q": "7.214",
+        //         "v": "15897.70822",
+        //         "m": false
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'T');
         $symbol = ($market === null) ? null : $market['symbol'];
+        $isBuyerMaker = $this->safe_bool($trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        $side = null;
+        $takerOrMaker = null;
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+            $takerOrMaker = 'taker'; // a public trade is reported from the aggressor's side, same as parseTrade
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 't'),
@@ -573,8 +580,8 @@ class weex extends \ccxt\async\weex {
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string($trade, 'p'),
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => $this->safe_string($trade, 'v'),
@@ -598,7 +605,7 @@ class weex extends \ccxt\async\weex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $extendedParams = $this->extend($params, array(
             'callerMethodName' => 'watchOHLCV',
@@ -622,7 +629,7 @@ class weex extends \ccxt\async\weex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -676,7 +683,7 @@ class weex extends \ccxt\async\weex {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'unWatchOHLCV';
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
@@ -695,7 +702,7 @@ class weex extends \ccxt\async\weex {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -743,27 +750,27 @@ class weex extends \ccxt\async\weex {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         e => 'kline',
-        //         E => 1776095535012,
-        //         s => 'ETHUSDT',
-        //         p => 'LAST_PRICE',
-        //         d => array(
+        //         e: 'kline',
+        //         E: 1776095535012,
+        //         s: 'ETHUSDT',
+        //         p: 'LAST_PRICE',
+        //         d: [
         //             {
-        //                 t => 1776092400000,
-        //                 T => 1776096000000,
-        //                 s => 'ETHUSDT',
-        //                 $i => '1h',
-        //                 o => '2234.18',
-        //                 c => '2205.15',
-        //                 h => '2236.43',
-        //                 l => '2199.53',
-        //                 v => '12505.60574',
-        //                 n => 3381,
-        //                 q => '27682528.6655305',
-        //                 V => '6420.47929',
-        //                 Q => '14213680.1906424'
+        //                 t: 1776092400000,
+        //                 T: 1776096000000,
+        //                 s: 'ETHUSDT',
+        //                 i: '1h',
+        //                 o: '2234.18',
+        //                 c: '2205.15',
+        //                 h: '2236.43',
+        //                 l: '2199.53',
+        //                 v: '12505.60574',
+        //                 n: 3381,
+        //                 q: '27682528.6655305',
+        //                 V: '6420.47929',
+        //                 Q: '14213680.1906424'
         //             }
-        //         )
+        //         ]
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
@@ -799,19 +806,19 @@ class weex extends \ccxt\async\weex {
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         t => 1776092400000,
-        //         T => 1776096000000,
-        //         s => 'ETHUSDT',
-        //         i => '1h',
-        //         o => '2234.18',
-        //         c => '2205.15',
-        //         h => '2236.43',
-        //         l => '2199.53',
-        //         v => '12505.60574',
-        //         n => 3381,
-        //         q => '27682528.6655305',
-        //         V => '6420.47929',
-        //         Q => '14213680.1906424'
+        //         t: 1776092400000,
+        //         T: 1776096000000,
+        //         s: 'ETHUSDT',
+        //         i: '1h',
+        //         o: '2234.18',
+        //         c: '2205.15',
+        //         h: '2236.43',
+        //         l: '2199.53',
+        //         v: '12505.60574',
+        //         n: 3381,
+        //         q: '27682528.6655305',
+        //         V: '6420.47929',
+        //         Q: '14213680.1906424'
         //     }
         //
         return array(
@@ -961,15 +968,15 @@ class weex extends \ccxt\async\weex {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "e" => "depth",
-        //         "E" => 1776098967972,
-        //         "s" => "ETHUSDT",
-        //         "U" => 14181847790,
-        //         "u" => 14181847802,
-        //         "l" => 200,
-        //         "d" => "CHANGED",
-        //         "b" => array( array( "2227.21", "0" ), array( "2227.20", "46.519" ) ),
-        //         "a" => array( array( "2227.21", "44.092" ), array( "2227.26", "0" ) )
+        //         "e": "depth",
+        //         "E": 1776098967972,
+        //         "s": "ETHUSDT",
+        //         "U": 14181847790,
+        //         "u": 14181847802,
+        //         "l": 200,
+        //         "d": "CHANGED",
+        //         "b": [ [ "2227.21", "0" ], [ "2227.20", "46.519" ] ],
+        //         "a": [ [ "2227.21", "44.092" ], [ "2227.26", "0" ] ]
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
@@ -1101,14 +1108,14 @@ class weex extends \ccxt\async\weex {
     public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
-        //         "e" => "bookTicker",
-        //         "E" => 1776103547551,
-        //         "s" => "ETHUSDT",
-        //         "u" => 1776103547547,
-        //         "b" => "2227.39",
-        //         "B" => "1.05512",
-        //         "a" => "2227.40",
-        //         "A" => "6.30889"
+        //         "e": "bookTicker",
+        //         "E": 1776103547551,
+        //         "s": "ETHUSDT",
+        //         "u": 1776103547547,
+        //         "b": "2227.39",
+        //         "B": "1.05512",
+        //         "a": "2227.40",
+        //         "A": "6.30889"
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
@@ -1220,47 +1227,47 @@ class weex extends \ccxt\async\weex {
         //
         // spot
         //     {
-        //         e => 'fill',
-        //         E => 1776174283564,
-        //         v => 83,
-        //         msgEvent => 'OrderUpdate',
-        //         d => array(
+        //         e: 'fill',
+        //         E: 1776174283564,
+        //         v: 83,
+        //         msgEvent: 'OrderUpdate',
+        //         d: [
         //             {
-        //                 id => '738928502249620072',
-        //                 $symbol => 'DOGEUSDT',
-        //                 baseCoin => 'DOGE',
-        //                 quoteCoin => 'USDT',
-        //                 orderId => '738928502174122600',
-        //                 orderSide => 'SELL',
-        //                 fillSize => '200.0',
-        //                 fillValue => '19.098000',
-        //                 fillFee => '0.01909800',
-        //                 direction => 'TAKER',
-        //                 createdTime => '1776174283564',
-        //                 updatedTime => '1776174283564'
+        //                 id: '738928502249620072',
+        //                 symbol: 'DOGEUSDT',
+        //                 baseCoin: 'DOGE',
+        //                 quoteCoin: 'USDT',
+        //                 orderId: '738928502174122600',
+        //                 orderSide: 'SELL',
+        //                 fillSize: '200.0',
+        //                 fillValue: '19.098000',
+        //                 fillFee: '0.01909800',
+        //                 direction: 'TAKER',
+        //                 createdTime: '1776174283564',
+        //                 updatedTime: '1776174283564'
         //             }
-        //         )
+        //         ]
         //     }
         //
         // swap
         //     {
-        //         "id" => "738957755401896296",
-        //         "coin" => "USDT",
-        //         "symbol" => "DOGEUSDT",
-        //         "orderId" => "738957755376730472",
-        //         "marginMode" => "CROSSED",
-        //         "separatedMode" => "COMBINED",
-        //         "separatedOpenOrderId" => "0",
-        //         "positionSide" => "LONG",
-        //         "orderSide" => "BUY",
-        //         "fillSize" => "100",
-        //         "fillValue" => "9.59500",
-        //         "fillFee" => "0.00767600",
-        //         "liquidateFee" => "0",
-        //         "realizePnl" => "0",
-        //         "direction" => "TAKER",
-        //         "createdTime" => "1776181258059",
-        //         "updatedTime" => "1776181258059"
+        //         "id": "738957755401896296",
+        //         "coin": "USDT",
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": "738957755376730472",
+        //         "marginMode": "CROSSED",
+        //         "separatedMode": "COMBINED",
+        //         "separatedOpenOrderId": "0",
+        //         "positionSide": "LONG",
+        //         "orderSide": "BUY",
+        //         "fillSize": "100",
+        //         "fillValue": "9.59500",
+        //         "fillFee": "0.00767600",
+        //         "liquidateFee": "0",
+        //         "realizePnl": "0",
+        //         "direction": "TAKER",
+        //         "createdTime": "1776181258059",
+        //         "updatedTime": "1776181258059"
         //     }
         //
         if ($this->myTrades === null) {
@@ -1297,18 +1304,18 @@ class weex extends \ccxt\async\weex {
         //
         // spot
         //     {
-        //         id => '738928502249620072',
-        //         symbol => 'DOGEUSDT',
-        //         baseCoin => 'DOGE',
-        //         quoteCoin => 'USDT',
-        //         orderId => '738928502174122600',
-        //         orderSide => 'SELL',
-        //         fillSize => '200.0',
-        //         fillValue => '19.098000',
-        //         fillFee => '0.01909800',
-        //         direction => 'TAKER',
-        //         createdTime => '1776174283564',
-        //         updatedTime => '1776174283564'
+        //         id: '738928502249620072',
+        //         symbol: 'DOGEUSDT',
+        //         baseCoin: 'DOGE',
+        //         quoteCoin: 'USDT',
+        //         orderId: '738928502174122600',
+        //         orderSide: 'SELL',
+        //         fillSize: '200.0',
+        //         fillValue: '19.098000',
+        //         fillFee: '0.01909800',
+        //         direction: 'TAKER',
+        //         createdTime: '1776174283564',
+        //         updatedTime: '1776174283564'
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'createdTime');
@@ -1434,49 +1441,49 @@ class weex extends \ccxt\async\weex {
     public function handle_orders(Client $client, mixed $message) {
         //
         //     {
-        //         "e" => "orders",
-        //         "E" => 1776184415058,
-        //         "v" => 153,
-        //         "msgEvent" => "OrderUpdate",
-        //         "d" => array(
+        //         "e": "orders",
+        //         "E": 1776184415058,
+        //         "v": 153,
+        //         "msgEvent": "OrderUpdate",
+        //         "d": [
         //             {
-        //                 "id" => "738970996765098600",
-        //                 "symbol" => "DOGEUSDT",
-        //                 "baseCoin" => "DOGE",
-        //                 "quoteCoin" => "USDT",
-        //                 "orderSide" => "SELL",
-        //                 "price" => "0",
-        //                 "size" => "200.0",
-        //                 "value" => "0",
-        //                 "clientOrderId" => "b-WEEX111125-bf78d975ca38422bb6ea65",
-        //                 "type" => "MARKET",
-        //                 "timeInForce" => "IOC",
-        //                 "reduceOnly" => false,
-        //                 "triggerPrice" => "0",
-        //                 "orderSource" => "API",
-        //                 "openTpslParentOrderId" => "0",
-        //                 "setOpenTp" => false,
-        //                 "setOpenSl" => false,
-        //                 "takerFeeRate" => "0.001",
-        //                 "makerFeeRate" => "0.001",
-        //                 "feeDiscount" => "1",
-        //                 "takerFeeDiscount" => "1",
-        //                 "makerFeeDiscount" => "1",
-        //                 "status" => "FILLED",
-        //                 "triggerTime" => "0",
-        //                 "triggerPriceTime" => "0",
-        //                 "triggerPriceValue" => "0",
-        //                 "cancelReason" => "UNKNOWN_ORDER_CANCEL_REASON",
-        //                 "latestFillPrice" => "0.09571",
-        //                 "maxFillPrice" => "0.09571",
-        //                 "minFillPrice" => "0.09571",
-        //                 "cumFillSize" => "200.0",
-        //                 "cumFillValue" => "19.142000",
-        //                 "cumFillFee" => "0.01914200",
-        //                 "createdTime" => "1776184415046",
-        //                 "updatedTime" => "1776184415058"
+        //                 "id": "738970996765098600",
+        //                 "symbol": "DOGEUSDT",
+        //                 "baseCoin": "DOGE",
+        //                 "quoteCoin": "USDT",
+        //                 "orderSide": "SELL",
+        //                 "price": "0",
+        //                 "size": "200.0",
+        //                 "value": "0",
+        //                 "clientOrderId": "b-WEEX111125-bf78d975ca38422bb6ea65",
+        //                 "type": "MARKET",
+        //                 "timeInForce": "IOC",
+        //                 "reduceOnly": false,
+        //                 "triggerPrice": "0",
+        //                 "orderSource": "API",
+        //                 "openTpslParentOrderId": "0",
+        //                 "setOpenTp": false,
+        //                 "setOpenSl": false,
+        //                 "takerFeeRate": "0.001",
+        //                 "makerFeeRate": "0.001",
+        //                 "feeDiscount": "1",
+        //                 "takerFeeDiscount": "1",
+        //                 "makerFeeDiscount": "1",
+        //                 "status": "FILLED",
+        //                 "triggerTime": "0",
+        //                 "triggerPriceTime": "0",
+        //                 "triggerPriceValue": "0",
+        //                 "cancelReason": "UNKNOWN_ORDER_CANCEL_REASON",
+        //                 "latestFillPrice": "0.09571",
+        //                 "maxFillPrice": "0.09571",
+        //                 "minFillPrice": "0.09571",
+        //                 "cumFillSize": "200.0",
+        //                 "cumFillValue": "19.142000",
+        //                 "cumFillFee": "0.01914200",
+        //                 "createdTime": "1776184415046",
+        //                 "updatedTime": "1776184415058"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'd', array());
@@ -1513,86 +1520,86 @@ class weex extends \ccxt\async\weex {
         //
         // spot
         //     {
-        //         "id" => "738970996765098600",
-        //         "symbol" => "DOGEUSDT",
-        //         "baseCoin" => "DOGE",
-        //         "quoteCoin" => "USDT",
-        //         "orderSide" => "SELL",
-        //         "price" => "0",
-        //         "size" => "200.0",
-        //         "value" => "0",
-        //         "clientOrderId" => "b-WEEX111125-bf78d975ca38422bb6ea65",
-        //         "type" => "MARKET",
-        //         "timeInForce" => "IOC",
-        //         "reduceOnly" => false,
-        //         "triggerPrice" => "0",
-        //         "orderSource" => "API",
-        //         "openTpslParentOrderId" => "0",
-        //         "setOpenTp" => false,
-        //         "setOpenSl" => false,
-        //         "takerFeeRate" => "0.001",
-        //         "makerFeeRate" => "0.001",
-        //         "feeDiscount" => "1",
-        //         "takerFeeDiscount" => "1",
-        //         "makerFeeDiscount" => "1",
-        //         "status" => "FILLED",
-        //         "triggerTime" => "0",
-        //         "triggerPriceTime" => "0",
-        //         "triggerPriceValue" => "0",
-        //         "cancelReason" => "UNKNOWN_ORDER_CANCEL_REASON",
-        //         "latestFillPrice" => "0.09571",
-        //         "maxFillPrice" => "0.09571",
-        //         "minFillPrice" => "0.09571",
-        //         "cumFillSize" => "200.0",
-        //         "cumFillValue" => "19.142000",
-        //         "cumFillFee" => "0.01914200",
-        //         "createdTime" => "1776184415046",
-        //         "updatedTime" => "1776184415058"
+        //         "id": "738970996765098600",
+        //         "symbol": "DOGEUSDT",
+        //         "baseCoin": "DOGE",
+        //         "quoteCoin": "USDT",
+        //         "orderSide": "SELL",
+        //         "price": "0",
+        //         "size": "200.0",
+        //         "value": "0",
+        //         "clientOrderId": "b-WEEX111125-bf78d975ca38422bb6ea65",
+        //         "type": "MARKET",
+        //         "timeInForce": "IOC",
+        //         "reduceOnly": false,
+        //         "triggerPrice": "0",
+        //         "orderSource": "API",
+        //         "openTpslParentOrderId": "0",
+        //         "setOpenTp": false,
+        //         "setOpenSl": false,
+        //         "takerFeeRate": "0.001",
+        //         "makerFeeRate": "0.001",
+        //         "feeDiscount": "1",
+        //         "takerFeeDiscount": "1",
+        //         "makerFeeDiscount": "1",
+        //         "status": "FILLED",
+        //         "triggerTime": "0",
+        //         "triggerPriceTime": "0",
+        //         "triggerPriceValue": "0",
+        //         "cancelReason": "UNKNOWN_ORDER_CANCEL_REASON",
+        //         "latestFillPrice": "0.09571",
+        //         "maxFillPrice": "0.09571",
+        //         "minFillPrice": "0.09571",
+        //         "cumFillSize": "200.0",
+        //         "cumFillValue": "19.142000",
+        //         "cumFillFee": "0.01914200",
+        //         "createdTime": "1776184415046",
+        //         "updatedTime": "1776184415058"
         //     }
         //
         // swap
         //     {
-        //         "id" => "617414920861909658",
-        //         "coin" => "USDT",
-        //         "symbol" => "BTCUSDT",
-        //         "marginMode" => "CROSSED",
-        //         "separatedMode" => "COMBINED",
-        //         "separatedOpenOrderId" => "0",
-        //         "positionSide" => "LONG",
-        //         "orderSide" => "BUY",
-        //         "price" => "0.0",
-        //         "size" => "0.10000",
-        //         "clientOrderId" => "1747203186927FPIZRP",
-        //         "type" => "MARKET",
-        //         "timeInForce" => "IOC",
-        //         "reduceOnly" => false,
-        //         "triggerPrice" => "0",
-        //         "triggerPriceType" => "CONTRACT_PRICE",
-        //         "orderSource" => "WEB",
-        //         "openTpslParentOrderId" => "0",
-        //         "positionTpsl" => false,
-        //         "setOpenTp" => false,
-        //         "setOpenSl" => false,
-        //         "leverage" => "20",
-        //         "takerFeeRate" => "0.0006",
-        //         "makerFeeRate" => "0.0002",
-        //         "feeDiscount" => "1",
-        //         "liquidateFeeRate" => "0.01",
-        //         "status" => "PENDING",
-        //         "triggerTime" => "0",
-        //         "triggerPriceTime" => "0",
-        //         "triggerPriceValue" => "0",
-        //         "cancelReason" => "UNKNOWN_ORDER_CANCEL_REASON",
-        //         "latestFillPrice" => "0",
-        //         "maxFillPrice" => "0",
-        //         "minFillPrice" => "0",
-        //         "cumFillSize" => "0",
-        //         "cumFillValue" => "0",
-        //         "cumFillFee" => "0",
-        //         "cumLiquidateFee" => "0",
-        //         "cumRealizePnl" => "0",
-        //         "createdTime" => "1747203188148",
-        //         "updatedTime" => "1747203188148"
+        //         "id": "617414920861909658",
+        //         "coin": "USDT",
+        //         "symbol": "BTCUSDT",
+        //         "marginMode": "CROSSED",
+        //         "separatedMode": "COMBINED",
+        //         "separatedOpenOrderId": "0",
+        //         "positionSide": "LONG",
+        //         "orderSide": "BUY",
+        //         "price": "0.0",
+        //         "size": "0.10000",
+        //         "clientOrderId": "1747203186927FPIZRP",
+        //         "type": "MARKET",
+        //         "timeInForce": "IOC",
+        //         "reduceOnly": false,
+        //         "triggerPrice": "0",
+        //         "triggerPriceType": "CONTRACT_PRICE",
+        //         "orderSource": "WEB",
+        //         "openTpslParentOrderId": "0",
+        //         "positionTpsl": false,
+        //         "setOpenTp": false,
+        //         "setOpenSl": false,
+        //         "leverage": "20",
+        //         "takerFeeRate": "0.0006",
+        //         "makerFeeRate": "0.0002",
+        //         "feeDiscount": "1",
+        //         "liquidateFeeRate": "0.01",
+        //         "status": "PENDING",
+        //         "triggerTime": "0",
+        //         "triggerPriceTime": "0",
+        //         "triggerPriceValue": "0",
+        //         "cancelReason": "UNKNOWN_ORDER_CANCEL_REASON",
+        //         "latestFillPrice": "0",
+        //         "maxFillPrice": "0",
+        //         "minFillPrice": "0",
+        //         "cumFillSize": "0",
+        //         "cumFillValue": "0",
+        //         "cumFillFee": "0",
+        //         "cumLiquidateFee": "0",
+        //         "cumRealizePnl": "0",
+        //         "createdTime": "1747203188148",
+        //         "updatedTime": "1747203188148"
         //     }
         //
         $timestamp = $this->safe_integer($order, 'createdTime');
@@ -1724,7 +1731,7 @@ class weex extends \ccxt\async\weex {
         );
         $response = Async\await($this->fetch_balance($params));
         $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
-        // don't remove the $future from the .futures cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve();
@@ -1736,58 +1743,58 @@ class weex extends \ccxt\async\weex {
         //
         // spot
         //     {
-        //         "e" => "account",
-        //         "E" => 1776187844633,
-        //         "v" => 178,
-        //         "msgEvent" => "DepositUpdate",
-        //         "d" => array(
+        //         "e": "account",
+        //         "E": 1776187844633,
+        //         "v": 178,
+        //         "msgEvent": "DepositUpdate",
+        //         "d": [
         //             {
-        //                 "coin" => "USDT",
-        //                 "equity" => "47.98428060",
-        //                 "available" => "47.98428060",
-        //                 "frozen" => "0"
+        //                 "coin": "USDT",
+        //                 "equity": "47.98428060",
+        //                 "available": "47.98428060",
+        //                 "frozen": "0"
         //             }
-        //         )
+        //         ]
         //     }
         //
         // contract
         //     {
-        //         "e" => "account",
-        //         "E" => 1776189629849,
-        //         "v" => 281,
-        //         "msgEvent" => "DepositUpdate",
-        //         "d" => array(
+        //         "e": "account",
+        //         "E": 1776189629849,
+        //         "v": 281,
+        //         "msgEvent": "DepositUpdate",
+        //         "d": [
         //             {
-        //                 "coin" => "USDT",
-        //                 "marginMode" => "CROSSED",
-        //                 "crossSymbol" => "0",
-        //                 "isolatedPositionId" => "0",
-        //                 "amount" => "0.00000000",
-        //                 "pendingDepositAmount" => "20.00000000",
-        //                 "pendingWithdrawAmount" => "0.00000000",
-        //                 "pendingTransferInAmount" => "0",
-        //                 "pendingTransferOutAmount" => "0",
-        //                 "liquidating" => false,
-        //                 "legacyAmount" => "0.00000000",
-        //                 "cumDepositAmount" => "167.50000925",
-        //                 "cumWithdrawAmount" => "166.94609514",
-        //                 "cumTransferInAmount" => "0",
-        //                 "cumTransferOutAmount" => "0",
-        //                 "cumMarginMoveInAmount" => "10.86162763",
-        //                 "cumMarginMoveOutAmount" => "10.83205378",
-        //                 "cumPositionOpenLongAmount" => "305.59400",
-        //                 "cumPositionOpenShortAmount" => "238.95700",
-        //                 "cumPositionCloseLongAmount" => "305.86600000",
-        //                 "cumPositionCloseShortAmount" => "238.94700000",
-        //                 "cumPositionFillFeeAmount" => "0.00761040",
-        //                 "cumPositionLiquidateFeeAmount" => "0",
-        //                 "cumPositionFundingAmount" => "0.00049824",
-        //                 "cumOrderFillFeeIncomeAmount" => "0",
-        //                 "cumOrderLiquidateFeeIncomeAmount" => "0",
-        //                 "createdTime" => "1775605824300",
-        //                 "updatedTime" => "1776189629849"
+        //                 "coin": "USDT",
+        //                 "marginMode": "CROSSED",
+        //                 "crossSymbol": "0",
+        //                 "isolatedPositionId": "0",
+        //                 "amount": "0.00000000",
+        //                 "pendingDepositAmount": "20.00000000",
+        //                 "pendingWithdrawAmount": "0.00000000",
+        //                 "pendingTransferInAmount": "0",
+        //                 "pendingTransferOutAmount": "0",
+        //                 "liquidating": false,
+        //                 "legacyAmount": "0.00000000",
+        //                 "cumDepositAmount": "167.50000925",
+        //                 "cumWithdrawAmount": "166.94609514",
+        //                 "cumTransferInAmount": "0",
+        //                 "cumTransferOutAmount": "0",
+        //                 "cumMarginMoveInAmount": "10.86162763",
+        //                 "cumMarginMoveOutAmount": "10.83205378",
+        //                 "cumPositionOpenLongAmount": "305.59400",
+        //                 "cumPositionOpenShortAmount": "238.95700",
+        //                 "cumPositionCloseLongAmount": "305.86600000",
+        //                 "cumPositionCloseShortAmount": "238.94700000",
+        //                 "cumPositionFillFeeAmount": "0.00761040",
+        //                 "cumPositionLiquidateFeeAmount": "0",
+        //                 "cumPositionFundingAmount": "0.00049824",
+        //                 "cumOrderFillFeeIncomeAmount": "0",
+        //                 "cumOrderLiquidateFeeIncomeAmount": "0",
+        //                 "createdTime": "1775605824300",
+        //                 "updatedTime": "1776189629849"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $url = $client->url;
@@ -1889,7 +1896,7 @@ class weex extends \ccxt\async\weex {
             $position = $positions[$i];
             $cache->append($position);
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         $future = $client->futures[$messageHash];
         $future->resolve($cache);
         $client->resolve($cache, 'positions');
@@ -1928,40 +1935,40 @@ class weex extends \ccxt\async\weex {
     public function handle_positions(mixed $client, mixed $message) {
         //
         //     {
-        //         "e" => "positions",
-        //         "E" => 1776192398399,
-        //         "v" => 319,
-        //         "msgEvent" => "OrderUpdate",
-        //         "d" => array(
+        //         "e": "positions",
+        //         "E": 1776192398399,
+        //         "v": 319,
+        //         "msgEvent": "OrderUpdate",
+        //         "d": [
         //             {
-        //                 "id" => "739004481374519656",
-        //                 "coin" => "USDT",
-        //                 "symbol" => "DOGEUSDT",
-        //                 "side" => "LONG",
-        //                 "marginMode" => "CROSSED",
-        //                 "separatedMode" => "COMBINED",
-        //                 "separatedOpenOrderId" => "0",
-        //                 "leverage" => "11",
-        //                 "size" => "100",
-        //                 "openValue" => "9.31100",
-        //                 "openFee" => "0.00744880",
-        //                 "fundingFee" => "0",
-        //                 "isolatedMargin" => "0",
-        //                 "autoAppendIsolatedMargin" => false,
-        //                 "cumOpenSize" => "100",
-        //                 "cumOpenValue" => "9.31100",
-        //                 "cumOpenFee" => "0.00744880",
-        //                 "cumCloseSize" => "0",
-        //                 "cumCloseValue" => "0",
-        //                 "cumCloseFee" => "0",
-        //                 "cumFundingFee" => "0",
-        //                 "cumLiquidateFee" => "0",
-        //                 "createdMatchSequenceId" => "5792711540",
-        //                 "updatedMatchSequenceId" => "5792711540",
-        //                 "createdTime" => "1776192398399",
-        //                 "updatedTime" => "1776192398399"
+        //                 "id": "739004481374519656",
+        //                 "coin": "USDT",
+        //                 "symbol": "DOGEUSDT",
+        //                 "side": "LONG",
+        //                 "marginMode": "CROSSED",
+        //                 "separatedMode": "COMBINED",
+        //                 "separatedOpenOrderId": "0",
+        //                 "leverage": "11",
+        //                 "size": "100",
+        //                 "openValue": "9.31100",
+        //                 "openFee": "0.00744880",
+        //                 "fundingFee": "0",
+        //                 "isolatedMargin": "0",
+        //                 "autoAppendIsolatedMargin": false,
+        //                 "cumOpenSize": "100",
+        //                 "cumOpenValue": "9.31100",
+        //                 "cumOpenFee": "0.00744880",
+        //                 "cumCloseSize": "0",
+        //                 "cumCloseValue": "0",
+        //                 "cumCloseFee": "0",
+        //                 "cumFundingFee": "0",
+        //                 "cumLiquidateFee": "0",
+        //                 "createdMatchSequenceId": "5792711540",
+        //                 "updatedMatchSequenceId": "5792711540",
+        //                 "createdTime": "1776192398399",
+        //                 "updatedTime": "1776192398399"
         //             }
-        //         )
+        //         ]
         //     }
         //
         if ($this->positions === null) {
@@ -1991,7 +1998,7 @@ class weex extends \ccxt\async\weex {
     }
 
     public function parse_ws_position(mixed $position, ?array $market = null) {
-        // same api
+        // same as REST api
         return $this->parse_position($position, $market);
     }
 
@@ -2012,9 +2019,9 @@ class weex extends \ccxt\async\weex {
 
     private function do_pong(Client $client, mixed $message) {
         //
-        //     array( "event" => "ping", "time" => "1776078750000" ) - public
+        //     { "event": "ping", "time": "1776078750000" } - public
         //
-        //     array( "type" => "ping", "time" => "1776172740000" ) - private
+        //     { "type": "ping", "time": "1776172740000" } - private
         //
         $response = array(
             'id' => $this->request_id(),
@@ -2029,7 +2036,7 @@ class weex extends \ccxt\async\weex {
 
     public function handle_subscription_status(Client $client, mixed $message) {
         //
-        //     array( "result" => true, "id" => 2 )
+        //     { "result": true, "id": 2 }
         //
         $id = $this->safe_string($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
@@ -2049,12 +2056,12 @@ class weex extends \ccxt\async\weex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         //     {
-        //         "result" => false,
-        //         "id" => 1,
-        //         "msg" => "INVALID_ARGUMENT => invalid symbol : ASDFS_SPBL"
+        //         "result": false,
+        //         "id": 1,
+        //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
         $result = $this->safe_bool($message, 'result', true);
@@ -2075,14 +2082,14 @@ class weex extends \ccxt\async\weex {
 
     public function handle_message(Client $client, mixed $message) {
         //
-        //     array( "id" => "5", "method" => "PONG" )
+        //     { "id": "5", "method": "PONG" }
         //
-        //     array( "result" => true, "id" => 2 )
+        //     { "result": true, "id": 2 }
         //
         //     {
-        //         "result" => false,
-        //         "id" => 1,
-        //         "msg" => "INVALID_ARGUMENT => invalid symbol : ASDFS_SPBL"
+        //         "result": false,
+        //         "id": 1,
+        //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
         if ($this->handle_error_message($client, $message)) {

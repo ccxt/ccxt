@@ -411,7 +411,7 @@ class backpack(ccxt.async_support.backpack):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
@@ -425,7 +425,7 @@ class backpack(ccxt.async_support.backpack):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
@@ -439,7 +439,7 @@ class backpack(ccxt.async_support.backpack):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -470,7 +470,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -495,7 +495,7 @@ class backpack(ccxt.async_support.backpack):
         #         data: {
         #             E: '1754519557526056',
         #             T: '2025-08-07T00:00:00',
-        #             X: False,
+        #             X: false,
         #             c: '3680.520000000',
         #             e: 'kline',
         #             h: '3681.370000000',
@@ -533,7 +533,7 @@ class backpack(ccxt.async_support.backpack):
         #     {
         #         E: '1754519557526056',
         #         T: '2025-08-07T00:00:00',
-        #         X: False,
+        #         X: false,
         #         c: '3680.520000000',
         #         e: 'kline',
         #         h: '3681.370000000',
@@ -647,7 +647,7 @@ class backpack(ccxt.async_support.backpack):
         #             a: '5121860761',
         #             b: '5121861755',
         #             e: 'trade',
-        #             m: False,
+        #             m: false,
         #             p: '3870.25',
         #             q: '0.0008',
         #             s: 'ETH_USDC_PERP',
@@ -679,7 +679,7 @@ class backpack(ccxt.async_support.backpack):
         #         a: '5121860761',
         #         b: '5121861755',
         #         e: 'trade',
-        #         m: False,
+        #         m: false,
         #         p: '3870.25',
         #         q: '0.0008',
         #         s: 'ETH_USDC_PERP',
@@ -946,7 +946,7 @@ class backpack(ccxt.async_support.backpack):
         #             i: '5406825793',
         #             o: 'MARKET',
         #             q: '0.0010',
-        #             r: False,
+        #             r: false,
         #             s: 'ETH_USDC',
         #             t: null,
         #             z: '0'
@@ -987,11 +987,11 @@ class backpack(ccxt.async_support.backpack):
         #         f: 'GTC',
         #         i: '5406825793',
         #         l: '0.0010',
-        #         m: False,
+        #         m: false,
         #         n: '0.000001',
         #         o: 'MARKET',
         #         q: '0.0010',
-        #         r: False,
+        #         r: false,
         #         s: 'ETH_USDC',
         #         t: 2888471,
         #         z: '0.0010'

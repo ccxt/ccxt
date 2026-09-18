@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -116,8 +116,8 @@ class woo(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
@@ -241,7 +241,7 @@ class woo(Exchange, ImplicitAPI):
                             'order': {'cost': 1},
                             'client/order': {'cost': 1},
                             'orders': {'cost': 1},
-                            'asset/withdraw': {'cost': 120},  # cancel a pending withdrawal, undocumented but alive 2026-08
+                            'asset/withdraw': {'cost': 120},  # cancel a pending withdrawal, undocumented but alive as of 2026-08
                         },
                     },
                 },
@@ -313,6 +313,8 @@ class woo(Exchange, ImplicitAPI):
                             'asset/wallet/withdraw': {'cost': 60},  # 10/60s
                             'spotMargin/leverage': {'cost': 120},  # 5/60s
                             'spotMargin/interestRepay': {'cost': 60},  # 10/60s
+                            'futures/defaultMarginMode/reset': {'cost': 60},
+                            'isolatedMargin/margin': {'cost': 60},
                             'algo/order': {'cost': 5},
                             'convert/rft': {'cost': 60},
                         },
@@ -321,6 +323,8 @@ class woo(Exchange, ImplicitAPI):
                             'trade/algoOrder': {'cost': 2},  # 5/1s
                             'futures/leverage': {'cost': 60},  # 10/60s
                             'futures/positionMode': {'cost': 120},  # 5/60s
+                            'futures/defaultMarginMode': {'cost': 60},
+                            'futures/defaultMarginMode/{symbol}': {'cost': 60},
                             'order/{oid}': {'cost': 2},
                             'order/client/{client_order_id}': {'cost': 2},
                             'algo/order/{oid}': {'cost': 2},
@@ -336,6 +340,7 @@ class woo(Exchange, ImplicitAPI):
                             'algo/orders/pending': {'cost': 1},
                             'algo/orders/pending/{symbol}': {'cost': 1},
                             'orders/pending': {'cost': 1},
+                            'asset/wallet/withdraw/{withdrawId}': {'cost': 60},
                         },
                     },
                 },
@@ -478,22 +483,22 @@ class woo(Exchange, ImplicitAPI):
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': OperationFailed,  # {"code": -1000,  "message": "An unknown error occurred while processing the request"} or  {"success":false,"code":"-1000","message":"An internal error has occurred. We are unable to process your request. Please try again later."}
-                    '-1001': AuthenticationError,  # {"code": -1001,  "message": "The api key or secret is in wrong format"}
-                    '-1002': AuthenticationError,  # {"code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked."}
-                    '-1003': RateLimitExceeded,  # {"code": -1003,  "message": "Rate limit exceed."}
-                    '-1004': BadRequest,  # {"code": -1004,  "message": "An unknown parameter was sent."}
-                    '-1005': BadRequest,  # {"code": -1005,  "message": "Some parameters are in wrong format for api."}
-                    '-1006': BadRequest,  # {"code": -1006,  "message": "The data is not found in server."}
-                    '-1007': BadRequest,  # {"code": -1007,  "message": "The data is already exists or your request is duplicated."}
-                    '-1008': InvalidOrder,  # {"code": -1008,  "message": "The quantity of settlement is too high than you can request."}
-                    '-1009': BadRequest,  # {"code": -1009,  "message": "Can not request withdrawal settlement, you need to deposit other arrears first."}
-                    '-1012': BadRequest,  # {"code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds."}
-                    '-1101': InvalidOrder,  # {"code": -1101,  "message": "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure."}
-                    '-1102': InvalidOrder,  # {"code": -1102,  "message": "The order value(price * size) is too small."}
-                    '-1103': InvalidOrder,  # {"code": -1103,  "message": "The order price is not following the tick size rule for the symbol."}
-                    '-1104': InvalidOrder,  # {"code": -1104,  "message": "The order quantity is not following the step size rule for the symbol."}
-                    '-1105': InvalidOrder,  # {"code": -1105,  "message": "Price is X% too high or X% too low from the mid price."}
+                    '-1000': OperationFailed,  # { "code": -1000,  "message": "An unknown error occurred while processing the request" } ||  {"success":false,"code":"-1000","message":"An internal error has occurred. We are unable to process your request. Please try again later."}
+                    '-1001': AuthenticationError,  # { "code": -1001,  "message": "The api key or secret is in wrong format" }
+                    '-1002': AuthenticationError,  # { "code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked." }
+                    '-1003': RateLimitExceeded,  # { "code": -1003,  "message": "Rate limit exceed." }
+                    '-1004': BadRequest,  # { "code": -1004,  "message": "An unknown parameter was sent." }
+                    '-1005': BadRequest,  # { "code": -1005,  "message": "Some parameters are in wrong format for api." }
+                    '-1006': BadRequest,  # { "code": -1006,  "message": "The data is not found in server." }
+                    '-1007': BadRequest,  # { "code": -1007,  "message": "The data is already exists or your request is duplicated." }
+                    '-1008': InvalidOrder,  # { "code": -1008,  "message": "The quantity of settlement is too high than you can request." }
+                    '-1009': BadRequest,  # { "code": -1009,  "message": "Can not request withdrawal settlement, you need to deposit other arrears first." }
+                    '-1012': BadRequest,  # { "code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
+                    '-1101': InvalidOrder,  # { "code": -1101,  "message": "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure." }
+                    '-1102': InvalidOrder,  # { "code": -1102,  "message": "The order value (price * size) is too small." }
+                    '-1103': InvalidOrder,  # { "code": -1103,  "message": "The order price is not following the tick size rule for the symbol." }
+                    '-1104': InvalidOrder,  # { "code": -1104,  "message": "The order quantity is not following the step size rule for the symbol." }
+                    '-1105': InvalidOrder,  # { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                     '317136': InvalidOrder,  # Edit tpsl quantity is not allowed for quantity bracket
                     '317137': InvalidOrder,  # Edit quantity should edit both legs
                     '317138': InvalidOrder,  # Edit quantity should be same for both legs
@@ -503,9 +508,9 @@ class woo(Exchange, ImplicitAPI):
                     '317142': InvalidOrder,  # The algo trigger type of quantity TP/SL should not be CLOSE_POSITION
                     '317143': InvalidOrder,  # The side of TP/SL legs should be the same
                     '317144': InvalidOrder,  # IndexPrice is not supported for non spot symbol `${symbol}`
-                    '317145': InvalidOrder,  # same but different ‘code’
-                    '317146': InvalidOrder,  # same but different ‘code’
-                    '317147': InvalidOrder,  # same but different ‘code’
+                    '317145': InvalidOrder,  # same as INVALID_PRICE_QUOTE_MIN but different ‘code’
+                    '317146': InvalidOrder,  # same as INVALID_PRICE_QUOTE_MAX but different ‘code’
+                    '317147': InvalidOrder,  # same as INVALID_PRICE_TICKER_SIZE but different ‘code’
                     '317148': BadRequest,  # symbol can’t be empty.
                     '317149': OrderNotFound,  # same with TRADE_NOT_FOUND with different ErrorCodes
                     '317150': InvalidOrder,  # trigger price must be greater than `${price}`
@@ -536,7 +541,7 @@ class woo(Exchange, ImplicitAPI):
                     '317176': InvalidOrder,  # The trigger after should from 0 to `${maxTriggerAfter}`
                     '317177': InvalidOrder,  # Order has terminated
                     '317178': BadRequest,  # The receive window is invalid.
-                    '317179': BadRequest,  # Request has failed receive window: `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317179': BadRequest,  # Request has failed as the receive window: `${recv_window}` millisecond is exceeded from `${api_timestamp}`
                     '317184': OrderNotFound,  # The order cannot be found, or it is already completed.
                     '317206': InvalidOrder,  # Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
                     '317207': InsufficientFunds,  # Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
@@ -548,12 +553,12 @@ class woo(Exchange, ImplicitAPI):
                     '302101': BadSymbol,  # symbol is not exists
                     '302102': InsufficientFunds,  # Your margin is insufficient! Please liquidate assets.
                     '302103': InsufficientFunds,  # Your margin will be insufficient after withdrawal.
-                    '302104': InsufficientFunds,  # Your margin will be insufficient after self action.
+                    '302104': InsufficientFunds,  # Your margin will be insufficient after this action.
                     '302109': OperationFailed,  # create order engine error
                     '302110': ExchangeError,  # application is lock now
                     '302111': InvalidOrder,  # Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
                     '302112': InvalidOrder,  # Remaining order quantity is smaller than transaction quantity
-                    '302113': InvalidOrder,  # Order side is not same side
+                    '302113': InvalidOrder,  # Order side is not same as transaction side
                     '302114': InvalidOrder,  # Order price too small
                     '302115': InvalidOrder,  # Order quantity too small
                     '302117': DuplicateOrderId,  # The client_order_id is repeated.
@@ -582,7 +587,7 @@ class woo(Exchange, ImplicitAPI):
                     '302142': InvalidOrder,  # The order quantity must bigger than the executed quantity.
                     '302143': ExchangeError,  # Application not found.
                     '302144': InvalidOrder,  # There isn’t a positive amount to repay the interest balance.
-                    '302145': InsufficientFunds,  # Your margin will be insufficient after disabling self token.
+                    '302145': InsufficientFunds,  # Your margin will be insufficient after disabling this token as collateral.
                     '302147': InvalidOrder,  # Amount is required for buy market orders when margin disabled.
                     '302148': InvalidOrder,  # Amount is required for ASK buy order when margin disabled.
                     '302149': InvalidOrder,  # Amount is required for BID buy order when margin disabled.
@@ -595,7 +600,7 @@ class woo(Exchange, ImplicitAPI):
                     '302157': InsufficientFunds,  # Insufficient `${token}`. Please enable margin trading in Margin & Futures tab for spot leverage trading.
                     '302159': RequestTimeout,  # Your request has timed out. Please try again later.
                     '302160': InvalidOrder,  # Reduce only orders are only supported under spot pairs quoted by your account currency `${AccountCurrency}`.
-                    '302162': InvalidOrder,  # You are not able to place self order under Reduce Only trading mode.
+                    '302162': InvalidOrder,  # You are not able to place this order under Reduce Only trading mode.
                     '302163': InvalidOrder,  # Reduce only orders are not allowed.
                     '302164': InvalidOrder,  # The order value should be greater or equal to `${minNotional}`.
                     '302165': ExchangeError,  # The token has no price.
@@ -607,8 +612,8 @@ class woo(Exchange, ImplicitAPI):
                     '302171': InvalidOrder,  # Buy or sell orders by amount are not supported under Reduce Only trading mode.
                     '302172': InvalidOrder,  # `${token}` max position size of `${maxPosition}` is exceeded.
                     '302177': InvalidOrder,  # Pending new orders cannot be edited.
-                    '302178': InvalidOrder,  # Order is rejected have an existing market close order.
-                    '302185': InvalidOrder,  # Your order request cannot be processed at self moment because the position mode is currently being switched.
+                    '302178': InvalidOrder,  # Order is rejected as you have an existing market close order.
+                    '302185': InvalidOrder,  # Your order request cannot be processed at this moment because the position mode is currently being switched.
                     '302186': InvalidOrder,  # The position side you’ve used is not compatible with your current position mode.
                     '302188': InvalidOrder,  # exceed max open notional
                     '302189': InvalidOrder,  # Changing isolated position leverage is not allowed when there is a pending order.
@@ -641,7 +646,7 @@ class woo(Exchange, ImplicitAPI):
                     '311999': OperationFailed,  # There is a system error.
                 },
                 'broad': {
-                    'Can not place': ExchangeError,  # {"code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds."}
+                    'Can not place': ExchangeError,  # { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
                     'maintenance': OnMaintenance,  # {"code":"-1011","message":"The system is under maintenance.","success":false}
                     'symbol must not be blank': BadRequest,  # when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': BadRequest,  # when getting incorrect token's deposit address [-1005]
@@ -664,7 +669,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly.",
@@ -701,7 +706,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly.",
@@ -726,7 +731,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetInstruments(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -748,7 +753,7 @@ class woo(Exchange, ImplicitAPI):
         #                     "askFloorRatio": "0.9",
         #                     "orderMode": "NORMAL",
         #                     "impactNotional": null,
-        #                     "isAllowedRpi": False,
+        #                     "isAllowedRpi": false,
         #                     "tickGranularity": null
         #                 }
         #             ]
@@ -867,7 +872,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetMarketTrades(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -1003,7 +1008,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetTradeTradingFee(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "symbol": "SPOT_BTC_USDT",
         #             "takerFee": "10",
@@ -1029,12 +1034,12 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetAccountInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
         #             "account": "carlos_jose_lima@yahoo.com",
         #             "alias": "carlos_jose_lima@yahoo.com",
-        #             "otpauth": True,
+        #             "otpauth": true,
         #             "accountMode": "FUTURES",
         #             "positionMode": "ONE_WAY",
         #             "leverage": 0,
@@ -1096,40 +1101,40 @@ class woo(Exchange, ImplicitAPI):
         #             "fullname": "Tether",
         #             "network": "ETH",
         #             "decimals": "6",
-        #             "delisted": False,
+        #             "delisted": false,
         #             "balance_token": "USDT",
         #             "created_time": "1710123398",
         #             "updated_time": "1746528481",
-        #             "can_collateral": True,
-        #             "can_short": True
+        #             "can_collateral": true,
+        #             "can_short": true
         #         },
         #         {
         #             "token": "BSC_USDT",
         #             "fullname": "Tether",
         #             "network": "BSC",
         #             "decimals": "18",
-        #             "delisted": False,
+        #             "delisted": false,
         #             "balance_token": "USDT",
         #             "created_time": "1710123395",
         #             "updated_time": "1746528601",
-        #             "can_collateral": True,
-        #             "can_short": True
+        #             "can_collateral": true,
+        #             "can_short": true
         #         },
         #         {
         #             "token": "ALGO",
         #             "fullname": "Algorand",
         #             "network": "ALGO",
         #             "decimals": "6",
-        #             "delisted": False,
+        #             "delisted": false,
         #             "balance_token": "ALGO",
         #             "created_time": "1710123394",
         #             "updated_time": "1723087518",
-        #             "can_collateral": True,
-        #             "can_short": True
+        #             "can_collateral": true,
+        #             "can_short": true
         #         },
         #         ...
         #     ],
-        #     "success": True
+        #     "success": true
         # }
         #
         # only make one request for currencies...
@@ -1141,7 +1146,7 @@ class woo(Exchange, ImplicitAPI):
         #             "protocol": "ERC20",
         #             "network": "ETH",
         #             "token": "USDT",
-        #             "name": "Ethereum(ERC20)",
+        #             "name": "Ethereum (ERC20)",
         #             "minimum_withdrawal": "10.00000000",
         #             "withdrawal_fee": "2.00000000",
         #             "allow_deposit": "1",
@@ -1151,7 +1156,7 @@ class woo(Exchange, ImplicitAPI):
         #             "protocol": "TRC20",
         #             "network": "TRX",
         #             "token": "USDT",
-        #             "name": "Tron(TRC20)",
+        #             "name": "Tron (TRC20)",
         #             "minimum_withdrawal": "10.00000000",
         #             "withdrawal_fee": "4.50000000",
         #             "allow_deposit": "1",
@@ -1159,7 +1164,7 @@ class woo(Exchange, ImplicitAPI):
         #         },
         #         ...
         #     ],
-        #     "success": True
+        #     "success": true
         # }
         #
         tokenResponse, tokenNetworkResponse = [tokenResponsePromise, tokenNetworkResponsePromise]
@@ -1197,7 +1202,7 @@ class woo(Exchange, ImplicitAPI):
             if networkCode is not None:
                 resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'currencyNetworkId': specialNetworkId,  # exchange uses special currency-ids(coin + network junction)
+                    'currencyNetworkId': specialNetworkId,  # exchange uses special currency-ids (coin + network junction)
                     'network': networkCode,
                     'active': None,
                     'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
@@ -1344,7 +1349,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.algoType]: 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param str [params.trailingAmount]: the quote amount to trail away from the current market price
         :param str [params.trailingPercent]: the percent to trail away from the current market price
         :param str [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
@@ -1468,7 +1473,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivatePostTradeAlgoOrder(self.extend(request, params))
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "data": {
             #       "rows": [
             #         {
@@ -1486,7 +1491,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivatePostTradeOrder(self.extend(request, params))
             #
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data": {
             #             "orderId": 60667653330,
             #             "clientOrderId": 0,
@@ -1539,8 +1544,8 @@ class woo(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = {
-            # 'quantity': self.amount_to_precision(symbol, amount),
-            # 'price': self.price_to_precision(symbol, price),
+            # 'quantity': this.amountToPrecision (symbol, amount),
+            # 'price': this.priceToPrecision (symbol, price),
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1584,7 +1589,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivatePutTradeOrder(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": "EDIT_SENT"
         #         },
@@ -1642,7 +1647,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivateDeleteTradeOrder(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": "CANCEL_SENT"
         #         },
@@ -1685,7 +1690,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivateDeleteTradeAllOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": "CANCEL_ALL_SENT"
         #         },
@@ -1713,7 +1718,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivatePostTradeCancelAllAfter(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 123,
         #     "data": {
         #         "expectedTriggerTime": 123
@@ -1753,7 +1758,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivateGetTradeAlgoOrder(self.extend(request, params))
             #
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data": {
             #             "algoOrderId": 10399260,
             #             "clientAlgoOrderId": 0,
@@ -1764,7 +1769,7 @@ class woo(Exchange, ImplicitAPI):
             #             "algoType": "TAKE_PROFIT",
             #             "side": "BUY",
             #             "quantity": 0.1,
-            #             "isTriggered": False,
+            #             "isTriggered": false,
             #             "triggerPrice": 65,
             #             "triggerStatus": "USELESS",
             #             "type": "LIMIT",
@@ -1780,7 +1785,7 @@ class woo(Exchange, ImplicitAPI):
             #             "feeAsset": "",
             #             "totalRebate": 0,
             #             "rebateAsset": "",
-            #             "reduceOnly": False,
+            #             "reduceOnly": false,
             #             "createdTime": "1752049747.732",
             #             "updatedTime": "1752049747.732",
             #             "positionSide": "BOTH"
@@ -1796,7 +1801,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivateGetTradeOrder(self.extend(request, params))
             #
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data": {
             #             "orderId": 60780315704,
             #             "clientOrderId": 0,
@@ -1815,7 +1820,7 @@ class woo(Exchange, ImplicitAPI):
             #             "feeAsset": "LTC",
             #             "totalRebate": 0,
             #             "rebateAsset": "USDT",
-            #             "reduceOnly": False,
+            #             "reduceOnly": false,
             #             "createdTime": "1752049062.496",
             #             "realizedPnl": null,
             #             "positionSide": "BOTH",
@@ -1870,7 +1875,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivateGetTradeAlgoOrders(self.extend(request, params))
             #
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data": {
             #             "rows": [
             #                 {
@@ -1883,7 +1888,7 @@ class woo(Exchange, ImplicitAPI):
             #                     "algoType": "TAKE_PROFIT",
             #                     "side": "BUY",
             #                     "quantity": 0.1,
-            #                     "isTriggered": False,
+            #                     "isTriggered": false,
             #                     "triggerPrice": 65,
             #                     "triggerStatus": "USELESS",
             #                     "type": "LIMIT",
@@ -1899,7 +1904,7 @@ class woo(Exchange, ImplicitAPI):
             #                     "feeAsset": "",
             #                     "totalRebate": 0,
             #                     "rebateAsset": "",
-            #                     "reduceOnly": False,
+            #                     "reduceOnly": false,
             #                     "createdTime": "1752049747.730",
             #                     "updatedTime": "1752049747.730",
             #                     "positionSide": "BOTH"
@@ -1918,7 +1923,7 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivateGetTradeOrders(self.extend(request, params))
             #
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data": {
             #             "rows": [
             #                 {
@@ -1939,7 +1944,7 @@ class woo(Exchange, ImplicitAPI):
             #                     "feeAsset": "LTC",
             #                     "totalRebate": 0,
             #                     "rebateAsset": "USDT",
-            #                     "reduceOnly": False,
+            #                     "reduceOnly": false,
             #                     "createdTime": "1752049062.496",
             #                     "realizedPnl": null,
             #                     "positionSide": "BOTH",
@@ -2055,7 +2060,7 @@ class woo(Exchange, ImplicitAPI):
         #         "feeAsset": "LTC",
         #         "totalRebate": 0,
         #         "rebateAsset": "USDT",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "createdTime": "1752049062.496",
         #         "realizedPnl": null,
         #         "positionSide": "BOTH",
@@ -2073,7 +2078,7 @@ class woo(Exchange, ImplicitAPI):
         #         "algoType": "TAKE_PROFIT",
         #         "side": "BUY",
         #         "quantity": 0.1,
-        #         "isTriggered": False,
+        #         "isTriggered": false,
         #         "triggerPrice": 65,
         #         "triggerStatus": "USELESS",
         #         "type": "LIMIT",
@@ -2089,7 +2094,7 @@ class woo(Exchange, ImplicitAPI):
         #         "feeAsset": "",
         #         "totalRebate": 0,
         #         "rebateAsset": "",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "createdTime": "1752049747.732",
         #         "updatedTime": "1752049747.732",
         #         "positionSide": "BOTH"
@@ -2105,7 +2110,7 @@ class woo(Exchange, ImplicitAPI):
         if timestamp is None:
             timestamp = self.safe_integer(order, 'timestamp')
         orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
-        clientOrderId = self.omit_zero(self.safe_string_2(order, 'clientOrderId', 'clientAlgoOrderId'))  # Somehow, self always returns 0 for limit order
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'clientOrderId', 'clientAlgoOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -2117,7 +2122,7 @@ class woo(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         filled = self.safe_string_2(order, 'executed', 'totalExecutedQuantity')
         average = self.omit_zero(self.safe_string(order, 'averageExecutedPrice'))
-        # remaining = Precise.string_sub(cost, filled)
+        # const remaining = Precise.stringSub (cost, filled);
         fee = self.safe_number(order, 'totalFee')
         feeCurrency = self.safe_string(order, 'feeAsset')
         triggerPrice = self.safe_number(order, 'triggerPrice')
@@ -2177,7 +2182,7 @@ class woo(Exchange, ImplicitAPI):
                 'COMPLETED': 'closed',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -2202,7 +2207,7 @@ class woo(Exchange, ImplicitAPI):
         #
         # }
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1751620923344,
         #         "data": {
         #             "asks": [
@@ -2224,6 +2229,152 @@ class woo(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDT",
+        #         "indexPrice": "63049",
+        #         "markPrice": "63028",
+        #         "estFundingRate": "0.00008868",
+        #         "lastFundingRate": "0.00008545",
+        #         "openInterest": "221.3498",
+        #         "24hOpen": "63880",
+        #         "24hClose": "63020",
+        #         "24hHigh": "64000",
+        #         "24hLow": "62800",
+        #         "24hVolume": "12000",
+        #         "24hAmount": "756000000",
+        #         "nextFundingTime": 1786694400000
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, '24hHigh'),
+            'low': self.safe_string(ticker, '24hLow'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, '24hOpen'),
+            'close': self.safe_string(ticker, '24hClose'),
+            'last': self.safe_string(ticker, '24hClose'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, '24hVolume'),
+            'quoteVolume': self.safe_string(ticker, '24hAmount'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'info': ticker,
+        }, market)
+
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+
+        https://developer.woox.io/api-reference/endpoint/public_data/futures
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' fetchTicker() supports swap markets only, there is no spot ticker endpoint')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v3PublicGetFutures(self.extend(request, params))
+        #
+        #     {
+        #         "success": true,
+        #         "data": {
+        #             "rows": [
+        #                 {
+        #                     "symbol": "PERP_BTC_USDT",
+        #                     "indexPrice": "63049",
+        #                     "markPrice": "63028",
+        #                     "estFundingRate": "0.00008868",
+        #                     "lastFundingRate": "0.00008545",
+        #                     "openInterest": "221.3498",
+        #                     "24hOpen": "63880",
+        #                     "24hClose": "63020",
+        #                     "24hHigh": "64000",
+        #                     "24hLow": "62800",
+        #                     "24hVolume": "12000",
+        #                     "24hAmount": "756000000",
+        #                     "nextFundingTime": 1786694400000
+        #                 }
+        #             ]
+        #         },
+        #         "timestamp": 1786690534921
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        first = self.safe_dict(rows, 0)
+        if first is None:
+            raise BadSymbol(self.id + ' fetchTicker() could not find ticker data for ' + symbol)
+        ticker = self.extend({'timestamp': self.safe_integer(response, 'timestamp')}, first)
+        return self.parse_ticker(ticker, market)
+
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+
+        https://developer.woox.io/api-reference/endpoint/public_data/futures
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: market type, must be 'swap' when no symbols are provided
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                # the type gate throws NotSupported rather than letting marketSymbols raise
+                # BadRequest, so callers (and the live test harness) can tell "wrong market
+                # type" apart from a malformed request, marketSymbols still enforces that the
+                # rest of the list matches
+                firstMarket = self.market(symbols[0])
+                if firstMarket['swap'] is not True:
+                    raise NotSupported(self.id + ' fetchTickers() supports swap markets only')
+        symbols = self.market_symbols(symbols, 'swap', True, True)
+        if symbols is None:
+            marketType = None
+            marketType, params = self.handle_market_type_and_params('fetchTickers', None, params, 'swap')
+            if marketType != 'swap':
+                raise NotSupported(self.id + ' fetchTickers() supports swap markets only')
+        response = self.v3PublicGetFutures(params)
+        #
+        # same as fetchTicker, with multiple rows
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol')
+            if marketId is None:
+                continue
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint can return newly listed contracts before they appear in the instruments
+            ticker = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_ticker(ticker))
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
@@ -2236,7 +2387,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [limit]: max=1000, max=100 when since is defined and is less than(now - (999 * (timeframe in ms)))
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -2256,7 +2407,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetKlineHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -2313,7 +2464,7 @@ class woo(Exchange, ImplicitAPI):
         }
         response = self.v1PrivateGetOrderOidTrades(self.extend(request, params))
         # {
-        #     "success": True,
+        #     "success": true,
         #     "rows": [
         #       {
         #         "id": "99111647",
@@ -2368,7 +2519,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetTradeTransactionHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -2412,12 +2563,12 @@ class woo(Exchange, ImplicitAPI):
         mainAccountPromise = self.v3PrivateGetAccountInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
         #             "account": "carlos_jose_lima@yahoo.com",
         #             "alias": "carlos_jose_lima@yahoo.com",
-        #             "otpauth": True,
+        #             "otpauth": true,
         #             "accountMode": "FUTURES",
         #             "positionMode": "ONE_WAY",
         #             "leverage": 0,
@@ -2442,7 +2593,7 @@ class woo(Exchange, ImplicitAPI):
         subAccountPromise = self.v3PrivateGetAccountSubAccountsAll(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -2469,7 +2620,7 @@ class woo(Exchange, ImplicitAPI):
         #         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
         #         "account": "carlos_jose_lima@yahoo.com",
         #         "alias": "carlos_jose_lima@yahoo.com",
-        #         "otpauth": True,
+        #         "otpauth": true,
         #         "accountMode": "FUTURES",
         #         "positionMode": "ONE_WAY",
         #         "leverage": 0,
@@ -2517,7 +2668,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetAssetBalances(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "holding": [
         #                 {
@@ -2566,7 +2717,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        # self method is TODO because of networks unification
+        # this method is TODO because of networks unification
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -2579,7 +2730,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetAssetWalletDeposit(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
         #             "extra": ""
@@ -2636,7 +2787,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetAssetWalletHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -2907,7 +3058,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivatePostAssetTransfer(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "id": 200
         #     }
         #
@@ -2952,7 +3103,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetAssetTransferHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -3019,7 +3170,7 @@ class woo(Exchange, ImplicitAPI):
         #
         #    transfer
         #        {
-        #            "success": True,
+        #            "success": true,
         #            "id": 200
         #        }
         #
@@ -3076,7 +3227,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivatePostAssetWalletWithdraw(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "withdraw_id": "20200119145703654"
         #     }
         #
@@ -3120,7 +3271,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v1PrivatePostInterestRepay(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #     }
         #
         transaction = self.parse_margin_loan(response, currency)
@@ -3132,7 +3283,7 @@ class woo(Exchange, ImplicitAPI):
     def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #     }
         #
         return {
@@ -3292,7 +3443,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetFuturesFundingFeeHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "meta": {
         #                 "total": 670,
@@ -3403,7 +3554,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetFundingRate(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -3442,7 +3593,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetFundingRate(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -3497,7 +3648,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PublicGetFundingRateHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "rows": [
         #                 {
@@ -3556,7 +3707,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivatePutFuturesPositionMode(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1752550492845
         #     }
         #
@@ -3583,12 +3734,12 @@ class woo(Exchange, ImplicitAPI):
             response = self.v3PrivateGetAccountInfo(params)
             #
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data": {
             #             "applicationId": "dsa",
             #             "account": "dsa",
             #             "alias": "haha",
-            #             "otpauth": True,
+            #             "otpauth": true,
             #             "accountMode": "FUTURES",
             #             "positionMode": "ONE_WAY",
             #             "leverage": 0,
@@ -3621,7 +3772,7 @@ class woo(Exchange, ImplicitAPI):
             #
             # HEDGE_MODE
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data":
             #             {
             #                 "symbol": "PERP_ETH_USDT",
@@ -3643,7 +3794,7 @@ class woo(Exchange, ImplicitAPI):
             #
             # ONE_WAY
             #     {
-            #         "success": True,
+            #         "success": true,
             #         "data": {
             #             "symbol": "PERP_ETH_USDT",
             #             "marginMode": "ISOLATED",
@@ -3784,7 +3935,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "positions": [
         #                 {
@@ -3840,7 +3991,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "positions": [
         #                 {
@@ -3892,7 +4043,7 @@ class woo(Exchange, ImplicitAPI):
         #         "pnl_24_h": 0.0,
         #         "est_liq_price": 9107.40055552,
         #         "settle_price": 3151.0319904,
-        #         "success": True,
+        #         "success": true,
         #         "fee_24_h": 0.0,
         #         "isolated_frozen_long": 0.0,
         #         "isolated_frozen_short": 0.0,
@@ -3997,7 +4148,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetConvertRfq(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "quoteId": 123123123,
         #             "counterPartyId": "",
@@ -4039,11 +4190,11 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivatePostConvertRft(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "quoteId": 123123123,
         #             "counterPartyId": "",
-        #             "rftAccepted": 1  # 1 -> success; 2 -> processing; 3 -> fail
+        #             "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
         #         }
         #     }
         #
@@ -4069,7 +4220,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetConvertTrade(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "quoteId": 12,
         #             "buyAsset": "",
@@ -4116,7 +4267,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetConvertTrades(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "count": 12,
         #             "tradeVos":[
@@ -4159,7 +4310,7 @@ class woo(Exchange, ImplicitAPI):
         #     {
         #         "quoteId": 123123123,
         #         "counterPartyId": "",
-        #         "rftAccepted": 1  # 1 -> success; 2 -> processing; 3 -> fail
+        #         "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
         #     }
         #
         # fetchConvertTrade, fetchConvertTradeHistory
@@ -4206,13 +4357,13 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetConvertAssetInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "rows": [
         #             {
         #                 "token": "BTC",
         #                 "tick": 0.0001,
-        #                 "createdTime": "1575014248.99",  # Unix epoch time in seconds
-        #                 "updatedTime": "1575014248.99"  # Unix epoch time in seconds
+        #                 "createdTime": "1575014248.99", // Unix epoch time in seconds
+        #                 "updatedTime": "1575014248.99"  // Unix epoch time in seconds
         #             },
         #         ]
         #     }
@@ -4276,7 +4427,7 @@ class woo(Exchange, ImplicitAPI):
         response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "positions": [
         #                 {

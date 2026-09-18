@@ -211,6 +211,7 @@ export default class cryptocom extends Exchange {
                             'private/get-deposit-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
                             'private/get-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
                             'private/get-instrument-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'private/get-fee-credit-balances': { 'cost': 10 / 3 } as Endpoint<Dict>,
                             'private/fiat/fiat-deposit-info': { 'cost': 10 / 3 } as Endpoint<Dict>,
                             'private/fiat/fiat-deposit-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
                             'private/fiat/fiat-withdraw-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
@@ -230,6 +231,13 @@ export default class cryptocom extends Exchange {
                             'private/staking/get-convert-history': { 'cost': 2 } as Endpoint<Dict>,
                             'private/create-isolated-margin-transfer': { 'cost': 10 / 3 } as Endpoint<Dict>,
                             'private/change-isolated-margin-leverage': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/bot/create-trading-bot': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/bot/update-trading-bot': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/bot/terminate-trading-bot': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/bot/pause-trading-bot': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/bot/resume-trading-bot': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/bot/get-trading-bots': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                            'private/bot/get-trading-bot-executions': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1215,7 +1223,7 @@ export default class cryptocom extends Exchange {
     override parseBalance (response: any): Balances {
         const responseResult = this.safeDict (response, 'result', {});
         const data = this.safeList (responseResult, 'data', []);
-        const positionBalances = this.safeValue (data[0], 'position_balances', []);
+        const positionBalances = this.safeList (data[0], 'position_balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];

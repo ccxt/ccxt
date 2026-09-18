@@ -22,6 +22,11 @@ impl CryptomusCore {
         self.call_method(Value::Str("public_get_v2_user_api_exchange_market_price".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetV2UserApiExchangeMarketsPrice` implicit endpoint.
+    pub async fn public_get_v2_user_api_exchange_markets_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v2_user_api_exchange_markets_price".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetV1ExchangeMarketAssets` implicit endpoint.
     pub async fn public_get_v1_exchange_market_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v1_exchange_market_assets".to_string()), optional_args).await
@@ -77,6 +82,46 @@ impl CryptomusCore {
         self.call_method(Value::Str("private_get_v2_user_api_transaction_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV2UserApiBalance` implicit endpoint.
+    pub async fn private_get_v2_user_api_balance(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_balance".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2UserApiConvertDirectionList` implicit endpoint.
+    pub async fn private_get_v2_user_api_convert_direction_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_convert_direction_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2UserApiConvertOrderList` implicit endpoint.
+    pub async fn private_get_v2_user_api_convert_order_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_convert_order_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2UserApiAmlCheckBalance` implicit endpoint.
+    pub async fn private_get_v2_user_api_aml_check_balance(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_aml_check_balance".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2UserApiAmlCheckCurrencies` implicit endpoint.
+    pub async fn private_get_v2_user_api_aml_check_currencies(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_aml_check_currencies".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2UserApiAmlCheckPackages` implicit endpoint.
+    pub async fn private_get_v2_user_api_aml_check_packages(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_aml_check_packages".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2UserApiAmlCheckRequest` implicit endpoint.
+    pub async fn private_get_v2_user_api_aml_check_request(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_aml_check_request".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2UserApiAmlCheckRequestId` implicit endpoint.
+    pub async fn private_get_v2_user_api_aml_check_request_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_user_api_aml_check_request_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV2UserApiExchangeOrders` implicit endpoint.
     pub async fn private_post_v2_user_api_exchange_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v2_user_api_exchange_orders".to_string()), optional_args).await
@@ -87,9 +132,39 @@ impl CryptomusCore {
         self.call_method(Value::Str("private_post_v2_user_api_exchange_orders_market".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostV2UserApiConvert` implicit endpoint.
+    pub async fn private_post_v2_user_api_convert(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_user_api_convert".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2UserApiConvertCalculate` implicit endpoint.
+    pub async fn private_post_v2_user_api_convert_calculate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_user_api_convert_calculate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2UserApiConvertLimit` implicit endpoint.
+    pub async fn private_post_v2_user_api_convert_limit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_user_api_convert_limit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2UserApiAmlCheckRequest` implicit endpoint.
+    pub async fn private_post_v2_user_api_aml_check_request(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_user_api_aml_check_request".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2UserApiAmlCheckRequestIdReportSend` implicit endpoint.
+    pub async fn private_post_v2_user_api_aml_check_request_id_report_send(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_user_api_aml_check_request_id_report_send".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateDeleteV2UserApiExchangeOrdersOrderId` implicit endpoint.
     pub async fn private_delete_v2_user_api_exchange_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_v2_user_api_exchange_orders_order_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteV2UserApiConvertOrderUuid` implicit endpoint.
+    pub async fn private_delete_v2_user_api_convert_order_uuid(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_v2_user_api_convert_order_uuid".to_string()), optional_args).await
     }
 
 }

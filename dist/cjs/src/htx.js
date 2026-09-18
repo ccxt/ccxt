@@ -412,6 +412,12 @@ class htx extends htx$1["default"] {
                             'v2/etp/transactions': { 'cost': 5 },
                             'v2/etp/transaction': { 'cost': 5 },
                             'v2/etp/limit': { 'cost': 1 },
+                            // Referral
+                            'v2/invitee/rebate/referrals': { 'cost': 10 }, // 1 request per second
+                            'v2/invitee/rebate/detail': { 'cost': 1 },
+                            'v2/invitee/rebate/history': { 'cost': 1 },
+                            'v2/invitee/rebate/all_rebate/detail': { 'cost': 1 },
+                            'v2/invitee/rebate/batcher_rebate/detail': { 'cost': 1 },
                         },
                         'post': {
                             // Account
@@ -462,6 +468,8 @@ class htx extends htx$1["default"] {
                             'v2/etp/redemption': { 'cost': 5 },
                             'v2/etp/{transactId}/cancel': { 'cost': 10 },
                             'v2/etp/batch-cancel': { 'cost': 50 },
+                            // Universal Transfer
+                            'v5/account/universal_transfer': { 'cost': 4 }, // 5 requests per 2 seconds
                         },
                     },
                 },
@@ -601,6 +609,13 @@ class htx extends htx$1["default"] {
                             'v5/algo/order/opens': { 'cost': 0.41679 },
                             'v5/algo/order': { 'cost': 0.41679 },
                             'v5/algo/order/history': { 'cost': 0.41679 },
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/instruments': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/statistics': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/profit-sharing-history': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/profit-sharing-history-summary': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/unrealized-profit-sharing-summary': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/followers': { 'cost': 2 },
                         },
                         'post': {
                             // Future Account Interface
@@ -735,6 +750,12 @@ class htx extends htx$1["default"] {
                             'v5/account/fee_deduction_currency': { 'cost': 0.20834 },
                             'v5/algo/order': { 'cost': 0.41679 },
                             'v5/algo/cancel_orders': { 'cost': 0.41679 },
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/follower': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/transfer': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/follower-settings': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/config': { 'cost': 2 },
+                            'api/v6/copyTrading/trader/apikey': { 'cost': 2 },
                         },
                     },
                 },
@@ -2936,10 +2957,10 @@ class htx extends htx$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue(data[i], 'data', []);
+            const trades = this.safeList(data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade(trades[j], market);
                 result.push(trade);
@@ -3378,7 +3399,7 @@ class htx extends htx$1["default"] {
         if (keysLength === 0) {
             throw new errors.ExchangeError(this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
-        const uniqueNetworkIds = this.safeValue(this.options['networkChainIdsByNames'], currencyCode, {});
+        const uniqueNetworkIds = this.safeDict(this.options['networkChainIdsByNames'], currencyCode, {});
         if (networkCode in uniqueNetworkIds) {
             return uniqueNetworkIds[networkCode];
         }
@@ -3641,7 +3662,7 @@ class htx extends htx$1["default"] {
                 result = this.safeBalance(result);
             }
             else {
-                const balances = this.safeValue(data, 'list', []);
+                const balances = this.safeList(data, 'list', []);
                 for (let i = 0; i < balances.length; i++) {
                     const balance = balances[i];
                     const currencyId = this.safeString(balance, 'currency');
@@ -5170,7 +5191,7 @@ class htx extends htx$1["default"] {
         const options = this.safeValue(this.options, market['type'], {});
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop-price']);
         if (triggerPrice === undefined) {
-            const stopOrderTypes = this.safeValue(options, 'stopOrderTypes', {});
+            const stopOrderTypes = this.safeDict(options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice for a trigger order');
             }
@@ -5251,7 +5272,7 @@ class htx extends htx$1["default"] {
         else {
             request['amount'] = this.amountToPrecision(symbol, amount);
         }
-        const limitOrderTypes = this.safeValue(options, 'limitOrderTypes', {});
+        const limitOrderTypes = this.safeDict(options, 'limitOrderTypes', {});
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -7372,7 +7393,7 @@ class htx extends htx$1["default"] {
         }
         else {
             const cursor = this.safeValue(data, 'current_page');
-            const result = this.safeValue(data, 'data', []);
+            const result = this.safeList(data, 'data', []);
             for (let i = 0; i < result.length; i++) {
                 const entry = result[i];
                 entry['current_page'] = cursor;
@@ -8406,7 +8427,7 @@ class htx extends htx$1["default"] {
             //     }
             //
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const timestamp = this.safeInteger(response, 'ts');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -9109,7 +9130,7 @@ class htx extends htx$1["default"] {
                 'datetime': this.iso8601(timestamp),
             });
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const openInterest = this.parseOpenInterest(data[0], market);
         openInterest['timestamp'] = timestamp;
         openInterest['datetime'] = this.iso8601(timestamp);
@@ -9580,7 +9601,7 @@ class htx extends htx$1["default"] {
         //              "instStatus": "normal"
         //          }
         //
-        const chains = this.safeValue(fee, 'chains', []);
+        const chains = this.safeList(fee, 'chains', []);
         const code = this.safeString(currency, 'code');
         let result = this.depositWithdrawFee(fee);
         for (let j = 0; j < chains.length; j++) {

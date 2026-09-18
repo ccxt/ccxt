@@ -452,4 +452,18 @@ public partial class coinone : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v2_1PrivatePostTransactionCoinWithdrawalLimit",parameters);
     }
 
+    /// <summary>Calls the v2_1PrivatePostEventOrderRewardPrograms endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2_1PrivatePostEventOrderRewardPrograms (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2_1PrivatePostEventOrderRewardPrograms",parameters);
+    }
+
+    /// <summary>Calls the v2_1PrivatePostEventOrderRewardHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2_1PrivatePostEventOrderRewardHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2_1PrivatePostEventOrderRewardHistory",parameters);
+    }
+
 }

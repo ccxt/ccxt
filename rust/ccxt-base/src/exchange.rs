@@ -86,6 +86,13 @@ pub struct Internals {
     /// dispatch state left — virtual dispatch itself is now static (review #1),
     /// so there are no raw self-pointers to keep.
     pub dispatch_stack:       Vec<String>,
+    /// Last snake_case name that reached `call_dynamic_base`'s `_` arm and
+    /// matched neither a dispatch arm nor an implicit-API endpoint. That arm
+    /// must keep returning `Value::Null` (a static-request test may probe an
+    /// optional name), but a dynamic re-entry from `fetchPaginatedCall*` /
+    /// `fetchWebEndpoint` treats a miss as fatal — see
+    /// `crate::exchange::call_dynamic_required`.
+    pub dynamic_dispatch_miss: Option<String>,
 }
 
 /// The Go-style "interface" that every derived exchange implements. When
@@ -172,6 +179,7 @@ impl Default for Internals {
             throttle:         std::sync::Arc::new(tokio::sync::Mutex::new((0.0, 0))),
             implicit_api:     HashMap::new(),
             dispatch_stack:      Vec::new(),
+            dynamic_dispatch_miss: None,
         }
     }
 }
@@ -304,8 +312,13 @@ pub struct Exchange {
     /// Canned HTTP response for static *response* tests — when set,
     /// `fetch_typed` returns it without hitting the network so the
     /// exchange's parser runs against fixture data. Mirrors Go's
-    /// `MockResponse` field. Cleared back to `Null` after dispatch.
+    /// `MockResponse` field. Reused for all requests in a fixture; the test
+    /// dispatcher replaces or clears it before the next REST dispatch.
     pub mock_response:           Value,
+    /// Response-test mock keyed by url fragment, for methods that call several
+    /// endpoints: one shared body cannot cover two endpoints of different
+    /// declared shapes. Consulted before `mock_response`.
+    pub mock_response_by_url:    Value,
     pub last_json_response:      Value,
     pub lastRestRequestTimestamp: Value,
     /// Rolling cache of recent fetch results, capped at
@@ -589,6 +602,7 @@ impl Exchange {
             last_http_response:         Value::Null,
             last_response_headers:      Value::Null,
             mock_response:              Value::Null,
+            mock_response_by_url:       Value::Null,
             last_json_response:         Value::Null,
             lastRestRequestTimestamp:   Value::Int(0),
             fetchHistoryCache:          Value::List(vec![]),
@@ -867,18 +881,6 @@ impl Exchange {
         }}
     }
 
-    fn proxy_str(&self) -> Option<&str> {
-        // Honour `proxy` first (legacy CCXT setter), then the scheme-
-        // specific aliases. Offline broker-id / static tests rely on
-        // `httpsProxy` pointing at a fake host so requests fail locally
-        // instead of leaving the machine.
-        for v in [&self.proxy, &self.httpsProxy, &self.https_proxy, &self.httpProxy, &self.http_proxy] {
-            if let Value::Str(s) = v {
-                if !s.is_empty() { return Some(s.as_str()); }
-            }
-        }
-        None
-    }
 
     fn is_verbose(&self) -> bool {
         matches!(self.verbose, Value::Bool(true))
@@ -1008,12 +1010,6 @@ impl Exchange {
     }
     pub fn microseconds(&self) -> Value {
         match self.milliseconds() { Value::Int(n) => Value::Int(n * 1000), v => v }
-    }
-    /// Typed i64 access for hand-written code that needs a raw timestamp.
-    fn milliseconds_i64(&self) -> i64 {
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as i64).unwrap_or(0)
     }
 
     pub fn iso8601(&self, ts: Value) -> Value {
@@ -1423,6 +1419,19 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Some(b) => Value::Str(b.clone()),
             None    => Value::Null,
         };
+        // map iteration is unordered, so sort the fragments for a deterministic pick
+        if let Value::Dict(byUrl) = &self.mock_response_by_url {
+            let mut fragments: Vec<&String> = byUrl.keys().collect();
+            fragments.sort();
+            for fragment in &fragments {
+                if url.contains(fragment.as_str()) {
+                    return Ok(byUrl.get(*fragment).cloned().unwrap_or(Value::Null));
+                }
+            }
+            if let Some(first) = fragments.first() {
+                return Ok(byUrl.get(*first).cloned().unwrap_or(Value::Null));
+            }
+        }
         if !matches!(self.mock_response, Value::Null) {
             return Ok(self.mock_response.clone());
         }
@@ -1506,10 +1515,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     } }
 
     fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value, cost: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
-        if !matches!(self.mock_response, Value::Null) {
-            return self.fetch_typed("", verb, HashMap::new(), None).await;
+        // Mock transport responses only; preserve the signed request metadata.
+        if matches!(self.mock_response, Value::Null) && matches!(self.mock_response_by_url, Value::Null) {
+            self.throttle(&[cost]).await;
         }
-        self.throttle(&[cost]).await;
         let api_arg = if scope_segments.len() == 1 {
             Value::Str(scope_segments[0].clone())
         } else {
@@ -1753,6 +1762,83 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 }
 
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
+
+/// Normalize a TS dynamic method name for the generated Rust dispatch table.
+///
+/// Must stay byte-identical to the transpiler's `toSnakeCase`
+/// (`build/rustTranspiler.ts`) and to `Exchange::to_snake_case` (which names
+/// the implicit-API entries `call_dynamic`'s fall-through looks up) — it is the
+/// only thing deciding whether a paginated `this[method](...)` re-entry lands
+/// on a dispatch arm. `method_name_snake_case_tests` pins all three.
+///
+/// A name that is not a `Value::Str` (or is empty) is a hard bug: TS
+/// `this[name](...)` always indexes with a string. Returning `""` here would
+/// resolve to no dispatch arm and no implicit endpoint, so `call_dynamic`
+/// would hand back `Value::Null` and the caller would silently see an empty
+/// page instead of an error — exactly the failure this PR set out to remove.
+/// Panic instead, mirroring the TS `TypeError: this[method] is not a function`
+/// (the transpiled try/catch turns it back into a catchable error).
+pub fn method_name_to_snake_case(name: &Value) -> String {
+    let name = match name {
+        Value::Str(name) if !name.is_empty() => name,
+        _ => panic!(
+            "{}",
+            crate::exchange_errors::not_supported(format!(
+                "dynamic method dispatch requires a non-empty string method name, got {name:?}"
+            )),
+        ),
+    };
+    let chars: Vec<char> = name.chars().collect();
+    let mut out = String::with_capacity(name.len() + 4);
+    for (i, &c) in chars.iter().enumerate() {
+        if c.is_ascii_uppercase() {
+            let lower_before = i > 0
+                && (chars[i - 1].is_ascii_lowercase() || chars[i - 1].is_ascii_digit());
+            let acronym_end = i > 0 && chars[i - 1].is_ascii_uppercase()
+                && chars.get(i + 1).map(|next| next.is_ascii_lowercase()).unwrap_or(false);
+            if lower_before || acronym_end {
+                out.push('_');
+            }
+            out.push(c.to_ascii_lowercase());
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+/// Wraps a `call_dynamic` re-entry that MUST resolve. `call_dynamic_base`'s
+/// `_` arm returns `Value::Null` for a name that is neither a dispatch arm nor
+/// an implicit-API endpoint — fine for an optional probe, but a dynamic
+/// re-entry from `fetchPaginatedCall*` / `fetchWebEndpoint` would then hand the
+/// caller an empty page instead of an error. That arm records the miss on
+/// `internals.dynamic_dispatch_miss`; this raises it as a loud `NotSupported`,
+/// the way `call_method` used to fail, so a dispatch regression surfaces as an
+/// error rather than as null data (review on #30385).
+pub trait CallDynamicChecked: crate::exchange_generated::ExchangeBase {
+    fn call_dynamic_checked(&mut self, name: Value, args: Vec<Value>) -> impl ::std::future::Future<Output = Value> + Send { async move {
+        let snake = method_name_to_snake_case(&name);
+        // Clear first: a miss recorded by an unrelated earlier probe must not
+        // be attributed to this call.
+        self.internals.dynamic_dispatch_miss = None;
+        let out = self.call_dynamic(&snake, args).await;
+        // Only OUR name counts — a nested optional probe inside the dispatched
+        // method legitimately misses and must stay silent.
+        if self.internals.dynamic_dispatch_miss.as_deref() == Some(snake.as_str()) {
+            self.internals.dynamic_dispatch_miss = None;
+            panic!(
+                "{}",
+                crate::exchange_errors::not_supported(format!(
+                    "{} dynamic method {snake}() resolved to no dispatch arm and no implicit API endpoint",
+                    crate::runtime::stringify_param(&self.id),
+                )),
+            );
+        }
+        out
+    } }
+}
+
+impl<T: crate::exchange_generated::ExchangeBase> CallDynamicChecked for T {}
 
 /// A minimal Core wrapping a bare `Exchange` with NO overrides. Lets code that
 /// only has an `Exchange` value — `Value` snapshots (value.rs), the constructor
@@ -2240,7 +2326,7 @@ fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
     } else if ty.starts_with("uint") || ty.starts_with("int") {
         // uint256 (e.g. polymarket tokenId) exceeds u128 — use BigInt. Signed
         // intN uses two's-complement, sign-extended to 32 bytes.
-        use num_bigint::{BigInt, Sign};
+        use num_bigint::BigInt;
         let n: BigInt = match v {
             Value::Int(i)   => BigInt::from(*i),
             Value::Float(f) => BigInt::from(*f as i64),
@@ -2286,6 +2372,162 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+/// Pins the `mock_response` contract that `request_typed` implements: the canned
+/// payload is returned by `fetch_typed` only AFTER the request has been built and
+/// signed, so `last_request_url` / `_headers` / `_body` still describe the real
+/// request a static *response* fixture would have sent; and the payload stays set
+/// until the caller replaces or clears it, so one fixture can serve the several
+/// `fetch_typed` calls a single paginating `fetchX` issues.
+#[cfg(all(test, feature = "transpiled-base"))]
+mod response_mock_tests {
+    use super::ExchangeRuntime;
+    use crate::{get_value, Value};
+
+    #[tokio::test]
+    async fn response_mock_serves_multiple_requests_until_reset() {
+        // Conflicting proxies reject any unmocked request before network I/O.
+        let config = Value::from_json(&serde_json::json!({
+            "httpProxy": "http://fake:8080", "httpsProxy": "http://fake:8080",
+            "enableRateLimit": false,
+        }));
+        let mut exchange = crate::exchanges::binance::BinanceCore::new(Some(config));
+        let response = Value::from_json(&serde_json::json!({ "price": "100" }));
+        exchange.exchange.mock_response = response.clone();
+        for symbol in ["BTCUSDT", "ETHUSDT"] {
+            let params = Value::from_json(&serde_json::json!({ "symbol": symbol }));
+            let result = exchange.request_typed(
+                "ticker/price", &["public".to_string()], "GET", params, Value::Int(1),
+            ).await.expect("each request must use the same mock without network access");
+            assert_eq!(result, response);
+            assert_eq!(exchange.exchange.last_request_url, Value::Str(format!(
+                "https://api.binance.com/api/v3/ticker/price?symbol={symbol}",
+            )));
+        }
+        exchange.exchange.mock_response = Value::Null;
+        let error = exchange.request_typed(
+            "ticker/price", &["public".to_string()], "GET", Value::Null, Value::Int(1),
+        ).await.expect_err("reset must restore the normal transport path");
+        assert!(error.to_string().contains("InvalidProxySettings"));
+    }
+
+    #[tokio::test]
+    async fn response_mock_preserves_public_request_url() {
+        let mut exchange = crate::exchanges::binance::BinanceCore::new(None);
+        let response = Value::from_json(&serde_json::json!({ "price": "100" }));
+        exchange.exchange.mock_response = response.clone();
+        let params = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT" }));
+        let result = exchange.request_typed(
+            "ticker/price", &["public".to_string()], "GET", params, Value::Int(1),
+        ).await.expect("mock response must not require network access");
+        assert_eq!(result, response);
+        assert_eq!(exchange.exchange.last_request_url, Value::Str(
+            "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT".to_string(),
+        ));
+        assert_eq!(exchange.exchange.last_request_body, Value::Null);
+    }
+
+    #[tokio::test]
+    async fn response_mock_preserves_private_request_headers_and_body() {
+        let config = Value::from_json(&serde_json::json!({
+            "apiKey": "fixture-key", "secret": "fixture-secret",
+        }));
+        let mut exchange = crate::exchanges::binance::BinanceCore::new(Some(config));
+        let response = Value::from_json(&serde_json::json!({ "orderId": 123 }));
+        exchange.exchange.mock_response = response.clone();
+        let params = Value::from_json(&serde_json::json!({
+            "symbol": "BTCUSDT", "side": "BUY", "type": "MARKET", "quantity": "1",
+        }));
+        let result = exchange.request_typed(
+            "order", &["private".to_string()], "POST", params, Value::Int(1),
+        ).await.expect("signed mock response must not require network access");
+        assert_eq!(result, response);
+        assert_eq!(exchange.exchange.last_request_url, Value::Str(
+            "https://api.binance.com/api/v3/order".to_string(),
+        ));
+        assert_eq!(get_value(&exchange.exchange.last_request_headers,
+            &Value::Str("X-MBX-APIKEY".to_string())), Value::Str("fixture-key".to_string()));
+        let Value::Str(body) = &exchange.exchange.last_request_body else {
+            panic!("signed POST must retain its encoded body");
+        };
+        assert!(body.contains("symbol=BTCUSDT"));
+        assert!(body.contains("signature="));
+    }
+}
+
+/// Pins `method_name_to_snake_case` — the transform that decides whether a
+/// paginated `this[method](...)` re-entry lands on a `call_dynamic` arm — against
+/// the two implementations it must agree with: the transpiler's `toSnakeCase`
+/// (`build/rustTranspiler.ts`, which names the arms) and `Exchange::to_snake_case`
+/// (which names the implicit-API entries the `_` arm falls through to).
+/// Requested in review on #30385.
+#[cfg(test)]
+mod method_name_snake_case_tests {
+    use super::{method_name_to_snake_case, Exchange};
+    use crate::Value;
+
+    fn snake(name: &str) -> String {
+        method_name_to_snake_case(&Value::Str(name.to_string()))
+    }
+
+    // The four names the review called out, plus the digit/acronym shapes that
+    // are the only places the three transforms could plausibly diverge.
+    #[test]
+    fn matches_the_transpiler_dispatch_arm_names() {
+        // unified methods re-entered by fetchPaginatedCall* — these must hit an arm
+        assert_eq!(snake("fetchTransfers"), "fetch_transfers");
+        assert_eq!(snake("fetchOHLCV"), "fetch_ohlcv");                 // trailing acronym
+        assert_eq!(snake("fetchOpenOrdersWs"), "fetch_open_orders_ws");
+        assert_eq!(snake("fetchL2OrderBook"), "fetch_l2_order_book");   // letter+digit token
+        assert_eq!(snake("getLeverageTiersPaginated"), "get_leverage_tiers_paginated");
+        // implicit endpoints re-entered by fetchWebEndpoint — these must hit the
+        // `_` arm's implicit_api lookup, which is keyed by to_snake_case
+        assert_eq!(snake("publicGetTicker24hr"), "public_get_ticker24hr"); // NO `_` before a digit
+        assert_eq!(snake("webExchangeGetV3Assets"), "web_exchange_get_v3_assets");
+        assert_eq!(snake("webApiGetAjaxCoinCoinInfo"), "web_api_get_ajax_coin_coin_info");
+        // acronym runs: `[A-Z]+[A-Z][a-z]` splits before the last capital only
+        assert_eq!(snake("parseHTTPResponse"), "parse_http_response");
+        assert_eq!(snake("fetchOHLCVWs"), "fetch_ohlcv_ws");
+        // already-snake and single-token names are pass-through
+        assert_eq!(snake("fetch"), "fetch");
+        assert_eq!(snake("fetch_transfers"), "fetch_transfers");
+    }
+
+    // `method_name_to_snake_case` and `Exchange::to_snake_case` must produce the
+    // SAME key, or a dynamic name would snake to something the implicit-api map
+    // does not hold. Differential over the shapes above; the full 11k-name sweep
+    // over every ts/src method + abstract endpoint also reports zero divergence.
+    #[test]
+    fn agrees_with_exchange_to_snake_case() {
+        for name in [
+            "fetchTransfers", "fetchOHLCV", "fetchOpenOrdersWs", "publicGetTicker24hr",
+            "fetchL2OrderBook", "webExchangeGetV3Assets", "webApiGetAjaxCoinCoinInfo",
+            "parseHTTPResponse", "fetchOHLCVWs", "privatePostSPEIWithdrawal",
+            "sapiV3GetAsset", "fapiPublicGetTicker24hr", "publicGet10PublicTickers",
+            "fetch", "fetchPositionsRisk", "createOrderWs", "fetchMyLiquidations",
+        ] {
+            assert_eq!(
+                snake(name),
+                Exchange::to_snake_case(name),
+                "method_name_to_snake_case and Exchange::to_snake_case diverge on {name}",
+            );
+        }
+    }
+
+    // A non-string / empty dynamic name used to snake to "" and then resolve to
+    // Value::Null — a silent empty page. It must be loud instead.
+    #[test]
+    #[should_panic(expected = "NotSupported")]
+    fn non_string_method_name_is_loud() {
+        let _ = method_name_to_snake_case(&Value::Int(7));
+    }
+
+    #[test]
+    #[should_panic(expected = "NotSupported")]
+    fn empty_method_name_is_loud() {
+        let _ = method_name_to_snake_case(&Value::Str(String::new()));
+    }
 }
 
 #[cfg(test)]
@@ -2472,6 +2714,94 @@ mod sandbox_mode_tests {
         assert_eq!(b.exchange.isSandboxModeEnabled, Value::Bool(true));
         let api_url = crate::get_value(&b.exchange.urls, &Value::Str("api".to_string()));
         assert_eq!(api_url, test_url, "sandbox mode did not switch urls['api'] to urls['test']");
+    }
+}
+
+#[cfg(all(test, feature = "transpiled-base"))]
+mod dynamic_dispatch_tests {
+    use crate::exchange::CallDynamicChecked;
+    use crate::exchange_generated::ExchangeBase;
+    use crate::Value;
+
+    // The three behaviours the review on #30385 asked for, on the real dispatch
+    // table (binance's Core) rather than on the name transform alone.
+
+    // 1. A unified method re-entered dynamically — the case the PR fixes — must
+    //    reach a dispatch arm and NOT the `_ => Null` fall-through.
+    //    `call_method` could never resolve `fetchOHLCV` (it only knows implicit
+    //    endpoints), so pagination hard-failed with NotSupported. Probe the
+    //    fall-through directly: dispatch the name and require that the `_` arm
+    //    did not record a miss for it, which is only true when a real arm
+    //    matched. `fetch_ohlcv` with no args returns without any network I/O
+    //    (binance's override throws ArgumentsRequired on a null symbol), so
+    //    catch the unwind and inspect the miss flag rather than the result.
+    #[tokio::test]
+    async fn unified_method_reaches_a_dispatch_arm_not_the_null_fallthrough() {
+        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let snake = crate::exchange::method_name_to_snake_case(
+            &Value::Str("fetchOHLCV".to_string()));
+        assert_eq!(snake, "fetch_ohlcv");
+        b.exchange.internals.dynamic_dispatch_miss = None;
+        let _ = futures::FutureExt::catch_unwind(
+            std::panic::AssertUnwindSafe(b.call_dynamic(&snake, vec![])),
+        ).await;
+        assert_eq!(
+            b.exchange.internals.dynamic_dispatch_miss, None,
+            "`{snake}` fell through to the `_ => Null` arm — a paginated \
+             re-entry would have silently returned an empty page",
+        );
+        // Negative control for the probe itself: a name with no arm DOES record.
+        let _ = b.call_dynamic("fetch_definitely_not_an_arm", vec![]).await;
+        assert_eq!(
+            b.exchange.internals.dynamic_dispatch_miss.as_deref(),
+            Some("fetch_definitely_not_an_arm"),
+            "the miss probe is inert — the assertion above proves nothing",
+        );
+    }
+
+    // 2. An implicit endpoint re-entered dynamically (fetchWebEndpoint's
+    //    endpointMethod) still routes through the `_` arm's implicit_api
+    //    lookup — the PR must not have broken direct implicit calls.
+    #[tokio::test]
+    async fn implicit_endpoint_is_still_reachable_and_is_not_a_miss() {
+        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        b.exchange.build_implicit_api();
+        let snake = crate::exchange::method_name_to_snake_case(
+            &Value::Str("publicGetTicker24hr".to_string()));
+        assert!(
+            b.exchange.internals.implicit_api.contains_key(&snake),
+            "implicit api has no `{snake}` entry — the `_` arm would treat a real \
+             endpoint as an unknown name",
+        );
+    }
+
+    // 3. THE REGRESSION GUARD. A name that is neither a dispatch arm nor an
+    //    implicit endpoint used to yield `Value::Null` — a silent empty page.
+    //    `call_dynamic_checked` must turn it back into a loud NotSupported,
+    //    the way `call_method` used to fail.
+    #[tokio::test]
+    #[should_panic(expected = "NotSupported")]
+    async fn unknown_dynamic_name_is_loud_not_null() {
+        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let _ = b.call_dynamic_checked(
+            Value::Str("fetchNoSuchThingAtAll".to_string()),
+            vec![],
+        ).await;
+    }
+
+    // …and the bare `call_dynamic` it wraps still returns Null for that name,
+    // so the loudness comes from the wrapper and optional probes stay cheap.
+    #[tokio::test]
+    async fn bare_call_dynamic_still_returns_null_for_optional_probes() {
+        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let out = b.call_dynamic("fetch_no_such_thing_at_all", vec![]).await;
+        assert_eq!(out, Value::Null);
+        assert_eq!(
+            b.exchange.internals.dynamic_dispatch_miss.as_deref(),
+            Some("fetch_no_such_thing_at_all"),
+            "the `_` arm did not record the miss, so call_dynamic_checked \
+             could never raise on it",
+        );
     }
 }
 

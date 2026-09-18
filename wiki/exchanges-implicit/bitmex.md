@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitmex API documentation:** [bitmex.com](https://www.bitmex.com/app/apiOverview) · [github.com](https://github.com/BitMEX/api-connectors/tree/master/official-http)
 
-> 93 implicit endpoints across 2 access groups.
+> 128 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -94,6 +94,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTrade` | GET | `trade` | 5 |
 | `publicGetTradeBucketed` | GET | `trade/bucketed` | 5 |
 | `publicGetWalletAssets` | GET | `wallet/assets` | 5 |
+| `publicGetWalletCurrencies` | GET | `wallet/currencies` | 5 |
+| `publicGetWalletHaircuts` | GET | `wallet/haircuts` | 5 |
 | `publicGetWalletNetworks` | GET | `wallet/networks` | 5 |
 
 ## private
@@ -103,28 +105,40 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privateGetAddress` | GET | `address` | 5 |
+| `privateGetAddressConfig` | GET | `addressConfig` | 5 |
 | `privateGetApiKey` | GET | `apiKey` | 5 |
+| `privateGetApiKeySelf` | GET | `apiKey/self` | 5 |
 | `privateGetExecution` | GET | `execution` | 5 |
 | `privateGetExecutionTradeHistory` | GET | `execution/tradeHistory` | 5 |
 | `privateGetGlobalNotification` | GET | `globalNotification` | 5 |
 | `privateGetLeaderboardName` | GET | `leaderboard/name` | 5 |
+| `privateGetLeagueoftraderMyRankings` | GET | `leagueoftrader/myRankings` | 5 |
+| `privateGetManagedSubAccountBindingInvestor` | GET | `managedSubAccountBinding/investor` | 5 |
+| `privateGetManagedSubAccountBindingTradingTeam` | GET | `managedSubAccountBinding/tradingTeam` | 5 |
 | `privateGetOrder` | GET | `order` | 5 |
 | `privateGetPorlSnapshots` | GET | `porl/snapshots` | 5 |
 | `privateGetPosition` | GET | `position` | 5 |
+| `privateGetReferralCode` | GET | `referralCode` | 5 |
+| `privateGetReferralCodeCheckCode` | GET | `referralCode/check/{code}` | 5 |
+| `privateGetReferralCodeCodeCode` | GET | `referralCode/code/{code}` | 5 |
+| `privateGetReferralCodeId` | GET | `referralCode/{id}` | 5 |
 | `privateGetUser` | GET | `user` | 5 |
 | `privateGetUserAffiliateStatus` | GET | `user/affiliateStatus` | 5 |
 | `privateGetUserCheckReferralCode` | GET | `user/checkReferralCode` | 5 |
 | `privateGetUserCommission` | GET | `user/commission` | 5 |
 | `privateGetUserCsa` | GET | `user/csa` | 5 |
 | `privateGetUserDepositAddress` | GET | `user/depositAddress` | 5 |
+| `privateGetUserDepositAddressInformation` | GET | `user/depositAddressInformation` | 5 |
 | `privateGetUserExecutionHistory` | GET | `user/executionHistory` | 5 |
 | `privateGetUserGetWalletTransferAccounts` | GET | `user/getWalletTransferAccounts` | 5 |
 | `privateGetUserMargin` | GET | `user/margin` | 5 |
+| `privateGetUserMarginingMode` | GET | `user/marginingMode` | 5 |
 | `privateGetUserQuoteFillRatio` | GET | `user/quoteFillRatio` | 5 |
 | `privateGetUserQuoteValueRatio` | GET | `user/quoteValueRatio` | 5 |
 | `privateGetUserStaking` | GET | `user/staking` | 5 |
 | `privateGetUserStakingInstruments` | GET | `user/staking/instruments` | 5 |
 | `privateGetUserStakingTiers` | GET | `user/staking/tiers` | 5 |
+| `privateGetUserTradingSettings` | GET | `user/tradingSettings` | 5 |
 | `privateGetUserTradingVolume` | GET | `user/tradingVolume` | 5 |
 | `privateGetUserUnstakingRequests` | GET | `user/unstakingRequests` | 5 |
 | `privateGetUserWallet` | GET | `user/wallet` | 5 |
@@ -132,6 +146,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetUserWalletSummary` | GET | `user/walletSummary` | 5 |
 | `privateGetUserAffiliates` | GET | `userAffiliates` | 5 |
 | `privateGetUserEvent` | GET | `userEvent` | 5 |
+| `privateGetUserPriceAlert` | GET | `userPriceAlert` | 5 |
+| `privateGetUserStatsVolumeRank` | GET | `userStats/volumeRank` | 5 |
 | `privatePostAddress` | POST | `address` | 5 |
 | `privatePostChat` | POST | `chat` | 5 |
 | `privatePostGuild` | POST | `guild` | 5 |
@@ -140,27 +156,46 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostGuildKick` | POST | `guild/kick` | 5 |
 | `privatePostGuildLeave` | POST | `guild/leave` | 5 |
 | `privatePostGuildSharesTrades` | POST | `guild/sharesTrades` | 5 |
+| `privatePostManagedSubAccountBindingApprove` | POST | `managedSubAccountBinding/approve` | 5 |
+| `privatePostManagedSubAccountBindingCancel` | POST | `managedSubAccountBinding/cancel` | 5 |
+| `privatePostManagedSubAccountBindingCreateMSA` | POST | `managedSubAccountBinding/createMSA` | 5 |
+| `privatePostManagedSubAccountBindingReject` | POST | `managedSubAccountBinding/reject` | 5 |
+| `privatePostManagedSubAccountBindingToggleTradeHistory` | POST | `managedSubAccountBinding/toggleTradeHistory` | 5 |
+| `privatePostManagedSubAccountBindingUnbind` | POST | `managedSubAccountBinding/unbind` | 5 |
 | `privatePostOrder` | POST | `order` | 1 |
 | `privatePostOrderCancelAllAfter` | POST | `order/cancelAllAfter` | 5 |
 | `privatePostOrderClosePosition` | POST | `order/closePosition` | 5 |
+| `privatePostPositionCrossLeverage` | POST | `position/crossLeverage` | 5 |
 | `privatePostPositionIsolate` | POST | `position/isolate` | 1 |
 | `privatePostPositionLeverage` | POST | `position/leverage` | 1 |
 | `privatePostPositionRiskLimit` | POST | `position/riskLimit` | 5 |
 | `privatePostPositionTransferMargin` | POST | `position/transferMargin` | 1 |
+| `privatePostReferralCode` | POST | `referralCode` | 5 |
 | `privatePostUserAddSubaccount` | POST | `user/addSubaccount` | 5 |
 | `privatePostUserCancelWithdrawal` | POST | `user/cancelWithdrawal` | 5 |
 | `privatePostUserCommunicationToken` | POST | `user/communicationToken` | 5 |
 | `privatePostUserConfirmEmail` | POST | `user/confirmEmail` | 5 |
 | `privatePostUserConfirmWithdrawal` | POST | `user/confirmWithdrawal` | 5 |
+| `privatePostUserCreateIndependentSubaccount` | POST | `user/createIndependentSubaccount` | 5 |
 | `privatePostUserLogout` | POST | `user/logout` | 5 |
+| `privatePostUserMarginingMode` | POST | `user/marginingMode` | 5 |
+| `privatePostUserPositionMode` | POST | `user/positionMode` | 5 |
 | `privatePostUserPreferences` | POST | `user/preferences` | 5 |
 | `privatePostUserRequestWithdrawal` | POST | `user/requestWithdrawal` | 5 |
 | `privatePostUserUnstakingRequests` | POST | `user/unstakingRequests` | 5 |
 | `privatePostUserUpdateSubaccount` | POST | `user/updateSubaccount` | 5 |
 | `privatePostUserWalletTransfer` | POST | `user/walletTransfer` | 5 |
+| `privatePostUserPriceAlert` | POST | `userPriceAlert` | 5 |
+| `privatePutAddress` | PUT | `address` | 5 |
 | `privatePutGuild` | PUT | `guild` | 5 |
 | `privatePutOrder` | PUT | `order` | 1 |
+| `privatePutReferralCodeId` | PUT | `referralCode/{id}` | 5 |
+| `privatePutUserPriceAlertId` | PUT | `userPriceAlert/{id}` | 5 |
 | `privateDeleteOrder` | DELETE | `order` | 1 |
 | `privateDeleteOrderAll` | DELETE | `order/all` | 1 |
+| `privateDeleteReferralCodeId` | DELETE | `referralCode/{id}` | 5 |
 | `privateDeleteUserUnstakingRequests` | DELETE | `user/unstakingRequests` | 5 |
+| `privateDeleteUserWithdrawal` | DELETE | `user/withdrawal` | 5 |
+| `privateDeleteUserPriceAlert` | DELETE | `userPriceAlert` | 5 |
+| `privateDeleteUserPriceAlertId` | DELETE | `userPriceAlert/{id}` | 5 |
 

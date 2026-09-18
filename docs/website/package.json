@@ -11,11 +11,11 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.197",
+    "@ai-sdk/react": "^3.0.280",
     "@openrouter/ai-sdk-provider": "^2.9.0",
     "@orama/orama": "^3.1.18",
     "@radix-ui/react-presence": "^1.1.5",
-    "ai": "^6.0.195",
+    "ai": "^6.0.277",
     "ccxt": "^4.5.58",
     "class-variance-authority": "^0.7.1",
     "feed": "^6.0.0",
@@ -25,7 +25,7 @@
     "fumadocs-ui": "16.11.5",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "lucide-react": "^1.16.0",
-    "next": "16.2.11",
+    "next": "16.3.4",
     "postcss": "^8.5.23",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

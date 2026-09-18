@@ -156,12 +156,20 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                             'instruments/{instrument}/quote': {'cost': 1},
                             'instruments/{instrument}/funding': {'cost': 1},
                             'instruments/{instrument}/candles': {'cost': 1},
+                            'instruments/volumes/daily': {'cost': 1},
+                            'position-offsets': {'cost': 1},
+                            'fee-rate-tiers': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
+                            'address-book': {'cost': 1},
                             'orders': {'cost': 1},
                             'orders/{id}': {'cost': 1},
+                            'index/{index}/composition': {'cost': 1},
+                            'index/{index}/composition-history': {'cost': 1},
+                            'index/{index}/price': {'cost': 1},
+                            'index/{index}/candles': {'cost': 1},
                             'portfolios': {'cost': 1},
                             'portfolios/{portfolio}': {'cost': 1},
                             'portfolios/{portfolio}/detail': {'cost': 1},
@@ -170,16 +178,30 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                             'portfolios/{portfolio}/balances/{asset}': {'cost': 1},
                             'portfolios/{portfolio}/positions': {'cost': 1},
                             'portfolios/{portfolio}/positions/{instrument}': {'cost': 1},
+                            'portfolios/{portfolio}/position-limits': {'cost': 1},
+                            'portfolios/{portfolio}/position-limits/positions': {'cost': 1},
+                            'portfolios/{portfolio}/position-limits/positions/{instrument}': {'cost': 1},
                             'portfolios/fills': {'cost': 1},
                             'portfolios/{portfolio}/fills': {'cost': 1},
+                            'portfolios/fee-rates': {'cost': 1},
+                            'portfolios/{portfolio}/loans': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}/availability': {'cost': 1},
+                            'portfolios/{portfolio}/margin-call-status': {'cost': 1},
                             'transfers': {'cost': 1},
                             'transfers/{transfer_uuid}': {'cost': 1},
+                            'transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit': {'cost': 1},
                         },
                         'post': {
                             'orders': {'cost': 1},
                             'portfolios': {'cost': 1},
                             'portfolios/margin': {'cost': 1},
+                            'portfolios/{portfolio}/cross-collateral-enabled': {'cost': 1},
+                            'portfolios/{portfolio}/auto-margin-enabled': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}/preview': {'cost': 1},
                             'portfolios/transfer': {'cost': 1},
+                            'portfolios/transfer-position': {'cost': 1},
                             'transfers/withdraw': {'cost': 1},
                             'transfers/address': {'cost': 1},
                             'transfers/create-counterparty-id': {'cost': 1},
@@ -193,6 +215,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'delete': {
                             'orders': {'cost': 1},
                             'orders/{id}': {'cost': 1},
+                        },
+                        'patch': {
+                            'portfolios/{portfolio}': {'cost': 1},
                         },
                     },
                 },
@@ -437,7 +462,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch, default 100 max 10000
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         """
@@ -1167,7 +1192,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #    {
         #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
         #    }
-        # transactionType = self.safe_string(transaction, 'type')
+        # const transactionType = this.safeString (transaction, 'type');
         datetime = self.safe_string(transaction, 'updated_at')
         fromPorfolio = self.safe_dict(transaction, 'from_portfolio', {})
         addressFrom = self.safe_string_n(transaction, ['from_address', 'from_cb_account', self.safe_string_n(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id'])
@@ -2256,7 +2281,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #
         #    {
-        #        "title":"io.javalin.http.BadRequestResponse: Order rejected(DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
+        #        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
         #        "status":400
         #    }
         #

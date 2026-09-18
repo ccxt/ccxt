@@ -22,10 +22,14 @@ interface Exchange {
     publicGetBlocks(params?: {}): Promise<List>;
     publicGetCurrentHeight(params?: {}): Promise<Dict>;
     publicGetCandles(params?: {}): Promise<Dict>;
+    publicGetMarkPriceCandles(params?: {}): Promise<Dict>;
     publicGetFundings(params?: {}): Promise<Dict>;
     publicGetFastbridgeInfo(params?: {}): Promise<Dict>;
     publicGetFundingRates(params?: {}): Promise<Dict>;
     publicGetWithdrawalDelay(params?: {}): Promise<Dict>;
+    publicGetPartnerStats(params?: {}): Promise<Dict>;
+    publicGetSyntheticSpotInfo(params?: {}): Promise<Dict>;
+    publicGetTokenlist(params?: {}): Promise<Dict>;
     publicPostSendTx(params?: {}): Promise<Dict>;
     publicPostSendTxBatch(params?: {}): Promise<Dict>;
     privateGetAccountLimits(params?: {}): Promise<Dict>;
@@ -35,9 +39,12 @@ interface Exchange {
     privateGetLiquidations(params?: {}): Promise<Dict>;
     privateGetPositionFunding(params?: {}): Promise<Dict>;
     privateGetPublicPoolsMetadata(params?: {}): Promise<Dict>;
+    privateGetGetMakerOnlyApiKeys(params?: {}): Promise<Dict>;
     privateGetAccountActiveOrders(params?: {}): Promise<Dict>;
     privateGetAccountInactiveOrders(params?: {}): Promise<Dict>;
+    privateGetAccountOrders(params?: {}): Promise<Dict>;
     privateGetExport(params?: {}): Promise<Dict>;
+    privateGetExportHistoricalTrades(params?: {}): Promise<Dict>;
     privateGetTrades(params?: {}): Promise<Dict>;
     privateGetAccountTxs(params?: {}): Promise<Dict>;
     privateGetDepositHistory(params?: {}): Promise<Dict>;
@@ -45,8 +52,14 @@ interface Exchange {
     privateGetWithdrawHistory(params?: {}): Promise<Dict>;
     privateGetReferralPoints(params?: {}): Promise<Dict>;
     privateGetTransferFeeInfo(params?: {}): Promise<Dict>;
+    privateGetRfqGet(params?: {}): Promise<Dict>;
+    privateGetRfqList(params?: {}): Promise<Dict>;
     privatePostChangeAccountTier(params?: {}): Promise<Dict>;
+    privatePostSetMakerOnlyApiKeys(params?: {}): Promise<Dict>;
     privatePostNotificationAck(params?: {}): Promise<Dict>;
+    privatePostRfqCreate(params?: {}): Promise<Dict>;
+    privatePostRfqRespond(params?: {}): Promise<Dict>;
+    privatePostRfqUpdate(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

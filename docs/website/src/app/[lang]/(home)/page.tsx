@@ -9,7 +9,7 @@ import { i18n } from '@/lib/i18n';
 import homeStrings from '@/lib/i18n-home.json';
 
 export const metadata: Metadata = {
-  title: 'CCXT — API For Crypto Exchanges And Prediction Markets',
+  title: { absolute: 'CCXT — API For Crypto Exchanges And Prediction Markets' },
   description:
     'A unified trading library for 100+ crypto exchanges and prediction markets — one API in JavaScript, Python, PHP, C#, Go, Java and Rust. Made for developers and AI agents.',
   openGraph: {

@@ -145,8 +145,14 @@ pub fn testDecimalToPrecision() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.000123456789".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1.2e-7), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.00012336".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.000273398".to_string()), Value::Int(ccxt::runtime::ROUND), Value::Float(1e-7), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.0002734".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.00005714".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1e-8), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.00005714".to_string()))))));
-    // this line causes problems in JS, fix with Precise
-    // assert!(ccxt::runtime::is_true(&(exchange.decimalToPrecision ('0.0000571495257361', Value::Int(ccxt::runtime::TRUNCATE), 0.00000001, Value::Int(ccxt::runtime::TICK_SIZE)) === '0.00005714')));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.0000571495257361".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1e-8), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.00005714".to_string()))))));
+    // A result under 1e-6 is a decimal, not an exponent: '1e-8' is not a number
+    // decimalToPrecision accepts back, and it is what reaches an order body.
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.00000001".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1e-8), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.00000001".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.000000123".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1e-8), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.00000012".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.0000009".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1e-7), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.0000009".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.0000005".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1e-7), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("0.0000005".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.00000001".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(1e-8), &[Value::Int(ccxt::runtime::TICK_SIZE), Value::Int(ccxt::runtime::PAD_WITH_ZERO)]), &Value::Str("0.00000001".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.01".to_string()), Value::Int(ccxt::runtime::ROUND), Value::Float(0.0001), &[Value::Int(ccxt::runtime::TICK_SIZE), Value::Int(ccxt::runtime::PAD_WITH_ZERO)]), &Value::Str("0.0100".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("0.01".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(0.0001), &[Value::Int(ccxt::runtime::TICK_SIZE), Value::Int(ccxt::runtime::PAD_WITH_ZERO)]), &Value::Str("0.0100".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("-0.000123456789".to_string()), Value::Int(ccxt::runtime::ROUND), Value::Float(1.2e-7), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("-0.00012348".to_string()))))));
@@ -211,19 +217,8 @@ pub fn testDecimalToPrecision() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("-165".to_string()), Value::Int(ccxt::runtime::TRUNCATE), Value::Str("110".to_string()), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("-110".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.decimal_to_precision(Value::Str("-165".to_string()), Value::Int(ccxt::runtime::ROUND), Value::Str("110".to_string()), &[Value::Int(ccxt::runtime::TICK_SIZE)]), &Value::Str("-220".to_string()))))));
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionErrorHandling (todo)
-    //
-    // throws (() =>
-    //     decimalToPrecision ('123456.789', Value::Int(ccxt::runtime::TRUNCATE), -2, Value::Int(ccxt::runtime::DECIMAL_PLACES)),
-    //         'negative precision is not yet supported')
-    //
-    // throws (() =>
-    //     decimalToPrecision ('foo'),
-    //         "invalid number (contains an illegal character 'f')")
-    //
-    // throws (() =>
-    //     decimalToPrecision ('0.01', Value::Int(ccxt::runtime::TRUNCATE), -1, Value::Int(ccxt::runtime::TICK_SIZE)),
-    //         "Value::Int(ccxt::runtime::TICK_SIZE) cant be used with negative numPrecisionDigits")
+    // testDecimalToPrecisionErrorHandling (todo): negative precision (Value::Int(ccxt::runtime::TRUNCATE), -2, Value::Int(ccxt::runtime::DECIMAL_PLACES)),
+    // illegal characters ('foo') and Value::Int(ccxt::runtime::TICK_SIZE) with negative numPrecisionDigits must all throw
     // ----------------------------------------------------------------------------
     // Additional Edge Cases
     // Zero handling variations

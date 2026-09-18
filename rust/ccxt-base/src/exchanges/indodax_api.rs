@@ -92,9 +92,19 @@ impl IndodaxCore {
         self.call_method(Value::Str("private_post_get_order".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostGetOrderByClientOrderId` implicit endpoint.
+    pub async fn private_post_get_order_by_client_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_order_by_client_order_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
     pub async fn private_post_cancel_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostCancelByClientOrderId` implicit endpoint.
+    pub async fn private_post_cancel_by_client_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_cancel_by_client_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawFee` implicit endpoint.

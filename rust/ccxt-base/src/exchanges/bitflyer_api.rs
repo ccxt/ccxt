@@ -62,6 +62,11 @@ impl BitflyerCore {
         self.call_method(Value::Str("public_get_getfundingrate".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetGetfundingratehistory` implicit endpoint.
+    pub async fn public_get_getfundingratehistory(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_getfundingratehistory".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetGetpermissions` implicit endpoint.
     pub async fn private_get_getpermissions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_getpermissions".to_string()), optional_args).await

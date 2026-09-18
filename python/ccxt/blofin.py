@@ -9,12 +9,17 @@ import hashlib
 from ccxt.base.types import ADL, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -28,7 +33,7 @@ class blofin(Exchange, ImplicitAPI):
             'name': 'BloFin',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 200,  # 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': True,
             'has': {
                 'CORS': None,
@@ -146,7 +151,7 @@ class blofin(Exchange, ImplicitAPI):
                 'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -184,6 +189,7 @@ class blofin(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         'market/instruments': {'cost': 1},
+                        'market/instruments-history': {'cost': 1},
                         'market/tickers': {'cost': 1},
                         'market/books': {'cost': 1},
                         'market/trades': {'cost': 1},
@@ -194,6 +200,12 @@ class blofin(Exchange, ImplicitAPI):
                         'market/index-candles': {'cost': 1},
                         'market/mark-price-candles': {'cost': 1},
                         'market/position-tiers': {'cost': 1},
+                        # spot
+                        'spot/market/instruments': {'cost': 1},
+                        'spot/market/tickers': {'cost': 1},
+                        'spot/market/books': {'cost': 1},
+                        'spot/market/trades': {'cost': 1},
+                        'spot/market/candles': {'cost': 1},
                     },
                 },
                 'private': {
@@ -203,26 +215,28 @@ class blofin(Exchange, ImplicitAPI):
                         'asset/bills': {'cost': 1},
                         'asset/withdrawal-history': {'cost': 1},
                         'asset/deposit-history': {'cost': 1},
+                        'asset/deposit-address': {'cost': 1},
                         'account/config': {'cost': 1},
                         'asset/currencies': {'cost': 1},
                         # trading
                         'account/balance': {'cost': 1},
                         'account/positions': {'cost': 1},
                         'account/positions-history': {'cost': 1},
+                        'account/funding-fees': {'cost': 1},
                         'account/margin-mode': {'cost': 1},
                         'account/position-mode': {'cost': 1},
                         'account/leverage-info': {'cost': 1},
                         'account/batch-leverage-info': {'cost': 1},
-                        'trade/orders-pending': {'cost': 1},
-                        'trade/order-detail': {'cost': 1},
-                        'trade/orders-tpsl-pending': {'cost': 1},
-                        'trade/order-tpsl-detail': {'cost': 1},
-                        'trade/orders-algo-pending': {'cost': 1},
-                        'trade/orders-history': {'cost': 1},
-                        'trade/orders-tpsl-history': {'cost': 1},
-                        'trade/orders-algo-history': {'cost': 1},  # todo new
-                        'trade/fills-history': {'cost': 1},
-                        'trade/order/price-range': {'cost': 1},
+                        'trade/orders-pending': {'cost': 1.67},
+                        'trade/order-detail': {'cost': 1.67},
+                        'trade/orders-tpsl-pending': {'cost': 1.67},
+                        'trade/order-tpsl-detail': {'cost': 1.67},
+                        'trade/orders-algo-pending': {'cost': 1.67},
+                        'trade/orders-history': {'cost': 1.67},
+                        'trade/orders-tpsl-history': {'cost': 1.67},
+                        'trade/orders-algo-history': {'cost': 1.67},  # todo new
+                        'trade/fills-history': {'cost': 1.67},
+                        'trade/order/price-range': {'cost': 1.67},
                         # affiliate
                         'affiliate/basic': {'cost': 1},
                         'affiliate/referral-code': {'cost': 1},
@@ -239,44 +253,63 @@ class blofin(Exchange, ImplicitAPI):
                         'copytrading/account/positions-by-contract': {'cost': 1},
                         'copytrading/account/position-mode': {'cost': 1},
                         'copytrading/account/leverage-info': {'cost': 1},
-                        'copytrading/trade/orders-pending': {'cost': 1},
-                        'copytrading/trade/pending-tpsl-by-contract': {'cost': 1},
-                        'copytrading/trade/position-history-by-order': {'cost': 1},
-                        'copytrading/trade/orders-history': {'cost': 1},
-                        'copytrading/trade/pending-tpsl-by-order': {'cost': 1},
+                        'copytrading/trade/orders-pending': {'cost': 1.67},
+                        'copytrading/trade/pending-tpsl-by-contract': {'cost': 1.67},
+                        'copytrading/trade/position-history-by-order': {'cost': 1.67},
+                        'copytrading/trade/orders-history': {'cost': 1.67},
+                        'copytrading/trade/pending-tpsl-by-order': {'cost': 1.67},
                         # user
                         'user/query-apikey': {'cost': 1},
                         # tax
                         'spot/trade/fills-history': {'cost': 1},
+                        # spot
+                        'spot/trade/orders-pending': {'cost': 1.67},
+                        'spot/trade/order-detail': {'cost': 1.67},
+                        'spot/trade/orders-algo-pending': {'cost': 1.67},
+                        'spot/trade/orders-history': {'cost': 1.67},
+                        'spot/trade/orders-algo-history': {'cost': 1.67},
+                        'spot/trade/order/price-range': {'cost': 1.67},
                     },
                     'post': {
                         # account
                         'asset/transfer': {'cost': 1},
                         'asset/demo-apply-money': {'cost': 1},
+                        'asset/withdrawal-apply': {'cost': 1},
                         # trading
-                        'account/set-margin-mode': {'cost': 1},
-                        'account/set-position-mode': {'cost': 1},
-                        'account/set-leverage': {'cost': 1},
-                        'trade/order': {'cost': 1},
-                        'trade/batch-orders': {'cost': 1},
-                        'trade/order-tpsl': {'cost': 1},
-                        'trade/order-algo': {'cost': 1},
-                        'trade/cancel-order': {'cost': 1},
-                        'trade/cancel-batch-orders': {'cost': 1},
-                        'trade/cancel-tpsl': {'cost': 1},
-                        'trade/cancel-algo': {'cost': 1},
-                        'trade/close-position': {'cost': 1},
+                        'account/set-margin-mode': {'cost': 1.67},
+                        'account/set-position-mode': {'cost': 1.67},
+                        'account/set-leverage': {'cost': 1.67},
+                        'trade/order': {'cost': 1.67},
+                        'trade/batch-orders': {'cost': 1.67},
+                        'trade/order-tpsl': {'cost': 1.67},
+                        'trade/order-algo': {'cost': 1.67},
+                        'trade/cancel-order': {'cost': 1.67},
+                        'trade/cancel-batch-orders': {'cost': 1.67},
+                        'trade/cancel-tpsl': {'cost': 1.67},
+                        'trade/cancel-algo': {'cost': 1.67},
+                        'trade/amend-order': {'cost': 1.67},
+                        'trade/amend-batch-orders': {'cost': 1.67},
+                        'trade/amend-tpsl': {'cost': 1.67},
+                        'trade/amend-algo': {'cost': 1.67},
+                        'trade/close-position': {'cost': 1.67},
+                        # spot
+                        'spot/trade/order': {'cost': 1.67},
+                        'spot/trade/batch-orders': {'cost': 1.67},
+                        'spot/trade/order-algo': {'cost': 1.67},
+                        'spot/trade/cancel-order': {'cost': 1.67},
+                        'spot/trade/cancel-batch-orders': {'cost': 1.67},
+                        'spot/trade/cancel-algo': {'cost': 1.67},
                         # copy trading
-                        'copytrading/account/set-position-mode': {'cost': 1},
-                        'copytrading/account/set-leverage': {'cost': 1},
-                        'copytrading/trade/place-order': {'cost': 1},
-                        'copytrading/trade/cancel-order': {'cost': 1},
-                        'copytrading/trade/place-tpsl-by-contract': {'cost': 1},
-                        'copytrading/trade/cancel-tpsl-by-contract': {'cost': 1},
-                        'copytrading/trade/place-tpsl-by-order': {'cost': 1},
-                        'copytrading/trade/cancel-tpsl-by-order': {'cost': 1},
-                        'copytrading/trade/close-position-by-order': {'cost': 1},
-                        'copytrading/trade/close-position-by-contract': {'cost': 1},
+                        'copytrading/account/set-position-mode': {'cost': 1.67},
+                        'copytrading/account/set-leverage': {'cost': 1.67},
+                        'copytrading/trade/place-order': {'cost': 1.67},
+                        'copytrading/trade/cancel-order': {'cost': 1.67},
+                        'copytrading/trade/place-tpsl-by-contract': {'cost': 1.67},
+                        'copytrading/trade/cancel-tpsl-by-contract': {'cost': 1.67},
+                        'copytrading/trade/place-tpsl-by-order': {'cost': 1.67},
+                        'copytrading/trade/cancel-tpsl-by-order': {'cost': 1.67},
+                        'copytrading/trade/close-position-by-order': {'cost': 1.67},
+                        'copytrading/trade/close-position-by-contract': {'cost': 1.67},
                     },
                 },
             },
@@ -390,8 +423,8 @@ class blofin(Exchange, ImplicitAPI):
                     '405': BadRequest,  # Method Not Allowed
                     '406': BadRequest,  # Not Acceptable
                     '429': RateLimitExceeded,  # Too Many Requests
-                    '152001': BadRequest,  # Parameter {} cannot be empty
-                    '152002': BadRequest,  # Parameter {} error
+                    '152001': BadRequest,  # Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
+                    '152002': BadRequest,  # Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
                     '152003': BadRequest,  # Either parameter {} or {} is required
                     '152004': BadRequest,  # JSON syntax error
                     '152005': BadRequest,  # Parameter error: wrong or empty
@@ -406,7 +439,7 @@ class blofin(Exchange, ImplicitAPI):
                     '102005': InvalidOrder,  # Position had been closed
                     '102014': InvalidOrder,  # Limit order exceeds maximum order size limit
                     '102015': InvalidOrder,  # Market order exceeds maximum order size limit
-                    '102022': InvalidOrder,  # Failed to place order. You don’t have any positions of self contract. Turn off Reduce-only to continue.
+                    '102022': InvalidOrder,  # Failed to place order. You don’t have any positions of this contract. Turn off Reduce-only to continue.
                     '102037': InvalidOrder,  # TP trigger price should be higher than the latest trading price
                     '102038': InvalidOrder,  # SL trigger price should be lower than the latest trading price
                     '102039': InvalidOrder,  # TP trigger price should be lower than the latest trading price
@@ -420,10 +453,50 @@ class blofin(Exchange, ImplicitAPI):
                     '102053': InvalidOrder,  # take profit trigger price should be lower than the best bid price
                     '102054': InvalidOrder,  # take profit trigger price should be higher than the best ask price
                     '102055': InvalidOrder,  # stop loss trigger price should be lower than the best ask price
-                    '102064': BadRequest,  # Buy price is not within the price limit(Minimum: 310.40; Maximum:1,629.40)
+                    '102064': BadRequest,  # Buy price is not within the price limit (Minimum: 310.40; Maximum:1,629.40)
                     '102065': BadRequest,  # Sell price is not within the price limit
-                    '102068': BadRequest,  # Cancel failed order has been filled, triggered, canceled or does not exist
+                    '102068': BadRequest,  # Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  # Internal error; unable to process your request. Please try again.
+                    '102067': OrderNotFound,  # Order modification failed as the order has been filled, triggered, canceled or does not exist.
+                    '102089': BadRequest,  # Position mode mismatch
+                    '102148': DuplicateOrderId,  # Duplicate requestId, request ignored.
+                    '103003': InsufficientFunds,  # Order failed. Insufficient USDT margin in account
+                    '110006': InvalidOrder,  # You have pending cross orders. Please cancel them before adjusting your leverage.
+                    '110019': InvalidOrder,  # Setting failed. Cancel any open orders, and close positions first.
+                    '148082': BadRequest,  # Callback percentage range 0.1% - 100%
+                    '148083': BadRequest,  # Callback constant range
+                    '152011': PermissionDenied,  # Transaction API Key does not support brokerId
+                    '152012': BadRequest,  # BrokerId is required
+                    '152013': PermissionDenied,  # Unmatched brokerId, please check your API key's bound broker
+                    '152014': BadRequest,  # Instrument ID does not exist
+                    '152015': BadRequest,  # Number of instId values exceeds the maximum limit of 20
+                    '152020': InvalidAddress,  # Address binding not found.
+                    '152022': BadRequest,  # Current network is not available.
+                    '152023': PermissionDenied,  # This address is still within the 24-hour withdrawal lock period.
+                    '152024': PermissionDenied,  # Your account now can only withdraw to whitelist addresses.
+                    '152025': PermissionDenied,  # Deposits not supported yet, contact customer support for details.
+                    '152026': BadRequest,  # Amount precision error.
+                    '152027': BadRequest,  # The withdrawal must exceed the minimum limit.
+                    '152028': InsufficientFunds,  # Insufficient balance.
+                    '152029': PermissionDenied,  # The maximum daily withdrawal amount has been reached.
+                    '152030': DuplicateOrderId,  # Duplicated clientId.
+                    '152031': InvalidAddress,  # This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
+                    '152032': PermissionDenied,  # Quick withdrawal daily limit exceeded. Please complete 2FA verification.
+                    '152401': AuthenticationError,  # Access key does not exist
+                    '152402': AuthenticationError,  # Access key has expired
+                    '152404': PermissionDenied,  # This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
+                    '152405': InvalidNonce,  # Timestamp in header or signature has expired, need to be within 60s
+                    '152406': PermissionDenied,  # Your IP is not included in your API key's IP whitelist
+                    '152407': InvalidNonce,  # Repeated nonce, Reusing within 60 seconds is not allowed.
+                    '152408': AuthenticationError,  # Passphrase error
+                    '152409': AuthenticationError,  # Signature verification failed
+                    '152410': InvalidNonce,  # The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
+                    '152420': DuplicateOrderId,  # Duplicate order in batch request
+                    '152421': DuplicateOrderId,  # requestId already exists, please try again later
+                    '152422': BadRequest,  # Exactly one of callbackRatio and callbackSpread must be provided
+                    '152423': InvalidOrder,  # New size cannot be less than filled size
+                    '152428': BadRequest,  # Invalid trigger price type
+                    '152429': BadRequest,  # Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account': InsufficientFunds,  # Insufficient USDT margin in account
                 },
                 'broad': {
@@ -458,10 +531,49 @@ class blofin(Exchange, ImplicitAPI):
                     'USDT': 'TRC20',
                 },
                 'networks': {
+                    # code -> the live withdrawal-apply chain identifier where
+                    # it carries no parenthesized suffix; the suffix family
+                    # ('Tron (TRC20)' and friends) is constructed at runtime
+                    # in networkCodeToChainId from networkPrefixes, because a
+                    # space before a paren inside a source literal is not
+                    # transpiler-safe
                     'BTC': 'Bitcoin',
-                    'BEP20': 'BSC',
-                    'ERC20': 'ERC20',
-                    'TRC20': 'TRC20',
+                    'SOL': 'Solana',
+                    'MATIC': 'Polygon POS',
+                    'AVAXC': 'AVAX C-Chain',
+                    'ARBITRUM': 'Arbitrum One',
+                    'OP': 'Optimism',
+                    'KAIA': 'KAIA',
+                },
+                'networkPrefixes': {
+                    # code -> the display-name prefix; the venue id is
+                    # prefix + space + parenthesized suffix, where the suffix
+                    # defaults to the unified code itself
+                    'TRC20': 'Tron',
+                    'ERC20': 'Ethereum',
+                    'BEP20': 'BNB Smart Chain',
+                    'APT': 'APT',
+                    'TON': 'TON',
+                },
+                'networkSuffixes': {
+                    # only where the parenthesized suffix differs from the code
+                    'TON': 'Toncoin',
+                },
+                'networkCodesBySuffix': {
+                    # reverse of networkSuffixes for parsing venue ids
+                    'Toncoin': 'TON',
+                },
+                'networksById': {
+                    # paren-free venue ids and legacy short forms -> unified;
+                    # ids with a parenthesized suffix are parsed at runtime in
+                    # chainIdToNetworkCode
+                    'Bitcoin': 'BTC',
+                    'Solana': 'SOL',
+                    'Polygon POS': 'MATIC',
+                    'AVAX C-Chain': 'AVAXC',
+                    'Arbitrum One': 'ARBITRUM',
+                    'Optimism': 'OP',
+                    'BSC': 'BEP20',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -488,7 +600,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'withdraw': {
                     # a funding password credential is required by the exchange for the
-                    # withdraw call(not to be confused with the api password credential)
+                    # withdraw call (not to be confused with the api password credential)
                     'password': None,
                     'pwd': None,  # password or pwd both work
                 },
@@ -625,7 +737,7 @@ class blofin(Exchange, ImplicitAPI):
         #         "data": [
         #             {
         #                 "asks": [
-        #                     ["0.07228","4.211619","0","2"],  # price, amount, liquidated orders, total open orders
+        #                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
         #                     ["0.0723","299.880364","0","2"],
         #                     ["0.07231","3.72832","0","1"],
         #                 ],
@@ -762,7 +874,7 @@ class blofin(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetch trades(response similar for REST & WS)
+        # fetch trades (response similar for REST & WS)
         #
         #   {
         #       "tradeId": "3263934920",
@@ -902,15 +1014,15 @@ class blofin(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
-        #         "1678928760000",  # timestamp
-        #         "24341.4",  # open
-        #         "24344",  # high
-        #         "24313.2",  # low
-        #         "24323",  # close
-        #         "628",  # contract volume
-        #         "2.5819",  # base volume
-        #         "62800",  # quote volume
-        #         "0"  # candlestick state
+        #         "1678928760000", // timestamp
+        #         "24341.4", // open
+        #         "24344", // high
+        #         "24313.2", // low
+        #         "24323", // close
+        #         "628", // contract volume
+        #         "2.5819", // base volume
+        #         "62800", // quote volume
+        #         "0" // candlestick state
         #     ]
         #
         return [
@@ -935,7 +1047,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1109,8 +1221,8 @@ class blofin(Exchange, ImplicitAPI):
         #                 "orderFrozen": "14920.994472632597427761",
         #                 "equityUsd": "10011254.077985990315787910",
         #                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
-        #                 "bonus": "0"  # present only in REST
-        #                 "unrealizedPnl": "0"  # present only in WS
+        #                 "bonus": "0" // present only in REST
+        #                 "unrealizedPnl": "0" // present only in WS
         #             }
         #         ]
         #     }
@@ -1173,7 +1285,7 @@ class blofin(Exchange, ImplicitAPI):
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
-            # blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            # blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
             'percentage': None,
@@ -1310,9 +1422,9 @@ class blofin(Exchange, ImplicitAPI):
         #     "cancelSource": "not_canceled",
         #     "cancelSourceReason": null,
         #     "brokerId": "ec6dd3a7dd982d0b"
-        #     "filled_amount": "1.000000000000000000",  # filledAmount in "ws" watchOrders
-        #     "cancelSource": "",  # only in WS
-        #     "instType": "SWAP",  # only in WS
+        #     "filled_amount": "1.000000000000000000", // filledAmount in "ws" watchOrders
+        #     "cancelSource": "", // only in WS
+        #     "instType": "SWAP", // only in WS
         # }
         #
         id = self.safe_string_n(order, ['tpslId', 'orderId', 'algoId'])
@@ -1471,7 +1583,7 @@ class blofin(Exchange, ImplicitAPI):
             'side': side,
             'positionSide': positionSide,
             'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
-            'reduceOnly': self.safe_bool(params, 'reduceOnly', True),  # self is TP &  SL protective order, so it should be reduceOnly by default
+            'reduceOnly': self.safe_bool(params, 'reduceOnly', True),  # this is TP &  SL protective order, so it should be reduceOnly by default
         }
         if amount is not None:
             request['size'] = self.amount_to_precision(symbol, amount)
@@ -1487,7 +1599,7 @@ class blofin(Exchange, ImplicitAPI):
             else:
                 slLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
                 if slLimitPrice is None:
-                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter(instead of "price" argument) for stop loss orders when the order type is not market')
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market')
                 request['slOrderPrice'] = self.price_to_precision(symbol, slLimitPrice)
                 params = self.omit(params, 'stopLossLimitPrice')
         if takeProfitPrice is not None:
@@ -1497,7 +1609,7 @@ class blofin(Exchange, ImplicitAPI):
             else:
                 tpLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
                 if tpLimitPrice is None:
-                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter(instead of "price" argument) for take profit orders when the order type is not market')
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market')
                 request['tpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
                 params = self.omit(params, 'takeProfitLimitPrice')
         request['marginMode'] = marginMode
@@ -1759,6 +1871,122 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
+    def network_code_to_chain_id(self, networkCode: str) -> Str:
+        # the live venue identifies chains by display names; the suffix
+        # family is built here as prefix + space + parenthesized suffix
+        # because such literals are not transpiler-safe in source
+        networks = self.safe_dict(self.options, 'networks', {})
+        direct = self.safe_string(networks, networkCode)
+        if direct is not None:
+            return direct
+        prefixes = self.safe_dict(self.options, 'networkPrefixes', {})
+        prefix = self.safe_string(prefixes, networkCode)
+        if prefix is not None:
+            suffixes = self.safe_dict(self.options, 'networkSuffixes', {})
+            suffix = self.safe_string(suffixes, networkCode, networkCode)
+            return prefix + ' ' + '(' + suffix + ')'
+        return networkCode
+
+    def chain_id_to_network_code(self, chainId: Str) -> Str:
+        # live history rows and the currencies registry carry display-name
+        # chain ids like Tron with a parenthesized TRC20 suffix (verified
+        # live 2026-09-15), while the doc examples still show short forms -
+        # parse the suffix when present, fall back to the id maps otherwise
+        if chainId is None:
+            return None
+        if chainId.find('(') > -1:
+            # php-safe suffix extraction: split instead of index arithmetic,
+            # because a stored strpos result and a two-argument slice do not
+            # survive the php conversion (false-vs-int compare; length arg)
+            parts = chainId.split('(')
+            tail = self.safe_string(parts, 1, '')
+            tailParts = tail.split(')')
+            suffix = self.safe_string(tailParts, 0)
+            bySuffix = self.safe_dict(self.options, 'networkCodesBySuffix', {})
+            return self.safe_string(bySuffix, suffix, suffix)
+        # delegate the paren-free branch to the base resolver so the
+        # currency-scoped networks and the deprecated-network-code aliases
+        # keep applying alongside options['networksById']
+        return self.network_id_to_code(chainId)
+
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+        """
+        make a withdrawal
+
+        https://docs.blofin.com/index.html#withdrawal
+
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+        :param str address: the address to withdraw to, or a UID / email / phone number for an internal transfer
+        :param str tag: additional identifier(memo / payment id) required by certain networks
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+        :param str [params.dest]: 'onchain'(default) or 'internal' for an internal transfer
+        :param str [params.addrType]: address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+        :param str [params.areaCode]: area code for the phone number, required when address is a phone number
+        :param str [params.clientId]: a client-supplied id of up to 32 case-sensitive alphanumerics
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        # LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        # - addrType is documented optional but the live venue rejects
+        #   on-chain withdrawals without it: 152001 "Parameter addrType
+        #   cannot be empty" - defaulted to 1 below
+        # - the chain identifiers accepted here are the DISPLAY NAMES from
+        #   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        #   the short forms shown in the doc examples ("TRC20") are rejected
+        #   with 152002 "Invalid parameter" - see options["networks"]
+        # - 152002 responses omit the offending field name even though the
+        #   error table documents the message as "Parameter {} error"
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': self.number_to_string(amount),
+        }
+        dest = self.safe_string(params, 'dest', 'onchain')
+        request['dest'] = dest
+        params = self.omit(params, 'dest')
+        if dest == 'onchain':
+            self.check_address(address)
+            # the doc's Request Parameters table marks addrType "Required:
+            # No", but the live venue rejects on-chain withdrawals without
+            # it (152001 "Parameter addrType cannot be empty") - default to
+            # 1 = wallet address, callers can override for other kinds
+            request['addrType'] = self.safe_string(params, 'addrType', '1')
+            params = self.omit(params, 'addrType')
+        if tag is not None:
+            request['tag'] = tag
+        # consume the unified network key unconditionally so it never leaks
+        # onto the wire; an explicit raw params['chain'] takes precedence
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        chain = self.safe_string(params, 'chain')
+        if chain is None:
+            if networkCode is not None:
+                request['chain'] = self.network_code_to_chain_id(networkCode)
+            elif dest == 'onchain':
+                # required for on-chain withdrawals, optional for internal transfers
+                raise ArgumentsRequired(self.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals')
+        response = self.privatePostAssetWithdrawalApply(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "withdrawId": "a1b2c3d4e5",
+        #             "clientId": "broker-20260706-0001"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        # the response carries only withdrawId + clientId, and this class's
+        # parseTransaction reads every field from the payload - seed the
+        # parsed structure from the request so the unified transaction
+        # reflects what was actually submitted
+        return self.parse_transaction(self.extend(request, data), currency)
+
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1848,6 +2076,16 @@ class blofin(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_number(transaction, 'amount')
+        # live history rows carry the DISPLAY-NAME chain identifiers
+        # ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        # examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        # the parenthesized suffix for the display-name family, and the
+        # paren-free ids resolve through the base networkIdToCode with
+        # options['networksById']. note the history
+        # amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        # amount 29 + fee 1
+        networkId = self.safe_string(transaction, 'chain')
+        networkCode = self.chain_id_to_network_code(networkId)
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer(transaction, 'ts')
         feeCurrencyId = self.safe_string(transaction, 'feeCurrency')
@@ -1858,7 +2096,7 @@ class blofin(Exchange, ImplicitAPI):
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': None,
+            'network': networkCode,
             'addressFrom': None,
             'addressTo': addressTo,
             'address': address,
@@ -1961,7 +2199,7 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: whether the order is a stop/trigger order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
+        # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         if self.markets is None:
@@ -2001,9 +2239,9 @@ class blofin(Exchange, ImplicitAPI):
                 })
         response: dict
         if method == 'privatePostTradeCancelTpsl':
-            response = self.privatePostTradeCancelTpsl(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.privatePostTradeCancelTpsl(request)  # * dont extend with params, otherwise ARRAY will be turned into OBJECT
         else:
-            response = self.privatePostTradeCancelBatchOrders(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.privatePostTradeCancelBatchOrders(request)  # * dont extend with params, otherwise ARRAY will be turned into OBJECT
         ordersData = self.safe_list(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
 
@@ -2173,7 +2411,7 @@ class blofin(Exchange, ImplicitAPI):
         #         liquidationPrice: '10.116655172370356435',
         #         markPrice: '68.96',
         #         initialMargin: '22.988770743333333333',
-        #         margin: '',  # self field might not exist in rest response
+        #         margin: '', // this field might not exist in rest response
         #         marginRatio: '152.523509620342499273',
         #         maintenanceMargin: '0.34483156115',
         #         adl: '4',
@@ -2305,7 +2543,7 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverages', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbols = self.market_symbols(symbols)
@@ -2355,7 +2593,7 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -2430,7 +2668,7 @@ class blofin(Exchange, ImplicitAPI):
         https://blofin.com/docs#close-positions
 
         :param str symbol: Unified CCXT market symbol
-        :param str [side]: 'buy' or 'sell', leave in net mode
+        :param str [side]: 'buy' or 'sell', leave as None in net mode
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross
@@ -2563,7 +2801,7 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_margin_mode(data, market)  # Dict, not MarginMode: self override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+        return self.parse_margin_mode(data, market)  # Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
 
     def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
@@ -2737,7 +2975,7 @@ class blofin(Exchange, ImplicitAPI):
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + request
-        # type = self.getPathAuthenticationType(path)
+        # const type = this.getPathAuthenticationType (path);
         if api == 'public':
             if not self.is_empty(query):
                 url += '?' + self.urlencode(query)

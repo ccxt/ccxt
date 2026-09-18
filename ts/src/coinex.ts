@@ -327,6 +327,7 @@ export default class coinex extends Exchange {
                             'futures/basis-history': { 'cost': 1 } as Endpoint<Dict>,
                             'assets/deposit-withdraw-config': { 'cost': 1 } as Endpoint<Dict>,
                             'assets/all-deposit-withdraw-config': { 'cost': 1 } as Endpoint<Dict>,
+                            'assets/info': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
@@ -438,6 +439,8 @@ export default class coinex extends Exchange {
                             'futures/adjust-position-leverage': { 'cost': 20 } as Endpoint<Dict>,
                             'futures/set-position-stop-loss': { 'cost': 20 } as Endpoint<Dict>,
                             'futures/set-position-take-profit': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/modify-position-stop-loss': { 'cost': 20 } as Endpoint<Dict>,
+                            'futures/modify-position-take-profit': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                 },

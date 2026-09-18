@@ -152,7 +152,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 '2w': '14D',
                 '1M': '1M',
             },
-            # cheapest endpoint is 240 requests per minute => ~ 4 requests per second =>( 1000ms / 4 ) = 250ms between requests on average
+            # cheapest endpoint is 240 requests per minute => ~ 4 requests per second => ( 1000ms / 4 ) = 250ms between requests on average
             'rateLimit': 250,
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178',
@@ -196,10 +196,10 @@ class bitfinex(Exchange, ImplicitAPI):
                         'conf/pub:info:{object}:{detail}': {'cost': 2.7},
                         'conf/pub:info:pair': {'cost': 2.7},
                         'conf/pub:info:pair:futures': {'cost': 2.7},
-                        'conf/pub:info:tx:status': {'cost': 2.7},  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
+                        'conf/pub:info:tx:status': {'cost': 2.7},  # [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
                         'conf/pub:fees': {'cost': 2.7},
-                        'platform/status': {'cost': 8},  # 30 requests per minute = 0.5 requests per second =>( 1000ms / rateLimit ) / 0.5 = 8
-                        'tickers': {'cost': 2.7},  # 90 requests a minute = 1.5 requests per second =>( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'platform/status': {'cost': 8},  # 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': {'cost': 2.7},  # 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
                         'ticker/{symbol}': {'cost': 2.7},
                         'tickers/hist': {'cost': 2.7},
                         'trades/{symbol}/hist': {'cost': 2.7},
@@ -226,7 +226,7 @@ class bitfinex(Exchange, ImplicitAPI):
                         'status/{type}': {'cost': 2.7},
                         'status/deriv': {'cost': 2.7},
                         'status/deriv/{symbol}/hist': {'cost': 2.7},
-                        'liquidations/hist': {'cost': 80},  # 3 requests a minute = 0.05 requests a second =>( 1000ms / rateLimit ) / 0.05 = 80
+                        'liquidations/hist': {'cost': 80},  # 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
                         'rankings/{key}:{timeframe}:{symbol}/{section}': {'cost': 2.7},
                         'rankings/{key}:{timeframe}:{symbol}/hist': {'cost': 2.7},
                         'pulse/hist': {'cost': 2.7},
@@ -241,8 +241,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'post': {
-                        # 'auth/r/orders/{symbol}/new',  # outdated
-                        # 'auth/r/stats/perf:{timeframe}/hist',  # outdated
+                        # 'auth/r/orders/{symbol}/new', // outdated
+                        # 'auth/r/stats/perf:{timeframe}/hist', // outdated
                         'auth/r/wallets': {'cost': 2.7},
                         'auth/r/wallets/hist': {'cost': 2.7},
                         'auth/r/orders': {'cost': 2.7},
@@ -254,6 +254,7 @@ class bitfinex(Exchange, ImplicitAPI):
                         'auth/w/order/cancel/multi': {'cost': 2.7},
                         'auth/r/orders/{symbol}/hist': {'cost': 2.7},
                         'auth/r/orders/hist': {'cost': 2.7},
+                        'auth/r/orders/otc/{symbol}/hist': {'cost': 2.7},
                         'auth/r/order/{symbol}:{id}/trades': {'cost': 2.7},
                         'auth/r/trades/{symbol}/hist': {'cost': 2.7},
                         'auth/r/trades/hist': {'cost': 2.7},
@@ -269,6 +270,7 @@ class bitfinex(Exchange, ImplicitAPI):
                         'auth/r/positions/hist': {'cost': 2.7},
                         'auth/r/positions/audit': {'cost': 2.7},
                         'auth/r/positions/snap': {'cost': 2.7},
+                        'auth/w/position/update/funding/type': {'cost': 2.7},
                         'auth/w/deriv/collateral/set': {'cost': 2.7},
                         'auth/w/deriv/collateral/limits': {'cost': 2.7},
                         'auth/r/funding/offers': {'cost': 2.7},
@@ -299,12 +301,15 @@ class bitfinex(Exchange, ImplicitAPI):
                         'auth/w/token': {'cost': 2.7},
                         'auth/r/audit/hist': {'cost': 2.7},
                         'auth/w/transfer': {'cost': 2.7},  # ratelimit not in docs...
-                        'auth/w/deposit/address': {'cost': 24},  # 10 requests a minute = 0.166 requests per second =>( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/address': {'cost': 24},  # 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/r/deposit/address/all': {'cost': 24},  # 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
                         'auth/w/deposit/invoice': {'cost': 24},  # ratelimit not in docs
+                        'auth/r/ext/invoice/payments': {'cost': 2.7},
                         'auth/w/withdraw': {'cost': 24},  # ratelimit not in docs
                         'auth/r/movements/{currency}/hist': {'cost': 2.7},
                         'auth/r/movements/hist': {'cost': 2.7},
-                        'auth/r/alerts': {'cost': 5.34},  # 45 requests a minute = 0.75 requests per second =>( 1000ms / rateLimit ) / 0.749 => 5.34
+                        'auth/r/movements/info': {'cost': 2.7},
+                        'auth/r/alerts': {'cost': 5.34},  # 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set': {'cost': 2.7},
                         'auth/w/alert/price:{symbol}:{price}/del': {'cost': 2.7},
                         'auth/w/alert/{type}:{symbol}:{price}/del': {'cost': 2.7},
@@ -313,8 +318,11 @@ class bitfinex(Exchange, ImplicitAPI):
                         'auth/r/settings': {'cost': 2.7},
                         'auth/w/settings/del': {'cost': 2.7},
                         'auth/r/pulse/hist': {'cost': 2.7},
-                        'auth/w/pulse/add': {'cost': 16},  # 15 requests a minute = 0.25 requests per second =>( 1000ms / rateLimit ) / 0.25 => 16
+                        'auth/w/pulse/add': {'cost': 16},  # 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
                         'auth/w/pulse/del': {'cost': 2.7},
+                        'auth/w/ext/wallets/deposits/request': {'cost': 2.7},
+                        'auth/w/ext/wallets/withdrawals/request': {'cost': 2.7},
+                        'auth/r/ext/wallets/transfers/free/count': {'cost': 2.7},
                     },
                 },
             },
@@ -374,20 +382,20 @@ class bitfinex(Exchange, ImplicitAPI):
                     'EXCHANGE MARKET': 'market',
                     'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
-                    # 'STOP': None,
+                    # 'STOP': undefined,
                     'EXCHANGE STOP': 'market',
-                    # 'TRAILING STOP': None,
-                    # 'EXCHANGE TRAILING STOP': None,
-                    # 'FOK': None,
+                    # 'TRAILING STOP': undefined,
+                    # 'EXCHANGE TRAILING STOP': undefined,
+                    # 'FOK': undefined,
                     'EXCHANGE FOK': 'limit',
-                    # 'STOP LIMIT': None,
+                    # 'STOP LIMIT': undefined,
                     'EXCHANGE STOP LIMIT': 'limit',
-                    # 'IOC': None,
+                    # 'IOC': undefined,
                     'EXCHANGE IOC': 'limit',
                 },
                 # convert 'market' to 'EXCHANGE MARKET'
                 # convert 'limit' 'EXCHANGE LIMIT'
-                # everything else remains
+                # everything else remains as is
                 'orderTypes': {
                     'market': 'EXCHANGE MARKET',
                     'limit': 'EXCHANGE LIMIT',
@@ -400,7 +408,7 @@ class bitfinex(Exchange, ImplicitAPI):
                     'CHN': 'CHN',
                 },
                 # actually the correct names unlike the v1
-                # we don't want to self.extend self with accountsByType in v1
+                # we don't want to extend this with accountsByType in v1
                 'v2AccountsByType': {
                     'spot': 'exchange',
                     'exchange': 'exchange',
@@ -513,7 +521,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     '11010': RateLimitExceeded,
-                    '10001': PermissionDenied,  # api_key: permission invalid(#10001)
+                    '10001': PermissionDenied,  # api_key: permission invalid (#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
@@ -550,7 +558,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'LUNA': 'LUNC',
                 'LUNA2': 'LUNA',
                 'MNA': 'MANA',
-                'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
+                'ORS': 'ORS Group',  # conflict with Origin Sport #3230
                 'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
@@ -569,11 +577,11 @@ class bitfinex(Exchange, ImplicitAPI):
             },
         })
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return(code in self.options['fiat'])
 
     def get_currency_name(self, code: object):
-        # temporary fix for transpiler recognition, even though self is in parent class
+        # temporary fix for transpiler recognition, even though this is in parent class
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
@@ -581,7 +589,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def amount_to_precision(self, symbol: Str, amount: object):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
-        # Anything exceeding self will be rounded to the 8th decimal.
+        # Anything exceeding this will be rounded to the 8th decimal.
         symbol = self.safe_symbol(symbol)
         market = self.market(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
@@ -592,7 +600,7 @@ class bitfinex(Exchange, ImplicitAPI):
         price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
-        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
@@ -606,8 +614,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         #
-        #    [1]  # operative
-        #    [0]  # maintenance
+        #    [1] // operative
+        #    [0] // maintenance
         #
         response = await self.publicGetPlatformStatus(params)
         statusRaw = self.safe_string(response, 0)
@@ -636,7 +644,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'pub:list:pair:securities',
             # sample: "ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"
             'pub:list:pair:margin',
-            # sample: 'ADABTC', 'AVAX:BTC', ...  # delimiter inconsistency
+            # sample: 'ADABTC', 'AVAX:BTC', ... // delimiter inconsistency
         ]
         config = ','.join(labels)
         request = {
@@ -677,8 +685,8 @@ class bitfinex(Exchange, ImplicitAPI):
             base = self.safe_string(splitBase, 0)
             quote = self.safe_string(splitQuote, 0)
             symbol = base + '/' + quote
-            # baseId = 'f' + baseId
-            # quoteId = 'f' + quoteId
+            # baseId = 'f' + baseId;
+            # quoteId = 'f' + quoteId;
             settle = None
             settleId = None
             if swap:
@@ -734,7 +742,7 @@ class bitfinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for self
+                'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
                 'info': market,
             })
         return result
@@ -772,58 +780,58 @@ class bitfinex(Exchange, ImplicitAPI):
         #         a list of symbols
         #         ["AAA","ABS","ADA"],
         #
-        #         # sym
-        #         # maps symbols to their API symbols, BAB > BCH
+        #         // sym
+        #         // maps symbols to their API symbols, BAB > BCH
         #         [
-        #             ["BAB", "BCH"],
-        #             ["CNHT", "CNHt"],
-        #             ["DSH", "DASH"],
-        #             ["IOT", "IOTA"],
-        #             ["LES", "LEO-EOS"],
-        #             ["LET", "LEO-ERC20"],
-        #             ["STJ", "STORJ"],
-        #             ["TSD", "TUSD"],
-        #             ["UDC", "USDC"],
-        #             ["USK", "USDK"],
-        #             ["UST", "USDt"],
-        #             ["USTF0", "USDt0"],
-        #             ["XCH", "XCHF"],
-        #             ["YYW", "YOYOW"],
-        #             # ...
+        #             [ "BAB", "BCH" ],
+        #             [ "CNHT", "CNHt" ],
+        #             [ "DSH", "DASH" ],
+        #             [ "IOT", "IOTA" ],
+        #             [ "LES", "LEO-EOS" ],
+        #             [ "LET", "LEO-ERC20" ],
+        #             [ "STJ", "STORJ" ],
+        #             [ "TSD", "TUSD" ],
+        #             [ "UDC", "USDC" ],
+        #             [ "USK", "USDK" ],
+        #             [ "UST", "USDt" ],
+        #             [ "USTF0", "USDt0" ],
+        #             [ "XCH", "XCHF" ],
+        #             [ "YYW", "YOYOW" ],
+        #             // ...
         #         ],
-        #         # label
-        #         # verbose friendly names, BNT > Bancor
+        #         // label
+        #         // verbose friendly names, BNT > Bancor
         #         [
-        #             ["BAB", "Bitcoin Cash"],
-        #             ["BCH", "Bitcoin Cash"],
-        #             ["LEO", "Unus Sed LEO"],
-        #             ["LES", "Unus Sed LEO(EOS)"],
-        #             ["LET", "Unus Sed LEO(ERC20)"],
-        #             # ...
+        #             [ "BAB", "Bitcoin Cash" ],
+        #             [ "BCH", "Bitcoin Cash" ],
+        #             [ "LEO", "Unus Sed LEO" ],
+        #             [ "LES", "Unus Sed LEO (EOS)" ],
+        #             [ "LET", "Unus Sed LEO (ERC20)" ],
+        #             // ...
         #         ],
-        #         # unit
-        #         # maps symbols to unit of measure where applicable
+        #         // unit
+        #         // maps symbols to unit of measure where applicable
         #         [
-        #             ["IOT", "Mi|MegaIOTA"],
+        #             [ "IOT", "Mi|MegaIOTA" ],
         #         ],
-        #         # undl
-        #         # maps derivatives symbols to their underlying currency
+        #         // undl
+        #         // maps derivatives symbols to their underlying currency
         #         [
-        #             ["USTF0", "UST"],
-        #             ["BTCF0", "BTC"],
-        #             ["ETHF0", "ETH"],
+        #             [ "USTF0", "UST" ],
+        #             [ "BTCF0", "BTC" ],
+        #             [ "ETHF0", "ETH" ],
         #         ],
-        #         # pool
-        #         # maps symbols to underlying network/protocol they operate on
+        #         // pool
+        #         // maps symbols to underlying network/protocol they operate on
         #         [
-        #             ['SAN', 'ETH'], ['OMG', 'ETH'], ['AVT', 'ETH'], ["EDO", "ETH"],
-        #             ['ESS', 'ETH'], ['ATD', 'EOS'], ['ADD', 'EOS'], ["MTO", "EOS"],
-        #             ['PNK', 'ETH'], ['BAB', 'BCH'], ['WLO', 'XLM'], ["VLD", "ETH"],
-        #             ['BTT', 'TRX'], ['IMP', 'ETH'], ['SCR', 'ETH'], ["GNO", "ETH"],
-        #             # ...
+        #             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ "EDO", "ETH" ],
+        #             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ "MTO", "EOS" ],
+        #             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ "VLD", "ETH" ],
+        #             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ "GNO", "ETH" ],
+        #             // ...
         #         ],
-        #         # explorer
-        #         # maps symbols to their recognised block explorer URLs
+        #         // explorer
+        #         // maps symbols to their recognised block explorer URLs
         #         [
         #             [
         #                 "AIO",
@@ -833,16 +841,16 @@ class bitfinex(Exchange, ImplicitAPI):
         #                     "https://mainnet.aion.network/#/transaction/VAL"
         #                 ]
         #             ],
-        #             # ...
+        #             // ...
         #         ],
-        #         # fee
-        #         # maps currencies to their withdrawal fees
+        #         // fee
+        #         // maps currencies to their withdrawal fees
         #         [
         #             ["AAA",[0,0]],
         #             ["ABS",[0,131.3]],
         #             ["ADA",[0,0.3]],
         #         ],
-        #         # deposit/withdrawal data
+        #         // deposit/withdrawal data
         #         [
         #           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
         #           ...
@@ -903,9 +911,9 @@ class bitfinex(Exchange, ImplicitAPI):
         fee = self.safe_number(fees, 1)
         undl = self.safe_list(indexed['undl'], id, [])
         defaultCurrencyPrecision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')  # kept here for backward-compatibility
-        # numberToString instead of an `as string` cast: the describe() default for self option is the
-        # NUMBER 8(and users may override with numbers too), and the hard cast makes the C# build throw
-        # InvalidCastException Int32 to str here, breaking bitfinex loadMarkets entirely in C#
+        # numberToString instead of an `as string` cast: the describe() default for this option is the
+        # NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
+        # InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
         precision = self.number_to_string(self.handle_option('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision))
         networks = {}
         networkIds = self.safe_list(indexedNetworks, id, [])
@@ -969,11 +977,11 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
-        # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
+        # this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
+        # there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         if self.markets is None:
             await self.load_markets()
-        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'v2AccountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
@@ -994,7 +1002,7 @@ class bitfinex(Exchange, ImplicitAPI):
             currencyId = self.safe_string_lower(balance, 1, '')
             start = len(currencyId) - 2
             isDerivativeCode = currencyId[start:] == 'f0'
-            # self will only filter the derivative codes if the requestedType is 'derivatives'
+            # this will only filter the derivative codes if the requestedType is 'derivatives'
             derivativeCondition = (not isDerivative or isDerivativeCode)
             if (accountType == type) and derivativeCondition:
                 code = self.safe_currency_code(currencyId)
@@ -1018,10 +1026,10 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         # transferring between derivatives wallet and regular wallet is not documented in their API
-        # however we support it in CCXT(from just looking at web inspector)
+        # however we support it in CCXT (from just looking at web inspector)
         if self.markets is None:
             await self.load_markets()
-        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'v2AccountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount)
         if fromId is None:
             keys = list(accountsByType.keys())
@@ -1034,7 +1042,7 @@ class bitfinex(Exchange, ImplicitAPI):
         fromCurrencyId = self.convert_derivatives_id(currency, fromAccount)
         toCurrencyId = self.convert_derivatives_id(currency, toAccount)
         requestedAmount = self.currency_to_precision(code, amount)
-        # self request is slightly different from v1 fromAccount -> from
+        # this request is slightly different from v1 fromAccount -> from
         request = {
             'amount': requestedAmount,
             'currency': fromCurrencyId,
@@ -1067,7 +1075,7 @@ class bitfinex(Exchange, ImplicitAPI):
         error = self.safe_string(response, 0)
         if error == 'error':
             message = self.safe_string(response, 2, '')
-            # same message v1
+            # same message as in v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + message)
         return self.parse_transfer({'result': response}, currency)
@@ -1124,11 +1132,11 @@ class bitfinex(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def convert_derivatives_id(self, currency: object, type: object):
-        # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
+        # there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         # {
         #   "id": "fUSTF0",
         #   "code": "USTF0",
-        #   "info": ['USTF0', [], [], [], ["USTF0", "UST"]],
+        #   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         info = self.safe_value(currency, 'info')
         transferId = self.safe_string(info, 0)
         underlying = self.safe_value(info, 4, [])
@@ -1192,10 +1200,10 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
-        # on trading pairs(ex. tBTCUSD)
+        # on trading pairs (ex. tBTCUSD)
         #
         #    [
-        #            SYMBOL,  # self index is not present in singular-ticker
+        #            SYMBOL, // this index is not present in singular-ticker
         #            BID,
         #            BID_SIZE,
         #            ASK,
@@ -1209,10 +1217,10 @@ class bitfinex(Exchange, ImplicitAPI):
         #    ]
         #
         #
-        # on funding currencies(ex. fUSD)
+        # on funding currencies (ex. fUSD)
         #
         #    [
-        #            SYMBOL,  # self index is not present in singular-ticker
+        #            SYMBOL, // this index is not present in singular-ticker
         #            FRR,
         #            BID,
         #            BID_PERIOD,
@@ -1232,8 +1240,13 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         length = len(ticker)
-        firstValue = self.safe_number(ticker, 0)
-        isFetchTicker = firstValue is not None  # if it's Nan, then it's string(symbol)
+        # the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        # shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        # in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        # look like a number and the whole array would be read off by one.
+        firstValue = self.safe_string(ticker, 0)
+        hasMarketId = (firstValue is not None) and (firstValue.startswith('t') or firstValue.startswith('f'))
+        isFetchTicker = not hasMarketId
         symbol = None
         minusIndex = 0
         if isFetchTicker:
@@ -1257,12 +1270,14 @@ class bitfinex(Exchange, ImplicitAPI):
             bid = self.safe_string(ticker, 2 - minusIndex)
             ask = self.safe_string(ticker, 5 - minusIndex)
             change = self.safe_string(ticker, 8 - minusIndex)
-            percentage = self.safe_string(ticker, 9 - minusIndex)
+            # DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            # branch reads at index 6 and scales
+            percentage = Precise.string_mul(self.safe_string(ticker, 9 - minusIndex), '100')
             volume = self.safe_string(ticker, 11 - minusIndex)
             high = self.safe_string(ticker, 12 - minusIndex)
             low = self.safe_string(ticker, 13 - minusIndex)
         else:
-            # on trading pairs(ex. tBTCUSD or tHMSTR:USD)
+            # on trading pairs (ex. tBTCUSD or tHMSTR:USD)
             last = self.safe_string(ticker, 7 - minusIndex)
             bid = self.safe_string(ticker, 1 - minusIndex)
             ask = self.safe_string(ticker, 3 - minusIndex)
@@ -1317,7 +1332,7 @@ class bitfinex(Exchange, ImplicitAPI):
         tickers = await self.publicGetTickers(self.extend(request, params))
         #
         #     [
-        #         # on trading pairs(ex. tBTCUSD)
+        #         // on trading pairs (ex. tBTCUSD)
         #         [
         #             SYMBOL,
         #             BID,
@@ -1331,7 +1346,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #             HIGH,
         #             LOW
         #         ],
-        #         # on funding currencies(ex. fUSD)
+        #         // on funding currencies (ex. fUSD)
         #         [
         #             SYMBOL,
         #             FRR,
@@ -1377,16 +1392,16 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     [
         #         ID,
-        #         MTS,  # timestamp
+        #         MTS, // timestamp
         #         AMOUNT,
         #         PRICE
         #     ]
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     [
         #         ID,
@@ -1493,7 +1508,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     [
         #         [
         #             ID,
-        #             MTS,  # timestamp
+        #             MTS, // timestamp
         #             AMOUNT,
         #             PRICE
         #         ]
@@ -1517,7 +1532,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch, default 100 max 10000
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         """
@@ -1573,7 +1588,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         if status is None:
-            return status
+            return None
         parts = status.split(' ')
         state = self.safe_string(parts, 0)
         statuses = {
@@ -1596,10 +1611,10 @@ class bitfinex(Exchange, ImplicitAPI):
             '1024': ['reduceOnly'],
             '4096': ['postOnly'],
             '5120': ['reduceOnly', 'postOnly'],
-            # '64': 'hidden',  # The hidden order option ensures an order does not appear in the order book
-            # '512': 'close',  # Close position if position present.
-            # '16384': 'OCO',  # The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
-            # '524288': 'No Var Rates'  # Excludes variable rate funding offers from matching against self order, if on margin
+            # '64': 'hidden', // The hidden order option ensures an order does not appear in the order book
+            # '512': 'close', // Close position if position present.
+            # '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
+            # '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         }
         return self.safe_value(flagValues, flags, None)
 
@@ -1618,7 +1633,7 @@ class bitfinex(Exchange, ImplicitAPI):
         marketId = self.safe_string(orderList, 3)
         symbol = self.safe_symbol(marketId)
         # https://github.com/ccxt/ccxt/issues/6686
-        # timestamp = self.safe_timestamp(orderObject, 5)
+        # const timestamp = this.safeTimestamp (orderObject, 5);
         timestamp = self.safe_integer(orderList, 5)
         remaining = Precise.string_abs(self.safe_string(orderList, 6))
         signedAmount = self.safe_string(orderList, 7)
@@ -1715,7 +1730,7 @@ class bitfinex(Exchange, ImplicitAPI):
             orderType = 'TRAILING STOP'
             request['price_trailing'] = trailingAmount
         elif triggerPrice is not None:
-            # request['price'] is taken for stop orders
+            # request['price'] is taken as triggerPrice for stop orders
             request['price'] = self.price_to_precision(symbol, triggerPrice)
             if type == 'limit':
                 orderType = 'STOP LIMIT'
@@ -1784,56 +1799,56 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.privatePostAuthWOrderSubmit(request)
         #
         #      [
-        #          1653325121,   # Timestamp in milliseconds
-        #          "on-req",     # Purpose of notification('on-req', 'oc-req', "uca", 'fon-req', "foc-req")
-        #          null,         # unique ID of the message
+        #          1653325121,   // Timestamp in milliseconds
+        #          "on-req",     // Purpose of notification ('on-req', 'oc-req', "uca", 'fon-req', "foc-req")
+        #          null,         // unique ID of the message
         #          null,
         #              [
         #                  [
-        #                      95412102131,            # Order ID
-        #                      null,                   # Group ID
-        #                      1653325121798,          # Client Order ID
-        #                      "tDOGE:UST",            # Market ID
-        #                      1653325121798,          # Millisecond timestamp of creation
-        #                      1653325121798,          # Millisecond timestamp of update
-        #                      -10,                    # Amount(Positive means buy, negative means sell)
-        #                      -10,                    # Original amount
-        #                      "EXCHANGE LIMIT",       # Type of the order: LIMIT, EXCHANGE LIMIT, MARKET, EXCHANGE MARKET, STOP, EXCHANGE STOP, STOP LIMIT, EXCHANGE STOP LIMIT, TRAILING STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC.
-        #                      null,                   # Previous order type(stop-limit orders are converted to limit orders so for them previous type is always STOP)
-        #                      null,                   # Millisecond timestamp of Time-In-Force: automatic order cancellation
-        #                      null,                   # _PLACEHOLDER
-        #                      4096,                   # Flags, see parseOrderFlags()
-        #                      "ACTIVE",               # Order Status, see parseOrderStatus()
-        #                      null,                   # _PLACEHOLDER
-        #                      null,                   # _PLACEHOLDER
-        #                      0.071,                  # Price(Stop Price for stop-limit orders, Limit Price for limit orders)
-        #                      0,                      # Average Price
-        #                      0,                      # Trailing Price
-        #                      0,                      # Auxiliary Limit price(for STOP LIMIT)
-        #                      null,                   # _PLACEHOLDER
-        #                      null,                   # _PLACEHOLDER
-        #                      null,                   # _PLACEHOLDER
-        #                      0,                      # Hidden(0 if False, 1 if True)
-        #                      0,                      # Placed ID(If another order caused self order to be placed(OCO) self will be that other order's ID)
-        #                      null,                   # _PLACEHOLDER
-        #                      null,                   # _PLACEHOLDER
-        #                      null,                   # _PLACEHOLDER
-        #                      "API>BFX",              # Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
-        #                      null,                   # _PLACEHOLDER
-        #                      null,                   # _PLACEHOLDER
-        #                      {"$F7":1}               # additional meta information about the order( $F7 = IS_POST_ONLY(0 if False, 1 if True), $F33 = Leverage(int))
+        #                      95412102131,            // Order ID
+        #                      null,                   // Group ID
+        #                      1653325121798,          // Client Order ID
+        #                      "tDOGE:UST",            // Market ID
+        #                      1653325121798,          // Millisecond timestamp of creation
+        #                      1653325121798,          // Millisecond timestamp of update
+        #                      -10,                    // Amount (Positive means buy, negative means sell)
+        #                      -10,                    // Original amount
+        #                      "EXCHANGE LIMIT",       // Type of the order: LIMIT, EXCHANGE LIMIT, MARKET, EXCHANGE MARKET, STOP, EXCHANGE STOP, STOP LIMIT, EXCHANGE STOP LIMIT, TRAILING STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC.
+        #                      null,                   // Previous order type (stop-limit orders are converted to limit orders so for them previous type is always STOP)
+        #                      null,                   // Millisecond timestamp of Time-In-Force: automatic order cancellation
+        #                      null,                   // _PLACEHOLDER
+        #                      4096,                   // Flags, see parseOrderFlags()
+        #                      "ACTIVE",               // Order Status, see parseOrderStatus()
+        #                      null,                   // _PLACEHOLDER
+        #                      null,                   // _PLACEHOLDER
+        #                      0.071,                  // Price (Stop Price for stop-limit orders, Limit Price for limit orders)
+        #                      0,                      // Average Price
+        #                      0,                      // Trailing Price
+        #                      0,                      // Auxiliary Limit price (for STOP LIMIT)
+        #                      null,                   // _PLACEHOLDER
+        #                      null,                   // _PLACEHOLDER
+        #                      null,                   // _PLACEHOLDER
+        #                      0,                      // Hidden (0 if false, 1 if true)
+        #                      0,                      // Placed ID (If another order caused this order to be placed (OCO) this will be that other order's ID)
+        #                      null,                   // _PLACEHOLDER
+        #                      null,                   // _PLACEHOLDER
+        #                      null,                   // _PLACEHOLDER
+        #                      "API>BFX",              // Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        #                      null,                   // _PLACEHOLDER
+        #                      null,                   // _PLACEHOLDER
+        #                      {"$F7":1}               // additional meta information about the order ( $F7 = IS_POST_ONLY (0 if false, 1 if true), $F33 = Leverage (int))
         #                  ]
         #              ],
-        #          null,      # CODE(work in progress)
-        #          "SUCCESS",                    # Status of the request
-        #          "Submitting 1 orders."      # Message
+        #          null,      // CODE (work in progress)
+        #          "SUCCESS",                    // Status of the request
+        #          "Submitting 1 orders."      // Message
         #       ]
         #
         status = self.safe_string(response, 6)
         if status != 'SUCCESS':
             errorCode = self.safe_string(response, 5)
             errorText = self.safe_string(response, 7)
-            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + '(#' + errorCode + ')')
+            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')')
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
         newOrder = {'result': order}
@@ -1942,7 +1957,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if cid is not None:
             cidDate = self.safe_value(params, 'cidDate')  # client order id date
             if cidDate is None:
-                raise InvalidOrder(self.id + " canceling an order by clientOrderId('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
+                raise InvalidOrder(self.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
@@ -1972,7 +1987,7 @@ class bitfinex(Exchange, ImplicitAPI):
             await self.load_markets()
         numericIds = []
         for i in range(0, len(ids)):
-            # numericIds[i] = self.parse_to_numeric(ids[i])
+            # numericIds[i] = this.parseToNumeric (ids[i]);
             numericIds.append(self.parse_to_numeric(ids[i]))
         request = {
             'id': numericIds,
@@ -2106,38 +2121,38 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #      [
         #          [
-        #              95408916206,            # Order ID
-        #              null,                   # Group Order ID
-        #              1653322349926,          # Client Order ID
-        #              "tDOGE:UST",            # Market ID
-        #              1653322349926,          # Created Timestamp in milliseconds
-        #              1653322349927,          # Updated Timestamp in milliseconds
-        #              -10,                    # Amount remaining(Positive means buy, negative means sell)
-        #              -10,                    # Original amount
-        #              "EXCHANGE LIMIT",       # Order type
-        #              null,                   # Previous Order Type
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              0,                      # Flags, see parseOrderFlags()
-        #              "ACTIVE",               # Order Status, see parseOrderStatus()
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              0.11,                   # Price
-        #              0,                      # Average Price
-        #              0,                      # Trailing Price
-        #              0,                      # Auxiliary Limit price(for STOP LIMIT)
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              0,                      # Hidden(0 if False, 1 if True)
-        #              0,                      # Placed ID(If another order caused self order to be placed(OCO) self will be that other order's ID)
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              "API>BFX",              # Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              {"$F7":1}               # additional meta information about the order( $F7 = IS_POST_ONLY(0 if False, 1 if True), $F33 = Leverage(int))
+        #              95408916206,            // Order ID
+        #              null,                   // Group Order ID
+        #              1653322349926,          // Client Order ID
+        #              "tDOGE:UST",            // Market ID
+        #              1653322349926,          // Created Timestamp in milliseconds
+        #              1653322349927,          // Updated Timestamp in milliseconds
+        #              -10,                    // Amount remaining (Positive means buy, negative means sell)
+        #              -10,                    // Original amount
+        #              "EXCHANGE LIMIT",       // Order type
+        #              null,                   // Previous Order Type
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              0,                      // Flags, see parseOrderFlags()
+        #              "ACTIVE",               // Order Status, see parseOrderStatus()
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              0.11,                   // Price
+        #              0,                      // Average Price
+        #              0,                      // Trailing Price
+        #              0,                      // Auxiliary Limit price (for STOP LIMIT)
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              0,                      // Hidden (0 if false, 1 if true)
+        #              0,                      // Placed ID (If another order caused this order to be placed (OCO) this will be that other order's ID)
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              "API>BFX",              // Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              {"$F7":1}               // additional meta information about the order ( $F7 = IS_POST_ONLY (0 if false, 1 if true), $F33 = Leverage (int))
         #          ],
         #      ]
         #
@@ -2185,38 +2200,38 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #      [
         #          [
-        #              95412102131,            # Order ID
-        #              null,                   # Group Order ID
-        #              1653325121798,          # Client Order ID
-        #              "tDOGE:UST",            # Market ID
-        #              1653325122000,          # Created Timestamp in milliseconds
-        #              1653325122000,          # Updated Timestamp in milliseconds
-        #              -10,                    # Amount remaining(Positive means buy, negative means sell)
-        #              -10,                    # Original amount
-        #              "EXCHANGE LIMIT",       # Order type
-        #              null,                   # Previous Order Type
-        #              null,                   # Millisecond timestamp of Time-In-Force: automatic order cancellation
-        #              null,                   # _PLACEHOLDER
-        #              "4096",                 # Flags, see parseOrderFlags()
-        #              "POSTONLY CANCELED",    # Order Status, see parseOrderStatus()
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              0.071,                  # Price
-        #              0,                      # Average Price
-        #              0,                      # Trailing Price
-        #              0,                      # Auxiliary Limit price(for STOP LIMIT)
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              0,                      # Notify(0 if False, 1 if True)
-        #              0,                      # Hidden(0 if False, 1 if True)
-        #              null,                   # Placed ID(If another order caused self order to be placed(OCO) self will be that other order's ID)
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              "API>BFX",              # Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
-        #              null,                   # _PLACEHOLDER
-        #              null,                   # _PLACEHOLDER
-        #              {"_$F7":1}              # additional meta information about the order( _$F7 = IS_POST_ONLY(0 if False, 1 if True), _$F33 = Leverage(int))
+        #              95412102131,            // Order ID
+        #              null,                   // Group Order ID
+        #              1653325121798,          // Client Order ID
+        #              "tDOGE:UST",            // Market ID
+        #              1653325122000,          // Created Timestamp in milliseconds
+        #              1653325122000,          // Updated Timestamp in milliseconds
+        #              -10,                    // Amount remaining (Positive means buy, negative means sell)
+        #              -10,                    // Original amount
+        #              "EXCHANGE LIMIT",       // Order type
+        #              null,                   // Previous Order Type
+        #              null,                   // Millisecond timestamp of Time-In-Force: automatic order cancellation
+        #              null,                   // _PLACEHOLDER
+        #              "4096",                 // Flags, see parseOrderFlags()
+        #              "POSTONLY CANCELED",    // Order Status, see parseOrderStatus()
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              0.071,                  // Price
+        #              0,                      // Average Price
+        #              0,                      // Trailing Price
+        #              0,                      // Auxiliary Limit price (for STOP LIMIT)
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              0,                      // Notify (0 if false, 1 if true)
+        #              0,                      // Hidden (0 if false, 1 if true)
+        #              null,                   // Placed ID (If another order caused this order to be placed (OCO) this will be that other order's ID)
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              "API>BFX",              // Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        #              null,                   // _PLACEHOLDER
+        #              null,                   // _PLACEHOLDER
+        #              {"_$F7":1}              // additional meta information about the order ( _$F7 = IS_POST_ONLY (0 if false, 1 if true), _$F33 = Leverage (int))
         #          ]
         #      ]
         #
@@ -2338,21 +2353,21 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.privatePostAuthWDepositAddress(self.extend(request, params))
         #
         #     [
-        #         1582269616687,  # MTS Millisecond Time Stamp of the update
-        #         "acc_dep",  # TYPE Purpose of notification "acc_dep" for account deposit
-        #         null,  # MESSAGE_ID unique ID of the message
-        #         null,  # not documented
+        #         1582269616687, // MTS Millisecond Time Stamp of the update
+        #         "acc_dep", // TYPE Purpose of notification "acc_dep" for account deposit
+        #         null, // MESSAGE_ID unique ID of the message
+        #         null, // not documented
         #         [
-        #             null,  # PLACEHOLDER
-        #             "BITCOIN",  # METHOD Method of deposit
-        #             "BTC",  # CURRENCY_CODE Currency code of new address
-        #             null,  # PLACEHOLDER
-        #             "1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG",  # ADDRESS
-        #             null,  # POOL_ADDRESS
+        #             null, // PLACEHOLDER
+        #             "BITCOIN", // METHOD Method of deposit
+        #             "BTC", // CURRENCY_CODE Currency code of new address
+        #             null, // PLACEHOLDER
+        #             "1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG", // ADDRESS
+        #             null, // POOL_ADDRESS
         #         ],
-        #         null,  # CODE null or integer work in progress
-        #         "SUCCESS",  # STATUS Status of the notification, SUCCESS, ERROR, FAILURE
-        #         "success",  # TEXT Text of the notification
+        #         null, // CODE null or integer work in progress
+        #         "SUCCESS", // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+        #         "success", // TEXT Text of the notification
         #     ]
         #
         result = self.safe_value(response, 4, [])
@@ -2389,51 +2404,51 @@ class bitfinex(Exchange, ImplicitAPI):
         # withdraw
         #
         #     [
-        #         1582271520931,  # MTS Millisecond Time Stamp of the update
-        #         "acc_wd-req",  # TYPE Purpose of notification "acc_wd-req" account withdrawal request
-        #         null,  # MESSAGE_ID unique ID of the message
-        #         null,  # not documented
+        #         1582271520931, // MTS Millisecond Time Stamp of the update
+        #         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
+        #         null, // MESSAGE_ID unique ID of the message
+        #         null, // not documented
         #         [
-        #             0,  # WITHDRAWAL_ID Unique Withdrawal ID
-        #             null,  # PLACEHOLDER
-        #             "bitcoin",  # METHOD Method of withdrawal
-        #             null,  # PAYMENT_ID Payment ID if relevant
-        #             "exchange",  # WALLET Sending wallet
-        #             1,  # AMOUNT Amount of Withdrawal less fee
-        #             null,  # PLACEHOLDER
-        #             null,  # PLACEHOLDER
-        #             0.0004,  # WITHDRAWAL_FEE Fee on withdrawal
+        #             0, // WITHDRAWAL_ID Unique Withdrawal ID
+        #             null, // PLACEHOLDER
+        #             "bitcoin", // METHOD Method of withdrawal
+        #             null, // PAYMENT_ID Payment ID if relevant
+        #             "exchange", // WALLET Sending wallet
+        #             1, // AMOUNT Amount of Withdrawal less fee
+        #             null, // PLACEHOLDER
+        #             null, // PLACEHOLDER
+        #             0.0004, // WITHDRAWAL_FEE Fee on withdrawal
         #         ],
-        #         null,  # CODE null or integer Work in progress
-        #         "SUCCESS",  # STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
-        #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
+        #         null, // CODE null or integer Work in progress
+        #         "SUCCESS", // STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
+        #         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         #     ]
         #
         # fetchDepositsWithdrawals
         #
         #     [
-        #         13293039,  # ID
-        #         "ETH",  # CURRENCY
-        #         "ETHEREUM",  # CURRENCY_NAME
+        #         13293039, // ID
+        #         "ETH", // CURRENCY
+        #         "ETHEREUM", // CURRENCY_NAME
         #         null,
         #         null,
-        #         1574175052000,  # MTS_STARTED
-        #         1574181326000,  # MTS_UPDATED
+        #         1574175052000, // MTS_STARTED
+        #         1574181326000, // MTS_UPDATED
         #         null,
         #         null,
-        #         "CANCELED",  # STATUS
+        #         "CANCELED", // STATUS
         #         null,
         #         null,
-        #         -0.24,  # AMOUNT, negative for withdrawals
-        #         -0.00135,  # FEES
+        #         -0.24, // AMOUNT, negative for withdrawals
+        #         -0.00135, // FEES
         #         null,
         #         null,
-        #         "0x38110e0Fc932CB2BE...........",  # DESTINATION_ADDRESS
+        #         "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         #         null,
         #         null,
         #         null,
-        #         "0x523ec8945500.....................................",  # TRANSACTION_ID
-        #         "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE, might also be: null
+        #         "0x523ec8945500.....................................", // TRANSACTION_ID
+        #         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         #     ]
         #
         transactionLength = len(transaction)
@@ -2501,7 +2516,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': addressTo,  # self is actually the tag for XRP transfers(the address is missing)
+            'address': addressTo,  # this is actually the tag for XRP transfers (the address is missing)
             'addressFrom': None,
             'addressTo': addressTo,
             'tag': tag,  # refix it properly for the tag from description
@@ -2572,13 +2587,13 @@ class bitfinex(Exchange, ImplicitAPI):
         #         null,
         #         null,
         #         [
-        #          [0.001, 0.001, 0.001, null, null, 0.0002],
-        #          [0.002, 0.002, 0.002, null, null, 0.00065]
+        #          [ 0.001, 0.001, 0.001, null, null, 0.0002 ],
+        #          [ 0.002, 0.002, 0.002, null, null, 0.00065 ]
         #         ],
         #         [
         #          [
         #              {
-        #              "curr": "Total(USD)",
+        #              "curr": "Total (USD)",
         #              "vol": "0",
         #              "vol_safe": "0",
         #              "vol_maker": "0",
@@ -2590,14 +2605,14 @@ class bitfinex(Exchange, ImplicitAPI):
         #          {},
         #          0
         #         ],
-        #         [null, {}, 0],
+        #         [ null, {}, 0 ],
         #         null,
         #         null,
-        #         {leo_lev: "0", leo_amount_avg: "0"}
+        #         { leo_lev: "0", leo_amount_avg: "0" }
         #     ]
         #
         result = {}
-        fiat = self.safe_value(self.options, 'fiat', {})
+        fiat = self.safe_dict(self.options, 'fiat', {})
         feeData = self.safe_value(response, 4, [])
         makerData = self.safe_value(feeData, 0, [])
         takerData = self.safe_value(feeData, 1, [])
@@ -2661,28 +2676,28 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             13293039,  # ID
-        #             "ETH",  # CURRENCY
-        #             "ETHEREUM",  # CURRENCY_NAME
+        #             13293039, // ID
+        #             "ETH", // CURRENCY
+        #             "ETHEREUM", // CURRENCY_NAME
         #             null,
         #             null,
-        #             1574175052000,  # MTS_STARTED
-        #             1574181326000,  # MTS_UPDATED
+        #             1574175052000, // MTS_STARTED
+        #             1574181326000, // MTS_UPDATED
         #             null,
         #             null,
-        #             "CANCELED",  # STATUS
+        #             "CANCELED", // STATUS
         #             null,
         #             null,
-        #             -0.24,  # AMOUNT, negative for withdrawals
-        #             -0.00135,  # FEES
+        #             -0.24, // AMOUNT, negative for withdrawals
+        #             -0.00135, // FEES
         #             null,
         #             null,
-        #             "0x38110e0Fc932CB2BE...........",  # DESTINATION_ADDRESS
+        #             "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         #             null,
         #             null,
         #             null,
-        #             "0x523ec8945500.....................................",  # TRANSACTION_ID
-        #             "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE, might also be: null
+        #             "0x523ec8945500.....................................", // TRANSACTION_ID
+        #             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         #         ]
         #     ]
         #
@@ -2730,24 +2745,24 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.privatePostAuthWWithdraw(self.extend(request, params))
         #
         #     [
-        #         1582271520931,  # MTS Millisecond Time Stamp of the update
-        #         "acc_wd-req",  # TYPE Purpose of notification "acc_wd-req" account withdrawal request
-        #         null,  # MESSAGE_ID unique ID of the message
-        #         null,  # not documented
+        #         1582271520931, // MTS Millisecond Time Stamp of the update
+        #         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
+        #         null, // MESSAGE_ID unique ID of the message
+        #         null, // not documented
         #         [
-        #             0,  # WITHDRAWAL_ID Unique Withdrawal ID
-        #             null,  # PLACEHOLDER
-        #             "bitcoin",  # METHOD Method of withdrawal
-        #             null,  # PAYMENT_ID Payment ID if relevant
-        #             "exchange",  # WALLET Sending wallet
-        #             1,  # AMOUNT Amount of Withdrawal less fee
-        #             null,  # PLACEHOLDER
-        #             null,  # PLACEHOLDER
-        #             0.0004,  # WITHDRAWAL_FEE Fee on withdrawal
+        #             0, // WITHDRAWAL_ID Unique Withdrawal ID
+        #             null, // PLACEHOLDER
+        #             "bitcoin", // METHOD Method of withdrawal
+        #             null, // PAYMENT_ID Payment ID if relevant
+        #             "exchange", // WALLET Sending wallet
+        #             1, // AMOUNT Amount of Withdrawal less fee
+        #             null, // PLACEHOLDER
+        #             null, // PLACEHOLDER
+        #             0.0004, // WITHDRAWAL_FEE Fee on withdrawal
         #         ],
-        #         null,  # CODE null or integer Work in progress
-        #         "SUCCESS",  # STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
-        #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
+        #         null, // CODE null or integer Work in progress
+        #         "SUCCESS", // STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
+        #         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         #     ]
         #
         # in case of failure:
@@ -2762,7 +2777,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if statusMessage == 'error':
             feedback = self.id + ' ' + response
             message = self.safe_string(response, 2, '')
-            # same message v1
+            # same message as in v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
@@ -2788,26 +2803,26 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             "tBTCUSD",  # SYMBOL
-        #             "ACTIVE",  # STATUS
-        #             0.0195,  # AMOUNT
-        #             8565.0267019,  # BASE_PRICE
-        #             0,  # MARGIN_FUNDING
-        #             0,  # MARGIN_FUNDING_TYPE
-        #             -0.33455568705000516,  # PL
-        #             -0.0003117550117425625,  # PL_PERC
-        #             7045.876419249083,  # PRICE_LIQ
-        #             3.0673001895895604,  # LEVERAGE
-        #             null,  # _PLACEHOLDER
-        #             142355652,  # POSITION_ID
-        #             1574002216000,  # MTS_CREATE
-        #             1574002216000,  # MTS_UPDATE
-        #             null,  # _PLACEHOLDER
-        #             0,  # TYPE
-        #             null,  # _PLACEHOLDER
-        #             0,  # COLLATERAL
-        #             0,  # COLLATERAL_MIN
-        #             # META
+        #             "tBTCUSD", // SYMBOL
+        #             "ACTIVE", // STATUS
+        #             0.0195, // AMOUNT
+        #             8565.0267019, // BASE_PRICE
+        #             0, // MARGIN_FUNDING
+        #             0, // MARGIN_FUNDING_TYPE
+        #             -0.33455568705000516, // PL
+        #             -0.0003117550117425625, // PL_PERC
+        #             7045.876419249083, // PRICE_LIQ
+        #             3.0673001895895604, // LEVERAGE
+        #             null, // _PLACEHOLDER
+        #             142355652, // POSITION_ID
+        #             1574002216000, // MTS_CREATE
+        #             1574002216000, // MTS_UPDATE
+        #             null, // _PLACEHOLDER
+        #             0, // TYPE
+        #             null, // _PLACEHOLDER
+        #             0, // COLLATERAL
+        #             0, // COLLATERAL_MIN
+        #             // META
         #             {
         #                 "reason":"TRADE",
         #                 "order_id":34271018124,
@@ -2828,26 +2843,26 @@ class bitfinex(Exchange, ImplicitAPI):
     def parse_position(self, position: dict, market: Market = None):
         #
         #    [
-        #        "tBTCUSD",                    # SYMBOL
-        #        "ACTIVE",                     # STATUS
-        #        0.0195,                       # AMOUNT
-        #        8565.0267019,                 # BASE_PRICE
-        #        0,                            # MARGIN_FUNDING
-        #        0,                            # MARGIN_FUNDING_TYPE
-        #        -0.33455568705000516,         # PL
-        #        -0.0003117550117425625,       # PL_PERC
-        #        7045.876419249083,            # PRICE_LIQ
-        #        3.0673001895895604,           # LEVERAGE
-        #        null,                         # _PLACEHOLDER
-        #        142355652,                    # POSITION_ID
-        #        1574002216000,                # MTS_CREATE
-        #        1574002216000,                # MTS_UPDATE
-        #        null,                         # _PLACEHOLDER
-        #        0,                            # TYPE
-        #        null,                         # _PLACEHOLDER
-        #        0,                            # COLLATERAL
-        #        0,                            # COLLATERAL_MIN
-        #        # META
+        #        "tBTCUSD",                    // SYMBOL
+        #        "ACTIVE",                     // STATUS
+        #        0.0195,                       // AMOUNT
+        #        8565.0267019,                 // BASE_PRICE
+        #        0,                            // MARGIN_FUNDING
+        #        0,                            // MARGIN_FUNDING_TYPE
+        #        -0.33455568705000516,         // PL
+        #        -0.0003117550117425625,       // PL_PERC
+        #        7045.876419249083,            // PRICE_LIQ
+        #        3.0673001895895604,           // LEVERAGE
+        #        null,                         // _PLACEHOLDER
+        #        142355652,                    // POSITION_ID
+        #        1574002216000,                // MTS_CREATE
+        #        1574002216000,                // MTS_UPDATE
+        #        null,                         // _PLACEHOLDER
+        #        0,                            // TYPE
+        #        null,                         // _PLACEHOLDER
+        #        0,                            // COLLATERAL
+        #        0,                            // COLLATERAL_MIN
+        #        // META
         #        {
         #            "reason": "TRADE",
         #            "order_id": 34271018124,
@@ -2944,7 +2959,7 @@ class bitfinex(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorText, feedback)
-            raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
+            raise ExchangeError(self.id + ' ' + errorText + ' (#' + errorCode + ')')
         return response
 
     def parse_ledger_entry_type(self, type: Str):
@@ -2969,15 +2984,15 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             2531822314,  # ID: Ledger identifier
-        #             "USD",  # CURRENCY: The symbol of the currency(ex. "BTC")
-        #             null,  # PLACEHOLDER
-        #             1573521810000,  # MTS: Timestamp in milliseconds
-        #             null,  # PLACEHOLDER
-        #             0.01644445,  # AMOUNT: Amount of funds moved
-        #             0,  # BALANCE: New balance
-        #             null,  # PLACEHOLDER
-        #             "Settlement @ 185.79 on wallet margin"  # DESCRIPTION: Description of ledger transaction
+        #             2531822314, // ID: Ledger identifier
+        #             "USD", // CURRENCY: The symbol of the currency (ex. "BTC")
+        #             null, // PLACEHOLDER
+        #             1573521810000, // MTS: Timestamp in milliseconds
+        #             null, // PLACEHOLDER
+        #             0.01644445, // AMOUNT: Amount of funds moved
+        #             0, // BALANCE: New balance
+        #             null, // PLACEHOLDER
+        #             "Settlement @ 185.79 on wallet margin" // DESCRIPTION: Description of ledger transaction
         #         ]
         #     ]
         #
@@ -3050,15 +3065,15 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             2531822314,  # ID: Ledger identifier
-        #             "USD",  # CURRENCY: The symbol of the currency(ex. "BTC")
-        #             null,  # PLACEHOLDER
-        #             1573521810000,  # MTS: Timestamp in milliseconds
-        #             null,  # PLACEHOLDER
-        #             0.01644445,  # AMOUNT: Amount of funds moved
-        #             0,  # BALANCE: New balance
-        #             null,  # PLACEHOLDER
-        #             "Settlement @ 185.79 on wallet margin"  # DESCRIPTION: Description of ledger transaction
+        #             2531822314, // ID: Ledger identifier
+        #             "USD", // CURRENCY: The symbol of the currency (ex. "BTC")
+        #             null, // PLACEHOLDER
+        #             1573521810000, // MTS: Timestamp in milliseconds
+        #             null, // PLACEHOLDER
+        #             0.01644445, // AMOUNT: Amount of funds moved
+        #             0, // BALANCE: New balance
+        #             null, // PLACEHOLDER
+        #             "Settlement @ 185.79 on wallet margin" // DESCRIPTION: Description of ledger transaction
         #         ]
         #     ]
         #
@@ -3320,30 +3335,30 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             "tXRPF0:USTF0",  # market id
-        #             1706256986000,   # millisecond timestamp
+        #             "tXRPF0:USTF0",  // market id
+        #             1706256986000,   // millisecond timestamp
         #             null,
-        #             0.512705,        # derivative mid price
-        #             0.512395,        # underlying spot mid price
+        #             0.512705,        // derivative mid price
+        #             0.512395,        // underlying spot mid price
         #             null,
-        #             37671483.04,     # insurance fund balance
+        #             37671483.04,     // insurance fund balance
         #             null,
-        #             1706284800000,   # timestamp of next funding
-        #             0.00002353,      # accrued funding for next period
-        #             317,             # next funding step
+        #             1706284800000,   // timestamp of next funding
+        #             0.00002353,      // accrued funding for next period
+        #             317,             // next funding step
         #             null,
-        #             0,               # current funding
-        #             null,
-        #             null,
-        #             0.5123016,       # mark price
+        #             0,               // current funding
         #             null,
         #             null,
-        #             2233562.03115,   # open interest in contracts
+        #             0.5123016,       // mark price
+        #             null,
+        #             null,
+        #             2233562.03115,   // open interest in contracts
         #             null,
         #             null,
         #             null,
-        #             0.0005,          # average spread without funding payment
-        #             0.0025           # funding payment cap
+        #             0.0005,          // average spread without funding payment
+        #             0.0025           // funding payment cap
         #         ]
         #     ]
         #
@@ -3369,30 +3384,30 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             "tXRPF0:USTF0",  # market id
-        #             1706256986000,   # millisecond timestamp
+        #             "tXRPF0:USTF0",  // market id
+        #             1706256986000,   // millisecond timestamp
         #             null,
-        #             0.512705,        # derivative mid price
-        #             0.512395,        # underlying spot mid price
+        #             0.512705,        // derivative mid price
+        #             0.512395,        // underlying spot mid price
         #             null,
-        #             37671483.04,     # insurance fund balance
+        #             37671483.04,     // insurance fund balance
         #             null,
-        #             1706284800000,   # timestamp of next funding
-        #             0.00002353,      # accrued funding for next period
-        #             317,             # next funding step
+        #             1706284800000,   // timestamp of next funding
+        #             0.00002353,      // accrued funding for next period
+        #             317,             // next funding step
         #             null,
-        #             0,               # current funding
-        #             null,
-        #             null,
-        #             0.5123016,       # mark price
+        #             0,               // current funding
         #             null,
         #             null,
-        #             2233562.03115,   # open interest in contracts
+        #             0.5123016,       // mark price
+        #             null,
+        #             null,
+        #             2233562.03115,   // open interest in contracts
         #             null,
         #             null,
         #             null,
-        #             0.0005,          # average spread without funding payment
-        #             0.0025           # funding payment cap
+        #             0.0005,          // average spread without funding payment
+        #             0.0025           // funding payment cap
         #         ]
         #     ]
         #
@@ -3407,10 +3422,10 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param str timeframe: the time period of each row of data, not used by bitfinex
-        :param int [since]: the time in ms of the earliest record to retrieve unix timestamp
+        :param int [since]: the time in ms of the earliest record to retrieve as a unix timestamp
         :param int [limit]: the number of records in the response
         :param dict [params]: exchange specific parameters
-        :param int [params.until]: the time in ms of the latest record to retrieve unix timestamp
+        :param int [params.until]: the time in ms of the latest record to retrieve as a unix timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns: An array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
@@ -3433,29 +3448,29 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             1706295191000,       # timestamp
+        #             1706295191000,       // timestamp
         #             null,
-        #             42152.425382,        # derivative mid price
-        #             42133,               # spot mid price
+        #             42152.425382,        // derivative mid price
+        #             42133,               // spot mid price
         #             null,
-        #             37671589.7853521,    # insurance fund balance
+        #             37671589.7853521,    // insurance fund balance
         #             null,
-        #             1706313600000,       # timestamp of next funding
-        #             0.00018734,          # accrued funding for next period
-        #             3343,                # next funding step
+        #             1706313600000,       // timestamp of next funding
+        #             0.00018734,          // accrued funding for next period
+        #             3343,                // next funding step
         #             null,
-        #             0.00007587,          # current funding
-        #             null,
-        #             null,
-        #             42134.1,             # mark price
+        #             0.00007587,          // current funding
         #             null,
         #             null,
-        #             5775.20348804,       # open interest number of contracts
+        #             42134.1,             // mark price
+        #             null,
+        #             null,
+        #             5775.20348804,       // open interest number of contracts
         #             null,
         #             null,
         #             null,
-        #             0.0005,              # average spread without funding payment
-        #             0.0025               # funding payment cap
+        #             0.0005,              // average spread without funding payment
+        #             0.0025               // funding payment cap
         #         ],
         #     ]
         #
@@ -3466,58 +3481,58 @@ class bitfinex(Exchange, ImplicitAPI):
         # fetchOpenInterest:
         #
         #     [
-        #         "tXRPF0:USTF0",  # market id
-        #         1706256986000,   # millisecond timestamp
+        #         "tXRPF0:USTF0",  // market id
+        #         1706256986000,   // millisecond timestamp
         #         null,
-        #         0.512705,        # derivative mid price
-        #         0.512395,        # underlying spot mid price
+        #         0.512705,        // derivative mid price
+        #         0.512395,        // underlying spot mid price
         #         null,
-        #         37671483.04,     # insurance fund balance
+        #         37671483.04,     // insurance fund balance
         #         null,
-        #         1706284800000,   # timestamp of next funding
-        #         0.00002353,      # accrued funding for next period
-        #         317,             # next funding step
+        #         1706284800000,   // timestamp of next funding
+        #         0.00002353,      // accrued funding for next period
+        #         317,             // next funding step
         #         null,
-        #         0,               # current funding
-        #         null,
-        #         null,
-        #         0.5123016,       # mark price
+        #         0,               // current funding
         #         null,
         #         null,
-        #         2233562.03115,   # open interest in contracts
+        #         0.5123016,       // mark price
+        #         null,
+        #         null,
+        #         2233562.03115,   // open interest in contracts
         #         null,
         #         null,
         #         null,
-        #         0.0005,          # average spread without funding payment
-        #         0.0025           # funding payment cap
+        #         0.0005,          // average spread without funding payment
+        #         0.0025           // funding payment cap
         #     ]
         #
         # fetchOpenInterestHistory:
         #
         #     [
-        #         1706295191000,       # timestamp
+        #         1706295191000,       // timestamp
         #         null,
-        #         42152.425382,        # derivative mid price
-        #         42133,               # spot mid price
+        #         42152.425382,        // derivative mid price
+        #         42133,               // spot mid price
         #         null,
-        #         37671589.7853521,    # insurance fund balance
+        #         37671589.7853521,    // insurance fund balance
         #         null,
-        #         1706313600000,       # timestamp of next funding
-        #         0.00018734,          # accrued funding for next period
-        #         3343,                # next funding step
+        #         1706313600000,       // timestamp of next funding
+        #         0.00018734,          // accrued funding for next period
+        #         3343,                // next funding step
         #         null,
-        #         0.00007587,          # current funding
-        #         null,
-        #         null,
-        #         42134.1,             # mark price
+        #         0.00007587,          // current funding
         #         null,
         #         null,
-        #         5775.20348804,       # open interest number of contracts
+        #         42134.1,             // mark price
+        #         null,
+        #         null,
+        #         5775.20348804,       // open interest number of contracts
         #         null,
         #         null,
         #         null,
-        #         0.0005,              # average spread without funding payment
-        #         0.0025               # funding payment cap
+        #         0.0005,              // average spread without funding payment
+        #         0.0025               // funding payment cap
         #     ]
         #
         interestLength = len(interest)
@@ -3588,17 +3603,17 @@ class bitfinex(Exchange, ImplicitAPI):
         #     [
         #         [
         #             "pos",
-        #             171085137,       # position id
-        #             1706395919788,   # timestamp
+        #             171085137,       // position id
+        #             1706395919788,   // timestamp
         #             null,
-        #             "tAVAXF0:USTF0",  # market id
-        #             -8,              # amount in contracts
-        #             32.868,          # base price
+        #             "tAVAXF0:USTF0", // market id
+        #             -8,              // amount in contracts
+        #             32.868,          // base price
         #             null,
         #             1,
         #             1,
         #             null,
-        #             33.255           # acquired price
+        #             33.255           // acquired price
         #         ]
         #     ]
         #
@@ -3788,7 +3803,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if trailingAmount is not None:
             request['price_trailing'] = trailingAmount
         elif triggerPrice is not None:
-            # request['price'] is taken for stop orders
+            # request['price'] is taken as triggerPrice for stop orders
             request['price'] = self.price_to_precision(symbol, triggerPrice)
             if type == 'limit':
                 request['price_aux_limit'] = self.price_to_precision(symbol, price)
@@ -3859,7 +3874,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if status != 'SUCCESS':
             errorCode = self.safe_string(response, 5)
             errorText = self.safe_string(response, 7)
-            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + '(#' + errorCode + ')')
+            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')')
         order = self.safe_list(response, 4, [])
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)

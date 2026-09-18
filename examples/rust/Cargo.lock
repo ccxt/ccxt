@@ -194,27 +194,16 @@ version = "4.5.75"
 dependencies = [
  "async-trait",
  "ccxt-base",
- "chrono",
- "futures",
- "indexmap",
- "num-bigint",
- "num-traits",
- "rust_decimal",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]
 name = "ccxt-base"
 version = "4.5.75"
 dependencies = [
- "async-trait",
  "base64",
  "chrono",
  "ed25519-dalek",
  "flate2",
- "form_urlencoded",
  "futures",
  "hex",
  "hmac",
@@ -224,14 +213,11 @@ dependencies = [
  "num-bigint",
  "num-traits",
  "once_cell",
- "parking_lot",
  "rand 0.8.6",
  "reqwest",
- "rmp-serde",
  "rmpv",
  "rsa",
  "rust_decimal",
- "serde",
  "serde_json",
  "sha1",
  "sha2",
@@ -240,7 +226,6 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "url",
- "urlencoding",
 ]
 
 [[package]]
@@ -261,15 +246,6 @@ version = "4.5.75"
 dependencies = [
  "async-trait",
  "ccxt-base",
- "chrono",
- "futures",
- "indexmap",
- "num-bigint",
- "num-traits",
- "rust_decimal",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]
@@ -277,38 +253,9 @@ name = "ccxt-pro"
 version = "4.5.75"
 dependencies = [
  "async-trait",
- "base64",
  "ccxt-base",
- "chrono",
- "ed25519-dalek",
- "flate2",
- "form_urlencoded",
  "futures",
- "hex",
- "hmac",
  "indexmap",
- "k256",
- "md-5",
- "num-bigint",
- "num-traits",
- "once_cell",
- "parking_lot",
- "rand 0.8.6",
- "reqwest",
- "rmp-serde",
- "rmpv",
- "rsa",
- "rust_decimal",
- "serde",
- "serde_json",
- "sha1",
- "sha2",
- "sha3",
- "thiserror 1.0.69",
- "tokio",
- "tokio-tungstenite",
- "url",
- "urlencoding",
 ]
 
 [[package]]
@@ -1584,16 +1531,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rmp-serde"
-version = "1.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72f81bee8c8ef9b577d1681a70ebbc962c232461e397b22c208c43c04b67a155"
-dependencies = [
- "rmp",
- "serde",
-]
-
-[[package]]
 name = "rmpv"
 version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1741,7 +1678,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
 dependencies = [
  "serde_core",
- "serde_derive",
 ]
 
 [[package]]
@@ -2244,12 +2180,6 @@ dependencies = [
  "percent-encoding",
  "serde",
 ]
-
-[[package]]
-name = "urlencoding"
-version = "2.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "utf-8"

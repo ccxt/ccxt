@@ -32,9 +32,9 @@ class hitbtc(Exchange, ImplicitAPI):
             'id': 'hitbtc',
             'name': 'HitBTC',
             'countries': ['HK'],
-            # 300 requests per second => 1000ms / 300 = 3.333(Trading: placing, replacing, deleting)
-            # 30 requests per second =>( 1000ms / rateLimit ) / 30 = cost = 10(Market Data and other Public Requests)
-            # 20 requests per second =>( 1000ms / rateLimit ) / 20 = cost = 15(All Other)
+            # 300 requests per second => 1000ms / 300 = 3.333 (Trading: placing, replacing, deleting)
+            # 30 requests per second => ( 1000ms / rateLimit ) / 30 = cost = 10 (Market Data and other Public Requests)
+            # 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
             'rateLimit': 3.333,  # TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
             'has': {
@@ -201,6 +201,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'margin/history/trade': {'cost': 15},
                         'margin/history/positions': {'cost': 15},
                         'margin/history/clearing': {'cost': 15},
+                        'margin-settings': {'cost': 15},
                         'futures/balance': {'cost': 15},
                         'futures/balance/{currency}': {'cost': 15},
                         'futures/account': {'cost': 1},
@@ -214,8 +215,10 @@ class hitbtc(Exchange, ImplicitAPI):
                         'futures/history/trade': {'cost': 15},
                         'futures/history/positions': {'cost': 15},
                         'futures/history/clearing': {'cost': 15},
+                        'user/api-keys': {'cost': 15},
                         'wallet/balance': {'cost': 30},
                         'wallet/balance/{currency}': {'cost': 30},
+                        'wallet/crypto/address/white-list': {'cost': 30},
                         'wallet/crypto/address': {'cost': 30},
                         'wallet/crypto/address/recent-deposit': {'cost': 30},
                         'wallet/crypto/address/recent-withdraw': {'cost': 30},
@@ -223,6 +226,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'wallet/transactions': {'cost': 30},
                         'wallet/transactions/{tx_id}': {'cost': 30},
                         'wallet/crypto/fee/estimate': {'cost': 30},
+                        'wallet/crypto/fee/withdraw/hash': {'cost': 30},
                         'wallet/airdrops': {'cost': 30},
                         'wallet/amount-locks': {'cost': 30},
                         'sub-account': {'cost': 15},
@@ -244,10 +248,13 @@ class hitbtc(Exchange, ImplicitAPI):
                         'wallet/internal/withdraw': {'cost': 30},
                         'wallet/crypto/check-offchain-available': {'cost': 30},
                         'wallet/crypto/fees/estimate': {'cost': 30},
+                        'wallet/crypto/fee/estimate/bulk': {'cost': 30},
                         'wallet/airdrops/{id}/claim': {'cost': 30},
                         'sub-account/freeze': {'cost': 15},
                         'sub-account/activate': {'cost': 15},
                         'sub-account/transfer': {'cost': 15},
+                        'sub-account/transfer/sub-to-super': {'cost': 15},
+                        'sub-account/transfer/sub-to-sub': {'cost': 15},
                         'sub-account/acl': {'cost': 15},
                     },
                     'patch': {
@@ -270,7 +277,10 @@ class hitbtc(Exchange, ImplicitAPI):
                     },
                     'put': {
                         'margin/account/isolated/{symbol}': {'cost': 1},
+                        'margin-settings/amm': {'cost': 15},
+                        'margin/margin-settings/amr': {'cost': 15},
                         'futures/account/isolated/{symbol}': {'cost': 1},
+                        'futures/margin-settings/amr': {'cost': 15},
                         'wallet/crypto/withdraw/{id}': {'cost': 30},
                     },
                 },
@@ -543,7 +553,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     'BSV': 'BCHSV',
                     'BEP2': 'BNB',
                     # 'BOSON': 'BOS',
-                    # '': 'BRL',  # brazilian real
+                    # '': 'BRL', // brazilian real
                     # '': 'BST',
                     # 'BITCOINADDITION': 'BTCADD',
                     # '': 'BTCP',
@@ -591,7 +601,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     # 'AERGO': 'ERG',
                     'ETHW': 'ETHW',
                     # 'ETHERLITE': 'ETL',
-                    # '': 'ETP',  # metaverse etp
+                    # '': 'ETP', // metaverse etp
                     # '': 'EUNO',
                     'EVER': 'EVER',
                     # '': 'EXP',
@@ -701,7 +711,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     # '': 'TNC',
                     # 'TON': 'TONCOIN',
                     'TRUE': 'TRUE',
-                    # '': 'TRY',  # turkish lira
+                    # '': 'TRY', // turkish lira
                     # '': 'UNO',
                     # '': 'USNOTA',
                     # '': 'VEO',
@@ -716,7 +726,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     # 'WALTONCHAIN': 'WTC',
                     # '': 'WTT',
                     'XCH': 'XCH',
-                    # '': 'XDC',  # xinfin?
+                    # '': 'XDC', // xinfin?
                     # '': 'xdn',
                     # '': 'XDNCO',
                     # '': 'XDNICCO',
@@ -932,36 +942,36 @@ class hitbtc(Exchange, ImplicitAPI):
         #    {
         #        "DFC": {
         #            "full_name": "DeFiScale",
-        #            "crypto": True,
-        #            "payin_enabled": False,
-        #            "payout_enabled": True,
-        #            "transfer_enabled": False,
-        #            "transfer_to_wallet_enabled": True,
-        #            "transfer_to_exchange_enabled": False,
+        #            "crypto": true,
+        #            "payin_enabled": false,
+        #            "payout_enabled": true,
+        #            "transfer_enabled": false,
+        #            "transfer_to_wallet_enabled": true,
+        #            "transfer_to_exchange_enabled": false,
         #            "sign": "D",
         #            "crypto_payment_id_name": "",
         #            "crypto_explorer": "https://etherscan.io/tx/{tx}",
         #            "precision_transfer": "0.00000001",
-        #            "delisted": False,
+        #            "delisted": false,
         #            "networks": [
         #                {
         #                    "code": "ETH",
         #                    "network_name": "Ethereum",
         #                    "network": "ETH",
         #                    "protocol": "ERC-20",
-        #                    "default": True,
-        #                    "is_ens_available": True,
-        #                    "payin_enabled": True,
-        #                    "payout_enabled": True,
+        #                    "default": true,
+        #                    "is_ens_available": true,
+        #                    "payin_enabled": true,
+        #                    "payout_enabled": true,
         #                    "precision_payout": "0.000000000000000001",
         #                    "payout_fee": "277000.0000000000",
-        #                    "payout_is_payment_id": False,
-        #                    "payin_payment_id": False,
+        #                    "payout_is_payment_id": false,
+        #                    "payin_payment_id": false,
         #                    "payin_confirmations": "2",
         #                    "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
         #                    "crypto_payment_id_name": "",
         #                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
-        #                    "is_multichain": True,
+        #                    "is_multichain": true,
         #                    "asset_id": {
         #                        "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
         #                    }
@@ -983,7 +993,7 @@ class hitbtc(Exchange, ImplicitAPI):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
             networkCode = self.network_id_to_code(networkId, code)
-            networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
+            networkCode = networkCode.upper() if (networkCode is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1123,7 +1133,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         account = None if (type is None) else self.safe_string(accountsByType, type, type)
         response: dict
         if account == 'wallet':
@@ -1351,7 +1361,7 @@ class hitbtc(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # createOrder(market)
+        # createOrder (market)
         #
         #  {
         #      "id": "1569252895",
@@ -1360,7 +1370,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #      "price": "0.03919424",
         #      "fee": "0.000979856000",
         #      "timestamp": "2022-01-25T19:38:36.153Z",
-        #      "taker": True
+        #      "taker": true
         #  }
         #
         # fetchTrades
@@ -1385,7 +1395,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #      "price": "0.073365",
         #      "fee": "0.000000147",
         #      "timestamp": "2018-04-28T18:39:55.345Z",
-        #      "taker": True
+        #      "taker": true
         #  }
         #
         # fetchMyTrades swap and margin
@@ -1400,10 +1410,10 @@ class hitbtc(Exchange, ImplicitAPI):
         #      "price": "41118.51",
         #      "fee": "0.002055925500",
         #      "timestamp": "2022-03-17T05:23:17.795Z",
-        #      "taker": True,
+        #      "taker": true,
         #      "position_id": 2350122,
         #      "pnl": "0.002255000000",
-        #      "liquidation": False
+        #      "liquidation": false
         #  }
         #
         timestamp = self.parse8601(trade['timestamp'])
@@ -1426,7 +1436,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        # we use clientOrderId order id with self exchange intentionally
+        # we use clientOrderId as the order id with this exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string_2(trade, 'clientOrderId', 'client_order_id')
@@ -1519,7 +1529,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       "created_at": "2018-03-06T22:05:06.507Z",
         #       "updated_at": "2018-03-06T22:11:45.03Z",
         #       "status": "SUCCESS",
-        #       "type": "DEPOSIT",  # DEPOSIT, WITHDRAW, ..
+        #       "type": "DEPOSIT", // DEPOSIT, WITHDRAW, ..
         #       "subtype": "BLOCKCHAIN",
         #       "native": {
         #         "tx_id": "e20b0965-4024-44d0-b63f-7fb8996a6706",
@@ -1532,10 +1542,10 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "senders": [
         #           "0x243bec9256c9a3469da22103891465b47583d9f1"
         #         ],
-        #         "fee": "1.22"  # only for WITHDRAW
+        #         "fee": "1.22" // only for WITHDRAW
         #       }
         #     },
-        #     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d",  # only for WITHDRAW
+        #     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
         #     "commit_risk": {}
         # withdraw
         #
@@ -1692,7 +1702,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #     {
-        #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
+        #         "symbol":"ARVUSDT", // returned from fetchTradingFees only
         #         "take_rate":"0.0009",
         #         "make_rate":"0.0009"
         #     }
@@ -1795,7 +1805,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2019,7 +2029,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         request = {
-            'order_id': id,  # exchange assigned order id to the client order id
+            'order_id': id,  # exchange assigned order id as oppose to the client order id
         }
         marketType = None
         marginMode = None
@@ -2052,7 +2062,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "price": "0.00261455",
         #         "fee": "0.000003294333",
         #         "timestamp": "2021-09-19T05:35:56.601Z",
-        #         "taker": True
+        #         "taker": true
         #       }
         #     ]
         #
@@ -2069,10 +2079,10 @@ class hitbtc(Exchange, ImplicitAPI):
         #             "price": "41095.96",
         #             "fee": "0.002054798000",
         #             "timestamp": "2022-03-17T05:23:02.217Z",
-        #             "taker": True,
+        #             "taker": true,
         #             "position_id": 2350122,
         #             "pnl": "0",
-        #             "liquidation": False
+        #             "liquidation": false
         #         }
         #     ]
         #
@@ -2131,7 +2141,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "quantity": "0.00001",
         #         "quantity_cumulative": "0",
         #         "price": "0.01",
-        #         "post_only": False,
+        #         "post_only": false,
         #         "created_at": "2021-04-13T13:06:16.567Z",
         #         "updated_at": "2021-04-13T13:06:16.567Z"
         #       }
@@ -2346,17 +2356,17 @@ class hitbtc(Exchange, ImplicitAPI):
             'side': side,
             'quantity': self.amount_to_precision(market['symbol'], amount),
             'symbol': market['id'],
-            # 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4',  # Optional
-            # 'time_in_force': 'GTC',  # Optional GTC, IOC, FOK, Day, GTD
-            # 'price': self.price_to_precision(symbol, price),  # Required if type is limit, stopLimit, or takeProfitLimit
-            # 'stop_price': self.safe_number(params, 'stop_price'),  # Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
-            # 'expire_time': '2021-06-15T17:01:05.092Z',  # Required if timeInForce is GTD
-            # 'strict_validate': False,
-            # 'post_only': False,  # Optional
-            # 'reduce_only': False,  # Optional
-            # 'display_quantity': '0',  # Optional
-            # 'take_rate': 0.001,  # Optional
-            # 'make_rate': 0.001,  # Optional
+            # 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
+            # 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
+            # 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
+            # 'stop_price': this.safeNumber (params, 'stop_price'), // Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            # 'expire_time': '2021-06-15T17:01:05.092Z', // Required if timeInForce is GTD
+            # 'strict_validate': false,
+            # 'post_only': false, // Optional
+            # 'reduce_only': false, // Optional
+            # 'display_quantity': '0', // Optional
+            # 'take_rate': 0.001, // Optional
+            # 'make_rate': 0.001, // Optional
         }
         if reduceOnly is not None:
             if (market['type'] != 'swap') and (market['type'] != 'margin'):
@@ -2419,7 +2429,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       "quantity_cumulative": "0",
         #       "price": "0.01",
         #       "price_average": "0.01",
-        #       "post_only": False,
+        #       "post_only": false,
         #       "created_at": "2021-04-13T13:06:16.567Z",
         #       "updated_at": "2021-04-13T13:06:16.567Z"
         #     }
@@ -2435,7 +2445,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       "time_in_force": "GTC",
         #       "quantity": "0.00010",
         #       "quantity_cumulative": "0.00010",
-        #       "post_only": False,
+        #       "post_only": false,
         #       "created_at": "2021-10-26T08:55:55.1Z",
         #       "updated_at": "2021-10-26T08:55:55.1Z",
         #       "trades": [
@@ -2446,7 +2456,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #           "price": "62884.78",
         #           "fee": "0.005659630200",
         #           "timestamp": "2021-10-26T08:55:55.1Z",
-        #           "taker": True
+        #           "taker": true
         #         }
         #       ]
         #     }
@@ -2464,14 +2474,14 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "quantity": "0.0005",
         #         "quantity_cumulative": "0",
         #         "price": "30000.00",
-        #         "post_only": False,
-        #         "reduce_only": False,
+        #         "post_only": false,
+        #         "reduce_only": false,
         #         "created_at": "2022-03-16T08:16:53.039Z",
         #         "updated_at": "2022-03-16T08:16:53.039Z"
         #     }
         #
         id = self.safe_string(order, 'client_order_id')
-        # we use clientOrderId order id with self exchange intentionally
+        # we use clientOrderId as the order id with this exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         side = self.safe_string(order, 'side')
@@ -2552,8 +2562,8 @@ class hitbtc(Exchange, ImplicitAPI):
             #             "max_initial_leverage": "10.00",
             #             "margin_mode": "Isolated",
             #             "force_close_fee": "0.05",
-            #             "enabled": True,
-            #             "active": True,
+            #             "enabled": true,
+            #             "active": true,
             #             "limit_base": "50000.00",
             #             "limit_power": "2.2",
             #             "unlimited_threshold": "10.0"
@@ -2571,8 +2581,8 @@ class hitbtc(Exchange, ImplicitAPI):
             #             "max_initial_leverage": "100.00",
             #             "margin_mode": "Isolated",
             #             "force_close_fee": "0.001",
-            #             "enabled": True,
-            #             "active": False,
+            #             "enabled": true,
+            #             "active": false,
             #             "limit_base": "5000000.000000000000",
             #             "limit_power": "1.25",
             #             "unlimited_threshold": "2.00"
@@ -2580,7 +2590,7 @@ class hitbtc(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            raise BadSymbol(self.id + ' fetchMarginModes() supports swap contracts and margin only')
+            raise BadSymbol(self.id + ' fetchMarginModes () supports swap contracts and margin only')
         config = self.safe_list(response, 'config', [])
         return self.parse_margin_modes(config, symbols, 'symbol')
 
@@ -2656,13 +2666,13 @@ class hitbtc(Exchange, ImplicitAPI):
             await self.load_markets()
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         fromNetwork = fromNetwork.upper()
         toNetwork = toNetwork.upper()
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same')
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
@@ -3025,7 +3035,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode = self.safe_string(position, 'type')
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
-        positions = self.safe_value(position, 'positions', [])
+        positions = self.safe_list(position, 'positions', [])
         liquidationPrice = None
         entryPrice = None
         contracts = None
@@ -3034,7 +3044,7 @@ class hitbtc(Exchange, ImplicitAPI):
             liquidationPrice = self.safe_number(entry, 'price_liquidation')
             entryPrice = self.safe_number(entry, 'price_entry')
             contracts = self.safe_number(entry, 'quantity')
-        currencies = self.safe_value(position, 'currencies', [])
+        currencies = self.safe_list(position, 'currencies', [])
         collateral = None
         for i in range(0, len(currencies)):
             entry = currencies[i]
@@ -3272,8 +3282,8 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],  # swap and margin
             'margin_balance': amount,  # swap and margin
-            # "leverage": "10",  # swap only required
-            # "strict_validate": False,  # swap and margin
+            # "leverage": "10", // swap only required
+            # "strict_validate": false, // swap and margin
         }
         if leverage is not None:
             request['leverage'] = leverage
@@ -3488,7 +3498,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'leverage': str(leverage),
             'margin_balance': self.amount_to_precision(symbol, amount),
-            # 'strict_validate': False,
+            # 'strict_validate': false,
         }
         return await self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
@@ -3509,21 +3519,21 @@ class hitbtc(Exchange, ImplicitAPI):
         #     {
         #       "WEALTH": {
         #         "full_name": "ConnectWealth",
-        #         "payin_enabled": False,
-        #         "payout_enabled": False,
-        #         "transfer_enabled": True,
+        #         "payin_enabled": false,
+        #         "payout_enabled": false,
+        #         "transfer_enabled": true,
         #         "precision_transfer": "0.001",
         #         "networks": [
         #           {
         #             "network": "ETH",
         #             "protocol": "ERC20",
-        #             "default": True,
-        #             "payin_enabled": False,
-        #             "payout_enabled": False,
+        #             "default": true,
+        #             "payin_enabled": false,
+        #             "payout_enabled": false,
         #             "precision_payout": "0.001",
         #             "payout_fee": "0.016800000000",
-        #             "payout_is_payment_id": False,
-        #             "payin_payment_id": False,
+        #             "payout_is_payment_id": false,
+        #             "payin_payment_id": false,
         #             "payin_confirmations": "2"
         #           }
         #         ]
@@ -3536,27 +3546,27 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         #    {
         #         "full_name": "ConnectWealth",
-        #         "payin_enabled": False,
-        #         "payout_enabled": False,
-        #         "transfer_enabled": True,
+        #         "payin_enabled": false,
+        #         "payout_enabled": false,
+        #         "transfer_enabled": true,
         #         "precision_transfer": "0.001",
         #         "networks": [
         #           {
         #             "network": "ETH",
         #             "protocol": "ERC20",
-        #             "default": True,
-        #             "payin_enabled": False,
-        #             "payout_enabled": False,
+        #             "default": true,
+        #             "payin_enabled": false,
+        #             "payout_enabled": false,
         #             "precision_payout": "0.001",
         #             "payout_fee": "0.016800000000",
-        #             "payout_is_payment_id": False,
-        #             "payin_payment_id": False,
+        #             "payout_is_payment_id": false,
+        #             "payin_payment_id": false,
         #             "payin_confirmations": "2"
         #           }
         #         ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networks)):
             networkEntry = networks[j]

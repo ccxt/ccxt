@@ -307,6 +307,51 @@ impl ToobitCore {
         self.call_method(Value::Str("private_get_api_v1_agent_export_url".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetApiV2AccountBalanceFlow` implicit endpoint.
+    pub async fn private_get_api_v2_account_balance_flow(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_account_balance_flow".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesOrder` implicit endpoint.
+    pub async fn private_get_api_v2_futures_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesOpenOrders` implicit endpoint.
+    pub async fn private_get_api_v2_futures_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_open_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesHistoryOrders` implicit endpoint.
+    pub async fn private_get_api_v2_futures_history_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_history_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesUserTrades` implicit endpoint.
+    pub async fn private_get_api_v2_futures_user_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_user_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesAlgoOrder` implicit endpoint.
+    pub async fn private_get_api_v2_futures_algo_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_algo_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesOpenAlgoOrders` implicit endpoint.
+    pub async fn private_get_api_v2_futures_open_algo_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_open_algo_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesHistoryAlgoOrders` implicit endpoint.
+    pub async fn private_get_api_v2_futures_history_algo_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_history_algo_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV2FuturesVoucherList` implicit endpoint.
+    pub async fn private_get_api_v2_futures_voucher_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v2_futures_voucher_list".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostApiV1SpotOrderTest` implicit endpoint.
     pub async fn private_post_api_v1_spot_order_test(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_api_v1_spot_order_test".to_string()), optional_args).await

@@ -122,6 +122,11 @@ impl HollaexCore {
         self.call_method(Value::Str("private_get_user_withdrawal_fee".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetSubaccounts` implicit endpoint.
+    pub async fn private_get_subaccounts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_subaccounts".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetUserTrades` implicit endpoint.
     pub async fn private_get_user_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_trades".to_string()), optional_args).await
@@ -140,6 +145,11 @@ impl HollaexCore {
     /// Auto-generated wrapper for the `privatePostUserWithdrawal` implicit endpoint.
     pub async fn private_post_user_withdrawal(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSubaccountTransfer` implicit endpoint.
+    pub async fn private_post_subaccount_transfer(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_subaccount_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrder` implicit endpoint.

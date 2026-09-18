@@ -167,6 +167,7 @@ export default class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Time': { 'cost': 1 },
                         'SystemStatus': { 'cost': 1 },
+                        'MaintenanceSchedule': { 'cost': 1 },
                         'Assets': { 'cost': 1 },
                         'AssetPairs': { 'cost': 1 },
                         'Ticker': { 'cost': 1 },
@@ -202,6 +203,7 @@ export default class kraken extends Exchange {
                         'RetrieveExport': { 'cost': 3 },
                         'RemoveExport': { 'cost': 3 },
                         'GetApiKeyInfo': { 'cost': 3 },
+                        'ListWalletAccounts': { 'cost': 3 },
                         // trading
                         'AddOrder': { 'cost': 0 },
                         'AmendOrder': { 'cost': 0 },
@@ -1351,7 +1353,7 @@ export default class kraken extends Exchange {
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
         const result = this.safeValue(response, 'result', {});
-        const ledger = this.safeValue(result, 'ledger', {});
+        const ledger = this.safeDict(result, 'ledger', {});
         const keys = Object.keys(ledger);
         const items = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1605,7 +1607,7 @@ export default class kraken extends Exchange {
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'result', {});
+        const balances = this.safeDict(response, 'result', {});
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1823,7 +1825,7 @@ export default class kraken extends Exchange {
         return this.parseOrders(this.safeList(result, 'orders'));
     }
     findMarketByAltnameOrId(id) {
-        const marketsByAltname = this.safeValue(this.options, 'marketsByAltname', {});
+        const marketsByAltname = this.safeDict(this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
             return marketsByAltname[id];
         }
@@ -2090,7 +2092,7 @@ export default class kraken extends Exchange {
         }
         const userref = this.safeString(order, 'userref');
         const clientOrderId = this.safeString(order, 'cl_ord_id', userref);
-        const rawTrades = this.safeValue(order, 'trades', []);
+        const rawTrades = this.safeList(order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
@@ -2541,7 +2543,7 @@ export default class kraken extends Exchange {
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join(','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const orders = [];
         const orderIds = Object.keys(result);
         for (let i = 0; i < orderIds.length; i++) {

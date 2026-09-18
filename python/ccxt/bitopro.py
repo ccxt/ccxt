@@ -872,7 +872,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1256,7 +1256,7 @@ class bitopro(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {
-            # 'pair': market['id'],  # optional
+            # 'pair': market['id'], // optional
         }
         response = None
         if symbol is not None:
@@ -1499,7 +1499,7 @@ class bitopro(Exchange, ImplicitAPI):
         #        "id": "2905906537"
         #    }
         #
-        # fetchWithdrawals or fetchWithdraw
+        # fetchWithdrawals || fetchWithdraw
         #
         #    {
         #        "serial": "20220215BW14069838",
@@ -1583,7 +1583,7 @@ class bitopro(Exchange, ImplicitAPI):
             'currency': currency['id'],
             # 'endTimestamp': 0,
             # 'id': '',
-            # 'statuses': '',  # 'ROCESSING,COMPLETE,INVALID,WAIT_PROCESS,CANCELLED,FAILED'
+            # 'statuses': '', // 'ROCESSING,COMPLETE,INVALID,WAIT_PROCESS,CANCELLED,FAILED'
         }
         if since is not None:
             request['startTimestamp'] = since
@@ -1633,7 +1633,7 @@ class bitopro(Exchange, ImplicitAPI):
             'currency': currency['id'],
             # 'endTimestamp': 0,
             # 'id': '',
-            # 'statuses': '',  # 'PROCESSING,COMPLETE,EXPIRED,INVALID,WAIT_PROCESS,WAIT_CONFIRMATION,EMAIL_VERIFICATION,CANCELLED'
+            # 'statuses': '', // 'PROCESSING,COMPLETE,EXPIRED,INVALID,WAIT_PROCESS,WAIT_CONFIRMATION,EMAIL_VERIFICATION,CANCELLED'
         }
         if since is not None:
             request['startTimestamp'] = since
