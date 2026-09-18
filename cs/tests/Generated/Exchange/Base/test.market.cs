@@ -76,11 +76,11 @@ public partial class testMainClass : BaseTest
         object future = getValue(market, "future");
         object option = getValue(market, "option");
         bool? index = exchange.safeBool(market, "index"); // todo: unify
-        bool isIndex = (!isEqual(index, null)) && isTrue(index);
+        bool isIndex = (!isEqual(index, null)) && (index == true);
         object linear = getValue(market, "linear");
         object inverse = getValue(market, "inverse");
         bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
-        bool isQuanto = (!isEqual(quanto, null)) && isTrue(quanto);
+        bool isQuanto = (!isEqual(quanto, null)) && (quanto == true);
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
         List<object> emptyAllowedFor = new List<object>() {"margin"};

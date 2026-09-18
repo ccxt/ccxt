@@ -589,8 +589,8 @@ public partial class limitless : PredictionExchange
             if (marketResolved)
             {
                 winnerRaw = (isEqual(legIndex, winningOutcomeIndex));
-                settleFractionRaw = ((bool) isTrue(winnerRaw)) ? 1 : 0;
-                if (isTrue(winnerRaw))
+                settleFractionRaw = ((bool) (winnerRaw == true)) ? 1 : 0;
+                if ((winnerRaw == true))
                 {
                     resolvedOutcome = outcomeHandle;
                 }

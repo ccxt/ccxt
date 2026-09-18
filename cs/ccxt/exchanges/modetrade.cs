@@ -1754,7 +1754,7 @@ public partial class modetrade : Exchange
         bool? success = this.safeBool(order, "success");
         if (!isEqual(success, null))
         {
-            status = ((bool) isTrue((success))) ? "NEW" : "REJECTED";
+            status = ((bool) (success == true)) ? "NEW" : "REJECTED";
         }
         string? side = this.safeStringLower(order, "side");
         object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));

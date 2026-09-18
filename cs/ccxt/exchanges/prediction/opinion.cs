@@ -313,8 +313,8 @@ public partial class opinion : PredictionExchange
             if (hasResult)
             {
                 winner = (isEqual(tokenId, resultTokenId));
-                settleFraction = ((bool) isTrue(winner)) ? 1 : 0;
-                if (isTrue(winner))
+                settleFraction = ((bool) (winner == true)) ? 1 : 0;
+                if ((winner == true))
                 {
                     resolvedOutcome = outcomeHandle;
                 }

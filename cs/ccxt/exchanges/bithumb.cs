@@ -2161,7 +2161,7 @@ public partial class bithumb : Exchange
         IDictionary<string, object> data = null;
         if (isEqual(generation, 2))
         {
-            if (isTrue(twap))
+            if ((twap == true))
             {
                 if ((market != null))
                 {
@@ -2574,7 +2574,7 @@ public partial class bithumb : Exchange
         if (isEqual(generation, 2))
         {
             bool? twap = this.safeBool(parameters, "twap", false);
-            if (isTrue(twap))
+            if ((twap == true))
             {
                 ((IDictionary<string,object>)parameters)["state"] = "progress";
             } else
@@ -2641,7 +2641,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
-        if (!isTrue(twap))
+        if (!(twap == true))
         {
             List<object> clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
             if ((clientOrderIds != null))
@@ -2662,7 +2662,7 @@ public partial class bithumb : Exchange
         }
         object response = null;
         object data = null;
-        if (isTrue(twap))
+        if ((twap == true))
         {
             response = await this.privateGetV1Twap(this.extend(request, parameters));
             //
@@ -2802,7 +2802,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> response = null;
         bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
-        if (isTrue(twap))
+        if ((twap == true))
         {
             ((IDictionary<string,object>)request)["algo_order_id"] = id;
         } else
@@ -2819,7 +2819,7 @@ public partial class bithumb : Exchange
         }
         if (isEqual(generation, 2))
         {
-            if (isTrue(twap))
+            if ((twap == true))
             {
                 response = await this.privateDeleteV1Twap(this.extend(request, parameters));
             } else

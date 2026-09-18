@@ -653,10 +653,10 @@ public partial class hashkey : ccxt.hashkey
             if (isPublicTrade)
             {
                 takerOrMaker = "taker";
-                side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+                side = ((bool) (isBuyerMaker == true)) ? "sell" : "buy";
             } else
             {
-                takerOrMaker = ((bool) isTrue(isBuyerMaker)) ? "maker" : "taker";
+                takerOrMaker = ((bool) (isBuyerMaker == true)) ? "maker" : "taker";
                 side = this.safeStringLower(trade, "S");
             }
         }

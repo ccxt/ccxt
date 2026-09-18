@@ -796,8 +796,8 @@ public partial class kalshi : PredictionExchange
             if (resolved && ((result != null)) && ((result != "")))
             {
                 winnerRaw = ((((string)label).ToLower() == result));
-                settleFractionRaw = ((bool) isTrue((winnerRaw))) ? 1 : 0;
-                if (isTrue(winnerRaw))
+                settleFractionRaw = ((bool) (winnerRaw == true)) ? 1 : 0;
+                if ((winnerRaw == true))
                 {
                     resolvedOutcome = outcomeHandle;
                 }

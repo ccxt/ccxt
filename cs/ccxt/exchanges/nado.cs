@@ -2442,7 +2442,7 @@ public partial class nado : Exchange
         bool? isTaker = this.safeBool(trade, "is_taker");
         if (!isEqual(isTaker, null))
         {
-            if (isTrue(isTaker))
+            if ((isTaker == true))
             {
                 takerOrMaker = "taker";
             } else

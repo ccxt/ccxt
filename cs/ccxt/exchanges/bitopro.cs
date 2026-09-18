@@ -770,7 +770,7 @@ public partial class bitopro : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isTaker, null))
         {
-            if (isTrue(isTaker))
+            if ((isTaker == true))
             {
                 takerOrMaker = "taker";
             } else

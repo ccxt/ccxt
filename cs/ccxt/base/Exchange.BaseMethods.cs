@@ -2770,7 +2770,7 @@ public partial class BaseExchange
         }
         string? cost = this.numberToString(amount);
         string? key = null;
-        if (isTrue(useQuote))
+        if ((useQuote == true))
         {
             string? priceString = this.numberToString(price);
             cost = Precise.stringMul(cost, priceString);

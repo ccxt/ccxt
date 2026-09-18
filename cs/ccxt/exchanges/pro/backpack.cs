@@ -859,7 +859,7 @@ public partial class backpack : ccxt.backpack
         if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            if (isTrue(isBuyerMaker))
+            if ((isBuyerMaker == true))
             {
                 side = "sell";
             } else

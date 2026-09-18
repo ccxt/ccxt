@@ -2393,7 +2393,7 @@ public partial class bitmex : Exchange
         {
             isInverse = this.safeBool(market, "inverse", false);
         }
-        if (isTrue(isInverse))
+        if ((isInverse == true))
         {
             cost = this.convertFromRawQuantity(symbol, qty);
         } else
@@ -2403,7 +2403,7 @@ public partial class bitmex : Exchange
         string? average = this.safeString(order, "avgPx");
         string? filled = null;
         string? cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
-        if (isTrue(isInverse))
+        if ((isInverse == true))
         {
             filled = Precise.stringDiv(cumQty, average);
         } else

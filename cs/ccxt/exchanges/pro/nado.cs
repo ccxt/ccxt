@@ -1430,7 +1430,7 @@ public partial class nado : ccxt.nado
         string? side = null;
         if (!isEqual(isTakerBuyer, null))
         {
-            side = ((bool) isTrue(isTakerBuyer)) ? "buy" : "sell";
+            side = ((bool) (isTakerBuyer == true)) ? "buy" : "sell";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1477,13 +1477,13 @@ public partial class nado : ccxt.nado
         string? side = null;
         if (!isEqual(isBid, null))
         {
-            side = ((bool) isTrue(isBid)) ? "buy" : "sell";
+            side = ((bool) (isBid == true)) ? "buy" : "sell";
         }
         bool? isTaker = this.safeBool(trade, "is_taker");
         string? takerOrMaker = null;
         if (!isEqual(isTaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isTaker)) ? "taker" : "maker";
+            takerOrMaker = ((bool) (isTaker == true)) ? "taker" : "maker";
         }
         double? feeCost = this.parseX18(this.safeString(trade, "fee"));
         Dictionary<string, object> fee = null;

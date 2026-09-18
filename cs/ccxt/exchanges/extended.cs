@@ -1398,7 +1398,7 @@ public partial class extended : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isTaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isTaker)) ? "taker" : "maker";
+            takerOrMaker = ((bool) (isTaker == true)) ? "taker" : "maker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString2(trade, "i", "id") },
@@ -2247,7 +2247,7 @@ public partial class extended : Exchange
         string status = "pending";
         if (!isEqual(validSignature, null))
         {
-            status = ((bool) isTrue(validSignature)) ? "ok" : "failed";
+            status = ((bool) (validSignature == true)) ? "ok" : "failed";
         }
         return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(data, "id") },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "currency", getValue(currency, "code") },             { "amount", this.parseNumber(amountString) },             { "fromAccount", fromAccountVar },             { "toAccount", toAccount },             { "status", status },         });
     }
@@ -2272,7 +2272,7 @@ public partial class extended : Exchange
         string? status = null;
         if (!isEqual(validSignature, null))
         {
-            status = ((bool) isTrue(validSignature)) ? "ok" : "failed";
+            status = ((bool) (validSignature == true)) ? "ok" : "failed";
         } else
         {
             status = this.parseTransactionStatus(this.safeString(transfer, "status"));

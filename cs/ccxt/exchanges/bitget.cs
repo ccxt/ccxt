@@ -3910,7 +3910,7 @@ public partial class bitget : Exchange
                 }
                 contract = true;
                 inverse = (isEqual(bs, settle));
-                linear = !isTrue(inverse);
+                linear = !(inverse == true);
                 Int64? priceDecimals = this.safeInteger(market, "pricePlace");
                 Int64? amountDecimals = this.safeInteger(market, "volumePlace");
                 string? priceStep = this.safeString(market, "priceEndStep");
@@ -4189,7 +4189,7 @@ public partial class bitget : Exchange
                 }
                 contract = true;
                 inverse = (isEqual(bs, settle));
-                linear = !isTrue(inverse);
+                linear = !(inverse == true);
                 marginModes = new Dictionary<string, object>() {
                     { "cross", true },
                     { "isolated", true },
@@ -4337,8 +4337,8 @@ public partial class bitget : Exchange
             network = ((string)network).ToUpper();
             bool withdrawable = ((this.safeString(chain, "withdrawable") == "true"));
             bool rechargeable = ((this.safeString(chain, "rechargeable") == "true"));
-            withdraw = ((bool) (isEqual(withdraw, null))) ? withdrawable : (isTrue(withdraw) || withdrawable);
-            deposit = ((bool) (isEqual(deposit, null))) ? rechargeable : (isTrue(deposit) || rechargeable);
+            withdraw = ((bool) (isEqual(withdraw, null))) ? withdrawable : ((withdraw == true) || withdrawable);
+            deposit = ((bool) (isEqual(deposit, null))) ? rechargeable : ((deposit == true) || rechargeable);
             ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                 { "info", chain },
                 { "id", networkId },
@@ -7741,7 +7741,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)oneWayModeparametersVariable)[1];
         if (!isEqual(oneWayMode, null))
         {
-            hedged = !isTrue(oneWayMode);
+            hedged = !(oneWayMode == true);
         }
         bool isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");

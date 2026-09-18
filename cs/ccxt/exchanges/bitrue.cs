@@ -1880,11 +1880,11 @@ public partial class bitrue : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (!isEqual(buyerMaker, null))
         {
-            side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy";
+            side = ((bool) (buyerMaker == true)) ? "sell" : "buy";
         }
         if (!isEqual(isBuyer, null))
         {
-            side = ((bool) isTrue(isBuyer)) ? "buy" : "sell"; // this is a true side
+            side = ((bool) (isBuyer == true)) ? "buy" : "sell"; // this is a true side
         }
         Dictionary<string, object> fee = null;
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
@@ -1898,7 +1898,7 @@ public partial class bitrue : Exchange
         bool? isMaker = this.safeBool(trade, "isMaker");
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },

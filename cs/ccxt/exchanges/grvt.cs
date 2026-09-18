@@ -1387,7 +1387,7 @@ public partial class grvt : Exchange
         string? side = null;
         if (!isEqual(isTakerBuyer, null))
         {
-            side = ((bool) isTrue(isTakerBuyer)) ? "buy" : "sell";
+            side = ((bool) (isTakerBuyer == true)) ? "buy" : "sell";
             takerOrMaker = "taker";
         } else
         {
