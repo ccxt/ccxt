@@ -148,8 +148,8 @@ ccxt-farm log 701 --step buildCS      -> Build succeeded.  0 Warning(s)  0 Error
 ```
 `branch_update=unchanged` on the farm's own forced transpile is the fixed-point proof: the committed
 tree is what the generator emits. No `[Automated changes]` commit was merged back, so the gated
-product commit stays the branch's build input; the report commits on top of it touch no build input
-(the report tip was re-gated the same way: job 714, exit=0, `branch_update=unchanged`).
+product commit stays the branch's build input; the report revisions on top of it touch no build input
+and every one of them was re-gated the same way (exit=0, `branch_update=unchanged`).
 
 ## hotspot: lines
 
