@@ -1634,7 +1634,7 @@ public partial class limitless : PredictionExchange
                     {
                         throw new ExchangeError ((string)(this.id + " fetchOHLCV() missing title")) ;
                     }
-                    if (((outcomeLabel != null)) && (getIndexOf(title, outcomeLabel) >= 0))
+                    if (((outcomeLabel != null)) && (((string)title).IndexOf(((string)outcomeLabel), StringComparison.Ordinal) >= 0))
                     {
                         selectedSeries = series;
                         break;
@@ -2892,8 +2892,8 @@ public partial class limitless : PredictionExchange
             string? strategy = this.safeStringLower(item, "strategy");
             if ((strategy != null))
             {
-                int buyIndex = getIndexOf(strategy, "buy");
-                int sellIndex = getIndexOf(strategy, "sell");
+                int buyIndex = ((string)strategy).IndexOf("buy", StringComparison.Ordinal);
+                int sellIndex = ((string)strategy).IndexOf("sell", StringComparison.Ordinal);
                 if ((buyIndex >= 0) || (sellIndex >= 0))
                 {
                     ((IList<object>)trades).Add(item);
@@ -2997,7 +2997,7 @@ public partial class limitless : PredictionExchange
         {
             throw new ExchangeError ((string)(this.id + " parsePredictionTrade() missing rawSide")) ;
         }
-        int sellIndex = getIndexOf(rawSide, "sell");
+        int sellIndex = ((string)rawSide).IndexOf("sell", StringComparison.Ordinal);
         string side = ((bool) (sellIndex >= 0)) ? "sell" : "buy";
         string? type = null;
         string? takerOrMaker = null;
@@ -3005,7 +3005,7 @@ public partial class limitless : PredictionExchange
         {
             throw new ExchangeError ((string)(this.id + " parsePredictionTrade() missing rawSide")) ;
         }
-        if (getIndexOf(rawSide, "limit") >= 0)
+        if (((string)rawSide).IndexOf("limit", StringComparison.Ordinal) >= 0)
         {
             type = "limit";
             takerOrMaker = "maker";
@@ -3013,7 +3013,7 @@ public partial class limitless : PredictionExchange
             {
                 throw new ExchangeError ((string)(this.id + " method() missing rawSide")) ;
             }
-        } else if (getIndexOf(rawSide, "market") >= 0)
+        } else if (((string)rawSide).IndexOf("market", StringComparison.Ordinal) >= 0)
         {
             type = "market";
             takerOrMaker = "taker";
@@ -3510,7 +3510,7 @@ public partial class limitless : PredictionExchange
                 {
                     throw new ExchangeError ((string)(this.id + " fetchRawMarketsByTags() missing name")) ;
                 }
-                if (getIndexOf(name, getValue(wanted, wi)) >= 0)
+                if (((string)name).IndexOf(((string)getValue(wanted, wi)), StringComparison.Ordinal) >= 0)
                 {
                     matched = true;
                     break;

@@ -932,7 +932,7 @@ public partial class whitebit : ccxt.whitebit
         {
             return;
         }
-        bool isMargin = (getIndexOf(method, "Margin") >= 0);
+        bool isMargin = (((string)method).IndexOf("Margin", StringComparison.Ordinal) >= 0);
         List<object> data = this.safeList(message, "params", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
@@ -970,7 +970,7 @@ public partial class whitebit : ccxt.whitebit
         }
         this.balance = this.safeBalance(this.balance);
         string messageHash = "wallet:";
-        if (getIndexOf(method, "Spot") >= 0)
+        if (((string)method).IndexOf("Spot", StringComparison.Ordinal) >= 0)
         {
             messageHash = messageHash + "spot";
         } else

@@ -756,7 +756,7 @@ public partial class polymarket : PredictionExchange
         for (int i = 0; i < getArrayLength(chars); i++)
         {
             string? ch = ((string)getValue(chars, i));
-            if (getIndexOf(allowed, ch) >= 0)
+            if (((string)allowed).IndexOf(((string)ch), StringComparison.Ordinal) >= 0)
             {
                 if (pendingSep && (!isEqual(slug, "")))
                 {
@@ -1199,7 +1199,7 @@ public partial class polymarket : PredictionExchange
         // non-ids) and falls through to the search path and its local BadSymbol below.
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
-        if ((getIndexOf(outcomeSymbol, ":") < 0) && (isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))
+        if ((((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal) < 0) && (isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))
         {
             List<object> response = await this.gammaPublicGetMarkets(new Dictionary<string, object>() {
                 { "clob_token_ids", outcomeSymbol },
@@ -3091,7 +3091,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = null;
-        if (getIndexOf(id, "-") >= 0)
+        if (((string)id).IndexOf("-", StringComparison.Ordinal) >= 0)
         {
             response = await this.gammaPublicGetEventsSlugSlug(this.extend(new Dictionary<string, object>() {
                 { "slug", id },
@@ -3428,7 +3428,7 @@ public partial class polymarket : PredictionExchange
         for (int i = 0; i < getArrayLength(addrChars); i++)
         {
             string? ch = ((string)getValue(addrChars, i));
-            if (getIndexOf(upperNibbles, getValue(hashChars, i)) >= 0)
+            if (((string)upperNibbles).IndexOf(((string)getValue(hashChars, i)), StringComparison.Ordinal) >= 0)
             {
                 result = add(result, ((string)ch).ToUpper());
             } else

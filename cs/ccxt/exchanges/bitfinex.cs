@@ -883,7 +883,7 @@ public partial class bitfinex : Exchange
             object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
             bool spot = true;
             string? type = null;
-            if (getIndexOf(((string)id), "F0") >= 0)
+            if (((string)id).IndexOf("F0", StringComparison.Ordinal) >= 0)
             {
                 spot = false;
                 type = "swap";
@@ -894,7 +894,7 @@ public partial class bitfinex : Exchange
             bool swap = (type == "swap");
             object baseId = null;
             object quoteId = null;
-            if (getIndexOf(((string)id), ":") >= 0)
+            if (((string)id).IndexOf(":", StringComparison.Ordinal) >= 0)
             {
                 List<object> parts = ((string)((string)id)).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 baseId = (parts != null && 0 < parts.Count ? parts[0] : null);
@@ -3604,22 +3604,22 @@ public partial class bitfinex : Exchange
         if ((type == null))
         {
             return null;
-        } else if (getIndexOf(type, "fee") >= 0 || getIndexOf(type, "charged") >= 0)
+        } else if (((string)type).IndexOf("fee", StringComparison.Ordinal) >= 0 || ((string)type).IndexOf("charged", StringComparison.Ordinal) >= 0)
         {
             return "fee";
-        } else if (getIndexOf(type, "rebate") >= 0)
+        } else if (((string)type).IndexOf("rebate", StringComparison.Ordinal) >= 0)
         {
             return "rebate";
-        } else if (getIndexOf(type, "deposit") >= 0 || getIndexOf(type, "withdrawal") >= 0)
+        } else if (((string)type).IndexOf("deposit", StringComparison.Ordinal) >= 0 || ((string)type).IndexOf("withdrawal", StringComparison.Ordinal) >= 0)
         {
             return "transaction";
-        } else if (getIndexOf(type, "transfer") >= 0)
+        } else if (((string)type).IndexOf("transfer", StringComparison.Ordinal) >= 0)
         {
             return "transfer";
-        } else if (getIndexOf(type, "payment") >= 0)
+        } else if (((string)type).IndexOf("payment", StringComparison.Ordinal) >= 0)
         {
             return "payout";
-        } else if (getIndexOf(type, "exchange") >= 0 || getIndexOf(type, "position") >= 0)
+        } else if (((string)type).IndexOf("exchange", StringComparison.Ordinal) >= 0 || ((string)type).IndexOf("position", StringComparison.Ordinal) >= 0)
         {
             return "trade";
         } else

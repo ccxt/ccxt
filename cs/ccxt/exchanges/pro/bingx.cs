@@ -283,14 +283,14 @@ public partial class bingx : ccxt.bingx
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
-        bool isSwap = getIndexOf(client.url, "swap") >= 0;
+        bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
         string marketType = ((bool) isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         string? inverseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "inverse");
-        bool isInverse = ((inverseUrl != null)) && ((getIndexOf(client.url, inverseUrl) == 0));
+        bool isInverse = ((inverseUrl != null)) && ((((string)client.url).IndexOf(((string)inverseUrl), StringComparison.Ordinal) == 0));
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data, market, isInverse));
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         (client as WebSocketClient).resolve(ticker, this.getMessageHash("ticker", symbol));
@@ -576,7 +576,7 @@ public partial class bingx : ccxt.bingx
         object data = this.safeValue(message, "data", new List<object>() {});
         string? rawHash = this.safeString(message, "dataType", "");
         object marketId = getValue(((string)rawHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
-        bool isSwap = getIndexOf(client.url, "swap") >= 0;
+        bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
         string marketType = ((bool) isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
@@ -784,7 +784,7 @@ public partial class bingx : ccxt.bingx
         string? firstPart = ((string)getValue(parts, 0));
         bool isAllEndpoint = ((firstPart == "all"));
         string? marketId = this.safeString(data, "symbol", firstPart);
-        bool isSwap = getIndexOf(client.url, "swap") >= 0;
+        bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
         string marketType = ((bool) isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
@@ -914,7 +914,7 @@ public partial class bingx : ccxt.bingx
         //         }
         //     }
         //
-        bool isSwap = getIndexOf(client.url, "swap") >= 0;
+        bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
         string? dataType = this.safeString(message, "dataType", "");
         List<object> parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? firstPart = ((string)getValue(parts, 0));
@@ -1967,7 +1967,7 @@ public partial class bingx : ccxt.bingx
         List<object> data = this.safeList(a, "B", new List<object>() {});
         Int64? timestamp = this.safeInteger2(message, "T", "E");
         string? spotUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "spot");
-        bool isSpot = ((spotUrl != null)) && ((getIndexOf(client.url, spotUrl) == 0));
+        bool isSpot = ((spotUrl != null)) && ((((string)client.url).IndexOf(((string)spotUrl), StringComparison.Ordinal) == 0));
         string type = ((bool) isSpot) ? "spot" : "swap";
         if (!(inOp(this.balance, type)))
         {

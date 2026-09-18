@@ -2613,13 +2613,13 @@ public partial class bitteam : Exchange
         {
             if (isEqual(code, 404))
             {
-                if ((getIndexOf(url, "/ccxt/order/") >= 0) && (isEqual(method, "GET")))
+                if ((((string)url).IndexOf("/ccxt/order/", StringComparison.Ordinal) >= 0) && (isEqual(method, "GET")))
                 {
                     List<object> parts = ((string)url).Split(new [] {((string)"/order/")}, StringSplitOptions.None).ToList<object>();
                     string? orderId = this.safeString(parts, 1);
                     throw new OrderNotFound ((string)(((this.id + " order ") + orderId) + " not found")) ;
                 }
-                if (getIndexOf(url, "/cmc/orderbook/") >= 0)
+                if (((string)url).IndexOf("/cmc/orderbook/", StringComparison.Ordinal) >= 0)
                 {
                     List<object> parts = ((string)url).Split(new [] {((string)"/cmc/orderbook/")}, StringSplitOptions.None).ToList<object>();
                     string? symbolId = this.safeString(parts, 1);

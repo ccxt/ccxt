@@ -83,7 +83,7 @@ public partial class aster : ccxt.aster
 
     public virtual string getAccountTypeFromUrl(object url)
     {
-        if (getIndexOf(url, "fstream") > -1)
+        if (((string)url).IndexOf("fstream", StringComparison.Ordinal) > -1)
         {
             return "swap";
         }
@@ -2034,7 +2034,7 @@ public partial class aster : ccxt.aster
         string? executionType = this.safeString(message, "x");
         if ((executionType == "TRADE"))
         {
-            bool isSwap = getIndexOf(client.url, "fstream") >= 0;
+            bool isSwap = ((string)client.url).IndexOf("fstream", StringComparison.Ordinal) >= 0;
             string type = ((bool) isSwap) ? "swap" : "spot";
             Dictionary<string, object> fakeMarket = this.safeMarketStructure(new Dictionary<string, object>() {
                 { "type", type },

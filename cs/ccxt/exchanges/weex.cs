@@ -4076,7 +4076,7 @@ public partial class weex : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseLedgerEntry() missing amountRaw")) ;
         }
-        if (getIndexOf(amountRaw, "-") >= 0)
+        if (((string)amountRaw).IndexOf("-", StringComparison.Ordinal) >= 0)
         {
             direction = "out";
         }

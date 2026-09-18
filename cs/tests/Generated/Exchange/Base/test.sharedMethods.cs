@@ -770,7 +770,7 @@ public partial class testMainClass : BaseTest
             // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
             // in the per-lane callers - this tells them whether the probe is needed
             object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
-            if (getIndexOf(eMessage, "percentage should be above") >= 0 || getIndexOf(eMessage, "percentage should be below") >= 0)
+            if (((string)eMessage).IndexOf("percentage should be above", StringComparison.Ordinal) >= 0 || ((string)eMessage).IndexOf("percentage should be below", StringComparison.Ordinal) >= 0)
             {
                 object symbol = getValue(ticker, "symbol");
                 if ((symbol != null))
@@ -792,7 +792,7 @@ public partial class testMainClass : BaseTest
             // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
             // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
             object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
-            if (getIndexOf(eMessage, "percentage should be above") >= 0 || getIndexOf(eMessage, "percentage should be below") >= 0)
+            if (((string)eMessage).IndexOf("percentage should be above", StringComparison.Ordinal) >= 0 || ((string)eMessage).IndexOf("percentage should be below", StringComparison.Ordinal) >= 0)
             {
                 object symbol = getValue(ticker, "symbol");
                 if ((symbol != null))

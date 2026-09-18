@@ -74,7 +74,7 @@ public partial class testMainClass : BaseTest
         {
             object message = exchange.exceptionMessage(e);
             // check structure if key is numeric, not string
-            if (getIndexOf(message, "\"id\" key") >= 0)
+            if (((string)message).IndexOf("\"id\" key", StringComparison.Ordinal) >= 0)
             {
                 // @ts-ignore
                 ((IDictionary<string,object>)format)["id"] = 123;

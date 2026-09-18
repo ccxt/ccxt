@@ -12272,7 +12272,7 @@ public partial class kucoin : Exchange
                 }
             } else if ((type != null))
             {
-                if (getIndexOf(type, "long") > -1)
+                if (((string)type).IndexOf("long", StringComparison.Ordinal) > -1)
                 {
                     side = "long";
                 } else

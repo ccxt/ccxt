@@ -2365,7 +2365,7 @@ public partial class blofin : Exchange
         {
             return null;
         }
-        if (getIndexOf(chainId, "(") > -1)
+        if (((string)chainId).IndexOf("(", StringComparison.Ordinal) > -1)
         {
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not

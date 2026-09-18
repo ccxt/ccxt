@@ -830,7 +830,7 @@ public partial class derive : ccxt.derive
             if ((channel != null))
             {
                 List<object> parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-                if ((getIndexOf(channel, "orders") >= 0) || getIndexOf(channel, "trades") > 0)
+                if ((((string)channel).IndexOf("orders", StringComparison.Ordinal) >= 0) || ((string)channel).IndexOf("trades", StringComparison.Ordinal) > 0)
                 {
                     eventVar = this.safeString(parsedChannel, 1);
                     // {subaccounr_id}.trades

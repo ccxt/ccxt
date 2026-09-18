@@ -2032,21 +2032,21 @@ public partial class nado : ccxt.nado
         {
             return;
         }
-        if ((getIndexOf(messageHash, "trade:") == 0))
+        if ((((string)messageHash).IndexOf("trade:", StringComparison.Ordinal) == 0))
         {
             string symbol = ((string)messageHash).Replace((string)"trade:", (string)"");
             if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
             {
                 ((IDictionary<string,object>)this.trades).Remove((string)symbol);
             }
-        } else if ((getIndexOf(messageHash, "orderbook:") == 0))
+        } else if ((((string)messageHash).IndexOf("orderbook:", StringComparison.Ordinal) == 0))
         {
             string symbol = ((string)messageHash).Replace((string)"orderbook:", (string)"");
             if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
-        } else if ((getIndexOf(messageHash, "ohlcv:") == 0))
+        } else if ((((string)messageHash).IndexOf("ohlcv:", StringComparison.Ordinal) == 0))
         {
             List<object> parts = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             string? timeframe = this.safeString(parts, 1);
@@ -2055,7 +2055,7 @@ public partial class nado : ccxt.nado
             {
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }
-        } else if ((getIndexOf(messageHash, "ticker:") == 0))
+        } else if ((((string)messageHash).IndexOf("ticker:", StringComparison.Ordinal) == 0))
         {
             string symbol = ((string)messageHash).Replace((string)"ticker:", (string)"");
             if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
@@ -2069,7 +2069,7 @@ public partial class nado : ccxt.nado
             {
                 ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
             }
-        } else if ((getIndexOf(messageHash, "bidask:") == 0))
+        } else if ((((string)messageHash).IndexOf("bidask:", StringComparison.Ordinal) == 0))
         {
             string symbol = ((string)messageHash).Replace((string)"bidask:", (string)"");
             if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
@@ -2083,13 +2083,13 @@ public partial class nado : ccxt.nado
             {
                 ((IDictionary<string,object>)this.bidsasks).Remove((string)getValue(symbols, i));
             }
-        } else if ((getIndexOf(messageHash, "orders") == 0))
+        } else if ((((string)messageHash).IndexOf("orders", StringComparison.Ordinal) == 0))
         {
             this.orders = null;
-        } else if ((getIndexOf(messageHash, "myTrades") == 0))
+        } else if ((((string)messageHash).IndexOf("myTrades", StringComparison.Ordinal) == 0))
         {
             this.myTrades = null;
-        } else if ((getIndexOf(messageHash, "positions") == 0))
+        } else if ((((string)messageHash).IndexOf("positions", StringComparison.Ordinal) == 0))
         {
             this.positions = null;
         }

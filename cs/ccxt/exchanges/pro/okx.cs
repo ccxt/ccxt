@@ -106,7 +106,7 @@ public partial class okx : ccxt.okx
         bool isBusiness = (isEqual(access, "business"));
         bool isPublic = (isEqual(access, "public"));
         object url = getValue(getValue(this.urls, "api"), "ws");
-        if (isBusiness || (getIndexOf(channel, "candle") > -1) || (isEqual(channel, "orders-algo")))
+        if (isBusiness || (((string)channel).IndexOf("candle", StringComparison.Ordinal) > -1) || (isEqual(channel, "orders-algo")))
         {
             return add(add(url, "/business"), sandboxSuffix);
         } else if (isPublic)
@@ -2975,7 +2975,7 @@ public partial class okx : ccxt.okx
             object method = this.safeValue(methods, channel);
             if ((method == null))
             {
-                if ((getIndexOf(channel, "candle") == 0))
+                if ((((string)channel).IndexOf("candle", StringComparison.Ordinal) == 0))
                 {
                     this.handleOHLCV(client as WebSocketClient, message);
                 }

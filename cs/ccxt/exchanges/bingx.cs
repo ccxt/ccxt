@@ -4001,12 +4001,12 @@ public partial class bingx : Exchange
         string? stopLoss = this.safeString(result, "stopLoss");
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
-        if (((stopLossDict == null)) && ((stopLoss != null)) && ((getIndexOf(stopLoss, "{") == 0)))
+        if (((stopLossDict == null)) && ((stopLoss != null)) && ((((string)stopLoss).IndexOf("{", StringComparison.Ordinal) == 0)))
         {
             ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
         }
         string? takeProfit = this.safeString(result, "takeProfit");
-        if (((takeProfit != null)) && ((getIndexOf(takeProfit, "{") == 0)))
+        if (((takeProfit != null)) && ((((string)takeProfit).IndexOf("{", StringComparison.Ordinal) == 0)))
         {
             ((IDictionary<string,object>)result)["takeProfit"] = this.parseJson(takeProfit);
         }
@@ -4512,12 +4512,12 @@ public partial class bingx : Exchange
         string? triggerPrice = stopPrice;
         if ((stopPrice != null))
         {
-            if ((getIndexOf(rawType, "stop") > -1) && ((stopLossPrice == null)))
+            if ((((string)rawType).IndexOf("stop", StringComparison.Ordinal) > -1) && ((stopLossPrice == null)))
             {
                 stopLossPrice = stopPrice;
                 triggerPrice = null;
             }
-            if ((getIndexOf(rawType, "take") > -1) && ((takeProfitPrice == null)))
+            if ((((string)rawType).IndexOf("take", StringComparison.Ordinal) > -1) && ((takeProfitPrice == null)))
             {
                 takeProfitPrice = stopPrice;
                 triggerPrice = null;
@@ -5936,7 +5936,7 @@ public partial class bingx : Exchange
         string? network = this.safeString(transaction, "network");
         string? currencyId = this.safeString(transaction, "coin");
         string? code = this.safeCurrencyCode(currencyId, currency);
-        if (((code != null)) && ((network != null)) && (!isEqual(code, network)) && getIndexOf(code, network) >= 0)
+        if (((code != null)) && ((network != null)) && (!isEqual(code, network)) && ((string)code).IndexOf(((string)network), StringComparison.Ordinal) >= 0)
         {
             if ((network != null))
             {

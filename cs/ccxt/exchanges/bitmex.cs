@@ -2763,7 +2763,7 @@ public partial class bitmex : Exchange
         string? error = this.safeString(order, "error");
         if ((error != null))
         {
-            if (getIndexOf(error, "Unable to cancel order due to existing state") >= 0)
+            if (((string)error).IndexOf("Unable to cancel order due to existing state", StringComparison.Ordinal) >= 0)
             {
                 throw new OrderNotFound ((string)((this.id + " cancelOrder() failed: ") + error)) ;
             }

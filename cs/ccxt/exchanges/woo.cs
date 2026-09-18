@@ -1197,7 +1197,7 @@ public partial class woo : Exchange
         Int64? timestamp = null;
         if ((timestampString != null))
         {
-            if (getIndexOf(timestampString, ".") > -1)
+            if (((string)timestampString).IndexOf(".", StringComparison.Ordinal) > -1)
             {
                 timestamp = this.safeTimestamp2(trade, "executed_timestamp", "executedTimestamp");
             } else
@@ -2433,7 +2433,7 @@ public partial class woo : Exchange
         string? timestrampString = this.safeString(order, "createdTime");
         if ((timestrampString != null))
         {
-            if (getIndexOf(timestrampString, ".") >= 0)
+            if (((string)timestrampString).IndexOf(".", StringComparison.Ordinal) >= 0)
             {
                 timestamp = this.safeTimestamp(order, "createdTime"); // algo orders
             } else
@@ -2466,7 +2466,7 @@ public partial class woo : Exchange
         Int64? lastUpdateTimestamp = null;
         if ((lastUpdateTimestampString != null))
         {
-            if (getIndexOf(lastUpdateTimestampString, ".") >= 0)
+            if (((string)lastUpdateTimestampString).IndexOf(".", StringComparison.Ordinal) >= 0)
             {
                 lastUpdateTimestamp = this.safeTimestamp(order, "updatedTime"); // algo orders
             } else
@@ -4734,7 +4734,7 @@ public partial class woo : Exchange
         Int64? timestamp = null;
         if ((timestampString != null))
         {
-            if (getIndexOf(timestampString, ".") > -1)
+            if (((string)timestampString).IndexOf(".", StringComparison.Ordinal) > -1)
             {
                 timestamp = this.safeTimestamp(position, "timestamp");
             } else

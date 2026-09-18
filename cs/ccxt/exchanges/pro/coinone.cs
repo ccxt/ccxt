@@ -431,7 +431,7 @@ public partial class coinone : ccxt.coinone
             for (int i = 0; i < keys.Count; i++)
             {
                 string? key = ((string)getValue(keys, i));
-                if (getIndexOf(topic, getValue(keys, i)) >= 0)
+                if (((string)topic).IndexOf(((string)getValue(keys, i)), StringComparison.Ordinal) >= 0)
                 {
                     object method = getValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});

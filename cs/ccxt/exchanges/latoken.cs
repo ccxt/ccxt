@@ -1343,10 +1343,10 @@ public partial class latoken : Exchange
         string? message = this.safeString(order, "message");
         if ((message != null))
         {
-            if (getIndexOf(message, "cancel") >= 0)
+            if (((string)message).IndexOf("cancel", StringComparison.Ordinal) >= 0)
             {
                 status = "canceled";
-            } else if (getIndexOf(message, "accept") >= 0)
+            } else if (((string)message).IndexOf("accept", StringComparison.Ordinal) >= 0)
             {
                 status = "open";
             }
@@ -1973,7 +1973,7 @@ public partial class latoken : Exchange
             { "value", this.currencyToPrecision(((string)code), amount) },
         };
         object response = null;
-        if (getIndexOf(toAccount, "@") >= 0)
+        if (((string)toAccount).IndexOf("@", StringComparison.Ordinal) >= 0)
         {
             response = await this.privatePostAuthTransferEmail(this.extend(request, parameters));
         } else if ((((string)toAccount).Length == 36))

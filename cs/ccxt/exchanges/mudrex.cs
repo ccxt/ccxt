@@ -313,15 +313,15 @@ public partial class mudrex : Exchange
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = ((string)text).ToLower();
-            if (isEqual(code, 401) || getIndexOf(low, "auth") >= 0)
+            if (isEqual(code, 401) || ((string)low).IndexOf("auth", StringComparison.Ordinal) >= 0)
             {
                 throw new AuthenticationError ((string)msg) ;
             }
-            if (isEqual(code, 429) || getIndexOf(low, "rate") >= 0)
+            if (isEqual(code, 429) || ((string)low).IndexOf("rate", StringComparison.Ordinal) >= 0)
             {
                 throw new RateLimitExceeded ((string)msg) ;
             }
-            if (getIndexOf(low, "insufficient") >= 0)
+            if (((string)low).IndexOf("insufficient", StringComparison.Ordinal) >= 0)
             {
                 throw new InsufficientFunds ((string)msg) ;
             }

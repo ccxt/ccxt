@@ -1562,7 +1562,7 @@ public partial class cryptocom : ccxt.cryptocom
         };
         object result = this.safeValue2(message, "result", "info");
         string? channel = this.safeString(result, "channel");
-        if (((channel != null)) && getIndexOf(channel, "user.trade") > -1)
+        if (((channel != null)) && ((string)channel).IndexOf("user.trade", StringComparison.Ordinal) > -1)
         {
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client as WebSocketClient, result);

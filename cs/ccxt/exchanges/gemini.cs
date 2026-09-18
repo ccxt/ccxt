@@ -1068,7 +1068,7 @@ public partial class gemini : Exchange
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
             string marketIdUpper = ((string)((string)marketId)).ToUpper();
-            bool isPerp = (getIndexOf(marketIdUpper, "PERP") >= 0);
+            bool isPerp = (((string)marketIdUpper).IndexOf("PERP", StringComparison.Ordinal) >= 0);
             string marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
             IDictionary<string, object> conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
             string lowerCaseId = ((string)marketIdWithoutPerp).ToLower();

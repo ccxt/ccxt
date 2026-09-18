@@ -1892,7 +1892,7 @@ public partial class weex : ccxt.weex
         //
         string url = client.url;
         string accountType = "spot";
-        if (getIndexOf(url, "contract") >= 0)
+        if (((string)url).IndexOf("contract", StringComparison.Ordinal) >= 0)
         {
             accountType = "swap";
         }
@@ -2113,7 +2113,7 @@ public partial class weex : ccxt.weex
     {
         string url = client.url;
         string marketType = "spot";
-        if (getIndexOf(url, "contract") >= 0)
+        if (((string)url).IndexOf("contract", StringComparison.Ordinal) >= 0)
         {
             marketType = "swap";
         }

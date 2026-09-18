@@ -917,16 +917,16 @@ public partial class bitrue : ccxt.bitrue
         if (inOp(message, "channel"))
         {
             string? channel = this.safeString(message, "channel");
-            if (getIndexOf(((string)channel), "_depth_step") > -1)
+            if (((string)channel).IndexOf("_depth_step", StringComparison.Ordinal) > -1)
             {
                 this.handleOrderBook(client as WebSocketClient, message);
-            } else if (getIndexOf(((string)channel), "_trade_ticker") > -1)
+            } else if (((string)channel).IndexOf("_trade_ticker", StringComparison.Ordinal) > -1)
             {
                 this.handleTrades(client as WebSocketClient, message);
-            } else if (getIndexOf(((string)channel), "_kline_") > -1)
+            } else if (((string)channel).IndexOf("_kline_", StringComparison.Ordinal) > -1)
             {
                 this.handleOHLCV(client as WebSocketClient, message);
-            } else if (getIndexOf(((string)channel), "_ticker") > -1)
+            } else if (((string)channel).IndexOf("_ticker", StringComparison.Ordinal) > -1)
             {
                 this.handleTicker(client as WebSocketClient, message);
             }

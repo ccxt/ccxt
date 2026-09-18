@@ -22,7 +22,7 @@ public partial class BaseTest
             Assert(isEqual(((object)id2).ToString(), id2), "uuid() must return a string");
             Assert((((string)id1).Length == 36), ("uuid() must return a 36-character string, returned id1: " + id1));
             Assert((((string)id2).Length == 36), ("uuid() must return a 36-character string, returned id2: " + id2));
-            Assert((getIndexOf(id1, "-") == 8), ("uuid() must have dash, returned id1: " + id1));
+            Assert((((string)id1).IndexOf("-", StringComparison.Ordinal) == 8), ("uuid() must have dash, returned id1: " + id1));
             // uuid16() - 16-char hex string
             string id16a = exchange.uuid16();
             string id16b = exchange.uuid16();

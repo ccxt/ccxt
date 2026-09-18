@@ -1754,7 +1754,7 @@ public partial class bitstamp : Exchange
         object timestamp = null;
         if ((datetimeString != null))
         {
-            if (getIndexOf(datetimeString, " ") >= 0)
+            if (((string)datetimeString).IndexOf(" ", StringComparison.Ordinal) >= 0)
             {
                 // iso8601
                 timestamp = this.parse8601(datetimeString);

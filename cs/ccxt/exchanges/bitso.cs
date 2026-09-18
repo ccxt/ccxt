@@ -1731,7 +1731,7 @@ public partial class bitso : Exchange
         IDictionary<string, object> payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
         string? address = this.safeString(payload, "account_identifier");
         string? tag = null;
-        if (getIndexOf(((string)address), "?dt=") >= 0)
+        if (((string)address).IndexOf("?dt=", StringComparison.Ordinal) >= 0)
         {
             List<object> parts = ((string)((string)address)).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);

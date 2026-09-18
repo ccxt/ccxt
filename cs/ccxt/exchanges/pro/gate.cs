@@ -945,7 +945,7 @@ public partial class gate : ccxt.gate
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a callerMethodName argument")) ;
         }
-        bool isWatchTickers = getIndexOf(callerMethodName, "watchTicker") >= 0;
+        bool isWatchTickers = ((string)callerMethodName).IndexOf("watchTicker", StringComparison.Ordinal) >= 0;
         string prefix = ((bool) isWatchTickers) ? "ticker" : "bidask";
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
@@ -2196,7 +2196,7 @@ public partial class gate : ccxt.gate
                 }
                 // remove subscriptions for watchSymbols
                 string channel = ((string)this.safeString(message, "channel"));
-                if (((channel != null)) && (getIndexOf(channel, ".") > 0))
+                if (((channel != null)) && (((string)channel).IndexOf(".", StringComparison.Ordinal) > 0))
                 {
                     List<object> parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
                     List<object> payload = this.safeList(message, "payload", new List<object>() {});
@@ -2515,7 +2515,7 @@ public partial class gate : ccxt.gate
         {
             string? key = ((string)getValue(keys, i));
             object value = getValue(findBy, key);
-            if (getIndexOf(url, key) >= 0)
+            if (((string)url).IndexOf(((string)key), StringComparison.Ordinal) >= 0)
             {
                 return value;
             }

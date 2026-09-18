@@ -3607,15 +3607,15 @@ public partial class bitrue : Exchange
         // will switch "code" checks eventually, when we know all of them
         if (isGreaterThanOrEqual(code, 400))
         {
-            if (getIndexOf(body, "Price * QTY is zero or less") >= 0)
+            if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
                 throw new InvalidOrder ((string)((this.id + " order cost = amount * price is zero or less ") + (body))) ;
             }
-            if (getIndexOf(body, "LOT_SIZE") >= 0)
+            if (((string)body).IndexOf("LOT_SIZE", StringComparison.Ordinal) >= 0)
             {
                 throw new InvalidOrder ((string)((this.id + " order amount should be evenly divisible by lot size ") + (body))) ;
             }
-            if (getIndexOf(body, "PRICE_FILTER") >= 0)
+            if (((string)body).IndexOf("PRICE_FILTER", StringComparison.Ordinal) >= 0)
             {
                 throw new InvalidOrder ((string)((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ") + (body))) ;
             }
