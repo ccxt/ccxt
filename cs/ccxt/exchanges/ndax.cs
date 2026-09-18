@@ -3063,7 +3063,7 @@ public partial class ndax : Exchange
             if ((sessionToken == null))
             {
                 string nonce = this.nonce().ToString();
-                object auth = add(add(nonce, this.uid), this.apiKey);
+                string auth = add(add(nonce, this.uid), this.apiKey);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },

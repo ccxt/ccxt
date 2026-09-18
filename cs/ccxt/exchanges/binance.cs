@@ -15670,7 +15670,7 @@ public partial class binance : Exchange
             {
                 query = this.urlencode(extendedParams);
             }
-            object signature = null;
+            string? signature = null;
             if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
             {
                 if (((string)this.secret).Length > 120)
