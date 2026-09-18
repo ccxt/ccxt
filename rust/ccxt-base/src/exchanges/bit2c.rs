@@ -1082,7 +1082,7 @@ impl Bit2cCore {
         //
         let mut orderUnified: Value = Value::Null;
         let mut isNewOrder: bool = false;
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("NewOrder".to_string())))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("NewOrder")))) {
             orderUnified = order.as_map().and_then(|__m| __m.get("NewOrder")).cloned().unwrap_or(Value::Null);
             isNewOrder = true;
         }  else {

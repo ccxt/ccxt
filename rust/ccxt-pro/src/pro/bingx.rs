@@ -1904,7 +1904,7 @@ impl BingxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if !is_true(&(Value::Bool(in_op(&data, &Value::Str("P".to_string()))))) {
+        if !is_true(&(Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("P"))))) {
             return;
         }
         let mut rawPositions: Value = self.safe_list_k(data.clone(), "P", &[Value::List(vec![])]);

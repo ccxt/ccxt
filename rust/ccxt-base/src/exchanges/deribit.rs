@@ -2707,7 +2707,7 @@ impl DeribitCore {
             add_element_to_object(&mut request, &Value::Str("end_timestamp".to_string()), until.clone());
         }
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(since == Value::Null))) && !is_true(&(Value::Bool(in_op(&request, &Value::Str("end_timestamp".to_string()))))) {
+        if is_true(&(Value::Bool(since == Value::Null))) && !is_true(&(Value::Bool(matches!(&request, Value::Dict(__d) if __d.contains_key("end_timestamp"))))) {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_get_last_trades_by_instrument(&[__ws_arg_7]).await;
         }  else {

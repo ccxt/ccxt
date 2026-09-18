@@ -1557,7 +1557,7 @@ impl PoloniexCore {
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        if is_true(&Value::Bool(in_op(&market, &Value::Str("ctType".to_string())))) {
+        if is_true(&Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("ctType")))) {
             return self.parse_swap_market(market.clone());
         }  else {
             return self.parse_spot_market(market.clone());
@@ -4182,7 +4182,7 @@ impl PoloniexCore {
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("withdrawNetworkEntry".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdrawNetworkEntry")))) {
             transaction = crate::value::get_value_k(&transaction, "response");
         }
         let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -4191,7 +4191,7 @@ impl PoloniexCore {
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[Value::Str("pending".to_string())]);
         status = self.parse_transaction_status(status.clone());
         let mut txid: Value = self.safe_string_k(transaction.clone(), "txid", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("withdrawalRequestsId".to_string()))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut type_var: Value = (if is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdrawalRequestsId"))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("withdrawalRequestsId".to_string()), Value::Str("depositNumber".to_string()), &[]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         let mut tag: Value = self.safe_string_k(transaction.clone(), "paymentID", &[]);

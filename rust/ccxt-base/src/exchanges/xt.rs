@@ -5405,7 +5405,7 @@ impl XtCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&order, &Value::Str("result".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("positionSide".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("result"))))) || is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("positionSide"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, marketType.clone()]);
         let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("time".to_string()), Value::Str("createdTime".to_string()), &[]);
@@ -5976,7 +5976,7 @@ impl XtCore {
         //         "id": 950898
         //     }
         //
-        let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("fromAddr".to_string()))))) { Value::Str("deposit".to_string()) } else { Value::Str("withdraw".to_string()) });
+        let mut type_var: Value = (if is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("fromAddr"))))) { Value::Str("deposit".to_string()) } else { Value::Str("withdraw".to_string()) });
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "createdTime", &[]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         let mut memo: Value = self.safe_string_k(transaction.clone(), "memo", &[]);

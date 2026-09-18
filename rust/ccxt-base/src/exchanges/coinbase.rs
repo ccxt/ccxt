@@ -3508,7 +3508,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ask: Value = self.safe_number_k(ticker.clone(), "ask", &[]);
         let mut bidVolume: Value = Value::Null;
         let mut askVolume: Value = Value::Null;
-        if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("bids".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("bids"))))) {
             let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[Value::List(vec![])]);
             let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[Value::List(vec![])]);
             let mut firstBid: Value = self.safe_dict(bids.clone(), Value::Int(0), &[Value::Map({

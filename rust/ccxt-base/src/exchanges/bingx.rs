@@ -3007,7 +3007,7 @@ impl BingxCore {
             takeOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut amount: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("qty".to_string()), Value::Str("amount".to_string()), Value::Str("q".to_string())]), &[]);
-        if is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(in_op(&trade, &Value::Str("volume".to_string()))))) {
+        if is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("volume"))))) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             amount = self.safe_string_k(trade.clone(), "volume", &[]);

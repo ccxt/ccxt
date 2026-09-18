@@ -3029,7 +3029,7 @@ impl BitvavoCore {
             });
         }
         let mut type_var: Value = Value::Null;
-        if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("success".to_string()))))) || is_true(&(Value::Bool(in_op(&transaction, &Value::Str("address".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("success"))))) || is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("address"))))) {
             type_var = Value::Str("withdrawal".to_string());
         }  else {
             type_var = Value::Str("deposit".to_string());

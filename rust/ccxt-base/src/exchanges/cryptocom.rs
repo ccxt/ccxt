@@ -3845,7 +3845,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = Value::Null;
         let mut rawStatus: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut status: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("client_wid".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("client_wid")))) {
             type_var = Value::Str("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.clone());
         }  else {

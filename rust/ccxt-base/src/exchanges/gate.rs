@@ -5357,7 +5357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut marketId: Value = self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("currency_pair".to_string()), Value::Str("contract".to_string()), Value::Str("name".to_string())]), &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("mark_price".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("mark_price"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string()), marketType.clone()]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last".to_string()), Value::Str("last_price".to_string()), &[]);
         let mut ask: Value = self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("lowest_ask".to_string()), Value::Str("a".to_string()), Value::Str("ask1_price".to_string())]), &[]);
@@ -5757,7 +5757,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut isolated: bool = (marginMode.as_str() == Some("margin")) && (type_var.as_str() == Some("spot"));
         let mut data: Value = response.clone();
-        if is_true(&Value::Bool(in_op(&data, &Value::Str("balances".to_string())))) {
+        if is_true(&Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("balances")))) {
             let mut flatBalances: Value = Value::List(vec![]);
             let mut balances: Value = self.safe_value_k(data.clone(), "balances", &[Value::List(vec![])]);
             // inject currency and create an artificial balance object
@@ -6404,7 +6404,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             timestamp = self.safe_timestamp2(trade.clone(), Value::Str("time".to_string()), Value::Str("create_time".to_string()), &[]);
         }
         let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("currency_pair".to_string()), Value::Str("contract".to_string()), &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&trade, &Value::Str("contract".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("contract"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string()), marketType.clone()]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("amount".to_string()), Value::Str("size".to_string()), &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -7631,7 +7631,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut marketType: Value = Value::Str("contract".to_string());
-        if is_true(&(Value::Bool(in_op(&order, &Value::Str("currency_pair".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("market".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("currency_pair"))))) || is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("market"))))) {
             marketType = Value::Str("spot".to_string());
         }
         let mut exchangeSymbol: Value = self.safe_string2(order.clone(), Value::Str("currency_pair".to_string()), Value::Str("market".to_string()), &[contract.clone()]);
@@ -7696,9 +7696,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut reduceOnly: Value = self.safe_bool_k(order.clone(), "is_reduce_only", &[reduceOnlyInitial.clone()]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "text", &[]);
         if (clientOrderId == Value::Null) {
-            if is_true(&Value::Bool(in_op(&order, &Value::Str("initial".to_string())))) {
+            if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("initial")))) {
                 clientOrderId = self.safe_string(order.as_map().and_then(|__m| __m.get("initial")).cloned().unwrap_or(Value::Null), Value::Str("text".to_string()), &[]);
-            }  else if is_true(&Value::Bool(in_op(&order, &Value::Str("trigger".to_string())))) {
+            }  else if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("trigger")))) {
                 clientOrderId = self.safe_string(order.as_map().and_then(|__m| __m.get("trigger")).cloned().unwrap_or(Value::Null), Value::Str("text".to_string()), &[]);
             }
         }

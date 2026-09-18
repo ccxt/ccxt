@@ -1439,10 +1439,10 @@ impl BlockchaincomCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut state: Value = self.safe_string_k(transaction.clone(), "state", &[]);
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("depositId".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositId")))) {
             type_var = Value::Str("deposit".to_string());
             id = self.safe_string_k(transaction.clone(), "depositId", &[]);
-        }  else if is_true(&Value::Bool(in_op(&transaction, &Value::Str("withdrawalId".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdrawalId")))) {
             type_var = Value::Str("withdrawal".to_string());
             id = self.safe_string_k(transaction.clone(), "withdrawalId", &[]);
         }

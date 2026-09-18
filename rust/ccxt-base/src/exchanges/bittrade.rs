@@ -1385,7 +1385,7 @@ impl BittradeCore {
         let mut bidVolume: Value = Value::Null;
         let mut ask: Value = Value::Null;
         let mut askVolume: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&ticker, &Value::Str("bid".to_string())))) {
+        if is_true(&Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("bid")))) {
             if is_true(&Value::Bool(is_array(&ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null)))) {
                 bid = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
                 bidVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
@@ -1394,7 +1394,7 @@ impl BittradeCore {
                 bidVolume = self.safe_string_k(ticker.clone(), "bidSize", &[]);
             }
         }
-        if is_true(&Value::Bool(in_op(&ticker, &Value::Str("ask".to_string())))) {
+        if is_true(&Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("ask")))) {
             if is_true(&Value::Bool(is_array(&ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null)))) {
                 ask = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
                 askVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
@@ -1483,7 +1483,7 @@ impl BittradeCore {
         //         }
         //     }
         //
-        if is_true(&Value::Bool(in_op(&response, &Value::Str("tick".to_string())))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Dict(__d) if __d.contains_key("tick")))) {
             if is_true(&(Value::Bool(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null))) || is_true(&(Value::Bool(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null))) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response: ".to_string()))), self.json(response.clone()))));
             }
@@ -2401,7 +2401,7 @@ impl BittradeCore {
         let mut side: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut status: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("type".to_string())))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("type")))) {
             let mut orderType: Value = split(&get_value(&order, &Value::Str("type".to_string())), &Value::Str("-".to_string()));
             side = get_value(&orderType, &Value::Int(0));
             type_var = get_value(&orderType, &Value::Int(1));

@@ -2306,7 +2306,7 @@ impl AsterCore {
         //
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("a".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&trade, &Value::Str("positionSide".to_string()))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("positionSide"))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut currencyId: Value = self.safe_string2(trade.clone(), Value::Str("commissionAsset".to_string()), Value::Str("marginAsset".to_string()), &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2399,7 +2399,7 @@ impl AsterCore {
             request = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]);
         }
         // use historical endpoint for targeted requests
-        if is_true(&Value::Bool(in_op(&request, &Value::Str("startTime".to_string())))) {
+        if is_true(&Value::Bool(matches!(&request, Value::Dict(__d) if __d.contains_key("startTime")))) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_agg_trades(&[__ws_arg_4]).await;
@@ -2590,12 +2590,12 @@ impl AsterCore {
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
         let mut high: Value = self.safe_string_k(ticker.clone(), "highPrice", &[]);
         let mut low: Value = self.safe_string_k(ticker.clone(), "lowPrice", &[]);
-        let mut isTickerResponse: bool = in_op(&ticker, &Value::Str("priceChange".to_string()));
+        let mut isTickerResponse: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("priceChange"));
         let mut marketType: Value = Value::Null;
         if isTickerResponse {
-            marketType = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("baseAsset".to_string()))))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+            marketType = (if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseAsset"))))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         }  else {
-            marketType = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("lastUpdateId".to_string()))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+            marketType = (if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("lastUpdateId"))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);

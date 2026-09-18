@@ -5762,7 +5762,7 @@ impl BybitCore {
         //
         let mut id: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("execId".to_string()), Value::Str("id".to_string()), Value::Str("tradeId".to_string())]), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&trade, &Value::Str("createType".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("createType"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut category: Value = self.safe_string_k(trade.clone(), "category", &[]);
         if (category != Value::Null) {
             marketType = (if is_true(&(Value::Bool(category.as_str() == Some("spot")))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
@@ -6449,7 +6449,7 @@ impl BybitCore {
             }
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        let mut isContract: bool = in_op(&order, &Value::Str("tpslMode".to_string()));
+        let mut isContract: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("tpslMode"));
         let mut marketType: Value = Value::Null;
         if (market != Value::Null) {
             marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
@@ -8998,7 +8998,7 @@ impl BybitCore {
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updateTime", &[]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
         let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("depositFee".to_string()), Value::Str("withdrawFee".to_string()), &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("depositFee".to_string()))))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) });
+        let mut type_var: Value = (if is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositFee"))))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) });
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
             fee = Value::Map({

@@ -2762,7 +2762,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                if is_true(&Value::Bool(in_op(&market, &Value::Str("base".to_string())))) {
+                if is_true(&Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("base")))) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("baseId".to_string()), Value::Str("base".to_string()), &[]));
@@ -2773,7 +2773,7 @@ pub trait ExchangeBase:
                     }));
                     append_to_array(&mut baseCurrencies, currency.clone());
                 }
-                if is_true(&Value::Bool(in_op(&market, &Value::Str("quote".to_string())))) {
+                if is_true(&Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("quote")))) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("quoteId".to_string()), Value::Str("quote".to_string()), &[]));
@@ -4745,7 +4745,7 @@ pub trait ExchangeBase:
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchTradingLimits")).cloned().unwrap_or(Value::Null) != Value::Null) && !is_equal(&self.has.as_map().and_then(|__m| __m.get("fetchTradingLimits")).cloned().unwrap_or(Value::Null), &Value::Bool(false)) {
-            if is_true(&reload) || !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("limitsLoaded".to_string()))))) {
+            if is_true(&reload) || !is_true(&(Value::Bool(matches!(&self.options, Value::Dict(__d) if __d.contains_key("limitsLoaded"))))) {
                 let mut response: Value = self.fetch_trading_limits(&[symbols.clone()]).await;
                 let mut symbolsArray: Value = self.require_value(symbols.clone(), &[Value::Str("loadTradingLimits() requires a symbols argument".to_string())]);
                 let mut markets: Value = self.markets.clone();
@@ -9332,7 +9332,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut client: Value = get_value(&clients, &i);
                     let mut client: Value = get_value(&clients, &i);
                     let mut futures: Value = get_value(&client, &Value::Str("futures".to_string()));
-                    if is_true(&(Value::Bool(futures != Value::Null))) && is_true(&(Value::Bool(in_op(&futures, &Value::Str("fetchPositionsSnapshot".to_string()))))) {
+                    if is_true(&(Value::Bool(futures != Value::Null))) && is_true(&(Value::Bool(matches!(&futures, Value::Dict(__d) if __d.contains_key("fetchPositionsSnapshot"))))) {
                         remove(&mut futures, &Value::Str("fetchPositionsSnapshot".to_string()));
                     }
                 }

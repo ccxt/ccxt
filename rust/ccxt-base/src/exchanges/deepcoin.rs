@@ -4328,7 +4328,7 @@ impl DeepcoinCore {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }  else {
             let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
-            if is_true(&(Value::Bool(in_op(&data, &Value::Str("list".to_string()))))) && is_true(&(Value::Bool(list == Value::Null))) {
+            if is_true(&(Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("list"))))) && is_true(&(Value::Bool(list == Value::Null))) {
                 panic!("{}", crate::exchange_errors::null_response(feedback));
             }
         }

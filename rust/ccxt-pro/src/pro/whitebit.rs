@@ -417,7 +417,7 @@ impl WhitebitCore {
 }));
             }
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if !is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &Value::Str("unknown".to_string()))))) {
+            if !is_true(&(Value::Bool(matches!(&get_value(&self.ohlcvs, &symbol), Value::Dict(__d) if __d.contains_key("unknown"))))) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 let mut stored = ArrayCacheByTimestamp::new(limit.clone());
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &Value::Str("unknown".to_string()), stored.clone());
@@ -1535,7 +1535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_instance(&e, &Value::Str("AuthenticationError".to_string())) {
                 client.reject(&[e.clone(), Value::Str("authenticated".to_string())]);
-                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string())))) {
+                if is_true(&Value::Bool(matches!(&get_value(&client, &Value::Str("subscriptions".to_string())), Value::Dict(__d) if __d.contains_key("authenticated")))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()));
                 }
                 return Value::Bool(false);

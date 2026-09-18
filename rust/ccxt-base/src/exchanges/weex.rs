@@ -4621,8 +4621,8 @@ impl WeexCore {
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        let mut hasSince: bool = in_op(&request, &Value::Str("startTime".to_string()));
-        let mut hasUntil: bool = in_op(&request, &Value::Str("endTime".to_string()));
+        let mut hasSince: bool = matches!(&request, Value::Dict(__d) if __d.contains_key("startTime"));
+        let mut hasUntil: bool = matches!(&request, Value::Dict(__d) if __d.contains_key("endTime"));
         if hasSince && !hasUntil {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.milliseconds());
         }  else if hasUntil && !hasSince {

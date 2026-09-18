@@ -1839,7 +1839,7 @@ impl WoofiproCore {
         //         "is_maker": "1"
         //     }
         //
-        let mut isFromFetchOrder: bool = in_op(&trade, &Value::Str("id".to_string()));
+        let mut isFromFetchOrder: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("id"));
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "executed_timestamp", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);

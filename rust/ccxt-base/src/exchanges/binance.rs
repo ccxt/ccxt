@@ -7591,14 +7591,14 @@ impl BinanceCore {
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[optionBase.clone()]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
         let mut stock: Value = Value::Bool(false);
-        if is_true(&Value::Bool(in_op(&market, &Value::Str("tradability".to_string())))) {
+        if is_true(&Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("tradability")))) {
             quoteId = Value::Str("USDC".to_string());
             stock = Value::Bool(true);
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut contractType: Value = self.safe_string_k(market.clone(), "contractType", &[]);
-        let mut contract: Value = (Value::Bool(in_op(&market, &Value::Str("contractType".to_string()))));
+        let mut contract: Value = (Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("contractType"))));
         let mut expiry: Value = self.safe_integer2(market.clone(), Value::Str("deliveryDate".to_string()), Value::Str("expiryDate".to_string()), &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "marginAsset", &[]);
         if is_true(&(Value::Bool(contractType.as_str() == Some("PERPETUAL")))) || is_true(&(Value::Bool(expiry.as_f64() == Some(4133404800000.0)))) {
@@ -7768,7 +7768,7 @@ impl BinanceCore {
         if (stepSize != Value::Null) {
             add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()), stepSize.clone());
         }
-        if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("PRICE_FILTER".to_string())))) {
+        if is_true(&Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("PRICE_FILTER")))) {
             let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7785,7 +7785,7 @@ impl BinanceCore {
 }));
             add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), self.safe_number_k(filter.clone(), "tickSize", &[]));
         }
-        if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("LOT_SIZE".to_string())))) {
+        if is_true(&Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("LOT_SIZE")))) {
             let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7798,7 +7798,7 @@ impl BinanceCore {
     m
 }));
         }
-        if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("MARKET_LOT_SIZE".to_string())))) {
+        if is_true(&Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MARKET_LOT_SIZE")))) {
             let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7810,7 +7810,7 @@ impl BinanceCore {
     m
 }));
         }
-        if is_true(&(Value::Bool(in_op(&filtersByType, &Value::Str("MIN_NOTIONAL".to_string()))))) || is_true(&(Value::Bool(in_op(&filtersByType, &Value::Str("NOTIONAL".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MIN_NOTIONAL"))))) || is_true(&(Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("NOTIONAL"))))) {
             let mut filter: Value = self.safe_dict2(filtersByType.clone(), Value::Str("MIN_NOTIONAL".to_string()), Value::Str("NOTIONAL".to_string()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8371,17 +8371,17 @@ impl BinanceCore {
         //
         let mut timestamp: Value = self.safe_integer2(ticker.clone(), Value::Str("closeTime".to_string()), Value::Str("time".to_string()), &[]);
         let mut marketType: Value = Value::Null;
-        if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("time".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("time"))))) {
             marketType = Value::Str("contract".to_string());
         }
         if (marketType == Value::Null) {
-            marketType = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("bidQty".to_string()))))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
+            marketType = (if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("bidQty"))))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, marketType.clone()]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "lastPrice", &[]);
         let mut wAvg: Value = self.safe_string_k(ticker.clone(), "weightedAvgPrice", &[]);
-        let mut isCoinm: bool = in_op(&ticker, &Value::Str("baseVolume".to_string()));
+        let mut isCoinm: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseVolume"));
         let mut baseVolume: Value = Value::Null;
         let mut quoteVolume: Value = Value::Null;
         if isCoinm {
@@ -9108,7 +9108,7 @@ impl BinanceCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("isDustTrade".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("isDustTrade")))) {
             return self.parse_dust_trade(trade.clone(), &[market.clone()]);
         }
         //
@@ -9327,7 +9327,7 @@ impl BinanceCore {
         let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("q".to_string()), Value::Str("qty".to_string()), &[]);
         amount = self.safe_string_k(trade.clone(), "quantity", &[amount.clone()]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut isSpotTrade: bool = is_true(&(Value::Bool(in_op(&trade, &Value::Str("isIsolated".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("M".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("orderListId".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("isMaker".to_string())))));
+        let mut isSpotTrade: bool = is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("isIsolated"))))) || is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("M"))))) || is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("orderListId"))))) || is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("isMaker")))));
         let mut marketType: Value = (if isSpotTrade { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -9336,15 +9336,15 @@ impl BinanceCore {
         let mut takerOrMaker: Value = Value::Null;
         if (buyerMaker != Value::Null) {
             side = (if is_true(&buyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) }); // this is reversed intentionally
-        }  else if is_true(&Value::Bool(in_op(&trade, &Value::Str("side".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("side")))) {
             side = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         }  else {
-            if is_true(&Value::Bool(in_op(&trade, &Value::Str("isBuyer".to_string())))) {
+            if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("isBuyer")))) {
                 side = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isBuyer")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }); // this is a true side
             }
         }
         let mut fee: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("commission".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("commission")))) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "commission", &[]));
@@ -9352,16 +9352,16 @@ impl BinanceCore {
                 m
             });
         }
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("isMaker".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("isMaker")))) {
             takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isMaker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("maker".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("maker")))) {
             takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
-        if is_true(&(Value::Bool(in_op(&trade, &Value::Str("optionSide".to_string()))))) || is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
+        if is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("optionSide"))))) || is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
             let mut settle: Value = self.safe_currency_code(self.safe_string_k(trade.clone(), "quoteAsset", &[Value::Str("USDT".to_string())]), &[]);
             takerOrMaker = self.safe_string_lower(trade.clone(), Value::Str("liquidity".to_string()), &[]);
-            if is_true(&Value::Bool(in_op(&trade, &Value::Str("fee".to_string())))) {
+            if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("fee")))) {
                 fee = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "fee", &[]));
@@ -9372,7 +9372,7 @@ impl BinanceCore {
             if is_true(&(Value::Bool(side.as_str() != Some("buy")))) && is_true(&(Value::Bool(side.as_str() != Some("sell")))) {
                 side = (if is_true(&(Value::Bool(side.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
             }
-            if is_true(&Value::Bool(in_op(&trade, &Value::Str("optionSide".to_string())))) {
+            if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("optionSide")))) {
                 if (side.as_str() != Some("buy")) {
                     amount = crate::precise::Precise::stringMul(&Value::Str("-1".to_string()), &amount);
                 }
@@ -10718,13 +10718,13 @@ impl BinanceCore {
         }
         let mut status: Value = self.parse_order_status(self.safe_string_n(order.clone(), Value::List(vec![Value::Str("status".to_string()), Value::Str("strategyStatus".to_string()), Value::Str("algoStatus".to_string())]), &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        let mut isContract: bool = is_true(&(Value::Bool(in_op(&order, &Value::Str("positionSide".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("cumQuote".to_string())))));
+        let mut isContract: bool = is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("positionSide"))))) || is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("cumQuote")))));
         let mut marketType: Value = (if isContract { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, marketType.clone()]);
         let mut filled: Value = self.safe_string2(order.clone(), Value::Str("executedQty".to_string()), Value::Str("filledQty".to_string()), &[Value::Str("0".to_string())]);
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("time".to_string()), Value::Str("createTime".to_string()), Value::Str("workingTime".to_string()), Value::Str("transactTime".to_string()), Value::Str("updateTime".to_string()), Value::Str("createdAt".to_string())]), &[]); // order of the keys matters here
         let mut lastTradeTimestamp: Value = Value::Null;
-        if is_true(&(Value::Bool(in_op(&order, &Value::Str("transactTime".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("updateTime".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("updatedAt".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime"))))) || is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))))) || is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("updatedAt"))))) {
             let mut timestampValue: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("updateTime".to_string()), Value::Str("transactTime".to_string()), Value::Str("updatedAt".to_string())]), &[]);
             if (status.as_str() == Some("open")) {
                 if is_true(&crate::precise::Precise::stringGt(&filled, &Value::Str("0".to_string()))) {

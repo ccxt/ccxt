@@ -9886,7 +9886,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else if isStopLossOrTakeProfitTrigger {
                 if (price != Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("executePrice".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
-                    if is_true(&Value::Bool(in_op(&request, &Value::Str("price".to_string())))) {
+                    if is_true(&Value::Bool(matches!(&request, Value::Dict(__d) if __d.contains_key("price")))) {
                         remove(&mut request, &Value::Str("price".to_string()));
                     }
                 }
