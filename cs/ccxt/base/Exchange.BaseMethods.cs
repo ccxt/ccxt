@@ -1529,14 +1529,14 @@ public partial class BaseExchange
         return ((double?)((object)(((bool) (isEqual(final, null))) ? defaultValue : final)));
     }
 
-    public virtual object safeIntegerOmitZero(object obj, object key, object defaultValue = null)
+    public virtual Int64? safeIntegerOmitZero(object obj, object key, object defaultValue = null)
     {
         Int64? timestamp = this.safeInteger(obj, key, defaultValue);
         if (isEqual(timestamp, null) || (timestamp == 0))
         {
-            return null;
+            return ((Int64?)((object)(null)));
         }
-        return timestamp;
+        return ((Int64?)((object)(timestamp)));
     }
 
     public virtual void afterConstruct()

@@ -1164,6 +1164,10 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'safeNumber2': 'double?',
     'safeNumberN': 'double?',
     'safeNumberOmitZero': 'double?',
+    // Exchange.BaseMethods.cs — retyped object -> Int64? by the numeric-returns section at
+    // the end of this file. Unlike safeNumberOmitZero the defaultValue parameter never flows
+    // out (every call site omits it), so every path is the safeInteger Int64 box or null.
+    'safeIntegerOmitZero': 'Int64?',
     // Generated venue helpers retyped by the numeric-returns section at the end of this
     // file (keep the two in sync — the census and the rejected names live there): each C#
     // signature becomes the mapped nullable type, so a local fed by one of them is exactly
@@ -5652,6 +5656,8 @@ export function installCsharpAsyncCoreReturns (transpiler) {
 //   safeNumber2()         -> double?
 //   safeNumberN()         -> double?
 //   safeNumberOmitZero()  -> double?  defaultValue only ever flows out as null here
+//   safeIntegerOmitZero() -> Int64?   every path returns null or the safeInteger box;
+//                                     no call site passes a defaultValue
 //
 // Every other return path that is not already the declared type is unboxed through
 // `object` exactly like the `: boolean` handling in the pinned ast-transpiler: the
@@ -5677,6 +5683,9 @@ export const CSHARP_NUMERIC_RETURN_TYPES = {
     'safeNumber2': 'double?',
     'safeNumberN': 'double?',
     'safeNumberOmitZero': 'double?',
+    // safeIntegerOmitZero() -> Int64?  every path returns null or the safeInteger box; the
+    // defaultValue parameter stays out of the box because no call site passes one
+    'safeIntegerOmitZero': 'Int64?',
     // Generated venue helpers (non-async) whose every return path of every declaration
     // already boxes the named type. The proof is a per-name census of the generated tree
     // (cs/ccxt/exchanges/**, the pro and prediction trees, + the generated base): a name is

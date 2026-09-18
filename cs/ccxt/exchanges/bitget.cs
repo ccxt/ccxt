@@ -5369,7 +5369,7 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         string? close = this.safeString2(ticker, "lastPr", "lastPrice");
-        object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
+        Int64? timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         string? category = this.safeString(ticker, "category");
         string? markPrice = this.safeString(ticker, "markPrice");
         object marketType = null;
@@ -14022,7 +14022,7 @@ public partial class bitget : Exchange
     public override object parseLongShortRatio(object info, object market = null)
     {
         string? marketId = this.safeString(info, "symbol");
-        object timestamp = this.safeIntegerOmitZero(info, "ts");
+        Int64? timestamp = this.safeIntegerOmitZero(info, "ts");
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
