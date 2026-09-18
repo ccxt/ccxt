@@ -2463,10 +2463,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("walletAddress".to_string(), self.safe_string_k(response.clone(), "walletAddress", &[]));
             m
         });
-        add_element_to_object(&mut self.options.clone(), &Value::Str("apiKey".to_string()), creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null));
+        add_element_to_object(&mut self.options.clone(), &Value::Str("apiKey".to_string()), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null });
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        self.apiKey = creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null);
+        self.apiKey = match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null };
         return creds;
 
     Value::Null

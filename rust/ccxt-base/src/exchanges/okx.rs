@@ -6574,7 +6574,7 @@ impl OkxCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         let mut isStopOrTrailing: Value = Value::Bool(is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true)))));
-        if (isStopOrTrailing.as_bool() == Some(true)) {
+        if (matches!(&isStopOrTrailing, Value::Bool(true))) {
             method = Value::Str("privatePostTradeCancelAlgos".to_string());
         }
         {
@@ -6591,7 +6591,7 @@ impl OkxCore {
             }
             let mut market: Value = self.market(symbol.clone());
             let mut idKey: Value = Value::Str("ordId".to_string());
-            if (isStopOrTrailing.as_bool() == Some(true)) {
+            if (matches!(&isStopOrTrailing, Value::Bool(true))) {
                 idKey = Value::Str("algoId".to_string());
             }  else if (clientOrderId != Value::Null) {
                 idKey = Value::Str("clOrdId".to_string());

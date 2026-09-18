@@ -2572,8 +2572,8 @@ impl ParadexCore {
         let mut signature: Value = self.starknet_sign(msg.clone(), crate::value::get_value_k(&account, "privateKey"));
         add_element_to_object(&mut params, &Value::Str("signature".to_string()), signature.clone());
         add_element_to_object(&mut params, &Value::Str("account".to_string()), crate::value::get_value_k(&account, "address"));
-        add_element_to_object(&mut params, &Value::Str("timestamp".to_string()), req.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut params, &Value::Str("expiration".to_string()), req.as_map().and_then(|__m| __m.get("expiration")).cloned().unwrap_or(Value::Null));
+        add_element_to_object(&mut params, &Value::Str("timestamp".to_string()), match &req { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        add_element_to_object(&mut params, &Value::Str("expiration".to_string()), match &req { Value::Dict(__m15) => __m15.get("expiration").cloned().unwrap_or(Value::Null), _ => Value::Null });
         let mut response: Value = self.private_post_auth(&[params.clone()]).await;
         //
         // {
@@ -2908,7 +2908,7 @@ impl ParadexCore {
         let mut msg: Value = self.starknet_encode_structured_data(domain.clone(), messageTypes.clone(), orderReq.clone(), crate::value::get_value_k(&account, "address"));
         let mut signature: Value = self.starknet_sign(msg.clone(), crate::value::get_value_k(&account, "privateKey"));
         add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
-        add_element_to_object(&mut request, &Value::Str("signature_timestamp".to_string()), orderReq.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
+        add_element_to_object(&mut request, &Value::Str("signature_timestamp".to_string()), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null });
         return request;
 
     Value::Null

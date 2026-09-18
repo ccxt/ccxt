@@ -1685,7 +1685,7 @@ impl NadoCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".to_string()), self.json(request.as_map().and_then(|__m| __m.get("stream")).cloned().unwrap_or(Value::Null))));
+        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".to_string()), self.json(match &request { Value::Dict(__m15) => __m15.get("stream").cloned().unwrap_or(Value::Null), _ => Value::Null })));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("streamType".to_string(), streamType.clone());

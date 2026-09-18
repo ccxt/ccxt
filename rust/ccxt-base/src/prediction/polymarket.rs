@@ -4473,9 +4473,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        add_element_to_object(&mut self.options.clone(), &Value::Str("l2ApiKey".to_string()), creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut self.options.clone(), &Value::Str("l2Secret".to_string()), creds.as_map().and_then(|__m| __m.get("secret")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut self.options.clone(), &Value::Str("l2Passphrase".to_string()), creds.as_map().and_then(|__m| __m.get("passphrase")).cloned().unwrap_or(Value::Null));
+        add_element_to_object(&mut self.options.clone(), &Value::Str("l2ApiKey".to_string()), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        add_element_to_object(&mut self.options.clone(), &Value::Str("l2Secret".to_string()), match &creds { Value::Dict(__m15) => __m15.get("secret").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        add_element_to_object(&mut self.options.clone(), &Value::Str("l2Passphrase".to_string()), match &creds { Value::Dict(__m15) => __m15.get("passphrase").cloned().unwrap_or(Value::Null), _ => Value::Null });
         return creds;
 
     Value::Null

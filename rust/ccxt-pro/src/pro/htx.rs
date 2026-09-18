@@ -1199,12 +1199,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut spotConditon: Value = Value::Bool(is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(prevSeqNum.as_f64() == get_value(&orderbook, &Value::Str("nonce".to_string())).as_f64()))));
         let mut nonSpotCondition: Value = Value::Bool(is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(version != Value::Null))) && is_true(&(Value::Bool((match (&(version), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64() == get_value(&orderbook, &Value::Str("nonce".to_string())).as_f64()))));
-        if is_true(&(Value::Bool(spotConditon.as_bool() == Some(true)))) || is_true(&(Value::Bool(nonSpotCondition.as_bool() == Some(true)))) {
+        if is_true(&(Value::Bool(matches!(&spotConditon, Value::Bool(true))))) || is_true(&(Value::Bool(matches!(&nonSpotCondition, Value::Bool(true))))) {
             let mut asks: Value = self.safe_value_k(tick.clone(), "asks", &[Value::List(vec![])]);
             let mut bids: Value = self.safe_value_k(tick.clone(), "bids", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), (if is_true(&(Value::Bool(spotConditon.as_bool() == Some(true)))) { seqNum.clone() } else { version.clone() }));
+            add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), (if is_true(&(Value::Bool(matches!(&spotConditon, Value::Bool(true))))) { seqNum.clone() } else { version.clone() }));
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         }

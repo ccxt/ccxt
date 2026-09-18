@@ -2064,7 +2064,7 @@ impl WhitebitCore {
             let mut hasAmountLimits: Value = Value::Bool(is_true(&(Value::Bool(amountLimits != Value::Null))) && is_true(&(Value::Bool(amountLimits != Value::Null))) && (self.safe_number_k(amountLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(amountLimits.clone(), "max", &[]) != Value::Null));
             let mut hasPriceLimits: Value = Value::Bool(is_true(&(Value::Bool(priceLimits != Value::Null))) && is_true(&(Value::Bool(priceLimits != Value::Null))) && (self.safe_number_k(priceLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(priceLimits.clone(), "max", &[]) != Value::Null));
             let mut hasCostLimits: Value = Value::Bool(is_true(&(Value::Bool(costLimits != Value::Null))) && is_true(&(Value::Bool(costLimits != Value::Null))) && (self.safe_number_k(costLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(costLimits.clone(), "max", &[]) != Value::Null));
-            if is_true(&(Value::Bool(hasAmountLimits.as_bool() == Some(true)))) && is_true(&(Value::Bool(hasPriceLimits.as_bool() == Some(true)))) && is_true(&(Value::Bool(hasCostLimits.as_bool() == Some(true)))) {
+            if is_true(&(Value::Bool(matches!(&hasAmountLimits, Value::Bool(true))))) && is_true(&(Value::Bool(matches!(&hasPriceLimits, Value::Bool(true))))) && is_true(&(Value::Bool(matches!(&hasCostLimits, Value::Bool(true))))) {
                 add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), market.clone());

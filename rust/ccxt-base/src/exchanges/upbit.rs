@@ -1941,7 +1941,7 @@ impl UpbitCore {
             add_element_to_object(&mut request, &Value::Str("identifier".to_string()), clientOrderId.clone());
         }
         if is_true(&postOnly) {
-            if (request.as_map().and_then(|__m| __m.get("ord_type")).cloned().unwrap_or(Value::Null).as_str() != Some("limit")) {
+            if (match &request { Value::Dict(__m15) => __m15.get("ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() != Some("limit")) {
                 panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders are only supported for limit orders".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("post_only".to_string()));
@@ -1951,7 +1951,7 @@ impl UpbitCore {
                 add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), timeInForce.clone());
             }
         }
-        if (request.as_map().and_then(|__m| __m.get("ord_type")).cloned().unwrap_or(Value::Null).as_str() == Some("best")) && (timeInForce == Value::Null) {
+        if (match &request { Value::Dict(__m15) => __m15.get("ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("best")) && (timeInForce == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a timeInForce parameter for best type orders".to_string())))));
         }
         let mut response: Value = Value::Null;
@@ -2094,7 +2094,7 @@ impl UpbitCore {
             add_element_to_object(&mut request, &Value::Str("new_smp_type".to_string()), selfTradePrevention.clone());
         }
         if is_true(&postOnly) {
-            if (request.as_map().and_then(|__m| __m.get("new_ord_type")).cloned().unwrap_or(Value::Null).as_str() != Some("limit")) {
+            if (match &request { Value::Dict(__m15) => __m15.get("new_ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() != Some("limit")) {
                 panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders are only supported for limit orders".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("new_time_in_force".to_string()), Value::Str("post_only".to_string()));
@@ -2104,7 +2104,7 @@ impl UpbitCore {
                 add_element_to_object(&mut request, &Value::Str("new_time_in_force".to_string()), timeInForce.clone());
             }
         }
-        if (request.as_map().and_then(|__m| __m.get("new_ord_type")).cloned().unwrap_or(Value::Null).as_str() == Some("best")) && (timeInForce == Value::Null) {
+        if (match &request { Value::Dict(__m15) => __m15.get("new_ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("best")) && (timeInForce == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a timeInForce parameter for best type orders".to_string())))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string())]), &[]);

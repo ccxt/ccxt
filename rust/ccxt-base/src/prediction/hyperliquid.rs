@@ -519,7 +519,7 @@ impl HyperliquidCore {
                     if thresholdsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) && (index != Value::Null) {
                         let mut bucketLabel: Value = Value::Null;
                         if index.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                            bucketLabel = Value::Str(format!("{}{}", Value::Str("BELOW_".to_string()), thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)));
+                            bucketLabel = Value::Str(format!("{}{}", Value::Str("BELOW_".to_string()), match &thresholds { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null }));
                         }  else if index.as_f64().unwrap_or(f64::NAN) >= thresholdsLength.as_f64().unwrap_or(f64::NAN) {
                             let mut lastIdx: Value = (match (&(thresholdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                             bucketLabel = Value::Str(format!("{}{}", Value::Str("ABOVE_".to_string()), get_value(&thresholds, &lastIdx)));
@@ -3014,10 +3014,10 @@ impl HyperliquidCore {
         let mut sig: Value = self.build_approve_builder_fee_sig(payload.clone());
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), payload.as_map().and_then(|__m| __m.get("hyperliquidChain")).cloned().unwrap_or(Value::Null));
+                m.insert("hyperliquidChain".to_string(), match &payload { Value::Dict(__m15) => __m15.get("hyperliquidChain").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
-                m.insert("maxFeeRate".to_string(), payload.as_map().and_then(|__m| __m.get("maxFeeRate")).cloned().unwrap_or(Value::Null));
-                m.insert("builder".to_string(), payload.as_map().and_then(|__m| __m.get("builder")).cloned().unwrap_or(Value::Null));
+                m.insert("maxFeeRate".to_string(), match &payload { Value::Dict(__m15) => __m15.get("maxFeeRate").cloned().unwrap_or(Value::Null), _ => Value::Null });
+                m.insert("builder".to_string(), match &payload { Value::Dict(__m15) => __m15.get("builder").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("type".to_string(), Value::Str("approveBuilderFee".to_string()));
             m

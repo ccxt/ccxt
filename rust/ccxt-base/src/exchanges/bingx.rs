@@ -4700,8 +4700,8 @@ impl BingxCore {
             if isTwapOrder {
                 let mut twapRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbol".to_string(), request.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-                        m.insert("side".to_string(), request.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null));
+                        m.insert("symbol".to_string(), match &request { Value::Dict(__m15) => __m15.get("symbol").cloned().unwrap_or(Value::Null), _ => Value::Null });
+                        m.insert("side".to_string(), match &request { Value::Dict(__m15) => __m15.get("side").cloned().unwrap_or(Value::Null), _ => Value::Null });
                         m.insert("positionSide".to_string(), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) }));
                         m.insert("triggerPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), triggerPrice.clone())));
                         m.insert("totalAmount".to_string(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));

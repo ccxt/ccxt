@@ -1644,7 +1644,7 @@ impl HyperliquidCore {
         let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null))));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { Value::Str("spotClearinghouseState".to_string()) } else { Value::Str("clearinghouseState".to_string()) }));
+                m.insert("type".to_string(), (if is_true(&(Value::Bool(matches!(&isSpot, Value::Bool(true))))) { Value::Str("spotClearinghouseState".to_string()) } else { Value::Str("clearinghouseState".to_string()) }));
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
@@ -1699,7 +1699,7 @@ impl HyperliquidCore {
                 let mut balance: Value = get_value(&balances, &i);
                 let mut balance: Value = get_value(&balances, &i);
                 let mut unifiedCode: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "coin", &[]), &[]);
-                let mut code: Value = (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { self.update_spot_currency_code(unifiedCode.clone()) } else { unifiedCode.clone() });
+                let mut code: Value = (if is_true(&(Value::Bool(matches!(&isSpot, Value::Bool(true))))) { self.update_spot_currency_code(unifiedCode.clone()) } else { unifiedCode.clone() });
                 let mut account: Value = self.account();
                 let mut total: Value = self.safe_string_k(balance.clone(), "total", &[]);
                 let mut used: Value = self.safe_string_k(balance.clone(), "hold", &[]);
@@ -2639,10 +2639,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut sig: Value = self.build_approve_builder_fee_sig(payload.clone());
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), payload.as_map().and_then(|__m| __m.get("hyperliquidChain")).cloned().unwrap_or(Value::Null));
+                m.insert("hyperliquidChain".to_string(), match &payload { Value::Dict(__m15) => __m15.get("hyperliquidChain").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
-                m.insert("maxFeeRate".to_string(), payload.as_map().and_then(|__m| __m.get("maxFeeRate")).cloned().unwrap_or(Value::Null));
-                m.insert("builder".to_string(), payload.as_map().and_then(|__m| __m.get("builder")).cloned().unwrap_or(Value::Null));
+                m.insert("maxFeeRate".to_string(), match &payload { Value::Dict(__m15) => __m15.get("maxFeeRate").cloned().unwrap_or(Value::Null), _ => Value::Null });
+                m.insert("builder".to_string(), match &payload { Value::Dict(__m15) => __m15.get("builder").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("type".to_string(), Value::Str("approveBuilderFee".to_string()));
             m
@@ -2795,10 +2795,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sig: Value = self.build_user_abstraction_sig(payload.clone());
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), payload.as_map().and_then(|__m| __m.get("hyperliquidChain")).cloned().unwrap_or(Value::Null));
+                m.insert("hyperliquidChain".to_string(), match &payload { Value::Dict(__m15) => __m15.get("hyperliquidChain").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
-                m.insert("abstraction".to_string(), payload.as_map().and_then(|__m| __m.get("abstraction")).cloned().unwrap_or(Value::Null));
-                m.insert("user".to_string(), payload.as_map().and_then(|__m| __m.get("user")).cloned().unwrap_or(Value::Null));
+                m.insert("abstraction".to_string(), match &payload { Value::Dict(__m15) => __m15.get("abstraction").cloned().unwrap_or(Value::Null), _ => Value::Null });
+                m.insert("user".to_string(), match &payload { Value::Dict(__m15) => __m15.get("user").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("type".to_string(), type_var.clone());
             m
@@ -2847,10 +2847,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sig: Value = self.build_user_dex_abstraction_sig(payload.clone());
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), payload.as_map().and_then(|__m| __m.get("hyperliquidChain")).cloned().unwrap_or(Value::Null));
+                m.insert("hyperliquidChain".to_string(), match &payload { Value::Dict(__m15) => __m15.get("hyperliquidChain").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
-                m.insert("enabled".to_string(), payload.as_map().and_then(|__m| __m.get("enabled")).cloned().unwrap_or(Value::Null));
-                m.insert("user".to_string(), payload.as_map().and_then(|__m| __m.get("user")).cloned().unwrap_or(Value::Null));
+                m.insert("enabled".to_string(), match &payload { Value::Dict(__m15) => __m15.get("enabled").cloned().unwrap_or(Value::Null), _ => Value::Null });
+                m.insert("user".to_string(), match &payload { Value::Dict(__m15) => __m15.get("user").cloned().unwrap_or(Value::Null), _ => Value::Null });
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("type".to_string(), type_var.clone());
             m
@@ -5445,7 +5445,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("hyperliquidChain".to_string(), transferPayload.as_map().and_then(|__m| __m.get("hyperliquidChain")).cloned().unwrap_or(Value::Null));
+        m.insert("hyperliquidChain".to_string(), match &transferPayload { Value::Dict(__m15) => __m15.get("hyperliquidChain").cloned().unwrap_or(Value::Null), _ => Value::Null });
         m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
         m.insert("type".to_string(), Value::Str("usdClassTransfer".to_string()));
         m.insert("amount".to_string(), strAmountFinal.clone());
@@ -5626,7 +5626,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             sig = self.build_withdraw_sig(payload.clone());
             action = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("hyperliquidChain".to_string(), payload.as_map().and_then(|__m| __m.get("hyperliquidChain")).cloned().unwrap_or(Value::Null));
+                    m.insert("hyperliquidChain".to_string(), match &payload { Value::Dict(__m15) => __m15.get("hyperliquidChain").cloned().unwrap_or(Value::Null), _ => Value::Null });
                     m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
                     m.insert("destination".to_string(), address.clone());
                     m.insert("amount".to_string(), to_string_val(&amount));

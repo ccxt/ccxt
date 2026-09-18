@@ -3417,7 +3417,7 @@ impl KucoinCore {
         if is_true(&fetchSpotMarkets) {
             append_to_array(&mut promises, self.public_get_symbols(&[params.clone()]).await);
         }
-        if (requestMarginables.as_bool() == Some(true)) {
+        if (matches!(&requestMarginables, Value::Bool(true))) {
             append_to_array(&mut promises, self.private_get_margin_symbols(&[params.clone()]).await); // cross margin symbols
             //
             //    {
@@ -3477,7 +3477,7 @@ impl KucoinCore {
         if is_true(&fetchSpotMarkets) {
             nextIndex = Value::Int(1);
         }
-        if (requestMarginables.as_bool() == Some(true)) {
+        if (matches!(&requestMarginables, Value::Bool(true))) {
             crossIndex = nextIndex.clone();
             nextIndex = self.sum(&[nextIndex.clone(), Value::Int(2)]);
             isolatedIndex = self.sum(&[crossIndex.clone(), Value::Int(1)]);
@@ -3489,7 +3489,7 @@ impl KucoinCore {
         if fetchContractMarkets {
             contractIndex = nextIndex.clone();
         }
-        let mut crossData: Value = (if is_true(&(Value::Bool(requestMarginables.as_bool() == Some(true)))) { self.safe_dict_k(get_value(&responses, &crossIndex), "data", &[Value::Map({
+        let mut crossData: Value = (if is_true(&(Value::Bool(matches!(&requestMarginables, Value::Bool(true))))) { self.safe_dict_k(get_value(&responses, &crossIndex), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -3498,7 +3498,7 @@ impl KucoinCore {
 }) });
         let mut crossItems: Value = self.safe_list_k(crossData.clone(), "items", &[Value::List(vec![])]);
         let mut crossById: Value = self.index_by(crossItems.clone(), Value::Str("symbol".to_string()));
-        let mut isolatedData: Value = (if is_true(&(Value::Bool(requestMarginables.as_bool() == Some(true)))) { get_value(&responses, &isolatedIndex) } else { Value::Map({
+        let mut isolatedData: Value = (if is_true(&(Value::Bool(matches!(&requestMarginables, Value::Bool(true))))) { get_value(&responses, &isolatedIndex) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });

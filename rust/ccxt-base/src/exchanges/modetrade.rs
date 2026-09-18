@@ -2671,7 +2671,7 @@ impl ModetradeCore {
                     m.insert("child_orders".to_string(), Value::List(vec![]));
                 m
             });
-            let mut childOrders: Value = outterOrder.as_map().and_then(|__m| __m.get("child_orders")).cloned().unwrap_or(Value::Null);
+            let mut childOrders: Value = match &outterOrder { Value::Dict(__m15) => __m15.get("child_orders").cloned().unwrap_or(Value::Null), _ => Value::Null };
             let mut closeSide: Value = (if is_true(&(Value::Bool(orderSide.as_str() == Some("BUY")))) { Value::Str("SELL".to_string()) } else { Value::Str("BUY".to_string()) });
             if hasStopLoss {
                 let mut stopLossPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("price".to_string()), &[stopLoss.clone()]);

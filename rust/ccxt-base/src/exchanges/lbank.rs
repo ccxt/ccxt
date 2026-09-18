@@ -1976,7 +1976,7 @@ impl LbankCore {
         }
         // from spotPrivatePostSupplementUserInfo
         let mut isArray: Value = Value::Bool(is_array(&data));
-        if (isArray.as_bool() == Some(true)) {
+        if (matches!(&isArray, Value::Bool(true))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_913: bool = true;

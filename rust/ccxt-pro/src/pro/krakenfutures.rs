@@ -435,7 +435,7 @@ impl KrakenfuturesCore {
         }
         let mut length: Value = Value::Int(symbols.len() as i64);
         if (length.as_f64() == Some(1.0)) {
-            let mut market: Value = self.market(marketIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(match &marketIds { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null });
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         }
         add_element_to_object(&mut subscribe, &Value::Str("product_ids".to_string()), marketIds.clone());
