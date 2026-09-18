@@ -3704,7 +3704,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(this.Events, nil) {
 		this.Events = map[string]any{}
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var eventGroups map[string]any = map[string]any{}

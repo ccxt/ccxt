@@ -4010,7 +4010,7 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			rawQuestions = this.SafeList(responses, 1, []any{})
 		}
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
@@ -4762,7 +4762,7 @@ func (this *Myriad) HandleTicker(client any, data any) {
 	var ts *int64 = this.SafeInteger(data, "ts")
 	var outcomes any = this.SafeList(data, "outcomes", []any{})
 	var outcomesLength int = ccxt.GetArrayLength(outcomes)
-	if ccxt.IsEqual(this.Tickers, nil) {
+	if this.Tickers == nil {
 		this.Tickers = this.CreateSafeDictionary()
 	}
 	for i := 0; i < outcomesLength; i++ {

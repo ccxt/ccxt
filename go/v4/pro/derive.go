@@ -111,7 +111,7 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes8412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes8412)
@@ -199,7 +199,7 @@ func (this *Derive) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes15512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15512)
@@ -347,7 +347,7 @@ func (this *Derive) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes29112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes29112)
@@ -393,7 +393,7 @@ func (this *Derive) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes32412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes32412)
@@ -520,7 +520,7 @@ func (this *Derive) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes42712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes42712)
@@ -669,7 +669,7 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes53412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes53412)
@@ -818,7 +818,7 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes65812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes65812)

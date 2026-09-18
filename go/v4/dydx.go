@@ -828,7 +828,7 @@ func (this *Dydx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes68512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes68512)
@@ -915,7 +915,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes75712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75712)
@@ -997,7 +997,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes81812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes81812)
@@ -1174,7 +1174,7 @@ func (this *Dydx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes97612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes97612)
@@ -1227,7 +1227,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes100412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes100412)
@@ -1475,7 +1475,7 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes117912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes117912)
@@ -1891,7 +1891,7 @@ func (this *Dydx) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes152212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes152212)
@@ -1975,7 +1975,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if (isTrigger == nil || *isTrigger != true) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes158312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes158312)
@@ -2100,7 +2100,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes167812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes167812)
@@ -2194,7 +2194,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes174912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174912)
@@ -2321,7 +2321,7 @@ func (this *Dydx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes185512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes185512)
@@ -2427,7 +2427,7 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
 	if !IsEqual(code, "USDC") {
 		panic(NotSupported(this.Id + " transfer() only support USDC"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes193412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes193412)
@@ -2591,7 +2591,7 @@ func (this *Dydx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes207212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes207212)
@@ -2694,7 +2694,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
 	if !IsEqual(code, "USDC") {
 		panic(NotSupported(this.Id + " withdraw() only support USDC"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes215512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes215512)
@@ -2784,7 +2784,7 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes222012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes222012)
@@ -2833,7 +2833,7 @@ func (this *Dydx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes224612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes224612)
@@ -2882,7 +2882,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes227212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes227212)
@@ -3073,7 +3073,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes240912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes240912)

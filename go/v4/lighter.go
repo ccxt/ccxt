@@ -1227,7 +1227,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method any, symbol any,
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes92112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes92112)
@@ -1373,7 +1373,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes102112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes102112)
@@ -1842,7 +1842,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrderBook() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes137512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes137512)
@@ -2014,7 +2014,7 @@ func (this *Lighter) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTicker() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes153112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes153112)
@@ -2100,7 +2100,7 @@ func (this *Lighter) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes160012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes160012)
@@ -2170,7 +2170,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes165512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes165512)
@@ -2297,7 +2297,7 @@ func (this *Lighter) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes175912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes175912)
@@ -2352,7 +2352,7 @@ func (this *Lighter) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes179912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes179912)
@@ -2501,7 +2501,7 @@ func (this *Lighter) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes191412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes191412)
@@ -2678,7 +2678,7 @@ func (this *Lighter) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes206312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes206312)
@@ -2801,7 +2801,7 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes215912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes215912)
@@ -2906,7 +2906,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchClosedOrders() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes223712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes223712)
@@ -3197,7 +3197,7 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes250612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes250612)
@@ -3300,7 +3300,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes256612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes256612)
@@ -3440,7 +3440,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes267212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes267212)
@@ -3559,7 +3559,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	accountIndexparamsVariable := (<-this.HandleAccountIndexAsync(params, "fetchWithdrawals", "accountIndex", "account_index"))
 	accountIndex = GetValue(accountIndexparamsVariable, 0)
 	params = GetValue(accountIndexparamsVariable, 1)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes274812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes274812)
@@ -3702,7 +3702,7 @@ func (this *Lighter) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes287012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes287012)
@@ -3786,7 +3786,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes292312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes292312)
@@ -4054,7 +4054,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes311612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes311612)
@@ -4120,7 +4120,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes315112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes315112)
@@ -4218,7 +4218,7 @@ func (this *Lighter) signAndCancelAllOrdersBody(ch chan any, method any, optiona
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes320712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes320712)
@@ -4309,7 +4309,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes325812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes325812)
@@ -4434,7 +4434,7 @@ func (this *Lighter) setMarginBody(ch chan any, symbol any, amount any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes333212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes333212)

@@ -1832,7 +1832,7 @@ func (this *BaseExchange) AfterConstruct() {
 	this.CreateNetworksByIdObject()
 	this.FeaturesGenerator()
 	// init predefined markets if any
-	if !IsEqual(this.Markets, nil) {
+	if this.Markets != nil {
 		this.SetMarkets(this.Markets)
 	}
 	// init the request rate limiter
@@ -2489,7 +2489,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	this.Currencies_by_id = this.IndexBySafe(this.Currencies, "id")
 	var currenciesSortedByCode map[string]any = this.Keysort(this.Currencies)
 	this.Codes = ObjectKeys(currenciesSortedByCode)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		panic(ExchangeError(this.Id + " setMarkets() markets not set"))
 	}
 	return this.Markets
@@ -5043,7 +5043,7 @@ func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) any 
 	if (currencyId == nil) && (!IsEqual(currency, nil)) {
 		return currency
 	}
-	if (currencyId != nil) && (!IsEqual(this.Currencies_by_id, nil)) && (InOp(this.Currencies_by_id, currencyId)) && (!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)) {
+	if (currencyId != nil) && (this.Currencies_by_id != nil) && (InOp(this.Currencies_by_id, currencyId)) && (!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)) {
 		return GetValue(this.Currencies_by_id, currencyId)
 	}
 	var code any = currencyId
@@ -5066,7 +5066,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
 	if marketId != nil {
-		if (!IsEqual(this.Markets_by_id, nil)) && (InOp(this.Markets_by_id, marketId)) {
+		if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
 			var markets any = GetValue(this.Markets_by_id, marketId)
 			var numMarkets int = GetArrayLength(markets)
 			if IsEqual(numMarkets, 1) {
@@ -8859,7 +8859,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 					Remove(futures, "fetchPositionsSnapshot")
 				}
 			}
-		} else if ((topic != nil && *topic == "ticker") || (topic != nil && *topic == "markPrice")) && (!IsEqual(this.Tickers, nil)) {
+		} else if ((topic != nil && *topic == "ticker") || (topic != nil && *topic == "markPrice")) && (this.Tickers != nil) {
 			var tickerSymbols []string = ObjectKeys(this.Tickers)
 			for i := 0; i < len(tickerSymbols); i++ {
 				var tickerSymbol string = GetValue(tickerSymbols, i).(string)
@@ -8867,7 +8867,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 					Remove(this.Tickers, tickerSymbol)
 				}
 			}
-		} else if (topic != nil && *topic == "bidsasks") && (!IsEqual(this.Bidsasks, nil)) {
+		} else if (topic != nil && *topic == "bidsasks") && (this.Bidsasks != nil) {
 			var bidsaskSymbols []string = ObjectKeys(this.Bidsasks)
 			for i := 0; i < len(bidsaskSymbols); i++ {
 				var bidsaskSymbol string = GetValue(bidsaskSymbols, i).(string)

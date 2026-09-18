@@ -173,7 +173,7 @@ func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		panic(ccxt.ArgumentsRequired(this.Id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance"))
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "watchTrades"), "symbol", symbol)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes14412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14412)
@@ -312,7 +312,7 @@ func (this *Cex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes27012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes27012)
@@ -367,7 +367,7 @@ func (this *Cex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes31012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes31012)
@@ -422,7 +422,7 @@ func (this *Cex) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes34612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes34612)
@@ -553,7 +553,7 @@ func (this *Cex) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes46212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes46212)
@@ -604,7 +604,7 @@ func (this *Cex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes49012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes49012)
@@ -665,7 +665,7 @@ func (this *Cex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes53112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes53112)
@@ -1126,7 +1126,7 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes98012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes98012)
@@ -1283,7 +1283,7 @@ func (this *Cex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes111712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes111712)
@@ -1433,7 +1433,7 @@ func (this *Cex) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes127012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes127012)
@@ -1493,7 +1493,7 @@ func (this *Cex) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOpenOrdersWs requires a symbol."))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes130712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes130712)
@@ -1549,7 +1549,7 @@ func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	if ccxt.IsEqual(price, nil) {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs requires a price argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes134412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes134412)
@@ -1613,7 +1613,7 @@ func (this *Cex) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 	if ccxt.IsEqual(price, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes138712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes138712)
@@ -1666,7 +1666,7 @@ func (this *Cex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes142112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes142112)
@@ -1721,7 +1721,7 @@ func (this *Cex) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 	if symbol != nil {
 		panic(ccxt.BadRequest(this.Id + " cancelOrderWs does not allow filtering by symbol"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes145712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes145712)

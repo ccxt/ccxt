@@ -856,7 +856,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes65312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes65312)
@@ -954,7 +954,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes73212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73212)
@@ -1048,7 +1048,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes80512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80512)
@@ -1210,7 +1210,7 @@ func (this *Alpaca) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes95012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes95012)
@@ -1246,7 +1246,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes96912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes96912)
@@ -1392,7 +1392,7 @@ func (this *Alpaca) createMarketOrderWithCostBody(ch chan any, symbol any, side 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes110012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes110012)
@@ -1427,7 +1427,7 @@ func (this *Alpaca) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes112012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes112012)
@@ -1462,7 +1462,7 @@ func (this *Alpaca) createMarketSellOrderWithCostBody(ch chan any, symbol any, c
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes114012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes114012)
@@ -1505,7 +1505,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes116612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116612)
@@ -1654,7 +1654,7 @@ func (this *Alpaca) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes128112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes128112)
@@ -1697,7 +1697,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes130712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes130712)
@@ -1744,7 +1744,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes133312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes133312)
@@ -1930,7 +1930,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes146212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes146212)
@@ -2119,7 +2119,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes162912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes162912)
@@ -2253,7 +2253,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes174512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174512)
@@ -2327,7 +2327,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes179912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes179912)
@@ -2377,7 +2377,7 @@ func (this *Alpaca) FetchTransactionsHelperAsync(typeVar any, code any, since an
 func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code any, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes183812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes183812)
@@ -2729,7 +2729,7 @@ func (this *Alpaca) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes210712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes210712)

@@ -1239,7 +1239,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}()
 		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 		if rawMarketsLength > 0 {
-			if ccxt.IsEqual(this.Markets, nil) {
+			if this.Markets == nil {
 				this.Markets = this.CreateSafeDictionary()
 			}
 			var ccxtMarkets any = this.ParseEventToMarkets(map[string]any{
@@ -1299,7 +1299,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 	}
 	var tokenIdsLength int = ccxt.GetArrayLength(tokenIds)
 	if tokenIdsLength > 0 {
-		if ccxt.IsEqual(this.Markets, nil) {
+		if this.Markets == nil {
 			this.Markets = this.CreateSafeDictionary()
 		}
 		// token ids are ~78 chars each, so cap the batch to keep the URL under common limits
@@ -3437,7 +3437,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(this.Events, nil) {
 		this.Events = map[string]any{}
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var result any = []any{}

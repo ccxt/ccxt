@@ -523,7 +523,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rawEventsLength int = ccxt.GetArrayLength(rawEvents)
 	var parsedEvents any = []any{}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	for i := 0; i < rawEventsLength; i++ {
@@ -1771,7 +1771,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan any, marketId any) any {
 	if ccxt.IsEqual(market, nil) {
 		panic(ccxt.ExchangeError(this.Id + " loadTradeMarket() could not parse market " + idStr))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var marketHandle *string = this.SafeString(market, "market", "")
@@ -2299,7 +2299,7 @@ func (this *Opinion) HandleMessage(client any, message any) {
  * @returns {object} the outcome object, or undefined
  */
 func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId any, outcomeSide any) any {
-	if (ccxt.IsEqual(marketId, nil)) || (ccxt.IsEqual(this.Markets, nil)) {
+	if (ccxt.IsEqual(marketId, nil)) || (this.Markets == nil) {
 		return nil
 	}
 	var marketKeys []string = ccxt.ObjectKeys(this.Markets)

@@ -547,7 +547,7 @@ func (this *Independentreserve) fetchBalanceBody(ch chan any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes43512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes43512)
@@ -581,7 +581,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol any, opti
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes45212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes45212)
@@ -667,7 +667,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan any, symbol any, optiona
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes52212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52212)
@@ -856,7 +856,7 @@ func (this *Independentreserve) fetchOrderBody(ch chan any, id any, optionalArgs
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes69512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes69512)
@@ -901,7 +901,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes71912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes71912)
@@ -953,7 +953,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes75012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75012)
@@ -1005,7 +1005,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes78112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes78112)
@@ -1097,7 +1097,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan any, symbol any, optiona
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes85312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes85312)
@@ -1134,7 +1134,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes87512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes87512)
@@ -1209,7 +1209,7 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes93312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93312)
@@ -1269,7 +1269,7 @@ func (this *Independentreserve) cancelOrderBody(ch chan any, id any, optionalArg
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes96912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes96912)
@@ -1319,7 +1319,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan any, code any, o
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes100412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes100412)
@@ -1395,7 +1395,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes106012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106012)
