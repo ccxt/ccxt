@@ -357,7 +357,7 @@ public partial class bitbank : Exchange
         //       }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
         object pairs = this.safeValue(data, "pairs", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(pairs));
     }
@@ -498,7 +498,7 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         Dictionary<string, object> response = await this.publicGetPairDepth(this.extend(request, parameters));
-        object orderbook = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> orderbook = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp));
     }
@@ -574,7 +574,7 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         Dictionary<string, object> response = await this.publicGetPairTransactions(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         List<object> trades = this.safeList(data, "transactions", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -623,7 +623,7 @@ public partial class bitbank : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         List<object> pairs = this.safeList(data, "pairs", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; postFixIncrement(ref i))
@@ -716,7 +716,7 @@ public partial class bitbank : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         object candlestick = this.safeValue(data, "candlestick", new List<object>() {});
         object first = this.safeValue(candlestick, 0, new Dictionary<string, object>() {});
         List<object> ohlcv = this.safeList(first, "ohlcv", new List<object>() {});
@@ -730,7 +730,7 @@ public partial class bitbank : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         List<object> assets = this.safeList(data, "assets", new List<object>() {});
         for (int i = 0; i < assets.Count; postFixIncrement(ref i))
         {
@@ -934,7 +934,7 @@ public partial class bitbank : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
@@ -1018,7 +1018,7 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
         }
         Dictionary<string, object> response = await this.privateGetUserSpotActiveOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         List<object> orders = this.safeList(data, "orders", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
@@ -1057,7 +1057,7 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
         }
         Dictionary<string, object> response = await this.privateGetUserSpotTradeHistory(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         List<object> trades = this.safeList(data, "trades", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -1083,7 +1083,7 @@ public partial class bitbank : Exchange
             { "asset", getValue(currency, "id") },
         };
         Dictionary<string, object> response = await this.privateGetUserWithdrawalAccount(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         // Not sure about this if there could be more than one account...
         object accounts = this.safeValue(data, "accounts", new List<object>() {});
         object firstAccount = this.safeValue(accounts, 0, new Dictionary<string, object>() {});
@@ -1272,7 +1272,7 @@ public partial class bitbank : Exchange
             return null;
         }
         Int64? success = this.safeInteger(response, "success");
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
         if ((isEqual(success, null) || (success == 0)) || ((data == null)))
         {
             Dictionary<string, object> errorMessages = new Dictionary<string, object>() {

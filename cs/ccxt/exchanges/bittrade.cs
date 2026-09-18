@@ -1003,7 +1003,7 @@ public partial class bittrade : Exchange
             {
                 throw new BadSymbol ((string)((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }
-            object tick = this.safeValue(response, "tick");
+            IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(response, "tick"));
             Int64? timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
             Dictionary<string, object> result = ((Dictionary<string, object>)this.parseOrderBook(tick, symbol, timestamp));
             ((IDictionary<string,object>)result)["nonce"] = this.safeInteger(tick, "version");

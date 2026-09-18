@@ -150,7 +150,7 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        object parameters = this.safeValue(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)this.balance)["info"] = data;
         string? currencyId = this.safeString(data, "currency");
@@ -291,7 +291,7 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        object parameters = this.safeValue(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "instrument_name");
         string? symbol = this.safeSymbol(marketId);
@@ -563,7 +563,7 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        object parameters = this.safeValue(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
         string? channel = this.safeString(parameters, "channel", "");
         object trades = this.safeValue(parameters, "data", new List<object>() {});
         object cachedTrades = this.myTrades;
@@ -694,7 +694,7 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        object parameters = this.safeValue(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel");
         List<object> parts = ((string)((string)channel)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
@@ -862,7 +862,7 @@ public partial class deribit : ccxt.deribit
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object parameters = this.safeValue(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
         string? channel = this.safeString(parameters, "channel", "");
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
         IList<object> orders = new List<object>() {};
@@ -1126,7 +1126,7 @@ public partial class deribit : ccxt.deribit
         {
             throw new ExchangeError ((string)((this.id + " ") + this.json(error))) ;
         }
-        object parameters = this.safeValue(message, "params");
+        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params"));
         string? channel = this.safeString(parameters, "channel");
         if ((channel != null))
         {

@@ -2928,7 +2928,7 @@ public partial class coinex : Exchange
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = ((IDictionary<string, object>)this.safeValue(rawOrder, "params", new Dictionary<string, object>() {}));
             if ((type != "limit"))
             {
                 throw new NotSupported ((string)(((this.id + " createOrders() does not support ") + type) + " orders, only limit orders are accepted")) ;

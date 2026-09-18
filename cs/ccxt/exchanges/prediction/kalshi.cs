@@ -971,7 +971,7 @@ public partial class kalshi : PredictionExchange
         //         }
         //     }
         //
-        object raw = this.safeValue(response, "market", response);
+        IDictionary<string, object> raw = ((IDictionary<string, object>)this.safeValue(response, "market", response));
         return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, ((object)outcomeObj)));
     }
 
