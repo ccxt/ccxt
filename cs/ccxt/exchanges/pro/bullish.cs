@@ -388,7 +388,7 @@ public partial class bullish : ccxt.bullish
             }
             string? price = this.safeString(entry, i);
             string? amount = this.safeString(entry, add(i, 1));
-            ((IList<object>)result).Add(new List<object>() {price, amount});
+            result.Add(new List<object>() {price, amount});
         }
         return ((List<object>)((object)(result)));
     }
@@ -489,7 +489,7 @@ public partial class bullish : ccxt.bullish
         if (type == "update")
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-            ((IList<object>)rawOrders).Add(data); // update is a single order
+            rawOrders.Add(data); // update is a single order
         } else
         {
             rawOrders = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of orders
@@ -616,7 +616,7 @@ public partial class bullish : ccxt.bullish
         if (type == "update")
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-            ((IList<object>)rawTrades).Add(data); // update is a single trade
+            rawTrades.Add(data); // update is a single trade
         } else
         {
             rawTrades = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of trades
@@ -808,7 +808,7 @@ public partial class bullish : ccxt.bullish
         if (messageType == "update")
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-            ((IList<object>)rawPositions).Add(data);
+            rawPositions.Add(data);
         } else
         {
             rawPositions = this.safeList(message, "data", new List<object>() {});
@@ -824,7 +824,7 @@ public partial class bullish : ccxt.bullish
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             callDynamically(positions, "append", new object[] {position});
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))

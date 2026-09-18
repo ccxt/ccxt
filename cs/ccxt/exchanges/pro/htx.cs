@@ -921,7 +921,7 @@ public partial class htx : ccxt.htx
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (((eventVar == null)) && (isEqual(getValue(orderbook, "nonce"), null)))
         {
-            ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
+            (orderbook as ccxt.pro.OrderBook).cache.Add(message);
         } else
         {
             this.handleOrderBookMessage(client, message);
@@ -1944,7 +1944,7 @@ public partial class htx : ccxt.htx
                 cache = new ArrayCacheBySymbolBySide();
                 ((IDictionary<string,object>)getValue(this.positions, url))[(string)marginMode] = cache;
             }
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             positionsByMarginMode[(string)marginMode] = this.safeValue(positionsByMarginMode, marginMode, new List<object>() {});
             ((IList<object>)getValue(positionsByMarginMode, marginMode)).Add(position);
             callDynamically(cache, "append", new object[] {position});

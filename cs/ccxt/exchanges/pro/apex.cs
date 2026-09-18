@@ -102,9 +102,9 @@ public partial class apex : ccxt.apex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string topic = add("recentlyTrade.H.", getValue(market, "id2"));
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
             string messageHash = add("trade:", symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -255,9 +255,9 @@ public partial class apex : ccxt.apex
                 limitVar = 25;
             }
             string topic = add(add(add("orderBook", limitVar.ToString()), ".H."), getValue(market, "id2"));
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
             string messageHash = add("orderbook:", symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         object orderbook = await this.watchTopics(url, messageHashes, topics, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -278,7 +278,7 @@ public partial class apex : ccxt.apex
         {
             if (!(inOp(client.subscriptions, getValue(messageHashes, i))))
             {
-                ((IList<object>)newTopics).Add(getValue(topics, i));
+                newTopics.Add(getValue(topics, i));
                 newTopicsCount = add(newTopicsCount, 1);
             }
         }
@@ -452,9 +452,9 @@ public partial class apex : ccxt.apex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
             string messageHash = add("ticker:", symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -569,8 +569,8 @@ public partial class apex : ccxt.apex
             symbolString = getValue(market, "id2");
             string? unfiedTimeframe = this.safeString(data, 1, "1");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)rawHashes).Add(add(add(add("candle.", timeframeId), "."), symbolString));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), unfiedTimeframe));
+            rawHashes.Add(add(add(add("candle.", timeframeId), "."), symbolString));
+            messageHashes.Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchTopics(url, messageHashes, rawHashes, parameters);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -953,7 +953,7 @@ public partial class apex : ccxt.apex
             string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             if ((side == null) || side == "")
             {
                 // closing update, adding both sides to "reset" both sides

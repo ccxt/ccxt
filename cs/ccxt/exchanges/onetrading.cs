@@ -844,8 +844,8 @@ public partial class onetrading : Exchange
             string? maker = this.safeString(tier, "maker_fee");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
-            ((IList<object>)makerFees).Add(new List<object>() {volume, this.parseNumber(maker)});
-            ((IList<object>)takerFees).Add(new List<object>() {volume, this.parseNumber(taker)});
+            makerFees.Add(new List<object>() {volume, this.parseNumber(maker)});
+            takerFees.Add(new List<object>() {volume, this.parseNumber(taker)});
         }
         return new Dictionary<string, object>() {
             { "maker", makerFees },
@@ -1160,8 +1160,8 @@ public partial class onetrading : Exchange
             throw new ExchangeError (add(this.id, " fetchOHLCV() missing periodUnit")) ;
         }
         var periodunitVariable = periodUnit.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        var period = ((IList<object>) periodunitVariable)[0];
-        var unit = ((IList<object>) periodunitVariable)[1];
+        var period = periodunitVariable[0];
+        var unit = periodunitVariable[1];
         int durationInSeconds = this.parseTimeframe(timeframeVar);
         Int64 duration = multiply(durationInSeconds, 1000);
         if (isEqual(limitVar, null))

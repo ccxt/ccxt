@@ -868,7 +868,7 @@ public partial class btcturk : Exchange
                 { "close", this.safeNumber(close, i) },
                 { "volume", this.safeNumber(volume, i) },
             };
-            ((IList<object>)results).Add(this.parseOHLCV(ohlcv, market));
+            results.Add(this.parseOHLCV(ohlcv, market));
         }
         List<object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);

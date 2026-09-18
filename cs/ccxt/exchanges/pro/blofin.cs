@@ -379,8 +379,8 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbolsList, i));
-            ((IList<object>)messageHashes).Add(add("bidask:", GetValue(market, "symbol")));
-            ((IList<object>)args).Add(new Dictionary<string, object>() {
+            messageHashes.Add(add("bidask:", GetValue(market, "symbol")));
+            args.Add(new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", GetValue(market, "id") },
             });
@@ -724,7 +724,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> position = this.parseWsPosition(getValue(data, i));
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
             object messageHash = add(add(channelName, ":"), GetValue(position, "symbol"));
             callDynamically(client, "resolve", new object[] {position, messageHash});
@@ -851,15 +851,15 @@ public partial class blofin : ccxt.blofin
                     { "channel", channel },
                     { "instId", GetValue(market, "id") },
                 };
-                ((IList<object>)rawSubscriptions).Add(topic);
-                ((IList<object>)messageHashes).Add(add(add(channel, ":"), GetValue(market, "symbol")));
+                rawSubscriptions.Add(topic);
+                messageHashes.Add(add(add(channel, ":"), GetValue(market, "symbol")));
             }
         } else
         {
-            ((IList<object>)rawSubscriptions).Add(new Dictionary<string, object>() {
+            rawSubscriptions.Add(new Dictionary<string, object>() {
                 { "channel", channelName },
             });
-            ((IList<object>)messageHashes).Add(channelName);
+            messageHashes.Add(channelName);
         }
         // private channel are difference, they only need plural channel name for multiple symbols
         if (this.inArray(channelName, new List<object>() {"orders", "orders-algo", "positions"}))

@@ -1188,7 +1188,7 @@ public partial class foxbit : Exchange
             {
                 request["price"] = this.priceToPrecision(symbol, this.safeString(order, "price"));
             }
-            ((IList<object>)ordersRequests).Add(this.extend(request, orderParams));
+            ordersRequests.Add(this.extend(request, orderParams));
         }
         Dictionary<string, object> createOrdersRequest = new Dictionary<string, object>() {
             { "data", ordersRequests },

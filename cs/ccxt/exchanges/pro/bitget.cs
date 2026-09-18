@@ -155,8 +155,8 @@ public partial class bitget : ccxt.bitget
         uta = utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchTicker", market, uta, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        instType = instTypeparametersVariable[0];
+        parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
@@ -214,8 +214,8 @@ public partial class bitget : ccxt.bitget
         uta = utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchTickers", market, uta, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        instType = instTypeparametersVariable[0];
+        parameters = instTypeparametersVariable[1];
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -229,8 +229,8 @@ public partial class bitget : ccxt.bitget
             string symbolOrInstId = isTrue(uta) ? "symbol" : "instId";
             args[(string)topicOrChannel] = "ticker";
             args[(string)symbolOrInstId] = GetValue(marketInner, "id");
-            ((IList<object>)topics).Add(args);
-            ((IList<object>)messageHashes).Add(add("ticker:", symbol));
+            topics.Add(args);
+            messageHashes.Add(add("ticker:", symbol));
         }
         object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -473,8 +473,8 @@ public partial class bitget : ccxt.bitget
         uta = utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        instType = instTypeparametersVariable[0];
+        parameters = instTypeparametersVariable[1];
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -488,8 +488,8 @@ public partial class bitget : ccxt.bitget
             string symbolOrInstId = isTrue(uta) ? "symbol" : "instId";
             args[(string)topicOrChannel] = "ticker";
             args[(string)symbolOrInstId] = GetValue(marketInner, "id");
-            ((IList<object>)topics).Add(args);
-            ((IList<object>)messageHashes).Add(add("bidask:", symbol));
+            topics.Add(args);
+            messageHashes.Add(add("bidask:", symbol));
         }
         object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -574,8 +574,8 @@ public partial class bitget : ccxt.bitget
         uta = utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        instType = instTypeparametersVariable[0];
+        parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
@@ -633,8 +633,8 @@ public partial class bitget : ccxt.bitget
         List<object> values = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
         object uta = getValue(values, 0);
         var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        instType = instTypeparametersVariable[0];
+        parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
@@ -864,8 +864,8 @@ public partial class bitget : ccxt.bitget
         uta = utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType(methodName, market, uta, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        instType = instTypeparametersVariable[0];
+        parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
@@ -926,8 +926,8 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.market(symbol);
             object instType = null;
             var instTypeparametersVariable = this.getInstType("watchOrderBookForSymbols", market, uta, parameters);
-            instType = ((IList<object>)instTypeparametersVariable)[0];
-            parameters = ((IList<object>)instTypeparametersVariable)[1];
+            instType = instTypeparametersVariable[0];
+            parameters = instTypeparametersVariable[1];
             Dictionary<string, object> args = new Dictionary<string, object>() {
                 { "instType", instType },
             };
@@ -935,8 +935,8 @@ public partial class bitget : ccxt.bitget
             string symbolOrInstId = isTrue(uta) ? "symbol" : "instId";
             args[(string)topicOrChannel] = channel;
             args[(string)symbolOrInstId] = GetValue(market, "id");
-            ((IList<object>)topics).Add(args);
-            ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
+            topics.Add(args);
+            messageHashes.Add(add("orderbook:", symbol));
         }
         if (isTrue(uta))
         {
@@ -1045,13 +1045,13 @@ public partial class bitget : ccxt.bitget
                 {
                     if (isLessThan(i, bidsLength))
                     {
-                        ((IList<object>)payloadArray).Add(getValue(getValue(getValue(storedBids, i), 2), 0));
-                        ((IList<object>)payloadArray).Add(getValue(getValue(getValue(storedBids, i), 2), 1));
+                        payloadArray.Add(getValue(getValue(getValue(storedBids, i), 2), 0));
+                        payloadArray.Add(getValue(getValue(getValue(storedBids, i), 2), 1));
                     }
                     if (isLessThan(i, asksLength))
                     {
-                        ((IList<object>)payloadArray).Add(getValue(getValue(getValue(storedAsks, i), 2), 0));
-                        ((IList<object>)payloadArray).Add(getValue(getValue(getValue(storedAsks, i), 2), 1));
+                        payloadArray.Add(getValue(getValue(getValue(storedAsks, i), 2), 0));
+                        payloadArray.Add(getValue(getValue(getValue(storedAsks, i), 2), 1));
                     }
                 }
                 string payload = String.Join(":", payloadArray.ToArray());
@@ -1101,7 +1101,7 @@ public partial class bitget : ccxt.bitget
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
-        ((IList<object>)bidAsk).Add(delta);
+        bidAsk.Add(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -1173,8 +1173,8 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.market(symbol);
             object instType = null;
             var instTypeparametersVariable = this.getInstType("watchTradesForSymbols", market, uta, parameters);
-            instType = ((IList<object>)instTypeparametersVariable)[0];
-            parameters = ((IList<object>)instTypeparametersVariable)[1];
+            instType = instTypeparametersVariable[0];
+            parameters = instTypeparametersVariable[1];
             Dictionary<string, object> args = new Dictionary<string, object>() {
                 { "instType", instType },
             };
@@ -1182,8 +1182,8 @@ public partial class bitget : ccxt.bitget
             string symbolOrInstId = isTrue(uta) ? "symbol" : "instId";
             args[(string)topicOrChannel] = isTrue(uta) ? "publicTrade" : "trade";
             args[(string)symbolOrInstId] = GetValue(market, "id");
-            ((IList<object>)topics).Add(args);
-            ((IList<object>)messageHashes).Add(add("trade:", symbol));
+            topics.Add(args);
+            messageHashes.Add(add("trade:", symbol));
         }
         if (isTrue(uta))
         {
@@ -1467,8 +1467,8 @@ public partial class bitget : ccxt.bitget
         {
             market = this.getMarketFromSymbols(symbols);
             var instTypeparametersVariable = this.getInstType("watchPositions", market, uta, parameters);
-            instType = ((IList<object>)instTypeparametersVariable)[0];
-            parameters = ((IList<object>)instTypeparametersVariable)[1];
+            instType = instTypeparametersVariable[0];
+            parameters = instTypeparametersVariable[1];
         }
         if (isTrue(uta))
         {
@@ -1596,7 +1596,7 @@ public partial class bitget : ccxt.bitget
             string? marketId = this.safeString2(rawPosition, "instId", "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, add(instType, ":positions::"));
@@ -1797,8 +1797,8 @@ public partial class bitget : ccxt.bitget
         } else
         {
             var instTypeparametersVariable = this.getInstType("watchOrders", market, uta, parameters);
-            instType = ((IList<object>)instTypeparametersVariable)[0];
-            parameters = ((IList<object>)instTypeparametersVariable)[1];
+            instType = instTypeparametersVariable[0];
+            parameters = instTypeparametersVariable[1];
         }
         if (type == "spot" && (!isEqual(symbolVar, null)))
         {
@@ -2355,8 +2355,8 @@ public partial class bitget : ccxt.bitget
         } else
         {
             var instTypeparametersVariable = this.getInstType("watchMyTrades", market, uta, parameters);
-            instType = ((IList<object>)instTypeparametersVariable)[0];
-            parameters = ((IList<object>)instTypeparametersVariable)[1];
+            instType = instTypeparametersVariable[0];
+            parameters = instTypeparametersVariable[1];
         }
         if (isTrue(uta))
         {

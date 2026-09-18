@@ -1548,7 +1548,7 @@ public partial class woofipro : Exchange
             Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
                 { "timestamp", timestamp },
             }, row);
-            ((IList<object>)result).Add(this.parseTicker(ticker));
+            result.Add(this.parseTicker(ticker));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
@@ -1672,7 +1672,7 @@ public partial class woofipro : Exchange
             Dictionary<string, object> interest = this.extend(new Dictionary<string, object>() {
                 { "timestamp", timestamp },
             }, row);
-            ((IList<object>)result).Add(this.parseOpenInterest(interest));
+            result.Add(this.parseOpenInterest(interest));
         }
         return ccxt.BaseExchange.ToOpenInterests(this.filterByArray(result, "symbol", symbols));
     }
@@ -1748,7 +1748,7 @@ public partial class woofipro : Exchange
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(marketId) },
                 { "fundingRate", this.safeNumber(entry, "funding_rate") },
@@ -2307,7 +2307,7 @@ public partial class woofipro : Exchange
                     { "type", "LIMIT" },
                     { "reduce_only", true },
                 };
-                ((IList<object>)childOrders).Add(stopLossOrder);
+                childOrders.Add(stopLossOrder);
             }
             if (hasTakeProfit)
             {
@@ -2319,7 +2319,7 @@ public partial class woofipro : Exchange
                     { "type", "LIMIT" },
                     { "reduce_only", true },
                 };
-                ((IList<object>)childOrders).Add(takeProfitOrder);
+                childOrders.Add(takeProfitOrder);
             }
             Dictionary<string, object> outterOrder = new Dictionary<string, object>() {
                 { "symbol", GetValue(market, "id") },
@@ -2418,7 +2418,7 @@ public partial class woofipro : Exchange
                 throw new NotSupported (add(this.id, " createOrders() only support non-stop order")) ;
             }
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orders", ordersRequests },

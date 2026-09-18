@@ -1062,7 +1062,7 @@ public partial class lighter : Exchange
             request["integrator_maker_fee"] = getValue(this.options, "integratorMakerFee");
         }
         List<object> orders = new List<object>() {};
-        ((IList<object>)orders).Add(this.extend(request, parameters));
+        orders.Add(this.extend(request, parameters));
         if (hasStopLoss || hasTakeProfit)
         {
             // group order
@@ -1089,7 +1089,7 @@ public partial class lighter : Exchange
     { "reduceOnly", true },
 })), 0);
                 ((IDictionary<string,object>)orderObj)["client_order_index"] = 0;
-                ((IList<object>)orders).Add(orderObj);
+                orders.Add(orderObj);
             }
             if ((takeProfit != null))
             {
@@ -1098,7 +1098,7 @@ public partial class lighter : Exchange
     { "reduceOnly", true },
 })), 0);
                 ((IDictionary<string,object>)orderObj)["client_order_index"] = 0;
-                ((IList<object>)orders).Add(orderObj);
+                orders.Add(orderObj);
             }
         }
         return orders;
@@ -1488,7 +1488,7 @@ public partial class lighter : Exchange
             double? amountPrecision = ((amountDecimals == null)) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
             double? pricePrecision = ((priceDecimals == null)) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
             double? quoteMultiplier = this.safeNumber(market, "quote_multiplier");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -2065,7 +2065,7 @@ public partial class lighter : Exchange
             string? exchange = this.safeString(getValue(data, i), "exchange");
             if (exchange == "lighter")
             {
-                ((IList<object>)result).Add(getValue(data, i));
+                result.Add(getValue(data, i));
             }
         }
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
@@ -2284,7 +2284,7 @@ public partial class lighter : Exchange
             List<object> positions = this.safeList(account, "positions", new List<object>() {});
             for (int j = 0; isLessThan(j, positions.Count); postFixIncrement(ref j))
             {
-                ((IList<object>)allPositions).Add(getValue(positions, j));
+                allPositions.Add(getValue(positions, j));
             }
         }
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));

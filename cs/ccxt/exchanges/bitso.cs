@@ -586,8 +586,8 @@ public partial class bitso : Exchange
             object market = getValue(markets, i);
             string? id = this.safeString(market, "book");
             var baseIdquoteIdVariable = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
-            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+            var baseId = baseIdquoteIdVariable[0];
+            var quoteId = baseIdquoteIdVariable[1];
             object bs = ((string)baseId).ToUpper();
             string? quote = ((string)quoteId).ToUpper();
             bs = this.safeCurrencyCode(bs);
@@ -613,8 +613,8 @@ public partial class bitso : Exchange
                 double? volume = this.safeNumber(tier, "volume");
                 double? takerFee = this.safeNumber(tier, "taker");
                 double? makerFee = this.safeNumber(tier, "maker");
-                ((IList<object>)takerFees).Add(new List<object>() {volume, takerFee});
-                ((IList<object>)makerFees).Add(new List<object>() {volume, makerFee});
+                takerFees.Add(new List<object>() {volume, takerFee});
+                makerFees.Add(new List<object>() {volume, makerFee});
                 if (isEqual(j, 0))
                 {
                     fee["taker"] = takerFee;
@@ -627,7 +627,7 @@ public partial class bitso : Exchange
             };
             fee["tiers"] = tiers;
             IDictionary<string, object> baseCurrency = this.safeDict(currencies, bs);
-            ((IList<object>)result).Add(this.safeMarketStructure(this.extend(new Dictionary<string, object>() {
+            result.Add(this.safeMarketStructure(this.extend(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -1400,7 +1400,7 @@ public partial class bitso : Exchange
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
             object id = getValue(payload, i);
-            ((IList<object>)orders).Add(this.parseOrder(id, market));
+            orders.Add(this.parseOrder(id, market));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1433,7 +1433,7 @@ public partial class bitso : Exchange
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> order = this.parseOrder(getValue(payload, i));
-            ((IList<object>)canceledOrders).Add(order);
+            canceledOrders.Add(order);
         }
         return ccxt.BaseExchange.ToOrderList(canceledOrders);
     }

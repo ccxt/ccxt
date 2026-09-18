@@ -145,7 +145,7 @@ public partial class PredictionExchange : BaseExchange
                 bool slugMatch = ((slug != null)) && ((this.safeString(eventVar, "slug") == slug));
                 if (idMatch || slugMatch)
                 {
-                    ((IList<object>)filtered).Add(eventVar);
+                    filtered.Add(eventVar);
                 }
             }
             result = filtered;
@@ -221,7 +221,7 @@ public partial class PredictionExchange : BaseExchange
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((isEqual(isActive, null)) || ((isActive == wantActive)))
             {
-                ((IList<object>)result).Add(eventVar);
+                result.Add(eventVar);
             }
         }
         return result;
@@ -273,7 +273,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (matched)
             {
-                ((IList<object>)result).Add(eventVar);
+                result.Add(eventVar);
             }
         }
         return result;
@@ -325,7 +325,7 @@ public partial class PredictionExchange : BaseExchange
             if (wantedKey != "")
             {
                 // an empty normalized key would substring-match every tag
-                ((IList<object>)wanted).Add(wantedKey);
+                wanted.Add(wantedKey);
             }
         }
         List<object> result = new List<object>() {};
@@ -364,7 +364,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (matched)
             {
-                ((IList<object>)result).Add(eventVar);
+                result.Add(eventVar);
             }
         }
         return result;
@@ -435,7 +435,7 @@ public partial class PredictionExchange : BaseExchange
             if (!(inOp(seen, identity)))
             {
                 seen[(string)identity] = true;
-                ((IList<object>)result).Add(eventVar);
+                result.Add(eventVar);
             }
         }
         return ((List<object>)((object)(result)));
@@ -620,7 +620,7 @@ public partial class PredictionExchange : BaseExchange
             string? w = ((string)getValue(rawParts, i));
             if (w.Length > 0 && !this.inArray(w, stopWords))
             {
-                ((IList<object>)parts).Add(w);
+                parts.Add(w);
             }
         }
         string joined = String.Join("_", parts.ToArray());
@@ -700,7 +700,7 @@ public partial class PredictionExchange : BaseExchange
             object row = getValue(marketsList, i);
             Dictionary<string, object> copy = this.extend(new Dictionary<string, object>() {}, row);
             copy["symbol"] = this.safeString2(row, "market", "symbol");
-            ((IList<object>)aliased).Add(copy);
+            aliased.Add(copy);
         }
         object stored = base.setMarkets(aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
@@ -843,7 +843,7 @@ public partial class PredictionExchange : BaseExchange
             {
                 if (isTrue(reload) || !isTrue(this.hasOutcome(getValue(outcomes, i))))
                 {
-                    ((IList<object>)missing).Add(getValue(outcomes, i));
+                    missing.Add(getValue(outcomes, i));
                 }
             }
             int missingLength = missing.Count;
@@ -857,7 +857,7 @@ public partial class PredictionExchange : BaseExchange
                 {
                     if (!isTrue(this.hasOutcome(getValue(missing, i))))
                     {
-                        ((IList<object>)stillMissing).Add(getValue(missing, i));
+                        stillMissing.Add(getValue(missing, i));
                     }
                 }
                 missing = stillMissing;
@@ -993,7 +993,7 @@ public partial class PredictionExchange : BaseExchange
             {
                 continue;
             }
-            ((IList<object>)words).Add(word);
+            words.Add(word);
             hasLetters = true;
         }
         int wordsLength = words.Count;
@@ -1538,7 +1538,7 @@ public partial class PredictionExchange : BaseExchange
                 IDictionary<string, object> tradeFee = this.safeDict(trade, "fee");
                 if ((tradeFee != null))
                 {
-                    ((IList<object>)feeList).Add(tradeFee);
+                    feeList.Add(tradeFee);
                 }
             }
         }
@@ -1832,7 +1832,7 @@ public partial class PredictionExchange : BaseExchange
         {
             Dictionary<string, object> parsed = this.parsePredictionTrade(getValue(rows, i), outcomeObj);
             Dictionary<string, object> trade = this.extend(parsed, parameters);
-            ((IList<object>)results).Add(trade);
+            results.Add(trade);
         }
         results = this.sortBy2(results, "timestamp", "id");
         string? outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -1861,7 +1861,7 @@ public partial class PredictionExchange : BaseExchange
         {
             Dictionary<string, object> parsed = this.parsePredictionOrder(getValue(rows, i), outcomeObj);
             Dictionary<string, object> order = this.extend(parsed, parameters);
-            ((IList<object>)results).Add(order);
+            results.Add(order);
         }
         results = this.sortBy(results, "timestamp");
         string? outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -1890,7 +1890,7 @@ public partial class PredictionExchange : BaseExchange
         {
             object parsed = this.parsePredictionPosition(getValue(rows, i));
             Dictionary<string, object> position = this.extend(parsed, parameters);
-            ((IList<object>)results).Add(position);
+            results.Add(position);
         }
         return results;
     }

@@ -210,9 +210,9 @@ public partial class toobit : ccxt.toobit
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("trade::", symbol));
+            messageHashes.Add(add("trade::", symbol));
             string? rawHash = ((string)GetValue(market, "id"));
-            ((IList<object>)subParams).Add(rawHash);
+            subParams.Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
@@ -344,8 +344,8 @@ public partial class toobit : ccxt.toobit
             {
                 selectedTimeframe = rawTimeframe;
             }
-            ((IList<object>)marketIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolStr), "::"), unfiedTimeframe));
+            marketIds.Add(marketId);
+            messageHashes.Add(add(add(add("ohlcv::", symbolStr), "::"), unfiedTimeframe));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", marketIds.ToArray()) },
@@ -488,9 +488,9 @@ public partial class toobit : ccxt.toobit
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("ticker::", symbol));
+            messageHashes.Add(add("ticker::", symbol));
             string? rawHash = ((string)GetValue(market, "id"));
-            ((IList<object>)subParams).Add(rawHash);
+            subParams.Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
@@ -626,9 +626,9 @@ public partial class toobit : ccxt.toobit
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add(add(add("orderBook::", symbol), "::"), channel));
+            messageHashes.Add(add(add(add("orderBook::", symbol), "::"), channel));
             string? rawHash = ((string)GetValue(market, "id"));
-            ((IList<object>)subParams).Add(rawHash);
+            subParams.Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
@@ -1265,7 +1265,7 @@ public partial class toobit : ccxt.toobit
             Int64? timestamp = this.safeInteger(rawPosition, "E");
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         // no local may be named `positions` in this method: build/transpile.ts

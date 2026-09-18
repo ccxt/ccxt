@@ -461,7 +461,7 @@ public partial class bit2c : Exchange
             string? bidAmount = this.safeString(bidRow, 1);
             if (isTrue(Precise.stringGt(bidAmount, "0")))
             {
-                ((IList<object>)bids).Add(bidRow);
+                bids.Add(bidRow);
             }
         }
         for (int i = 0; isLessThan(i, rawAsks.Count); postFixIncrement(ref i))
@@ -470,7 +470,7 @@ public partial class bit2c : Exchange
             string? askAmount = this.safeString(askRow, 1);
             if (isTrue(Precise.stringGt(askAmount, "0")))
             {
-                ((IList<object>)asks).Add(askRow);
+                asks.Add(askRow);
             }
         }
         Dictionary<string, object> filtered = new Dictionary<string, object>() {

@@ -293,7 +293,7 @@ public partial class myriad : PredictionExchange
         {
             object raw = getValue(rawMarkets, i);
             object m = this.parseMyriadMarket(raw);
-            ((IList<object>)flatMarkets).Add(m);
+            flatMarkets.Add(m);
             Dictionary<string, object> ev = this.parseMarketToEvent(raw, m);
             string? evKey = this.safeString(ev, "event");
             if ((evKey != null))
@@ -345,7 +345,7 @@ public partial class myriad : PredictionExchange
                 if (!(inOp(seen, key)))
                 {
                     seen[(string)key] = true;
-                    ((IList<object>)rawMarkets).Add(raw);
+                    rawMarkets.Add(raw);
                 }
             }
         }
@@ -398,7 +398,7 @@ public partial class myriad : PredictionExchange
             {
                 if (isLessThan(collected, maxMarkets))
                 {
-                    ((IList<object>)allRawMarkets).Add(getValue(rawMarkets, i));
+                    allRawMarkets.Add(getValue(rawMarkets, i));
                     collected = this.sum(collected, 1);
                 }
             }
@@ -547,7 +547,7 @@ public partial class myriad : PredictionExchange
                 if (((questionId != null)) && !(inOp(seen, questionId)))
                 {
                     seen[(string)questionId] = true;
-                    ((IList<object>)rawQuestions).Add(raw);
+                    rawQuestions.Add(raw);
                 }
             }
         }
@@ -607,7 +607,7 @@ public partial class myriad : PredictionExchange
                 }
                 if (isLessThan(collected, maxQuestions))
                 {
-                    ((IList<object>)allRawQuestions).Add(rawQuestion);
+                    allRawQuestions.Add(rawQuestion);
                     collected = this.sum(collected, 1);
                 }
             }
@@ -691,7 +691,7 @@ public partial class myriad : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePredictionPosition(getValue(data, i)));
+            result.Add(this.parsePredictionPosition(getValue(data, i)));
         }
         return ccxt.BaseExchange.ToPredictionPositionList(this.filterByArray(result, "outcome", outcomes, false));
     }
@@ -878,11 +878,11 @@ public partial class myriad : PredictionExchange
         List<object> signedFields = new List<object>() {};
         for (int i = 0; isLessThan(i, fields.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)signedFields).Add(getValue(fields, i));
+            signedFields.Add(getValue(fields, i));
         }
-        ((IList<object>)signedFields).Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
-        ((IList<object>)signedFields).Add(this.rlpEncodeBytes(rHex));
-        ((IList<object>)signedFields).Add(this.rlpEncodeBytes(sHex));
+        signedFields.Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
+        signedFields.Add(this.rlpEncodeBytes(rHex));
+        signedFields.Add(this.rlpEncodeBytes(sHex));
         return add("0x02", this.rlpEncodeList(signedFields));
     }
 
@@ -1147,7 +1147,7 @@ public partial class myriad : PredictionExchange
             string? __oc = this.safeString(getValue(orders, i), "outcome");
             if ((__oc != null))
             {
-                ((IList<object>)orderOutcomes).Add(__oc);
+                orderOutcomes.Add(__oc);
             }
         }
         await this.loadOutcomes(orderOutcomes);
@@ -1162,7 +1162,7 @@ public partial class myriad : PredictionExchange
             double? price = this.safeNumber(o, "price");
             IDictionary<string, object> orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
             object placed = ccxt.BaseExchange.FromPredictionOrder(await this.CreateOrderbookOrder(((string)outcome),type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), this.extend(orderParams, parameters)));
-            ((IList<object>)result).Add(placed);
+            result.Add(placed);
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
     }
@@ -1759,7 +1759,7 @@ public partial class myriad : PredictionExchange
             {
                 continue;
             }
-            ((IList<object>)result).Add(this.parseAmmEventToOrder(row, outcomeObj));
+            result.Add(this.parseAmmEventToOrder(row, outcomeObj));
         }
         List<object> sorted = this.sortBy(result, "timestamp", true);
         return ccxt.BaseExchange.ToPredictionOrderList(this.filterByOutcomeSinceLimit(sorted, outcomeSymbol, since, limit));
@@ -1955,11 +1955,11 @@ public partial class myriad : PredictionExchange
             }
             Dictionary<string, object> message = this.clobOrderMessage(rawOrder);
             string signature = this.signClobOrder(message, networkId);
-            ((IList<object>)signedOrders).Add(new Dictionary<string, object>() {
+            signedOrders.Add(new Dictionary<string, object>() {
                 { "order", message },
                 { "signature", signature },
             });
-            ((IList<object>)wrappers).Add(this.extend(fetched, new Dictionary<string, object>() {
+            wrappers.Add(this.extend(fetched, new Dictionary<string, object>() {
                 { "status", "canceled" },
                 { "networkId", networkId },
             }));
@@ -2206,7 +2206,7 @@ public partial class myriad : PredictionExchange
         for (int i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
-            ((IList<object>)trades).Add(this.orderToTrade(order));
+            trades.Add(this.orderToTrade(order));
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true));
     }
@@ -2463,7 +2463,7 @@ public partial class myriad : PredictionExchange
             // reassigned local into the anonymous inner class it emits for a map literal)
             bool? winner = winnerRaw;
             int? settleFraction = settleFractionRaw;
-            ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
+            outcomes.Add(new Dictionary<string, object>() {
                 { "id", outcomeCompositeId },
                 { "outcomeId", outcomeCompositeId },
                 { "outcome", outcomeHandle },
@@ -2978,12 +2978,12 @@ public partial class myriad : PredictionExchange
         List<object> bids = new List<object>() {};
         if (!isEqual(bid, null))
         {
-            ((IList<object>)bids).Add(new List<object>() {bid, synthSize});
+            bids.Add(new List<object>() {bid, synthSize});
         }
         List<object> asks = new List<object>() {};
         if (!isEqual(ask, null))
         {
-            ((IList<object>)asks).Add(new List<object>() {ask, synthSize});
+            asks.Add(new List<object>() {ask, synthSize});
         }
         Dictionary<string, object> orderbook = new Dictionary<string, object>() {
             { "outcome", this.safeOutcomeSymbol(outcome, outcomeObj) },
@@ -3015,7 +3015,7 @@ public partial class myriad : PredictionExchange
             object row = getValue(rawBids, i);
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             string? rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
-            ((IList<object>)bids).Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
+            bids.Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
         }
         List<object> asks = new List<object>() {};
         for (int i = 0; isLessThan(i, rawAsks.Count); postFixIncrement(ref i))
@@ -3023,7 +3023,7 @@ public partial class myriad : PredictionExchange
             object row = getValue(rawAsks, i);
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             string? rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
-            ((IList<object>)asks).Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
+            asks.Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
         }
         Int64 timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
@@ -3155,7 +3155,7 @@ public partial class myriad : PredictionExchange
             Int64? pointTs = this.safeInteger(point, "timestamp");
             if (((!isEqual(pointOpen, null)) || (!isEqual(pointPrice, null))) && (!isEqual(pointTs, null)))
             {
-                ((IList<object>)usablePoints).Add(point);
+                usablePoints.Add(point);
             }
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usablePoints, outcomeObj,timeframeVar, since, limit));
@@ -3222,7 +3222,7 @@ public partial class myriad : PredictionExchange
             if (!(inOp(outcomesByMarket, key)))
             {
                 outcomesByMarket[(string)key] = new List<object>() {};
-                ((IList<object>)marketKeys).Add(key);
+                marketKeys.Add(key);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             object grouped = getValue(outcomesByMarket, key);
@@ -3236,7 +3236,7 @@ public partial class myriad : PredictionExchange
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
             object firstOutcome = getValue(grouped, 0);
             IDictionary<string, object> info = this.safeDict(firstOutcome, "info", new Dictionary<string, object>() {});
-            ((IList<object>)promises).Add(this.myriadPublicGetMarketsId(this.extend(new Dictionary<string, object>() {
+            promises.Add(this.myriadPublicGetMarketsId(this.extend(new Dictionary<string, object>() {
                 { "id", this.safeString(info, "marketId") },
                 { "network_id", this.safeString(info, "networkId") },
             }, parameters)));
@@ -3328,7 +3328,7 @@ public partial class myriad : PredictionExchange
             {
                 continue;
             }
-            ((IList<object>)trades).Add(row);
+            trades.Add(row);
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
     }
@@ -3441,7 +3441,7 @@ public partial class myriad : PredictionExchange
                 {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                     object tagSlug = getValue(requestedTags, i);
-                    ((IList<object>)tagQueries).Add(((string)tagSlug).Replace((string)"-", (string)" "));
+                    tagQueries.Add(((string)tagSlug).Replace((string)"-", (string)" "));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
@@ -3477,7 +3477,7 @@ public partial class myriad : PredictionExchange
                     seenMarketHandles[(string)marketHandle] = true;
                     ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
                 }
-                ((IList<object>)filteredMarkets).Add(m);
+                filteredMarkets.Add(m);
             }
             // skip question events that contribute no new markets after de-duplicating by market handle
             int filteredMarketsLength = filteredMarkets.Count;
@@ -3486,7 +3486,7 @@ public partial class myriad : PredictionExchange
                 continue;
             }
             ev["markets"] = filteredMarkets;
-            ((IList<object>)result).Add(ev);
+            result.Add(ev);
         }
         int rawMarketsLength = rawMarkets.Count;
         for (int i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
@@ -3505,7 +3505,7 @@ public partial class myriad : PredictionExchange
                 ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
             }
             Dictionary<string, object> ev = this.parseMarketToEvent(raw, m);
-            ((IList<object>)result).Add(ev);
+            result.Add(ev);
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         this.setEvents(result);
@@ -3532,7 +3532,7 @@ public partial class myriad : PredictionExchange
         for (int i = 0; isLessThan(i, rawMarkets.Count); postFixIncrement(ref i))
         {
             object rawMarket = getValue(rawMarkets, i);
-            ((IList<object>)marketsList).Add(this.parseMyriadMarket(rawMarket, questionSlug));
+            marketsList.Add(this.parseMyriadMarket(rawMarket, questionSlug));
         }
         string? endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));
         return ((Dictionary<string, object>)((object)(((object)this.extend(rawEvent, new Dictionary<string, object>() {
@@ -3946,7 +3946,7 @@ public partial class myriad : PredictionExchange
             string? takerTrader = this.safeStringLower(taker, "trader");
             if (isEqual(takerTrader, myWallet))
             {
-                ((IList<object>)myLegs).Add(trade);
+                myLegs.Add(trade);
             }
             List<object> makers = this.safeList(data, "makers", new List<object>() {});
             int makersLength = makers.Count;
@@ -3981,7 +3981,7 @@ public partial class myriad : PredictionExchange
                             { "currency", this.safeString(makerMarket, "quote") },
                         } },
                     }, makerMarket);
-                    ((IList<object>)myLegs).Add(makerTrade);
+                    myLegs.Add(makerTrade);
                 }
             }
             int myLegsLength = myLegs.Count;
@@ -4054,7 +4054,7 @@ public partial class myriad : PredictionExchange
             string? networkId = this.safeString(info, "networkId");
             string? marketId = this.safeString(info, "marketId");
             string channel = add(add(add("prices:", networkId), ":"), marketId);
-            ((IList<object>)resolvedSymbols).Add(this.safeOutcomeSymbol(getValue(outcomes, i), outcomeObj));
+            resolvedSymbols.Add(this.safeOutcomeSymbol(getValue(outcomes, i), outcomeObj));
             if (isEqual(this.safeValue(seenChannels, channel), null))
             {
                 seenChannels[(string)channel] = true;
@@ -4097,7 +4097,7 @@ public partial class myriad : PredictionExchange
         for (int i = 0; isLessThan(i, ohlcvcLength); postFixIncrement(ref i))
         {
             object candle = getValue(ohlcvc, i);
-            ((IList<object>)result).Add(new List<object>() {getValue(candle, 0), getValue(candle, 1), getValue(candle, 2), getValue(candle, 3), getValue(candle, 4), getValue(candle, 5)});
+            result.Add(new List<object>() {getValue(candle, 0), getValue(candle, 1), getValue(candle, 2), getValue(candle, 3), getValue(candle, 4), getValue(candle, 5)});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(result, since, limit, 0, true));
     }

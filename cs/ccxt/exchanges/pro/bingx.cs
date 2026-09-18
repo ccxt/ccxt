@@ -125,7 +125,7 @@ public partial class bingx : ccxt.bingx
         List<object> symbols = new List<object>() {};
         if (!isEqual(market, null))
         {
-            ((IList<object>)symbols).Add(getValue(market, "symbol"));
+            symbols.Add(getValue(market, "symbol"));
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
@@ -1578,7 +1578,7 @@ public partial class bingx : ccxt.bingx
             Int64? timestamp = this.safeInteger(message, "E");
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, "swap:positions::");

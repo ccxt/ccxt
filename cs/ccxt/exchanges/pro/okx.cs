@@ -146,12 +146,12 @@ public partial class okx : ccxt.okx
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)args).Add(this.extend(arg, parameters));
+            args.Add(this.extend(arg, parameters));
             if (isEqual(symbols, null))
             {
                 throw new ArgumentsRequired (add(this.id, " subscribeMultiple() symbols is required")) ;
             }
-            ((IList<object>)messageHashes).Add(add(add(channel, "::"), getValue(symbols, i)));
+            messageHashes.Add(add(add(channel, "::"), getValue(symbols, i)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -238,13 +238,13 @@ public partial class okx : ccxt.okx
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add(add(channel, ":"), symbol));
+            messageHashes.Add(add(add(channel, ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -295,13 +295,13 @@ public partial class okx : ccxt.okx
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:", channel), ":"), symbol));
+            messageHashes.Add(add(add(add("unsubscribe:", channel), ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
@@ -433,13 +433,13 @@ public partial class okx : ccxt.okx
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add(add(channel, ":"), symbol));
+            messageHashes.Add(add(add(channel, ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -648,13 +648,13 @@ public partial class okx : ccxt.okx
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            messageHashes.Add(add("unsubscribe:ticker:", symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
@@ -742,8 +742,8 @@ public partial class okx : ccxt.okx
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)args).Add(this.extend(arg, parameters));
-            ((IList<object>)messageHashes).Add(add("bidask::", getValue(symbols, i)));
+            args.Add(this.extend(arg, parameters));
+            messageHashes.Add(add("bidask::", getValue(symbols, i)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -878,11 +878,11 @@ public partial class okx : ccxt.okx
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
+                messageHashes.Add(add(add(messageHash, "::"), symbol));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         Dictionary<string, object> market = this.getMarketFromSymbols(symbols);
         string? type = null;
@@ -997,11 +997,11 @@ public partial class okx : ccxt.okx
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
+                messageHashes.Add(add(add(messageHash, "::"), symbol));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         string channel = "balance_and_position";
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1256,8 +1256,8 @@ public partial class okx : ccxt.okx
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
-            ((IList<object>)messageHashes).Add(add(add(add("multi:", channel), ":"), sym));
+            topics.Add(topic);
+            messageHashes.Add(add(add(add("multi:", channel), ":"), sym));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -1311,8 +1311,8 @@ public partial class okx : ccxt.okx
                 { "channel", channel },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
-            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:multi:", channel), ":"), sym));
+            topics.Add(topic);
+            messageHashes.Add(add(add(add("unsubscribe:multi:", channel), ":"), sym));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
@@ -1453,13 +1453,13 @@ public partial class okx : ccxt.okx
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add(add(depth, ":"), symbol));
+            messageHashes.Add(add(add(depth, ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", depth },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -1516,14 +1516,14 @@ public partial class okx : ccxt.okx
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)subMessageHashes).Add(add(add(depth, ":"), symbol));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
+            subMessageHashes.Add(add(add(depth, ":"), symbol));
+            messageHashes.Add(add("unsubscribe:orderbook:", symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", depth },
                 { "instId", marketId },
             };
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
@@ -2194,9 +2194,9 @@ public partial class okx : ccxt.okx
                 object shortPosition = this.clone(position);
                 ((IDictionary<string,object>)shortPosition)["side"] = "short";
                 callDynamically(cache, "append", new object[] {shortPosition});
-                ((IList<object>)newPositions).Add(shortPosition);
+                newPositions.Add(shortPosition);
             }
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         string messageHash = channel;
@@ -2358,7 +2358,7 @@ public partial class okx : ccxt.okx
                 callDynamically(stored, "append", new object[] {order});
                 object symbol = getValue(order, "symbol");
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)marketIds).Add(GetValue(market, "id"));
+                marketIds.Add(GetValue(market, "id"));
             }
             callDynamically(client, "resolve", new object[] {stored, channel});
             for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
@@ -2437,7 +2437,7 @@ public partial class okx : ccxt.okx
             if (tradeId.Length > 0)
             {
                 Dictionary<string, object> order = this.parseOrder(rawOrder);
-                ((IList<object>)filteredOrders).Add(order);
+                filteredOrders.Add(order);
             }
         }
         int tradesLength = filteredOrders.Count;
@@ -2702,7 +2702,7 @@ public partial class okx : ccxt.okx
             Dictionary<string, object> arg = this.extend(instParams, new Dictionary<string, object>() {
                 { "ordId", getValue(ids, i) },
             });
-            ((IList<object>)args).Add(arg);
+            args.Add(arg);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", messageHash },

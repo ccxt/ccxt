@@ -444,7 +444,7 @@ public partial class independentreserve : Exchange
                 object quoteId = getValue(quoteCurrencyIds, j);
                 string? quote = this.safeCurrencyCode(quoteId);
                 object id = add(add(baseId, "/"), quoteId);
-                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                result.Add(new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", add(add(bs, "/"), quote) },
                     { "base", bs },
@@ -1344,7 +1344,7 @@ public partial class independentreserve : Exchange
             {
                 object key = getValue(keys, i);
                 string value = getValue(parameters, key).ToString();
-                ((IList<object>)auth).Add(add(add(key, "="), value));
+                auth.Add(add(add(key, "="), value));
             }
             string message = String.Join(",", auth.ToArray());
             string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);

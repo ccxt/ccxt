@@ -3724,15 +3724,15 @@ public partial class bitget : Exchange
                 List<object> subTypes = new List<object>() {"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"};
                 for (int j = 0; isLessThan(j, subTypes.Count); postFixIncrement(ref j))
                 {
-                    ((IList<object>)promises).Add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, new Dictionary<string, object>() {
+                    promises.Add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, new Dictionary<string, object>() {
                         { "productType", getValue(subTypes, j) },
                     })));
                 }
             } else if (isEqual(type, "spot"))
             {
-                ((IList<object>)promises).Add(this.publicSpotGetV2SpotPublicSymbols(parameters));
+                promises.Add(this.publicSpotGetV2SpotPublicSymbols(parameters));
                 fetchMargins = true;
-                ((IList<object>)promises).Add(this.publicMarginGetV2MarginCurrencies(parameters));
+                promises.Add(this.publicMarginGetV2MarginCurrencies(parameters));
             } else
             {
                 throw new NotSupported (add(add(add(this.id, " does not support "), type), " market")) ;
@@ -3763,13 +3763,13 @@ public partial class bitget : Exchange
                     bool? entryBorrowable = this.safeBool(entry, "isBorrowable", true);
                     if (((entryBorrowable == true)) && isTrue(this.safeBool(entry, "isCrossBorrowable", true)))
                     {
-                        ((IList<object>)crossKeys).Add(entrySymbol);
+                        crossKeys.Add(entrySymbol);
                     }
                     bool? isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
                     bool? isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
                     if (((entryBorrowable == true)) && (((isolatedBase == true)) || ((isolatedQuote == true))))
                     {
-                        ((IList<object>)isolatedKeys).Add(entrySymbol);
+                        isolatedKeys.Add(entrySymbol);
                     }
                 }
                 ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = crossKeys;
@@ -3942,7 +3942,7 @@ public partial class bitget : Exchange
                 minCost = this.safeNumber(market, "minTradeUSDT");
             }
             int? contractSize = contract ? 1 : null;
-            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },
                 { "base", bs },
@@ -4007,7 +4007,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> req = this.extend(parameters, new Dictionary<string, object>() {
                 { "category", getValue(subTypes, i) },
             });
-            ((IList<object>)promises).Add(this.publicUtaGetV3MarketInstruments(req));
+            promises.Add(this.publicUtaGetV3MarketInstruments(req));
         }
         List<object> results = await promiseAll(promises);
         List<object> markets = new List<object>() {};
@@ -4204,7 +4204,7 @@ public partial class bitget : Exchange
                 active = ((status == "online") || (status == "normal"));
             }
             int? contractSize = contract ? 1 : null;
-            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },
                 { "base", bs },
@@ -4606,7 +4606,7 @@ public partial class bitget : Exchange
             string? marginCurrency = this.safeString2(item, "coin", "baseCoin");
             string? currencyId = ((marginCurrency != null)) ? marginCurrency : this.safeString(market, "base");
             string? marketId = this.safeString(item, "symbol");
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+            tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger2(item, "level", "tier") },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", this.safeCurrencyCode(currencyId) },
@@ -8073,7 +8073,7 @@ public partial class bitget : Exchange
                 }
             }
             Dictionary<string, object> orderRequest = this.createUtaOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = await this.privateUtaPostV3TradePlaceBatch(ordersRequests);
@@ -8161,7 +8161,7 @@ public partial class bitget : Exchange
                 }
             }
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -8570,7 +8570,7 @@ public partial class bitget : Exchange
             {
                 orderId["orderId"] = id;
             }
-            ((IList<object>)orderIdList).Add(orderId);
+            orderIdList.Add(orderId);
             request["orderIdList"] = orderIdList;
         } else
         {
@@ -8730,7 +8730,7 @@ public partial class bitget : Exchange
                 { "symbol", GetValue(market, "id") },
                 { "category", productType },
             };
-            ((IList<object>)requestList).Add(order);
+            requestList.Add(order);
         }
         Dictionary<string, object> response = await this.privateUtaPostV3TradeCancelBatch(requestList);
         //
@@ -8801,7 +8801,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> orderId = new Dictionary<string, object>() {
                 { "orderId", individualId },
             };
-            ((IList<object>)orderIdList).Add(orderId);
+            orderIdList.Add(orderId);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -11041,7 +11041,7 @@ public partial class bitget : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, position.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(position, i), market));
+            result.Add(this.parsePosition(getValue(position, i), market));
         }
         symbols = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
@@ -11386,7 +11386,7 @@ public partial class bitget : Exchange
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbolInner },
                 { "fundingRate", this.safeNumber(entry, "fundingRate") },
@@ -11804,7 +11804,7 @@ public partial class bitget : Exchange
             // if (business !== 'contract_settle_fee') {
             //     continue;
             // }
-            ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
+            result.Add(this.parseFundingHistory(contract, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         object symbol = null;

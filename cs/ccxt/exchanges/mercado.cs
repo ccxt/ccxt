@@ -364,7 +364,7 @@ public partial class mercado : Exchange
                 continue;
             }
             object id = add(quote, bs);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -1145,7 +1145,7 @@ public partial class mercado : Exchange
             List<object> trades = this.safeList(getValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; isLessThan(y, trades.Count); postFixIncrement(ref y))
             {
-                ((IList<object>)result).Add(getValue(trades, y));
+                result.Add(getValue(trades, y));
             }
         }
         return ((List<object>)((object)(result)));

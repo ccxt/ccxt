@@ -454,8 +454,8 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            ((IList<object>)topics).Add(add(add(topic, "."), marketId));
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+            topics.Add(add(add(topic, "."), marketId));
+            messageHashes.Add(add("ticker:", getValue(symbols, i)));
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -495,9 +495,9 @@ public partial class bybit : ccxt.bybit
         {
             object marketId = getValue(marketIds, i);
             object symbol = getValue(symbols, i);
-            ((IList<object>)topics).Add(add(add(topic, "."), marketId));
-            ((IList<object>)subMessageHashes).Add(add("ticker:", symbol));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            topics.Add(add(add(topic, "."), marketId));
+            subMessageHashes.Add(add("ticker:", symbol));
+            messageHashes.Add(add("unsubscribe:ticker:", symbol));
         }
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
         return await this.unWatchTopics(url, "ticker", symbols, messageHashes, subMessageHashes, topics, parameters);
@@ -697,8 +697,8 @@ public partial class bybit : ccxt.bybit
         {
             object marketId = getValue(marketIds, i);
             string topic = add("orderbook.1.", marketId);
-            ((IList<object>)topics).Add(topic);
-            ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
+            topics.Add(topic);
+            messageHashes.Add(add("bidask:", getValue(symbols, i)));
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -782,8 +782,8 @@ public partial class bybit : ccxt.bybit
             string? symbolString = ((string)GetValue(market, "symbol"));
             object unfiedTimeframe = getValue(data, 1);
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)rawHashes).Add(add(add(add("kline.", timeframeId), "."), GetValue(market, "id")));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
+            rawHashes.Add(add(add(add("kline.", timeframeId), "."), GetValue(market, "id")));
+            messageHashes.Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchTopics(url, messageHashes, rawHashes, parameters);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -828,9 +828,9 @@ public partial class bybit : ccxt.bybit
             string? symbolString = ((string)GetValue(market, "symbol"));
             object unfiedTimeframe = getValue(data, 1);
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)rawHashes).Add(add(add(add("kline.", timeframeId), "."), GetValue(market, "id")));
-            ((IList<object>)subMessageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
-            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe));
+            rawHashes.Add(add(add(add("kline.", timeframeId), "."), GetValue(market, "id")));
+            subMessageHashes.Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
+            messageHashes.Add(add(add(add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe));
         }
         Dictionary<string, object> subExtension = new Dictionary<string, object>() {
             { "symbolsAndTimeframes", symbolsAndTimeframes },
@@ -1010,9 +1010,9 @@ public partial class bybit : ccxt.bybit
             object symbol = getValue(symbols, i);
             string? marketId = this.marketId(symbol);
             string topic = add(add(add("orderbook.", limitVar.ToString()), "."), marketId);
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
             string messageHash = add("orderbook:", symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         object orderbook = await this.watchTopics(url, messageHashes, topics, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -1056,9 +1056,9 @@ public partial class bybit : ccxt.bybit
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)GetValue(market, "id"));
             string topic = add(add(channel, "."), marketId);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
-            ((IList<object>)subMessageHashes).Add(add("orderbook:", symbol));
-            ((IList<object>)topics).Add(topic);
+            messageHashes.Add(add("unsubscribe:orderbook:", symbol));
+            subMessageHashes.Add(add("orderbook:", symbol));
+            topics.Add(topic);
         }
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchOrderBook", parameters);
         return await this.unWatchTopics(url, "orderbook", symbols, messageHashes, subMessageHashes, topics, parameters);
@@ -1223,9 +1223,9 @@ public partial class bybit : ccxt.bybit
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string topic = add("publicTrade.", GetValue(market, "id"));
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
             string messageHash = add("trade:", symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -1263,10 +1263,10 @@ public partial class bybit : ccxt.bybit
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string topic = add("publicTrade.", GetValue(market, "id"));
-            ((IList<object>)topics).Add(topic);
+            topics.Add(topic);
             string messageHash = add("unsubscribe:trade:", symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
-            ((IList<object>)subMessageHashes).Add(add("trade:", symbol));
+            messageHashes.Add(messageHash);
+            subMessageHashes.Add(add("trade:", symbol));
         }
         return await this.unWatchTopics(url, "trades", symbols, messageHashes, subMessageHashes, topics, parameters);
     }
@@ -1835,7 +1835,7 @@ public partial class bybit : ccxt.bybit
             string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             if ((side == null) || side == "")
             {
                 // closing update, adding both sides to "reset" both sides
@@ -2634,7 +2634,7 @@ public partial class bybit : ccxt.bybit
                 object messageHash = getValue(messageHashes, i);
                 if (!(inOp(client.subscriptions, messageHash)))
                 {
-                    ((IList<object>)newTopics).Add(getValue(topics, i));
+                    newTopics.Add(getValue(topics, i));
                 }
             }
         } else
@@ -2659,7 +2659,7 @@ public partial class bybit : ccxt.bybit
                 object topic = getValue(topics, i);
                 if (!(inOp(subscribedTopics, topic)))
                 {
-                    ((IList<object>)newTopics).Add(topic);
+                    newTopics.Add(topic);
                 }
             }
         }

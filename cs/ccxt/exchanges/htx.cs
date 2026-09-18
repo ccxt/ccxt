@@ -2442,14 +2442,14 @@ public partial class htx : Exchange
             {
                 if (key == "spot")
                 {
-                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("spot", null, parameters));
+                    promises.Add(this.FetchMarketsByTypeAndSubType("spot", null, parameters));
                 } else if (key == "linear")
                 {
-                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType(null, "linear", parameters));
+                    promises.Add(this.FetchMarketsByTypeAndSubType(null, "linear", parameters));
                 } else if (key == "inverse")
                 {
-                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("swap", "inverse", parameters));
-                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("future", "inverse", parameters));
+                    promises.Add(this.FetchMarketsByTypeAndSubType("swap", "inverse", parameters));
+                    promises.Add(this.FetchMarketsByTypeAndSubType("future", "inverse", parameters));
                 }
             }
         }
@@ -2749,7 +2749,7 @@ public partial class htx : Exchange
                 createdDate = add(add(add(add(add(add(add(add(add(add(getValue(createdArray, 0), getValue(createdArray, 1)), getValue(createdArray, 2)), getValue(createdArray, 3)), "-"), getValue(createdArray, 4)), getValue(createdArray, 5)), "-"), getValue(createdArray, 6)), getValue(createdArray, 7)), " 00:00:00");
                 created = this.parse8601(createdDate);
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "lowercaseId", lowercaseId },
                 { "symbol", symbol },
@@ -3892,7 +3892,7 @@ public partial class htx : Exchange
             for (int j = 0; isLessThan(j, trades.Count); postFixIncrement(ref j))
             {
                 Dictionary<string, object> trade = this.parseTrade(getValue(trades, j), market);
-                ((IList<object>)result).Add(trade);
+                result.Add(trade);
             }
         }
         result = this.sortBy(result, "timestamp");
@@ -6900,7 +6900,7 @@ public partial class htx : Exchange
                 orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, orderParams);
             }
             orderRequest = this.omit(orderRequest, "marginMode");
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
@@ -7499,7 +7499,7 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
-            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(order, "order_id") },
                 { "status", "canceled" },
@@ -7509,7 +7509,7 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, success?.Count ?? 0); postFixIncrement(ref i))
         {
             object order = getValue(success, i);
-            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
                 { "status", "canceled" },
@@ -7518,7 +7518,7 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, failed.Count); postFixIncrement(ref i))
         {
             object order = getValue(failed, i);
-            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },
                 { "status", "failed" },
@@ -7817,7 +7817,7 @@ public partial class htx : Exchange
             bool networkMatch = (isEqual(networkCode, null)) || (isEqual(getValue(address, "network"), networkCode));
             if (noteMatch && networkMatch)
             {
-                ((IList<object>)addresses).Add(address);
+                addresses.Add(address);
             }
         }
         return ccxt.BaseExchange.ToDictList(addresses);
@@ -8608,7 +8608,7 @@ public partial class htx : Exchange
                 string? marketId = this.safeString(entry, "contract_code");
                 string? symbolInner = this.safeSymbol(marketId, market);
                 Int64? timestamp = this.safeInteger(entry, "funding_time");
-                ((IList<object>)rates).Add(new Dictionary<string, object>() {
+                rates.Add(new Dictionary<string, object>() {
                     { "info", entry },
                     { "symbol", symbolInner },
                     { "fundingRate", this.safeNumber(entry, "funding_rate") },
@@ -8627,7 +8627,7 @@ public partial class htx : Exchange
                 string? marketId = this.safeString(entry, "contract_code");
                 string? symbolInner = this.safeSymbol(marketId);
                 Int64? timestamp = this.safeInteger(entry, "funding_time");
-                ((IList<object>)rates).Add(new Dictionary<string, object>() {
+                rates.Add(new Dictionary<string, object>() {
                     { "info", entry },
                     { "symbol", symbolInner },
                     { "fundingRate", this.safeNumber(entry, "funding_rate") },
@@ -9622,7 +9622,7 @@ public partial class htx : Exchange
         {
             object position = getValue(data, i);
             Dictionary<string, object> parsed = this.parsePosition(position);
-            ((IList<object>)result).Add(this.extend(parsed, new Dictionary<string, object>() {
+            result.Add(this.extend(parsed, new Dictionary<string, object>() {
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
             }));
@@ -9937,7 +9937,7 @@ public partial class htx : Exchange
             {
                 object bracket = getValue(ladders, k);
                 string? adjustFactor = this.safeString(bracket, "adjust_factor");
-                ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+                tiers.Add(new Dictionary<string, object>() {
                     { "tier", this.safeInteger(bracket, "ladder") },
                     { "symbol", this.safeSymbol(marketId, market, null, "swap") },
                     { "currency", this.safeCurrencyCode(currencyId) },
@@ -10850,7 +10850,7 @@ public partial class htx : Exchange
             if (isEqual(getValue(market, "linear"), true))
             {
                 Dictionary<string, object> parsedSettlement = this.parseSettlement(settlement, market);
-                ((IList<object>)result).Add(parsedSettlement);
+                result.Add(parsedSettlement);
             } else if ((list != null))
             {
                 Int64? timestamp = this.safeInteger(settlement, "settlement_time");
@@ -10862,11 +10862,11 @@ public partial class htx : Exchange
                 {
                     object item = getValue(list, j);
                     Dictionary<string, object> parsedSettlement = this.parseSettlement(item, market);
-                    ((IList<object>)result).Add(this.extend(parsedSettlement, timestampDetails));
+                    result.Add(this.extend(parsedSettlement, timestampDetails));
                 }
             } else
             {
-                ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
+                result.Add(this.parseSettlement(getValue(settlements, i), market));
             }
         }
         return result;

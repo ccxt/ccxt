@@ -1099,7 +1099,7 @@ public partial class hibachi : Exchange
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(add(nonce, i), symbol, type, side, amount, price, orderParams);
             orderRequest["action"] = "place";
-            ((IList<object>)requestOrders).Add(orderRequest);
+            requestOrders.Add(orderRequest);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
@@ -1114,7 +1114,7 @@ public partial class hibachi : Exchange
         for (int i = 0; isLessThan(i, responseOrders.Count); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
-            ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
+            ret.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
                 { "status", "pending" },
@@ -1215,7 +1215,7 @@ public partial class hibachi : Exchange
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.editOrderRequest(add(nonce, i), id, symbol, type, side, amount, price, orderParams);
             orderRequest["action"] = "modify";
-            ((IList<object>)requestOrders).Add(orderRequest);
+            requestOrders.Add(orderRequest);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
@@ -1230,7 +1230,7 @@ public partial class hibachi : Exchange
         for (int i = 0; isLessThan(i, responseOrders.Count); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
-            ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
+            ret.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
                 { "status", "pending" },
@@ -1293,7 +1293,7 @@ public partial class hibachi : Exchange
         {
             Dictionary<string, object> orderRequest = this.cancelOrderRequest(getValue(ids, i));
             orderRequest["action"] = "cancel";
-            ((IList<object>)orders).Add(orderRequest);
+            orders.Add(orderRequest);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
@@ -1308,7 +1308,7 @@ public partial class hibachi : Exchange
         for (int i = 0; isLessThan(i, responseOrders.Count); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
-            ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
+            ret.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
                 { "status", "canceled" },
@@ -2390,7 +2390,7 @@ public partial class hibachi : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement(getValue(settlements, i), market));
         }
         return result;
     }
@@ -2587,7 +2587,7 @@ public partial class hibachi : Exchange
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbol },
                 { "fundingRate", this.safeNumber(entry, "fundingRate") },

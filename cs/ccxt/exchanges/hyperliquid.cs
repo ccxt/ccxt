@@ -543,13 +543,13 @@ public partial class hyperliquid : Exchange
             object marketType = getValue(types, i);
             if (isEqual(marketType, "swap"))
             {
-                ((IList<object>)rawPromises).Add(this.FetchSwapMarkets(parameters));
+                rawPromises.Add(this.FetchSwapMarkets(parameters));
             } else if (isEqual(marketType, "spot"))
             {
-                ((IList<object>)rawPromises).Add(this.FetchSpotMarkets(parameters));
+                rawPromises.Add(this.FetchSpotMarkets(parameters));
             } else if (isEqual(marketType, "hip3"))
             {
-                ((IList<object>)rawPromises).Add(this.FetchHip3Markets(parameters));
+                rawPromises.Add(this.FetchHip3Markets(parameters));
             }
         }
         List<object> promises = await promiseAll(rawPromises);
@@ -636,7 +636,7 @@ public partial class hyperliquid : Exchange
                     continue;
                 }
                 string? dexName = this.safeString(dex, "name");
-                ((IList<object>)fetchDexesList).Add(dexName);
+                fetchDexesList.Add(dexName);
             }
         }
         List<object> rawPromises = new List<object>() {};
@@ -646,7 +646,7 @@ public partial class hyperliquid : Exchange
                 { "type", "metaAndAssetCtxs" },
                 { "dex", this.safeString(fetchDexesList, i) },
             };
-            ((IList<object>)rawPromises).Add(this.publicPostInfo(this.extend(request, parameters)));
+            rawPromises.Add(this.publicPostInfo(this.extend(request, parameters)));
         }
         List<object> promises = await promiseAll(rawPromises);
         ((IDictionary<string,object>)this.options)["hip3TokensByName"] = new Dictionary<string, object>() {};
@@ -685,7 +685,7 @@ public partial class hyperliquid : Exchange
                         { "code", hip3Code },
                     };
                 }
-                ((IList<object>)result).Add(data);
+                result.Add(data);
             }
             markets = this.arrayConcat(markets, this.parseMarkets(result));
         }
@@ -777,7 +777,7 @@ public partial class hyperliquid : Exchange
         {
             Dictionary<string, object> data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
             data["baseId"] = i;
-            ((IList<object>)result).Add(data);
+            result.Add(data);
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
     }
@@ -1000,7 +1000,7 @@ public partial class hyperliquid : Exchange
                 { "created", null },
                 { "info", this.extend(extraData, market) },
             };
-            ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            markets.Add(this.safeMarketStructure(entry));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
@@ -1167,8 +1167,8 @@ public partial class hyperliquid : Exchange
         parameters = marginModeparametersVariable[1];
         object isUnifiedEnabled = null;
         var isUnifiedEnabledparametersVariable = await this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, parameters);
-        isUnifiedEnabled = ((IList<object>)isUnifiedEnabledparametersVariable)[0];
-        parameters = ((IList<object>)isUnifiedEnabledparametersVariable)[1];
+        isUnifiedEnabled = isUnifiedEnabledparametersVariable[0];
+        parameters = isUnifiedEnabledparametersVariable[1];
         string? dex = this.safeString(parameters, "dex");
         bool isSpot = ((type == "spot") || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1454,7 +1454,7 @@ public partial class hyperliquid : Exchange
         for (int i = 0; isLessThan(i, universe.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
-            ((IList<object>)result).Add(data);
+            result.Add(data);
         }
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
     }
@@ -2314,8 +2314,8 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
-        var order = ((IList<object>) orderglobalParamsVariable)[0];
-        var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
+        var order = orderglobalParamsVariable[0];
+        var globalParams = orderglobalParamsVariable[1];
         object orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, globalParams));
         return ccxt.BaseExchange.ToOrder(getValue(orders, 0));
     }
@@ -2450,12 +2450,12 @@ public partial class hyperliquid : Exchange
             object order = getValue(statuses, i);
             if (isEqual(order, "waitingForTrigger"))
             {
-                ((IList<object>)ordersToBeParsed).Add(new Dictionary<string, object>() {
+                ordersToBeParsed.Add(new Dictionary<string, object>() {
                     { "status", order },
                 }); // tp/sl orders can return a string like "waitingForTrigger",
             } else
             {
-                ((IList<object>)ordersToBeParsed).Add(order);
+                ordersToBeParsed.Add(order);
             }
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersToBeParsed));
@@ -2624,7 +2624,7 @@ public partial class hyperliquid : Exchange
                     takeProfitOrderType = "market";
                 } else if (grouping == "normalTpsl")
                 {
-                    ((IList<object>)orderReq).Add(mainOrderObj);
+                    orderReq.Add(mainOrderObj);
                 } else
                 {
                     throw new NotSupported (add(this.id, " only support grouping normalTpsl and positionTpsl.")) ;
@@ -2644,7 +2644,7 @@ public partial class hyperliquid : Exchange
                         { "takeProfitPrice", takeProfitOrderTriggerPrice },
                         { "reduceOnly", true },
                     }));
-                    ((IList<object>)orderReq).Add(orderObj);
+                    orderReq.Add(orderObj);
                 }
                 if (hasStopLoss)
                 {
@@ -2652,11 +2652,11 @@ public partial class hyperliquid : Exchange
                         { "stopLossPrice", stopLossOrderTriggerPrice },
                         { "reduceOnly", true },
                     }));
-                    ((IList<object>)orderReq).Add(orderObj);
+                    orderReq.Add(orderObj);
                 }
             } else
             {
-                ((IList<object>)orderReq).Add(mainOrderObj);
+                orderReq.Add(mainOrderObj);
             }
         }
         object vaultAddress = null;
@@ -2773,7 +2773,7 @@ public partial class hyperliquid : Exchange
         for (int i = 0; isLessThan(i, statuses.Count); postFixIncrement(ref i))
         {
             object status = getValue(statuses, i);
-            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+            orders.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", status },
                 { "status", status },
             }));
@@ -2887,7 +2887,7 @@ public partial class hyperliquid : Exchange
             cancelAction["type"] = "cancelByCloid";
             for (int i = 0; isLessThan(i, getArrayLength(clientOrderId)); postFixIncrement(ref i))
             {
-                ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
+                cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", baseId },
                     { "cloid", getValue(clientOrderId, i) },
                 });
@@ -2898,7 +2898,7 @@ public partial class hyperliquid : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 object o = this.parseToNumeric(getValue(ids, i));
-                ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
+                cancelReq.Add(new Dictionary<string, object>() {
                     { "a", baseId },
                     { "o", o },
                 });
@@ -2976,7 +2976,7 @@ public partial class hyperliquid : Exchange
             Dictionary<string, object> cancelObj = new Dictionary<string, object>() {};
             cancelObj[(string)assetKey] = this.parseToNumeric(GetValue(market, "baseId"));
             cancelObj[(string)idKey] = cancelByCloid ? clientOrderId : this.parseToNumeric(id);
-            ((IList<object>)cancelReq).Add(cancelObj);
+            cancelReq.Add(cancelObj);
         }
         cancelAction["type"] = cancelByCloid ? "cancelByCloid" : "cancel";
         cancelAction["cancels"] = cancelReq;
@@ -3176,7 +3176,7 @@ public partial class hyperliquid : Exchange
                 { "oid", this.parseToInt(id) },
                 { "order", orderReq },
             };
-            ((IList<object>)modifies).Add(modifyReq);
+            modifies.Add(modifyReq);
         }
         Int64 nonce = this.milliseconds();
         Dictionary<string, object> modifyAction = new Dictionary<string, object>() {
@@ -3234,8 +3234,8 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired (add(this.id, " editOrder() requires an id argument")) ;
         }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
-        var order = ((IList<object>) orderglobalParamsVariable)[0];
-        var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
+        var order = orderglobalParamsVariable[0];
+        var globalParams = orderglobalParamsVariable[1];
         object orders = ccxt.BaseExchange.FromOrderList(await this.EditOrders(new List<object>() {order}, globalParams));
         return ccxt.BaseExchange.ToOrder(getValue(orders, 0));
     }
@@ -3409,7 +3409,7 @@ public partial class hyperliquid : Exchange
         {
             object entry = getValue(fundings, i);
             Int64? timestamp = this.safeInteger(entry, "time");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(null, market) },
                 { "fundingRate", this.safeNumber(entry, "fundingRate") },
@@ -3506,7 +3506,7 @@ public partial class hyperliquid : Exchange
             {
                 extendOrder["ccxtStatus"] = "open";
             }
-            ((IList<object>)orderWithStatus).Add(this.extend(order, extendOrder));
+            orderWithStatus.Add(this.extend(order, extendOrder));
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orderWithStatus, market, since, limit));
     }
@@ -4246,7 +4246,7 @@ public partial class hyperliquid : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(data, i)));
+            result.Add(this.parsePosition(getValue(data, i)));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
@@ -5513,7 +5513,7 @@ public partial class hyperliquid : Exchange
         {
             object record = getValue(data, i);
             ((IDictionary<string,object>)record)["type"] = getValue(getValue(record, "delta"), "type");
-            ((IList<object>)records).Add(record);
+            records.Add(record);
         }
         return ((List<object>)((object)(records)));
     }

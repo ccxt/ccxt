@@ -870,14 +870,14 @@ public partial class bitfinex : ccxt.bitfinex
             object ask = this.safeValue(asks, i);
             if ((bid != null))
             {
-                ((IList<object>)stringArray).Add(this.numberToString(getValue(getValue(bids, i), idToCheck)));
-                ((IList<object>)stringArray).Add(this.numberToString(getValue(getValue(bids, i), 1)));
+                stringArray.Add(this.numberToString(getValue(getValue(bids, i), idToCheck)));
+                stringArray.Add(this.numberToString(getValue(getValue(bids, i), 1)));
             }
             if ((ask != null))
             {
-                ((IList<object>)stringArray).Add(this.numberToString(getValue(getValue(asks, i), idToCheck)));
+                stringArray.Add(this.numberToString(getValue(getValue(asks, i), idToCheck)));
                 object aski1 = getValue(getValue(asks, i), 1);
-                ((IList<object>)stringArray).Add(this.numberToString(prefixUnaryNeg(ref aski1)));
+                stringArray.Add(this.numberToString(prefixUnaryNeg(ref aski1)));
             }
         }
         string payload = String.Join(":", stringArray.ToArray());

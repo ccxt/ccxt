@@ -313,7 +313,7 @@ public partial class hyperliquid : PredictionExchange
                         string trimmed = ((string)getValue(thresholdParts, i)).Trim();
                         if (trimmed.Length > 0)
                         {
-                            ((IList<object>)thresholds).Add(trimmed);
+                            thresholds.Add(trimmed);
                         }
                     }
                     int thresholdsLength = thresholds.Count;
@@ -471,7 +471,7 @@ public partial class hyperliquid : PredictionExchange
             Int64? outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
             IDictionary<string, object> linkedQuestion = this.safeDict(outcomesToQuestions, ((object)outcomeId).ToString(), new Dictionary<string, object>() {});
             object market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
-            ((IList<object>)markets).Add(market);
+            markets.Add(market);
             // Build outcomes dictionary from market outcomes
             List<object> marketOutcomes = this.safeList(market, "outcomes", new List<object>() {});
             for (int oi = 0; isLessThan(oi, marketOutcomes.Count); postFixIncrement(ref oi))
@@ -898,12 +898,12 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; isLessThan(i, rawBids.Count); postFixIncrement(ref i))
         {
             object entry = getValue(rawBids, i);
-            ((IList<object>)bids).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
+            bids.Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
         for (int i = 0; isLessThan(i, rawAsks.Count); postFixIncrement(ref i))
         {
             object entry = getValue(rawAsks, i);
-            ((IList<object>)asks).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
+            asks.Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
         Dictionary<string, object> orderbook = this.parseOrderBook(new Dictionary<string, object>() {
             { "bids", bids },
@@ -1150,7 +1150,7 @@ public partial class hyperliquid : PredictionExchange
             Dictionary<string, object> enriched = this.extend(balance, new Dictionary<string, object>() {
                 { "markPx", this.safeString(mids, tradeCoin) },
             });
-            ((IList<object>)positions).Add(this.parsePredictionPosition(enriched, outcomeObj));
+            positions.Add(this.parsePredictionPosition(enriched, outcomeObj));
         }
         return ccxt.BaseExchange.ToPredictionPositionList(positions);
     }
@@ -1291,7 +1291,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> candidates = new List<object>() {outcomeInput};
         if (((string)outcomeInput).StartsWith("+"))
         {
-            ((IList<object>)candidates).Add(add("#", slice(outcomeInput, 1, null)));
+            candidates.Add(add("#", slice(outcomeInput, 1, null)));
         }
         string digitChars = "0123456789";
         object inputChars = this.stringToCharsArray(outcomeInput);
@@ -1307,12 +1307,12 @@ public partial class hyperliquid : PredictionExchange
         }
         if (isNumericInput)
         {
-            ((IList<object>)candidates).Add(add("#", outcomeInput)); // encoding id without #
+            candidates.Add(add("#", outcomeInput)); // encoding id without #
             Int64? numeric = this.parseToInt(outcomeInput);
             if (!isEqual(numeric, null))
             {
-                ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
-                ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
+                candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
+                candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
             }
         }
         for (int i = 0; isLessThan(i, candidates.Count); postFixIncrement(ref i))
@@ -1542,7 +1542,7 @@ public partial class hyperliquid : PredictionExchange
             cancelAction["type"] = "cancelByCloid";
             for (int i = 0; isLessThan(i, getArrayLength(cloids)); postFixIncrement(ref i))
             {
-                ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
+                cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", assetId },
                     { "cloid", getValue(cloids, i) },
                 });
@@ -1552,7 +1552,7 @@ public partial class hyperliquid : PredictionExchange
             cancelAction["type"] = "cancel";
             for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
+                cancelReq.Add(new Dictionary<string, object>() {
                     { "a", assetId },
                     { "o", this.parseToNumeric(getValue(ids, i)) },
                 });
@@ -1617,7 +1617,7 @@ public partial class hyperliquid : PredictionExchange
                 { "timestamp", this.milliseconds() },
                 { "datetime", this.iso8601(this.milliseconds()) },
             };
-            ((IList<object>)orders).Add(this.safePredictionOrder(order));
+            orders.Add(this.safePredictionOrder(order));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(orders);
     }
@@ -1660,7 +1660,7 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object order = getValue(rawOrders, i);
-            ((IList<object>)ordersWithStatus).Add(this.extend(order, new Dictionary<string, object>() {
+            ordersWithStatus.Add(this.extend(order, new Dictionary<string, object>() {
                 { "ccxtStatus", "open" },
             }));
         }
@@ -2128,7 +2128,7 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; isLessThan(i, queries?.Count ?? 0); postFixIncrement(ref i))
         {
             string queryString = ((string)getValue(queries, i));
-            ((IList<object>)lowerQueries).Add(queryString.ToLower());
+            lowerQueries.Add(queryString.ToLower());
         }
         int lowerQueriesLength = lowerQueries.Count;
         for (int i = 0; isLessThan(i, marketValues?.Count ?? 0); postFixIncrement(ref i))
@@ -2207,7 +2207,7 @@ public partial class hyperliquid : PredictionExchange
                 { "parentSymbol", key },
                 { "markets", groupMarkets },
             });
-            ((IList<object>)events).Add(eventVar);
+            events.Add(eventVar);
         }
         // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
         // so getEvent() resolves these events by any of the three keys

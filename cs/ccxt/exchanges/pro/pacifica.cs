@@ -320,7 +320,7 @@ public partial class pacifica : ccxt.pacifica
             {
                 status = "canceled";
             }
-            ((IList<object>)ordersToReturn).Add(this.safeOrder(new Dictionary<string, object>() {
+            ordersToReturn.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "id", orderId },
                 { "clientOrderId", clientOrderId },
                 { "status", status },
@@ -788,7 +788,7 @@ public partial class pacifica : ccxt.pacifica
             string? symbol = ((string)GetValue(market, "symbol"));
             Dictionary<string, object> ticker = this.parseWsTicker(info, market);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            ((IList<object>)parsedTickers).Add(ticker);
+            parsedTickers.Add(ticker);
         }
         Dictionary<string, object> tickers = this.indexBy(parsedTickers, "symbol");
         callDynamically(client, "resolve", new object[] {tickers, "tickers"});

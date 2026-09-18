@@ -430,7 +430,7 @@ public partial class bitflyer : Exchange
                     symbol = add(add(symbol, "-"), this.yymmdd(expiry));
                 }
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },

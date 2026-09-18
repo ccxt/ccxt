@@ -923,7 +923,7 @@ public partial class bitfinex : Exchange
             }
             string? minOrderSizeString = this.safeString(market, 3);
             string? maxOrderSizeString = this.safeString(market, 4);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", add("t", id) },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1098,7 +1098,7 @@ public partial class bitfinex : Exchange
             string? networkName = this.safeString(valuesList, 0);
             // for GOlang transpiler, do with "safe" method
             List<object> networksList = this.safeList(indexedNetworks, networkName, new List<object>() {});
-            ((IList<object>)networksList).Add(networkId);
+            networksList.Add(networkId);
             indexedNetworks[(string)((string)networkName)] = networksList;
         }
         List<object> ids = this.safeList(response, 0, new List<object>() {});
@@ -1115,7 +1115,7 @@ public partial class bitfinex : Exchange
             {
                 continue;
             }
-            ((IList<object>)allowedIds).Add(id);
+            allowedIds.Add(id);
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> arr = this.toArray(allowedIds);
@@ -1848,7 +1848,7 @@ public partial class bitfinex : Exchange
         List<object> tradesList = new List<object>() {};
         for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
+            tradesList.Add(new Dictionary<string, object>() {
                 { "result", getValue(trades, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
@@ -2293,7 +2293,7 @@ public partial class bitfinex : Exchange
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(new List<object>() {"on", orderRequest});
+            ordersRequests.Add(new List<object>() {"on", orderRequest});
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ops", ordersRequests },
@@ -2330,7 +2330,7 @@ public partial class bitfinex : Exchange
         {
             object entry = getValue(data, i);
             object individualOrder = getValue(entry, 4);
-            ((IList<object>)results).Add(new Dictionary<string, object>() {
+            results.Add(new Dictionary<string, object>() {
                 { "result", getValue(individualOrder, 0) },
             });
         }
@@ -2361,7 +2361,7 @@ public partial class bitfinex : Exchange
         List<object> ordersList = new List<object>() {};
         for (int i = 0; isLessThan(i, orders.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+            ordersList.Add(new Dictionary<string, object>() {
                 { "result", getValue(orders, i) },
             });
         }
@@ -2439,7 +2439,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             // numericIds[i] = this.parseToNumeric (ids[i]);
-            ((IList<object>)numericIds).Add(this.parseToNumeric(getValue(ids, i)));
+            numericIds.Add(this.parseToNumeric(getValue(ids, i)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", numericIds },
@@ -2504,7 +2504,7 @@ public partial class bitfinex : Exchange
         List<object> ordersList = new List<object>() {};
         for (int i = 0; isLessThan(i, orders.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+            ordersList.Add(new Dictionary<string, object>() {
                 { "result", getValue(orders, i) },
             });
         }
@@ -2635,7 +2635,7 @@ public partial class bitfinex : Exchange
         List<object> ordersList = new List<object>() {};
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+            ordersList.Add(new Dictionary<string, object>() {
                 { "result", getValue(response, i) },
             });
         }
@@ -2736,7 +2736,7 @@ public partial class bitfinex : Exchange
         List<object> ordersList = new List<object>() {};
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+            ordersList.Add(new Dictionary<string, object>() {
                 { "result", getValue(response, i) },
             });
         }
@@ -2778,7 +2778,7 @@ public partial class bitfinex : Exchange
         List<object> tradesList = new List<object>() {};
         for (int i = 0; isLessThan(i, rawTrades?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
+            tradesList.Add(new Dictionary<string, object>() {
                 { "result", getValue(rawTrades, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
@@ -2829,7 +2829,7 @@ public partial class bitfinex : Exchange
         List<object> tradesList = new List<object>() {};
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
+            tradesList.Add(new Dictionary<string, object>() {
                 { "result", getValue(response, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
@@ -3436,7 +3436,7 @@ public partial class bitfinex : Exchange
         List<object> positionsList = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)positionsList).Add(new Dictionary<string, object>() {
+            positionsList.Add(new Dictionary<string, object>() {
                 { "result", getValue(rawPositions, i) },
             });
         }
@@ -3750,7 +3750,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
             object item = getValue(response, i);
-            ((IList<object>)ledgerObjects).Add(new Dictionary<string, object>() {
+            ledgerObjects.Add(new Dictionary<string, object>() {
                 { "result", item },
             });
         }
@@ -3895,7 +3895,7 @@ public partial class bitfinex : Exchange
         {
             object fr = getValue(rawRatesData, i);
             object rate = this.parseFundingRateHistory(fr, market);
-            ((IList<object>)rates).Add(rate);
+            rates.Add(rate);
         }
         List<object> reversedArray = new List<object>() {};
         IList<object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
@@ -3904,7 +3904,7 @@ public partial class bitfinex : Exchange
         {
             object index = subtract(subtract(ratesLength, i), 1);
             object valueAtIndex = getValue(rawRates, index);
-            ((IList<object>)reversedArray).Add(valueAtIndex);
+            reversedArray.Add(valueAtIndex);
         }
         return ccxt.BaseExchange.ToFundingRateHistoryList(reversedArray);
     }

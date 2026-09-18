@@ -758,7 +758,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, cancelledOrders.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+            result.Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
             }, getValue(cancelledOrders, i)), market));
         }
@@ -781,7 +781,7 @@ public partial class nado : Exchange
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)productIds).Add(this.parseToInt(GetValue(market, "id")));
+            productIds.Add(this.parseToInt(GetValue(market, "id")));
         }
         object subaccount = null;
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "subaccount", "default");
@@ -862,7 +862,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, cancelledOrders.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+            result.Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
             }, getValue(cancelledOrders, i)), market));
         }
@@ -892,7 +892,7 @@ public partial class nado : Exchange
         List<object> productIds = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            ((IList<object>)productIds).Add(productId);
+            productIds.Add(productId);
         }
         object recvWindow = null;
         IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrders", "recvWindow", 5000);
@@ -1008,7 +1008,7 @@ public partial class nado : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IList<object>)productIds).Add(this.parseToInt(GetValue(market, "id")));
+            productIds.Add(this.parseToInt(GetValue(market, "id")));
         }
         object subaccount = null;
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
@@ -1239,7 +1239,7 @@ public partial class nado : Exchange
             object order = getValue(orders, i);
             if (isTrue(this.isArchiveOrderClosed(order)))
             {
-                ((IList<object>)closedOrders).Add(this.extend(new Dictionary<string, object>() {
+                closedOrders.Add(this.extend(new Dictionary<string, object>() {
                     { "status", "closed" },
                 }, order));
             }
@@ -1372,7 +1372,7 @@ public partial class nado : Exchange
             object match = getValue(matches, i);
             string? submissionIdx = this.safeString(match, "submission_idx");
             IDictionary<string, object> tx = this.safeDict(txsBySubmission, submissionIdx, new Dictionary<string, object>() {});
-            ((IList<object>)trades).Add(this.extend(tx, match));
+            trades.Add(this.extend(tx, match));
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -1552,7 +1552,7 @@ public partial class nado : Exchange
             Dictionary<string, object> transaction = this.extend(new Dictionary<string, object>() {}, tx);
             transaction = this.extend(transaction, eventVar);
             transaction["transaction_type"] = transactionType;
-            ((IList<object>)transactions).Add(this.parseTransaction(transaction, currency));
+            transactions.Add(this.parseTransaction(transaction, currency));
         }
         return this.filterByCurrencySinceLimit(transactions,code, since, limit);
     }
@@ -1637,7 +1637,7 @@ public partial class nado : Exchange
                     break;
                 }
             }
-            ((IList<object>)result).Add(this.parsePosition(this.extend(new Dictionary<string, object>() {
+            result.Add(this.parsePosition(this.extend(new Dictionary<string, object>() {
                 { "product", product },
             }, position)));
         }
@@ -1799,7 +1799,7 @@ public partial class nado : Exchange
             double? priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
             double? amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
             double? minCost = this.parseX18(this.safeString(market, "min_size"));
-            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            markets.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "lowercaseId", null },
                 { "symbol", symbol },
@@ -2070,7 +2070,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, fundingPayments.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseFundingHistory(getValue(fundingPayments, i), market));
+            result.Add(this.parseFundingHistory(getValue(fundingPayments, i), market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
@@ -2120,7 +2120,7 @@ public partial class nado : Exchange
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
             string? ticker = ((string)getValue(tickers, i));
-            ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
+            rates.Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rates, symbols));
     }
@@ -2217,7 +2217,7 @@ public partial class nado : Exchange
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
             string? ticker = ((string)getValue(tickers, i));
-            ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
+            interests.Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(interests, symbols));
     }

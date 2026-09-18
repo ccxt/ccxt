@@ -1557,7 +1557,7 @@ public partial class xt : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseMarket(getValue(markets, i)));
+            result.Add(this.parseMarket(getValue(markets, i)));
         }
         return result;
     }
@@ -5525,7 +5525,7 @@ public partial class xt : Exchange
             string? marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId, market, "_", "contract");
             double? minNotional = this.safeNumber(getValue(brackets, subtract(i, 1)), "maxNominalValue", 0);
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+            tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "bracket") },
                 { "symbol", this.safeSymbol(marketId, market, "_", "contract") },
                 { "currency", getValue(market, "settle") },
@@ -5626,7 +5626,7 @@ public partial class xt : Exchange
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger(entry, "createdTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbolInner },
                 { "fundingRate", this.safeNumber(entry, "fundingRate") },
@@ -6006,7 +6006,7 @@ public partial class xt : Exchange
         for (int i = 0; isLessThan(i, items.Count); postFixIncrement(ref i))
         {
             object entry = getValue(items, i);
-            ((IList<object>)result).Add(this.parseFundingHistory(entry, market));
+            result.Add(this.parseFundingHistory(entry, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySinceLimit(sorted, since, limit));
@@ -6110,12 +6110,12 @@ public partial class xt : Exchange
         List<object> promisesUnresolved = new List<object>() {};
         if (subType == "inverse")
         {
-            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
-            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
+            promisesUnresolved.Add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
+            promisesUnresolved.Add(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
         } else
         {
-            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters)));
-            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
+            promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters)));
+            promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
         }
         var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
         var response = ((IList<object>) responsebreakResponseVariable)[0];
@@ -6203,12 +6203,12 @@ public partial class xt : Exchange
         List<object> promisesUnresolved = new List<object>() {};
         if (subType == "inverse")
         {
-            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionList(parameters));
-            ((IList<object>)promisesUnresolved).Add(this.privateInverseGetFutureUserV1PositionBreakList(parameters));
+            promisesUnresolved.Add(this.privateInverseGetFutureUserV1PositionList(parameters));
+            promisesUnresolved.Add(this.privateInverseGetFutureUserV1PositionBreakList(parameters));
         } else
         {
-            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionList(parameters));
-            ((IList<object>)promisesUnresolved).Add(this.privateLinearGetFutureUserV1PositionBreakList(parameters));
+            promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionList(parameters));
+            promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(parameters));
         }
         var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
         var response = ((IList<object>) responsebreakResponseVariable)[0];
@@ -6264,7 +6264,7 @@ public partial class xt : Exchange
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
-            ((IList<object>)result).Add(this.parsePosition(merged, marketInner));
+            result.Add(this.parsePosition(merged, marketInner));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }

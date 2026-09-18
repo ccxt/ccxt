@@ -1567,7 +1567,7 @@ public partial class bitteam : Exchange
         {
             object rawTicker = getValue(rawTickers, i);
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            ((IList<object>)tickers).Add(ticker);
+            tickers.Add(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }

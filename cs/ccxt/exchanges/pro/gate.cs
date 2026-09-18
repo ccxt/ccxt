@@ -508,7 +508,7 @@ public partial class gate : ccxt.gate
             channel = add(messageType, ".order_book_update");
             payload = new List<object>() {marketId, interval};
             string stringLimit = limitVar.ToString();
-            ((IList<object>)payload).Add(stringLimit);
+            payload.Add(stringLimit);
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -574,7 +574,7 @@ public partial class gate : ccxt.gate
             channel = add(messageType, ".order_book_update");
             payload = new List<object>() {marketId, interval};
             string stringLimit = limit.ToString();
-            ((IList<object>)payload).Add(stringLimit);
+            payload.Add(stringLimit);
         }
         string subMessageHash = add(add("orderbook", ":"), symbol);
         string messageHash = add(add("unsubscribe:orderbook", ":"), symbol);
@@ -741,7 +741,7 @@ public partial class gate : ccxt.gate
                 Int64? limit = this.safeInteger(subscription, "limit");
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}}); // needed for c#, number of args needs to match
             }
-            ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(delta);
+            (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
         } else if ((!isEqual(deltaEnd, null)) && (isGreaterThanOrEqual(nonce, deltaEnd)))
         {
@@ -951,7 +951,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add(add(prefix, ":"), symbol));
+            messageHashes.Add(add(add(prefix, ":"), symbol));
         }
         object tickerOrBidAsk = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
         if (isTrue(this.newUpdates))
@@ -1057,7 +1057,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("trades:", symbol));
+            messageHashes.Add(add("trades:", symbol));
         }
         object url = this.getUrlByMarket(market);
         object trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
@@ -1095,8 +1095,8 @@ public partial class gate : ccxt.gate
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)subMessageHashes).Add(add("trades:", symbol));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
+            subMessageHashes.Add(add("trades:", symbol));
+            messageHashes.Add(add("unsubscribe:trades:", symbol));
         }
         object url = this.getUrlByMarket(market);
         return await this.unSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, parameters);
@@ -1699,26 +1699,26 @@ public partial class gate : ccxt.gate
                 if ((prevLongPosition != null))
                 {
                     position["side"] = GetValue(prevLongPosition, "side");
-                    ((IList<object>)newPositions).Add(position);
+                    newPositions.Add(position);
                     callDynamically(cache, "append", new object[] {position});
                 }
                 IDictionary<string, object> prevShortPosition = this.safeDict(cache, add(symbol, "short"));
                 if ((prevShortPosition != null))
                 {
                     position["side"] = GetValue(prevShortPosition, "side");
-                    ((IList<object>)newPositions).Add(position);
+                    newPositions.Add(position);
                     callDynamically(cache, "append", new object[] {position});
                 }
                 // if no prev position is found, default to long
                 if ((prevLongPosition == null) && (prevShortPosition == null))
                 {
                     position["side"] = "long";
-                    ((IList<object>)newPositions).Add(position);
+                    newPositions.Add(position);
                     callDynamically(cache, "append", new object[] {position});
                 }
             } else
             {
-                ((IList<object>)newPositions).Add(position);
+                newPositions.Add(position);
                 callDynamically(cache, "append", new object[] {position});
             }
         }
@@ -1985,7 +1985,7 @@ public partial class gate : ccxt.gate
                 throw new BadRequest (add(this.id, " watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.")) ;
             }
             messageHash = "myLiquidations";
-            ((IList<object>)payload).Add("!all");
+            payload.Add("!all");
         } else
         {
             int symbolsLength = symbols?.Count ?? 0;
@@ -1994,7 +1994,7 @@ public partial class gate : ccxt.gate
                 throw new BadRequest (add(this.id, " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.")) ;
             }
             messageHash = add("myLiquidations::", getValue(symbols, 0));
-            ((IList<object>)payload).Add(GetValue(market, "id"));
+            payload.Add(GetValue(market, "id"));
         }
         object channel = add(typeId, ".liquidates");
         object newLiquidations = await this.subscribePrivate(url, messageHash, payload, channel, query, true);

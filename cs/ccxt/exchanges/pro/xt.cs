@@ -1104,7 +1104,7 @@ public partial class xt : ccxt.xt
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
-            ((IList<object>)newTickers).Add(ticker);
+            newTickers.Add(ticker);
         }
         string messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
         List<object> messageHashes = this.findMessageHashes(client, add(messageHashStart, "::"));
@@ -1340,7 +1340,7 @@ public partial class xt : ccxt.xt
                 {
                     this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol});
                 }
-                ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(data);
+                (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
             }
             if ((obAsks != null))

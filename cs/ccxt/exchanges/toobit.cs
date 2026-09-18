@@ -1143,7 +1143,7 @@ public partial class toobit : Exchange
             Dictionary<string, object> parsed = this.parseMarket(market);
             if ((parsed != null))
             {
-                ((IList<object>)result).Add(parsed);
+                result.Add(parsed);
             }
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
@@ -1711,7 +1711,7 @@ public partial class toobit : Exchange
         {
             Dictionary<string, object> parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
-            ((IList<object>)results).Add(ticker);
+            results.Add(ticker);
         }
         symbols = this.marketSymbols(symbols);
         return this.filterByArray(results, "symbol", symbols);
@@ -2641,7 +2641,7 @@ public partial class toobit : Exchange
         }
         for (int i = 0; isLessThan(i, responseList?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+            ordersList.Add(new Dictionary<string, object>() {
                 { "result", getValue(responseList, i) },
             });
         }

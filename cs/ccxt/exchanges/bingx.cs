@@ -1597,8 +1597,8 @@ public partial class bingx : Exchange
         bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if ((isSandbox != true))
         {
-            ((IList<object>)requests).Add(this.FetchInverseSwapMarkets(parameters));
-            ((IList<object>)requests).Add(this.FetchSpotMarkets(parameters)); // sandbox is swap only
+            requests.Add(this.FetchInverseSwapMarkets(parameters));
+            requests.Add(this.FetchSpotMarkets(parameters)); // sandbox is swap only
         }
         List<object> promises = await promiseAll(requests);
         List<object> linearSwapMarkets = this.safeList(promises, 0, new List<object>() {});
@@ -4038,13 +4038,13 @@ public partial class bingx : Exchange
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol", "");
             string? type = this.safeString(rawOrder, "type");
-            ((IList<object>)marketIds).Add(marketId);
+            marketIds.Add(marketId);
             string? side = this.safeString(rawOrder, "side");
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         IList<object> symbols = this.marketSymbols(marketIds, null, false, true, true);
         int symbolsLength = symbols?.Count ?? 0;
@@ -4846,7 +4846,7 @@ public partial class bingx : Exchange
         {
             object id = getValue(idsToParse, i);
             string stringId = id.ToString();
-            ((IList<object>)parsedIds).Add(stringId);
+            parsedIds.Add(stringId);
         }
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "spot"), true))
@@ -6765,7 +6765,7 @@ public partial class bingx : Exchange
             Dictionary<string, object> position = this.parsePosition(new Dictionary<string, object>() {
                 { "positionId", getValue(success, i) },
             });
-            ((IList<object>)positions).Add(position);
+            positions.Add(position);
         }
         return positions;
     }
@@ -7189,7 +7189,7 @@ public partial class bingx : Exchange
             List<object> tierParts = tierString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+            tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(tierParts, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", this.safeString(market, "settle") },

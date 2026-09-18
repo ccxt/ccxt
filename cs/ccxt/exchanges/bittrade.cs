@@ -804,7 +804,7 @@ public partial class bittrade : Exchange
             {
                 throw new ExchangeError (add(this.id, " fetchMarkets() missing quoteId")) ;
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", add(baseId, quoteId) },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -1304,7 +1304,7 @@ public partial class bittrade : Exchange
             for (int j = 0; isLessThan(j, trades.Count); postFixIncrement(ref j))
             {
                 Dictionary<string, object> trade = this.parseTrade(getValue(trades, j), market);
-                ((IList<object>)result).Add(trade);
+                result.Add(trade);
             }
         }
         result = this.sortBy(result, "timestamp");
@@ -2108,7 +2108,7 @@ public partial class bittrade : Exchange
         for (int i = 0; isLessThan(i, success?.Count ?? 0); postFixIncrement(ref i))
         {
             object order = getValue(success, i);
-            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
                 { "status", "canceled" },
@@ -2117,7 +2117,7 @@ public partial class bittrade : Exchange
         for (int i = 0; isLessThan(i, failed.Count); postFixIncrement(ref i))
         {
             object order = getValue(failed, i);
-            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },
                 { "status", "failed" },

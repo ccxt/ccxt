@@ -1357,7 +1357,7 @@ public partial class blofin : Exchange
         {
             object rate = getValue(data, i);
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", rate },
                 { "symbol", GetValue(market, "symbol") },
                 { "fundingRate", this.safeNumber(rate, "fundingRate") },
@@ -2078,7 +2078,7 @@ public partial class blofin : Exchange
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> response = await this.privatePostTradeBatchOrders(ordersRequests);
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -2751,7 +2751,7 @@ public partial class blofin : Exchange
             {
                 for (int i = 0; isLessThan(i, getArrayLength(tpslIds)); postFixIncrement(ref i))
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "tpslId", getValue(tpslIds, i) },
                         { "instId", GetValue(market, "id") },
                     });
@@ -2761,13 +2761,13 @@ public partial class blofin : Exchange
             {
                 if ((trigger == true))
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "tpslId", getValue(ids, i) },
                         { "instId", GetValue(market, "id") },
                     });
                 } else
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "orderId", getValue(ids, i) },
                         { "instId", GetValue(market, "id") },
                     });
@@ -2777,7 +2777,7 @@ public partial class blofin : Exchange
         {
             for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
             {
-                ((IList<object>)request).Add(new Dictionary<string, object>() {
+                request.Add(new Dictionary<string, object>() {
                     { "instId", GetValue(market, "id") },
                     { "clientOrderId", getValue(clientOrderIds, i) },
                 });

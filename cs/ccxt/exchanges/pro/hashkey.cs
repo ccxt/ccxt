@@ -701,13 +701,13 @@ public partial class hashkey : ccxt.hashkey
         List<object> messageHashes = new List<object>() {};
         if (isEqual(symbols, null))
         {
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         } else
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add(add(messageHash, ":"), symbol));
+                messageHashes.Add(add(add(messageHash, ":"), symbol));
             }
         }
         string? url = this.getPrivateUrl(listenKey);

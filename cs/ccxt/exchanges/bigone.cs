@@ -736,7 +736,7 @@ public partial class bigone : Exchange
             string? quoteId = this.safeString(quoteAsset, "symbol");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "name") },
                 { "uuid", this.safeString(market, "id") },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -799,7 +799,7 @@ public partial class bigone : Exchange
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
             bool? inverse = this.safeBool(market, "isInverse");
-            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
                 { "base", bs },
@@ -1176,7 +1176,7 @@ public partial class bigone : Exchange
         {
             string? price = ((string)getValue(bidsAsksKeys, i));
             object amount = getValue(bidsAsks, price);
-            ((IList<object>)result).Add(new List<object> {this.parseNumber(price), this.parseNumber(amount)});
+            result.Add(new List<object> {this.parseNumber(price), this.parseNumber(amount)});
         }
         return ((List<object>)((object)(result)));
     }
@@ -1908,7 +1908,7 @@ public partial class bigone : Exchange
         for (int i = 0; isLessThan(i, cancelled.Count); postFixIncrement(ref i))
         {
             object orderId = getValue(cancelled, i);
-            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", orderId },
                 { "id", orderId },
                 { "status", "canceled" },
@@ -1917,7 +1917,7 @@ public partial class bigone : Exchange
         for (int i = 0; isLessThan(i, failed.Count); postFixIncrement(ref i))
         {
             object orderId = getValue(failed, i);
-            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", orderId },
                 { "id", orderId },
                 { "status", "failed" },

@@ -478,7 +478,7 @@ public partial class coinex : ccxt.coinex
         if ((market != null))
         {
             messageHash = add(messageHash, add(":", symbolVar));
-            ((IList<object>)subscribedSymbols).Add(GetValue(market, "id"));
+            subscribedSymbols.Add(GetValue(market, "id"));
         } else
         {
             if (type == "spot")
@@ -734,12 +734,12 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add("tickers::", GetValue(market, "symbol")));
+                messageHashes.Add(add("tickers::", GetValue(market, "symbol")));
             }
         } else
         {
             marketIds = new List<object>() {};
-            ((IList<object>)messageHashes).Add("tickers");
+            messageHashes.Add("tickers");
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchTickers", market, parameters);
@@ -814,12 +814,12 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)subscribedSymbols).Add(GetValue(market, "id"));
-                ((IList<object>)messageHashes).Add(add("trades:", GetValue(market, "symbol")));
+                subscribedSymbols.Add(GetValue(market, "id"));
+                messageHashes.Add(add("trades:", GetValue(market, "symbol")));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add("trades");
+            messageHashes.Add("trades");
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, market, parameters);
@@ -896,7 +896,7 @@ public partial class coinex : ccxt.coinex
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("orderbook:", GetValue(market, "symbol")));
+            messageHashes.Add(add("orderbook:", GetValue(market, "symbol")));
             watchOrderBookSubscriptions[(string)symbol] = new List<object>() {GetValue(market, "id"), limitVar, aggregation, true};
         }
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, market, parameters);
@@ -1408,11 +1408,11 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add("bidsasks:", GetValue(market, "symbol")));
+                messageHashes.Add(add("bidsasks:", GetValue(market, "symbol")));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add("bidsasks");
+            messageHashes.Add("bidsasks");
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);

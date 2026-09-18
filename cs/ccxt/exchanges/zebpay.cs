@@ -430,10 +430,10 @@ public partial class zebpay : Exchange
             object type = getValue(types, i);
             if (isEqual(type, "spot"))
             {
-                ((IList<object>)promisesUnresolved).Add(this.FetchSpotMarkets(parameters));
+                promisesUnresolved.Add(this.FetchSpotMarkets(parameters));
             } else if (isEqual(type, "swap"))
             {
-                ((IList<object>)promisesUnresolved).Add(this.FetchSwapMarkets(parameters));
+                promisesUnresolved.Add(this.FetchSwapMarkets(parameters));
             } else
             {
                 throw new ExchangeError (add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), type), "\" is not a supported market type")) ;
@@ -1232,8 +1232,8 @@ public partial class zebpay : Exchange
         if (isEqual(GetValue(market, "spot"), true))
         {
             var requestparametersVariable = this.orderRequest(symbol, type, amount, request, price, parameters);
-            request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
-            parameters = ((IList<object>)requestparametersVariable)[1];
+            request = (Dictionary<string, object>)requestparametersVariable[0];
+            parameters = requestparametersVariable[1];
             response = await this.privateSpotPostV2ExOrders(this.extend(request, parameters));
         } else
         {
@@ -1887,7 +1887,7 @@ public partial class zebpay : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             object symbol = add(add(bs, "/"), quote);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1971,7 +1971,7 @@ public partial class zebpay : Exchange
             string? settle = this.safeCurrencyCode(quoteId);
             string? status = this.safeString(market, "status");
             object symbol = add(add(bs, "/"), quote);
-            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(symbol, ":"), settle) },
                 { "base", bs },

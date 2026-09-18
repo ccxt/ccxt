@@ -183,8 +183,8 @@ public partial class p2b : ccxt.p2b
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), GetValue(market, "symbol")));
-            ((IList<object>)args).Add(GetValue(market, "id"));
+            messageHashes.Add(add(add(name, "::"), GetValue(market, "symbol")));
+            args.Add(GetValue(market, "id"));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -238,7 +238,7 @@ public partial class p2b : ccxt.p2b
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
+                messageHashes.Add(add("deals::", getValue(symbols, i)));
             }
         }
         IList<object> marketIds = this.marketIds(symbols);

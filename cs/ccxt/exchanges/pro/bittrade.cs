@@ -537,7 +537,7 @@ public partial class bittrade : ccxt.bittrade
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (isEqual(getValue(orderbook, "nonce"), null))
         {
-            ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
+            (orderbook as ccxt.pro.OrderBook).cache.Add(message);
         } else
         {
             this.handleOrderBookMessage(client, message, orderbook);

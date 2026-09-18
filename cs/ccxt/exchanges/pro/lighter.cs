@@ -420,13 +420,13 @@ public partial class lighter : ccxt.lighter
         }
         if ((isEqual(symbols, null)) || (isEqual(symbolsLength, 0)))
         {
-            ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
+            messageHashes.Add(this.getMessageHash("ticker"));
         } else
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(this.getMessageHash("ticker", symbol));
+                messageHashes.Add(this.getMessageHash("ticker", symbol));
             }
         }
         object newTicker = await this.subscribePublicMultiple(messageHashes, this.extend(request, parameters));

@@ -963,7 +963,7 @@ public partial class coinsph : Exchange
             object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
             object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
             object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -1045,7 +1045,7 @@ public partial class coinsph : Exchange
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 string? id = ((string)GetValue(market, "id"));
-                ((IList<object>)ids).Add(id);
+                ids.Add(id);
             }
             request["symbols"] = ids;
         }

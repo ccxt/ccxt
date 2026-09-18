@@ -928,7 +928,7 @@ public partial class grvt : Exchange
         List<object> promises = new List<object>() {marketsPromise};
         if (!isTrue(this.isEmptyString(this.apiKey)) || !isTrue(this.isEmptyString(this.privateKey)))
         {
-            ((IList<object>)promises).Add(this.signIn());
+            promises.Add(this.signIn());
         }
         List<object> results = await promiseAll(promises);
         object response = getValue(results, 0);
@@ -2116,10 +2116,10 @@ public partial class grvt : Exchange
                 string? direction = this.safeString(parsedMetadata, "direction");
                 if (isEqual(direction, transferType))
                 {
-                    ((IList<object>)matchedResults).Add(transfer);
+                    matchedResults.Add(transfer);
                 } else
                 {
-                    ((IList<object>)nonMatchedResults).Add(transfer);
+                    nonMatchedResults.Add(transfer);
                 }
             }
         }
@@ -2258,7 +2258,7 @@ public partial class grvt : Exchange
             return false;
         }
         List<object> promises = new List<object>() {};
-        ((IList<object>)promises).Add(this.privateTradingPostFullV1AggregatedAccountSummary());
+        promises.Add(this.privateTradingPostFullV1AggregatedAccountSummary());
         //
         //     {
         //         "result": {
@@ -2286,7 +2286,7 @@ public partial class grvt : Exchange
         bool accountIsUndefined = (this.safeString(this.options, "accountId") == null);
         if (accountIsUndefined)
         {
-            ((IList<object>)promises).Add(this.privateTradingPostFullV1GetSubAccounts());
+            promises.Add(this.privateTradingPostFullV1GetSubAccounts());
         }
         //
         //     {
@@ -2645,7 +2645,7 @@ public partial class grvt : Exchange
             {
                 legOrder["limitPrice"] = 0; // should be zero to validate type-check
             }
-            ((IList<object>)legs).Add(legOrder);
+            legs.Add(legOrder);
         }
         Dictionary<string, object> returnValue = new Dictionary<string, object>() {
             { "subAccountID", getValue(order, "sub_account_id") },

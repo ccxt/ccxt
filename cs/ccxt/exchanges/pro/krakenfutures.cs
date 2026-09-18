@@ -139,7 +139,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)marketIds).Add(this.marketId(symbol));
+            marketIds.Add(this.marketId(symbol));
         }
         int length = getArrayLength(symbols);
         if ((length == 1))
@@ -395,7 +395,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             Int64? timestamp = this.safeInteger(message, "timestamp");
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
@@ -1752,11 +1752,11 @@ public partial class krakenfutures : ccxt.krakenfutures
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             string? messageHash = this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i)));
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             if (!isTrue(this.subscriptionExistsForHash(url, messageHash)))
             {
-                ((IList<object>)rawSubs).Add(GetValue(market, "id"));
+                rawSubs.Add(GetValue(market, "id"));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};

@@ -196,7 +196,7 @@ public partial class binance : PredictionExchange
                 int eventMarketsLength = eventMarkets.Count;
                 for (int mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
                 {
-                    ((IList<object>)queryMarkets).Add(getValue(eventMarkets, mi));
+                    queryMarkets.Add(getValue(eventMarkets, mi));
                 }
             }
             return ccxt.BaseExchange.ToMarketInterfaceList(queryMarkets);
@@ -210,12 +210,12 @@ public partial class binance : PredictionExchange
         for (int i = 0; isLessThan(i, rawTopicsLength); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
-            ((IList<object>)parsedEvents).Add(parsedEvent);
+            parsedEvents.Add(parsedEvent);
             IList<object> eventMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
             int eventMarketsLength = eventMarkets.Count;
             for (int mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
             {
-                ((IList<object>)flatMarkets).Add(getValue(eventMarkets, mi));
+                flatMarkets.Add(getValue(eventMarkets, mi));
             }
         }
         this.setEvents(parsedEvents);
@@ -300,7 +300,7 @@ public partial class binance : PredictionExchange
             int pageTopicsLength = pageTopics.Count;
             for (int i = 0; isLessThan(i, pageTopicsLength); postFixIncrement(ref i))
             {
-                ((IList<object>)collected).Add(getValue(pageTopics, i));
+                collected.Add(getValue(pageTopics, i));
             }
             bool? hasMore = this.safeBool(response, "hasMore", false);
             if (((hasMore != true)) || (isLessThan(pageTopicsLength, reqLimit)))
@@ -357,14 +357,14 @@ public partial class binance : PredictionExchange
             }
             if (hasOutcomes)
             {
-                ((IList<object>)result).Add(rawTopic);
+                result.Add(rawTopic);
             } else
             {
                 string? topicId = this.safeString(rawTopic, "marketTopicId");
                 if ((topicId != null))
                 {
                     object detail = ccxt.BaseExchange.FromDict(await this.FetchRawTopicDetail(topicId));
-                    ((IList<object>)result).Add(detail);
+                    result.Add(detail);
                 }
             }
         }
@@ -405,11 +405,11 @@ public partial class binance : PredictionExchange
         List<object> allQueries = new List<object>() {};
         for (int i = 0; isLessThan(i, queries?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)allQueries).Add(getValue(queries, i));
+            allQueries.Add(getValue(queries, i));
         }
         for (int i = 0; isLessThan(i, tagsLength); postFixIncrement(ref i))
         {
-            ((IList<object>)allQueries).Add(getValue(tags, i));
+            allQueries.Add(getValue(tags, i));
         }
         int allQueriesLength = allQueries.Count;
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
@@ -474,7 +474,7 @@ public partial class binance : PredictionExchange
         for (int i = 0; isLessThan(i, rawTopicsLength); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
-            ((IList<object>)result).Add(parsedEvent);
+            result.Add(parsedEvent);
             IList<object> parsedMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
             int parsedMarketsLength = parsedMarkets.Count;
             for (int mi = 0; isLessThan(mi, parsedMarketsLength); postFixIncrement(ref mi))
@@ -551,7 +551,7 @@ public partial class binance : PredictionExchange
                     if ((already == null))
                     {
                         seen[(string)topicId] = topicId;
-                        ((IList<object>)collected).Add(rawTopic);
+                        collected.Add(rawTopic);
                     }
                 }
             }
@@ -626,7 +626,7 @@ public partial class binance : PredictionExchange
         for (int i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
         {
             object parsed = this.parseTopicMarket(getValue(rawMarkets, i), rawTopic);
-            ((IList<object>)marketsList).Add(parsed);
+            marketsList.Add(parsed);
             if (isTrue(this.safeBool(parsed, "active", false)))
             {
                 anyActive = true;
@@ -749,7 +749,7 @@ public partial class binance : PredictionExchange
             }
             bool? winner = winnerRaw;
             int? settleFraction = settleFractionRaw;
-            ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
+            outcomes.Add(new Dictionary<string, object>() {
                 { "id", tokenId },
                 { "outcomeId", tokenId },
                 { "outcome", outcomeHandle },
@@ -1459,7 +1459,7 @@ public partial class binance : PredictionExchange
             string? positionOutcome = this.safeString(position, "outcome");
             if (((positionOutcome != null)) && (inOp(requestedOutcomeSymbols, positionOutcome)))
             {
-                ((IList<object>)filtered).Add(position);
+                filtered.Add(position);
             }
         }
         return ccxt.BaseExchange.ToPredictionPositionList(filtered);
@@ -2099,7 +2099,7 @@ public partial class binance : PredictionExchange
                 { "timestamp", this.milliseconds() },
                 { "datetime", this.iso8601(this.milliseconds()) },
             };
-            ((IList<object>)orders).Add(this.safePredictionOrder(order));
+            orders.Add(this.safePredictionOrder(order));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(orders);
     }

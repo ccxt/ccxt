@@ -2338,8 +2338,8 @@ public partial class poloniex : Exchange
         };
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
-        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
+        request = (Dictionary<string, object>)requestparametersVariable[0];
+        parameters = requestparametersVariable[1];
         IDictionary<string, object> response = new Dictionary<string, object>() {};
         if ((isEqual(GetValue(market, "swap"), true)) || (isEqual(GetValue(market, "future"), true)))
         {
@@ -2500,8 +2500,8 @@ public partial class poloniex : Exchange
         };
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
-        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
+        request = (Dictionary<string, object>)requestparametersVariable[0];
+        parameters = requestparametersVariable[1];
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         if (!isEqual(triggerPrice, null))
         {
@@ -3034,7 +3034,7 @@ public partial class poloniex : Exchange
             {
                 double? price = this.safeNumber(asks, i);
                 double? amount = this.safeNumber(asks, this.sum(i, 1));
-                ((IList<object>)asksResult).Add(new List<object>() {price, amount});
+                asksResult.Add(new List<object>() {price, amount});
             }
         }
         for (int i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
@@ -3043,7 +3043,7 @@ public partial class poloniex : Exchange
             {
                 double? price = this.safeNumber(bids, i);
                 double? amount = this.safeNumber(bids, this.sum(i, 1));
-                ((IList<object>)bidsResult).Add(new List<object>() {price, amount});
+                bidsResult.Add(new List<object>() {price, amount});
             }
         }
         return ccxt.BaseExchange.ToOrderBook(new Dictionary<string, object>() {             { "symbol", GetValue(market, "symbol") },             { "bids", this.sortBy(bidsResult, 0, true) },             { "asks", this.sortBy(asksResult, 0) },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "nonce", null },         });
@@ -3063,10 +3063,10 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
-        var request = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[0];
-        var extraParams = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[1];
-        var currency = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[2];
-        var networkEntry = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[3];
+        var request = requestextraParamscurrencynetworkEntryVariable[0];
+        var extraParams = requestextraParamscurrencynetworkEntryVariable[1];
+        var currency = requestextraParamscurrencynetworkEntryVariable[2];
+        var networkEntry = requestextraParamscurrencynetworkEntryVariable[3];
         parameters = extraParams;
         Dictionary<string, object> response = await this.privatePostWalletsAddress(this.extend(request, parameters));
         //
@@ -3091,10 +3091,10 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
-        var request = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[0];
-        var extraParams = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[1];
-        var currency = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[2];
-        var networkEntry = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[3];
+        var request = requestextraParamscurrencynetworkEntryVariable[0];
+        var extraParams = requestextraParamscurrencynetworkEntryVariable[1];
+        var currency = requestextraParamscurrencynetworkEntryVariable[2];
+        var networkEntry = requestextraParamscurrencynetworkEntryVariable[3];
         parameters = extraParams;
         Dictionary<string, object> response = await this.privateGetWalletsAddresses(this.extend(request, parameters));
         //

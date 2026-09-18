@@ -374,7 +374,7 @@ public partial class bitbns : Exchange
             bool usdt = (quoteId == "USDT");
             // INR markets don't need a _INR prefix
             object uppercaseId = usdt ? (add(add(baseId, "_"), quoteId)) : baseId;
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", uppercaseId },
                 { "symbol", add(add(bs, "/"), quote) },

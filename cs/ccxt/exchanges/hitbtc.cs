@@ -915,7 +915,7 @@ public partial class hitbtc : Exchange
             string? stepString = this.safeString(market, "tick_size");
             double? lot = this.parseNumber(lotString);
             double? step = this.parseNumber(stepString);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -3321,7 +3321,7 @@ public partial class hitbtc : Exchange
                 string? symbolInner = this.safeSymbol(GetValue(marketInner, "symbol"));
                 double? fundingRate = this.safeNumber(entry, "funding_rate");
                 string? datetime = this.safeString(entry, "timestamp");
-                ((IList<object>)rates).Add(new Dictionary<string, object>() {
+                rates.Add(new Dictionary<string, object>() {
                     { "info", entry },
                     { "symbol", symbolInner },
                     { "fundingRate", fundingRate },
@@ -3419,7 +3419,7 @@ public partial class hitbtc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(response, i)));
+            result.Add(this.parsePosition(getValue(response, i)));
         }
         return ccxt.BaseExchange.ToPositionList(result);
     }
@@ -3676,7 +3676,7 @@ public partial class hitbtc : Exchange
             string? marketId = ((string)getValue(markets, i));
             Dictionary<string, object> marketInner = this.safeMarket(marketId);
             IDictionary<string, object> openInterest = this.safeDict(response, marketId, new Dictionary<string, object>() {});
-            ((IList<object>)results).Add(this.parseOpenInterest(openInterest, marketInner));
+            results.Add(this.parseOpenInterest(openInterest, marketInner));
         }
         return ccxt.BaseExchange.ToOpenInterests(this.filterByArray(results, "symbol", symbols));
     }
@@ -4344,16 +4344,16 @@ public partial class hitbtc : Exchange
             {
                 if ((getRequest != null))
                 {
-                    ((IList<object>)payload).Add(getRequest);
+                    payload.Add(getRequest);
                 }
             } else
             {
                 if (!isEqual(body, null))
                 {
-                    ((IList<object>)payload).Add(body);
+                    payload.Add(body);
                 }
             }
-            ((IList<object>)payload).Add(timestamp);
+            payload.Add(timestamp);
             string payloadString = String.Join("", payload.ToArray());
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
             object secondPayload = add(add(add(add(this.apiKey, ":"), signature), ":"), timestamp);

@@ -377,7 +377,7 @@ public partial class kalshi : PredictionExchange
                 int eventMarketsLength = eventMarkets.Count;
                 for (int mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
                 {
-                    ((IList<object>)queryMarkets).Add(getValue(eventMarkets, mi));
+                    queryMarkets.Add(getValue(eventMarkets, mi));
                 }
             }
             return ccxt.BaseExchange.ToMarketInterfaceList(queryMarkets);
@@ -419,7 +419,7 @@ public partial class kalshi : PredictionExchange
                 for (int j = 0; isLessThan(j, parsed?.Count ?? 0); postFixIncrement(ref j))
                 {
                     object m = getValue(parsed, j);
-                    ((IList<object>)flatMarkets).Add(m);
+                    flatMarkets.Add(m);
                     if (((eventKey != null)) && (eventKey != ""))
                     {
                         if (!(inOp(eventsDict, eventKey)))
@@ -587,7 +587,7 @@ public partial class kalshi : PredictionExchange
             if (!(inOp(seen, baseTicker)))
             {
                 seen[(string)baseTicker] = true;
-                ((IList<object>)tickers).Add(baseTicker);
+                tickers.Add(baseTicker);
             }
         }
         if (isEqual(this.markets, null))
@@ -607,7 +607,7 @@ public partial class kalshi : PredictionExchange
             List<object> chunk = new List<object>() {};
             for (object i = startIndex; isLessThan(i, endIndex); postFixIncrement(ref i))
             {
-                ((IList<object>)chunk).Add(getValue(tickers, i));
+                chunk.Add(getValue(tickers, i));
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "tickers", String.Join(",", chunk.ToArray()) },
@@ -806,7 +806,7 @@ public partial class kalshi : PredictionExchange
             // reassigned local into the anonymous inner class it emits for a map literal)
             bool? winner = winnerRaw;
             int? settleFraction = settleFractionRaw;
-            ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
+            outcomes.Add(new Dictionary<string, object>() {
                 { "id", getValue(outcomeIds, oi) },
                 { "outcomeId", getValue(outcomeIds, oi) },
                 { "outcome", outcomeHandle },
@@ -1198,7 +1198,7 @@ public partial class kalshi : PredictionExchange
         List<object> targets = new List<object>() {};
         for (int i = 0; isLessThan(i, outcomes?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)targets).Add(getValue(outcomes, i));
+            targets.Add(getValue(outcomes, i));
         }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         Dictionary<string, object> outcomesByTicker = new Dictionary<string, object>() {};
@@ -1214,7 +1214,7 @@ public partial class kalshi : PredictionExchange
             if (!(inOp(outcomesByTicker, ticker)))
             {
                 outcomesByTicker[(string)ticker] = new List<object>() {};
-                ((IList<object>)tickers).Add(ticker);
+                tickers.Add(ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             object grouped = getValue(outcomesByTicker, ticker);
@@ -1235,7 +1235,7 @@ public partial class kalshi : PredictionExchange
             List<object> chunk = new List<object>() {};
             for (object i = startIndex; isLessThan(i, endIndex); postFixIncrement(ref i))
             {
-                ((IList<object>)chunk).Add(getValue(tickers, i));
+                chunk.Add(getValue(tickers, i));
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "tickers", String.Join(",", chunk.ToArray()) },
@@ -1314,13 +1314,13 @@ public partial class kalshi : PredictionExchange
             for (int bi = 0; isLessThan(bi, rawNo.Count); postFixIncrement(ref bi))
             {
                 double? price = this.safeNumber(getValue(rawNo, bi), 0);
-                ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(getValue(rawNo, bi), 1)});
+                bids.Add(new List<object>() {price, this.safeNumber(getValue(rawNo, bi), 1)});
             }
             for (int ai = 0; isLessThan(ai, rawYes.Count); postFixIncrement(ref ai))
             {
                 double? yesPrice = this.safeNumber(getValue(rawYes, ai), 0);
                 double? price = (!isEqual(yesPrice, null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
-                ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(getValue(rawYes, ai), 1)});
+                asks.Add(new List<object>() {price, this.safeNumber(getValue(rawYes, ai), 1)});
             }
         } else
         {
@@ -1328,13 +1328,13 @@ public partial class kalshi : PredictionExchange
             for (int bi = 0; isLessThan(bi, rawYes.Count); postFixIncrement(ref bi))
             {
                 double? price = this.safeNumber(getValue(rawYes, bi), 0);
-                ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(getValue(rawYes, bi), 1)});
+                bids.Add(new List<object>() {price, this.safeNumber(getValue(rawYes, bi), 1)});
             }
             for (int ai = 0; isLessThan(ai, rawNo.Count); postFixIncrement(ref ai))
             {
                 double? noPrice = this.safeNumber(getValue(rawNo, ai), 0);
                 double? price = (!isEqual(noPrice, null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
-                ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(getValue(rawNo, ai), 1)});
+                asks.Add(new List<object>() {price, this.safeNumber(getValue(rawNo, ai), 1)});
             }
         }
         return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), timestamp, bids, asks), outcomeObj));
@@ -1468,7 +1468,7 @@ public partial class kalshi : PredictionExchange
             double? previousPrice = this.safeNumber(priceObj, "previous_dollars");
             if ((!isEqual(openPrice, null)) || (!isEqual(previousPrice, null)))
             {
-                ((IList<object>)usableCandles).Add(candle);
+                usableCandles.Add(candle);
             }
         }
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
@@ -1565,7 +1565,7 @@ public partial class kalshi : PredictionExchange
             string? tradeTicker = this.safeString2(trade, "ticker", "market_ticker");
             if ((tradeTicker == null) || (tradeTicker == ticker))
             {
-                ((IList<object>)filteredTrades).Add(trade);
+                filteredTrades.Add(trade);
             }
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit));
@@ -1680,7 +1680,7 @@ public partial class kalshi : PredictionExchange
         List<object> trades = new List<object>() {};
         for (int i = 0; isLessThan(i, fillsLength); postFixIncrement(ref i))
         {
-            ((IList<object>)trades).Add(this.parseMyTrade(getValue(fills, i), outcomeObj));
+            trades.Add(this.parseMyTrade(getValue(fills, i), outcomeObj));
         }
         string? wantedOutcome = null;
         if (!isEqual(outcome, null))
@@ -1693,7 +1693,7 @@ public partial class kalshi : PredictionExchange
             object trade = getValue(trades, i);
             if (((wantedOutcome == null)) || (isEqual(this.safeString(trade, "outcome"), wantedOutcome)))
             {
-                ((IList<object>)result).Add(trade);
+                result.Add(trade);
             }
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterBySinceLimit(result, since, limit, "timestamp"));
@@ -1885,7 +1885,7 @@ public partial class kalshi : PredictionExchange
             string? positionTicker = this.safeString(positionInfo, "ticker");
             if (((positionTicker != null)) && (inOp(wantedTickers, positionTicker)))
             {
-                ((IList<object>)result).Add(position);
+                result.Add(position);
             }
         }
         return ccxt.BaseExchange.ToPredictionPositionList(result);
@@ -1920,7 +1920,7 @@ public partial class kalshi : PredictionExchange
         List<object> parsed = new List<object>() {};
         for (int i = 0; isLessThan(i, rawSettlementsLength); postFixIncrement(ref i))
         {
-            ((IList<object>)parsed).Add(this.parseSettlement(getValue(rawSettlements, i)));
+            parsed.Add(this.parseSettlement(getValue(rawSettlements, i)));
         }
         string? wantedOutcome = null;
         if (!isEqual(outcome, null))
@@ -1933,7 +1933,7 @@ public partial class kalshi : PredictionExchange
             Dictionary<string, object> settlement = ((Dictionary<string, object>)getValue(parsed, i));
             if (((wantedOutcome == null)) || (isEqual(this.safeString(settlement, "outcome"), wantedOutcome)))
             {
-                ((IList<object>)result).Add(settlement);
+                result.Add(settlement);
             }
         }
         return ccxt.BaseExchange.ToPredictionSettlementList(this.filterBySinceLimit(result, since, limit, "timestamp"));
@@ -2157,7 +2157,7 @@ public partial class kalshi : PredictionExchange
             string? status = this.safeString(order, "status");
             if ((status == "closed") || (status == "canceled"))
             {
-                ((IList<object>)result).Add(order);
+                result.Add(order);
             }
         }
         return ccxt.BaseExchange.ToPredictionOrderList(this.filterBySinceLimit(result, since, limit, "timestamp"));
@@ -2519,7 +2519,7 @@ public partial class kalshi : PredictionExchange
                 // carries the true side/outcome/price/count, then mark it canceled
                 Dictionary<string, object> parsed = this.parsePredictionOrder(restingOrder);
                 parsed["status"] = "canceled";
-                ((IList<object>)canceledOrders).Add(parsed);
+                canceledOrders.Add(parsed);
             }
         }
         return ccxt.BaseExchange.ToPredictionOrderList(canceledOrders);
@@ -2606,7 +2606,7 @@ public partial class kalshi : PredictionExchange
         for (int di = 0; isLessThan(di, rawEventsLength); postFixIncrement(ref di))
         {
             Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawEvents, di));
-            ((IList<object>)result).Add(parsedEvent);
+            result.Add(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
             object parsedMarketsRaw = GetValue(parsedEvent, "markets");
             object parsedMarkets = ((parsedMarketsRaw != null)) ? parsedMarketsRaw : new List<object>() {};
@@ -2661,7 +2661,7 @@ public partial class kalshi : PredictionExchange
                     if ((already == null))
                     {
                         seen[(string)et] = et;
-                        ((IList<object>)eventTickers).Add(et);
+                        eventTickers.Add(et);
                     }
                 }
             }
@@ -2678,7 +2678,7 @@ public partial class kalshi : PredictionExchange
             try
             {
                 object fullEvent = ccxt.BaseExchange.FromDict(await this.FetchRawEventByTicker(getValue(eventTickers, ei), rest));
-                ((IList<object>)rawEvents).Add(fullEvent);
+                rawEvents.Add(fullEvent);
             } catch(Exception e)
             {
                 if (!isTrue((e is BadSymbol)))
@@ -2743,7 +2743,7 @@ public partial class kalshi : PredictionExchange
                 string? st = this.safeString(getValue(seriesList, si), "ticker");
                 if ((st != null))
                 {
-                    ((IList<object>)collected).Add(st);
+                    collected.Add(st);
                 }
             }
         }
@@ -2760,7 +2760,7 @@ public partial class kalshi : PredictionExchange
                 string? st = this.safeString(getValue(seriesList, si), "ticker");
                 if ((st != null))
                 {
-                    ((IList<object>)collected).Add(st);
+                    collected.Add(st);
                 }
             }
         }
@@ -2772,7 +2772,7 @@ public partial class kalshi : PredictionExchange
             int partsLength = parts.Count;
             for (int pi = 0; isLessThan(pi, partsLength); postFixIncrement(ref pi))
             {
-                ((IList<object>)collected).Add(getValue(parts, pi));
+                collected.Add(getValue(parts, pi));
             }
         }
         // deduplicate preserving order
@@ -2786,7 +2786,7 @@ public partial class kalshi : PredictionExchange
             if (((st != null)) && (!isEqual(st, "")) && ((already == null)))
             {
                 seen[(string)st] = st;
-                ((IList<object>)ordered).Add(st);
+                ordered.Add(st);
             }
         }
         return ordered;
@@ -2848,7 +2848,7 @@ public partial class kalshi : PredictionExchange
                 int pageEventsLength = pageEvents.Count;
                 for (int ei = 0; isLessThan(ei, pageEventsLength); postFixIncrement(ref ei))
                 {
-                    ((IList<object>)rawEvents).Add(getValue(pageEvents, ei));
+                    rawEvents.Add(getValue(pageEvents, ei));
                 }
                 cursor = this.safeString(response, "cursor");
                 int collectedAfterPage = rawEvents.Count;
@@ -2972,7 +2972,7 @@ public partial class kalshi : PredictionExchange
         {
             object rawMarket = getValue(rawMarkets, i);
             Dictionary<string, object> parsed = this.parseMarket(rawMarket);
-            ((IList<object>)marketsList).Add(parsed);
+            marketsList.Add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
             Int64? marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));

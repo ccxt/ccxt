@@ -71,7 +71,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             market = this.market(symbol);
             messageHash = add(messageHash, add(":", GetValue(market, "id")));
-            ((IList<object>)productIds).Add(GetValue(market, "id"));
+            productIds.Add(GetValue(market, "id"));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         if (inOp(parameters, "signature"))
@@ -104,8 +104,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
-            ((IList<object>)productIds).Add(GetValue(market, "id"));
-            ((IList<object>)messageHashes).Add(add(add(messageHashStart, ":"), GetValue(market, "symbol")));
+            productIds.Add(GetValue(market, "id"));
+            messageHashes.Add(add(add(messageHashStart, ":"), GetValue(market, "symbol")));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         if (inOp(parameters, "signature"))
@@ -400,7 +400,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         for (int i = 0; isLessThan(i, symbolsLength); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            ((IList<object>)messageHashes).Add(add(add(name, ":"), marketId));
+            messageHashes.Add(add(add(name, ":"), marketId));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {

@@ -400,7 +400,7 @@ public partial class revolutx : Exchange
             Dictionary<string, object> marketData = this.extend(market, new Dictionary<string, object>() {
                 { "id", marketId },
             });
-            ((IList<object>)result).Add(this.parseMarket(marketData));
+            result.Add(this.parseMarket(marketData));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -580,7 +580,7 @@ public partial class revolutx : Exchange
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)marketIds).Add(GetValue(market, "id"));
+                marketIds.Add(GetValue(market, "id"));
             }
             request["symbols"] = String.Join(",", marketIds.ToArray());
         }
@@ -891,7 +891,7 @@ public partial class revolutx : Exchange
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseTrade(trade, market));
+            result.Add(this.parseTrade(trade, market));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit));
     }
@@ -1302,7 +1302,7 @@ public partial class revolutx : Exchange
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> order = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseOrder(order));
+            result.Add(this.parseOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(result, symbol, since, limit));
     }
@@ -1378,7 +1378,7 @@ public partial class revolutx : Exchange
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> order = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseOrder(order));
+            result.Add(this.parseOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(result, symbol, since, limit));
     }
@@ -1518,7 +1518,7 @@ public partial class revolutx : Exchange
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseMyTrade(trade, market));
+            result.Add(this.parseMyTrade(trade, market));
         }
         return ccxt.BaseExchange.ToTradeList(result);
     }

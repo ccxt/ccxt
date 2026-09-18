@@ -336,8 +336,8 @@ public partial class kraken : ccxt.kraken
             { "req_id", requestId },
         };
         var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, request, amount, price, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
+        request = requestparametersVariable[0];
+        parameters = requestparametersVariable[1];
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
@@ -407,8 +407,8 @@ public partial class kraken : ccxt.kraken
             { "req_id", requestId },
         };
         var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, request, amount, price, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
+        request = requestparametersVariable[0];
+        parameters = requestparametersVariable[1];
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
@@ -1096,13 +1096,13 @@ public partial class kraken : ccxt.kraken
                 {
                     object currentAsk = this.safeValue(checkAsks, i, new Dictionary<string, object>() {});
                     string formattedAsk = add(this.formatNumber(getValue(currentAsk, 0)), this.formatNumber(getValue(currentAsk, 1)));
-                    ((IList<object>)payloadArray).Add(formattedAsk);
+                    payloadArray.Add(formattedAsk);
                 }
                 for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
                 {
                     object currentBid = this.safeValue(checkBids, i, new Dictionary<string, object>() {});
                     string formattedBid = add(this.formatNumber(getValue(currentBid, 0)), this.formatNumber(getValue(currentBid, 1)));
-                    ((IList<object>)payloadArray).Add(formattedBid);
+                    payloadArray.Add(formattedBid);
                 }
             }
             string payload = String.Join("", payloadArray.ToArray());
@@ -1613,10 +1613,10 @@ public partial class kraken : ccxt.kraken
             string? eventTrigger = this.safeString(parameters, "event_trigger");
             if ((eventTrigger != null))
             {
-                ((IList<object>)messageHashes).Add(this.getMessageHash(channelName, null, this.symbol(getValue(symbols, i))));
+                messageHashes.Add(this.getMessageHash(channelName, null, this.symbol(getValue(symbols, i))));
             } else
             {
-                ((IList<object>)messageHashes).Add(this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i))));
+                messageHashes.Add(this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i))));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

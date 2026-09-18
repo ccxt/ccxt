@@ -411,15 +411,15 @@ public partial class binance : ccxt.binance
         symbols = this.marketSymbols(symbols, null, true, true);
         if (isTrue(this.isEmpty(symbols)))
         {
-            ((IList<object>)subscriptionHashes).Add(add("!", "forceOrder@arr"));
-            ((IList<object>)messageHashes).Add("liquidations");
+            subscriptionHashes.Add(add("!", "forceOrder@arr"));
+            messageHashes.Add("liquidations");
         } else
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                ((IList<object>)subscriptionHashes).Add(add(GetValue(market, "lowercaseId"), "@forceOrder"));
-                ((IList<object>)messageHashes).Add(add("liquidations::", getValue(symbols, i)));
+                subscriptionHashes.Add(add(GetValue(market, "lowercaseId"), "@forceOrder"));
+                messageHashes.Add(add("liquidations::", getValue(symbols, i)));
             }
             streamHash = add(streamHash, add("::", String.Join(",", symbols.ToArray())));
         }
@@ -657,15 +657,15 @@ public partial class binance : ccxt.binance
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add("myLiquidations::", symbol));
+                messageHashes.Add(add("myLiquidations::", symbol));
             }
         }
         object type = null;
         object subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchMyLiquidationsForSymbols", market, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
-        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        type = typesubTypeparametersVariable[0];
+        subType = typesubTypeparametersVariable[1];
+        parameters = typesubTypeparametersVariable[2];
         // hand the resolved type forward: the helper already omitted type and
         // subType from params, so a bare authenticate would re-derive from
         // options.defaultType and seed a different bucket than the listenKey
@@ -843,14 +843,14 @@ public partial class binance : ccxt.binance
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("orderbook::", symbol));
+            messageHashes.Add(add("orderbook::", symbol));
             object subscriptionHash = add(add(GetValue(market, "lowercaseId"), "@"), name);
             if ((watchOrderBookRate == null))
             {
                 throw new ArgumentsRequired (add(this.id, " watchOrderBookForSymbols() watchOrderBookRate is required")) ;
             }
             object symbolHash = add(add(add(subscriptionHash, "@"), watchOrderBookRate.ToString()), "ms");
-            ((IList<object>)subParams).Add(symbolHash);
+            subParams.Add(symbolHash);
         }
         int messageHashesLength = messageHashes.Count;
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, messageHashesLength));
@@ -918,12 +918,12 @@ public partial class binance : ccxt.binance
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subMessageHashes).Add(add("orderbook::", symbol));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
+            subMessageHashes.Add(add("orderbook::", symbol));
+            messageHashes.Add(add("unsubscribe:orderbook:", symbol));
             object streamId = GetValue(market, "lowercaseId");
             object subscriptionHash = add(add(streamId, "@"), name);
             object symbolHash = add(add(add(subscriptionHash, "@"), watchOrderBookRate), "ms");
-            ((IList<object>)subParams).Add(symbolHash);
+            subParams.Add(symbolHash);
         }
         int messageHashesLength = subMessageHashes.Count;
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream(type, streamHash, messageHashesLength));
@@ -1197,7 +1197,7 @@ public partial class binance : ccxt.binance
         if (isEqual(nonce, null))
         {
             // 2. Buffer the events you receive from the stream.
-            ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
+            (orderbook as ccxt.pro.OrderBook).cache.Add(message);
         } else
         {
             try
@@ -1407,14 +1407,14 @@ public partial class binance : ccxt.binance
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add("trade::", symbol));
+                messageHashes.Add(add("trade::", symbol));
                 string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
                 string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 string underlying = add(add(baseIdLower, ""), quoteIdLower);
                 if (!(inOp(seenUnderlyings, underlying)))
                 {
                     seenUnderlyings[(string)underlying] = true;
-                    ((IList<object>)subParams).Add(add(underlying, "@optionTrade"));
+                    subParams.Add(add(underlying, "@optionTrade"));
                 }
             }
         } else
@@ -1423,9 +1423,9 @@ public partial class binance : ccxt.binance
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add("trade::", symbol));
+                messageHashes.Add(add("trade::", symbol));
                 object rawHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-                ((IList<object>)subParams).Add(rawHash);
+                subParams.Add(rawHash);
             }
         }
         object query = this.omit(parameters, "type");
@@ -1508,15 +1508,15 @@ public partial class binance : ccxt.binance
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)subMessageHashes).Add(add("trade::", symbol));
-                ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", symbol));
+                subMessageHashes.Add(add("trade::", symbol));
+                messageHashes.Add(add("unsubscribe:trade:", symbol));
                 string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
                 string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 string underlying = add(add(baseIdLower, ""), quoteIdLower);
                 if (!(inOp(seenUnderlyings, underlying)))
                 {
                     seenUnderlyings[(string)underlying] = true;
-                    ((IList<object>)subParams).Add(add(underlying, "@optionTrade"));
+                    subParams.Add(add(underlying, "@optionTrade"));
                 }
             }
         } else
@@ -1525,10 +1525,10 @@ public partial class binance : ccxt.binance
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)subMessageHashes).Add(add("trade::", symbol));
-                ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", symbol));
+                subMessageHashes.Add(add("trade::", symbol));
+                messageHashes.Add(add("unsubscribe:trade:", symbol));
                 object rawHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-                ((IList<object>)subParams).Add(rawHash);
+                subParams.Add(rawHash);
             }
         }
         object query = this.omit(parameters, "type");
@@ -1878,8 +1878,8 @@ public partial class binance : ccxt.binance
                 {
                     throw new BadRequest (add(this.id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
                 }
-                ((IList<object>)stockStreams).Add(add(add(stockTickerString, "@kline_"), stockInterval));
-                ((IList<object>)stockMessageHashes).Add(add(add(add("ohlcv::", GetValue(stockMarket, "symbol")), "::"), stockTimeframeString));
+                stockStreams.Add(add(add(stockTickerString, "@kline_"), stockInterval));
+                stockMessageHashes.Add(add(add(add("ohlcv::", GetValue(stockMarket, "symbol")), "::"), stockTimeframeString));
             }
             object stockRes = await this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters);
             var stockSymbolstockTimeframestockCandlesVariable = stockRes;
@@ -1939,8 +1939,8 @@ public partial class binance : ccxt.binance
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
             string utcSuffix = shouldUseUTC8 ? suffix : "";
-            ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
+            rawHashes.Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
+            messageHashes.Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
         }
         object url = add(add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV"));
         Int64 requestId = ((Int64)this.requestId(url));
@@ -2032,9 +2032,9 @@ public partial class binance : ccxt.binance
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
             string utcSuffix = shouldUseUTC8 ? suffix : "";
-            ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
-            ((IList<object>)subMessageHashes).Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
-            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
+            rawHashes.Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
+            subMessageHashes.Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
+            messageHashes.Add(add(add(add("unsubscribe::ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
         }
         object url = add(add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV"));
         Int64 requestId = ((Int64)this.requestId(url));
@@ -2582,8 +2582,8 @@ public partial class binance : ccxt.binance
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object stockTicker = this.getStockTickerFromSymbol(getValue(symbols, i));
-                ((IList<object>)stockStreams).Add(add(stockTicker, "@quote"));
-                ((IList<object>)stockMessageHashes).Add(add("stock:quote:", getValue(symbols, i)));
+                stockStreams.Add(add(stockTicker, "@quote"));
+                stockMessageHashes.Add(add("stock:quote:", getValue(symbols, i)));
             }
             object stockResult = await this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters);
             if (isTrue(this.newUpdates))
@@ -2683,10 +2683,10 @@ public partial class binance : ccxt.binance
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol));
+                messageHashes.Add(add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol));
                 if (isTrue(isUnsubscribe))
                 {
-                    ((IList<object>)unsubscribeMessageHashes).Add(add(add(add(add(add("unsubscribe::", unifiedPrefix), ":"), channelName), "@"), symbol));
+                    unsubscribeMessageHashes.Add(add(add(add(add(add("unsubscribe::", unifiedPrefix), ":"), channelName), "@"), symbol));
                 }
                 if (isOptionMarkPrice)
                 {
@@ -2697,7 +2697,7 @@ public partial class binance : ccxt.binance
                     if (!(inOp(seenUnderlyings, underlying)))
                     {
                         seenUnderlyings[(string)underlying] = true;
-                        ((IList<object>)subscriptionArgs).Add(add(underlying, "@optionMarkPrice"));
+                        subscriptionArgs.Add(add(underlying, "@optionMarkPrice"));
                     }
                 } else if (isOptionTicker)
                 {
@@ -2713,12 +2713,12 @@ public partial class binance : ccxt.binance
                     if (!(inOp(seenUnderlyings, subscriptionArg)))
                     {
                         seenUnderlyings[(string)subscriptionArg] = true;
-                        ((IList<object>)subscriptionArgs).Add(subscriptionArg);
+                        subscriptionArgs.Add(subscriptionArg);
                     }
                 } else
                 {
                     object streamId = GetValue(market, "lowercaseId");
-                    ((IList<object>)subscriptionArgs).Add(add(add(add(streamId, "@"), channelName), suffix));
+                    subscriptionArgs.Add(add(add(add(streamId, "@"), channelName), suffix));
                 }
             }
         } else
@@ -2738,33 +2738,33 @@ public partial class binance : ccxt.binance
                     {
                         throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")) ;
                     }
-                    ((IList<object>)subscriptionArgs).Add(add(add(underlying, "@optionTicker@"), expirationDate));
+                    subscriptionArgs.Add(add(add(underlying, "@optionTicker@"), expirationDate));
                 } else
                 {
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
-                    ((IList<object>)subscriptionArgs).Add(add(underlying, "@optionMarkPrice"));
+                    subscriptionArgs.Add(add(underlying, "@optionMarkPrice"));
                 }
-                ((IList<object>)messageHashes).Add(add(add(unifiedPrefix, "s:"), channelName));
-                ((IList<object>)unsubscribeMessageHashes).Add(add("unsubscribe::", channelName));
+                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                unsubscribeMessageHashes.Add(add("unsubscribe::", channelName));
             } else if (isBidAsk)
             {
                 if (isEqual(marketType, "spot"))
                 {
                     throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires symbols for this channel for spot markets")) ;
                 }
-                ((IList<object>)subscriptionArgs).Add(add("!", channelName));
-                ((IList<object>)messageHashes).Add(add(add(unifiedPrefix, "s:"), channelName));
-                ((IList<object>)unsubscribeMessageHashes).Add(add("unsubscribe::", channelName));
+                subscriptionArgs.Add(add("!", channelName));
+                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                unsubscribeMessageHashes.Add(add("unsubscribe::", channelName));
             } else if (isMarkPrice)
             {
-                ((IList<object>)subscriptionArgs).Add(add(add(add("!", channelName), "@arr"), suffix));
-                ((IList<object>)messageHashes).Add(add(add(unifiedPrefix, "s:"), channelName));
-                ((IList<object>)unsubscribeMessageHashes).Add(add("unsubscribe::", channelName));
+                subscriptionArgs.Add(add(add(add("!", channelName), "@arr"), suffix));
+                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                unsubscribeMessageHashes.Add(add("unsubscribe::", channelName));
             } else
             {
-                ((IList<object>)subscriptionArgs).Add(add(add("!", channelName), "@arr"));
-                ((IList<object>)messageHashes).Add(add(add(unifiedPrefix, "s:"), channelName));
-                ((IList<object>)unsubscribeMessageHashes).Add(add("unsubscribe::", channelName));
+                subscriptionArgs.Add(add(add("!", channelName), "@arr"));
+                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                unsubscribeMessageHashes.Add(add("unsubscribe::", channelName));
             }
         }
         object streamHash = channelName;
@@ -3125,7 +3125,7 @@ public partial class binance : ccxt.binance
                 }
             }
             object messageHash = add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol);
-            ((IList<object>)resolvedMessageHashes).Add(messageHash);
+            resolvedMessageHashes.Add(messageHash);
             callDynamically(client, "resolve", new object[] {parsedTicker, messageHash});
         }
         // resolve batch endpoint
@@ -3953,7 +3953,7 @@ public partial class binance : ccxt.binance
             string? entryPrice = this.safeString(parsed, "entryPrice");
             if ((entryPrice != "0") && (entryPrice != "0.0") && (entryPrice != "0.00000000"))
             {
-                ((IList<object>)positions).Add(parsed);
+                positions.Add(parsed);
             }
         }
         callDynamically(client, "resolve", new object[] {positions, messageHash});
@@ -3981,9 +3981,9 @@ public partial class binance : ccxt.binance
         object type = null;
         object subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchBalance", null, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
-        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        type = typesubTypeparametersVariable[0];
+        subType = typesubTypeparametersVariable[1];
+        parameters = typesubTypeparametersVariable[2];
         await this.authenticate(this.extend(new Dictionary<string, object>() {
             { "type", type },
             { "subType", subType },
@@ -4843,7 +4843,7 @@ public partial class binance : ccxt.binance
             object order = getValue(orders, i);
             if (isEqual(getValue(order, "status"), "closed"))
             {
-                ((IList<object>)closedOrders).Add(order);
+                closedOrders.Add(order);
             }
         }
         return ccxt.BaseExchange.ToOrderList(closedOrders);
@@ -4978,9 +4978,9 @@ public partial class binance : ccxt.binance
         object type = null;
         object subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchOrders", market, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
-        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        type = typesubTypeparametersVariable[0];
+        subType = typesubTypeparametersVariable[1];
+        parameters = typesubTypeparametersVariable[2];
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "type", type },
             { "symbol", symbolVar },
@@ -5635,9 +5635,9 @@ public partial class binance : ccxt.binance
         object type = null;
         object subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchPositions", market, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
-        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        type = typesubTypeparametersVariable[0];
+        subType = typesubTypeparametersVariable[1];
+        parameters = typesubTypeparametersVariable[2];
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
@@ -5804,7 +5804,7 @@ public partial class binance : ccxt.binance
             Int64? timestamp = this.safeInteger(message, "E");
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, add(accountType, ":positions::"));
@@ -6138,9 +6138,9 @@ public partial class binance : ccxt.binance
         }
         object subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchMyTrades", market, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
-        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        type = typesubTypeparametersVariable[0];
+        subType = typesubTypeparametersVariable[1];
+        parameters = typesubTypeparametersVariable[2];
         string messageHash = "myTrades";
         if ((!isEqual(symbolVar, null)) && ((market != null)))
         {
@@ -6267,7 +6267,7 @@ public partial class binance : ccxt.binance
                         }
                         // save this trade in the order
                         List<object> orderTrades = this.safeList(order, "trades", new List<object>() {});
-                        ((IList<object>)orderTrades).Add(trade);
+                        orderTrades.Add(trade);
                         ((IDictionary<string,object>)order)["trades"] = orderTrades;
                         // write the updated order back into the cache: php
                         // arrays are value types, so the fee/trades mutations
@@ -6411,7 +6411,7 @@ public partial class binance : ccxt.binance
             Dictionary<string, object> position = this.parseWsOptionsPosition(rawPosition);
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, add(accountType, ":positions::"));

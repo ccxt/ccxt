@@ -588,7 +588,7 @@ public partial class krakenfutures : Exchange
                     symbol = add(add(symbol, "-"), this.yymmdd(expiry));
                 }
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -647,7 +647,7 @@ public partial class krakenfutures : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(settlementCurrencies)); postFixIncrement(ref i))
         {
             object code = getValue(settlementCurrencies, i);
-            ((IList<object>)currencies).Add(new Dictionary<string, object>() {
+            currencies.Add(new Dictionary<string, object>() {
                 { "id", ((string)code).ToLower() },
                 { "numericId", null },
                 { "code", code },
@@ -1221,7 +1221,7 @@ public partial class krakenfutures : Exchange
                 IDictionary<string, object> eventVar = this.safeDict(element, "event", new Dictionary<string, object>() {});
                 IDictionary<string, object> executionContainer = this.safeDict(eventVar, "Execution", new Dictionary<string, object>() {});
                 IDictionary<string, object> rawTrade = this.safeDict(executionContainer, "execution", new Dictionary<string, object>() {});
-                ((IList<object>)rawTrades).Add(rawTrade);
+                rawTrades.Add(rawTrade);
             }
         } else
         {
@@ -1650,7 +1650,7 @@ public partial class krakenfutures : Exchange
             }
             extendedParams["order"] = "send";
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "batchOrder", ordersRequests },
@@ -1774,7 +1774,7 @@ public partial class krakenfutures : Exchange
         {
             for (int i = 0; isLessThan(i, clientOrderIds.Count); postFixIncrement(ref i))
             {
-                ((IList<object>)orders).Add(new Dictionary<string, object>() {
+                orders.Add(new Dictionary<string, object>() {
                     { "order", "cancel" },
                     { "cliOrdId", getValue(clientOrderIds, i) },
                 });
@@ -1783,7 +1783,7 @@ public partial class krakenfutures : Exchange
         {
             for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                ((IList<object>)orders).Add(new Dictionary<string, object>() {
+                orders.Add(new Dictionary<string, object>() {
                     { "order", "cancel" },
                     { "order_id", getValue(ids, i) },
                 });
@@ -1882,7 +1882,7 @@ public partial class krakenfutures : Exchange
         {
             IDictionary<string, object> orderEvent = this.safeDict(orderEvents, 0);
             IDictionary<string, object> order = this.safeDict(orderEvent, "order", new Dictionary<string, object>() {});
-            ((IList<object>)orders).Add(order);
+            orders.Add(order);
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders));
     }
@@ -2064,7 +2064,7 @@ public partial class krakenfutures : Exchange
                 if (filled != "0")
                 {
                     innerOrder["status"] = "closed"; // status not available in the response
-                    ((IList<object>)closedOrders).Add(innerOrder);
+                    closedOrders.Add(innerOrder);
                 }
             } else if ((orderUpdated != null))
             {
@@ -2073,7 +2073,7 @@ public partial class krakenfutures : Exchange
                 {
                     IDictionary<string, object> newOrder = this.safeDict(orderUpdated, "newOrder", new Dictionary<string, object>() {});
                     newOrder["status"] = "closed";
-                    ((IList<object>)closedOrders).Add(newOrder);
+                    closedOrders.Add(newOrder);
                 }
             }
         }
@@ -2138,7 +2138,7 @@ public partial class krakenfutures : Exchange
                 if (filled == "0" || isCancelledTriggerOrder)
                 {
                     innerOrder["status"] = "canceled"; // status not available in the response
-                    ((IList<object>)canceledAndRejected).Add(innerOrder);
+                    canceledAndRejected.Add(innerOrder);
                 }
             }
             IDictionary<string, object> orderCanceled = this.safeDict(eventVar, "OrderCancelled");
@@ -2146,14 +2146,14 @@ public partial class krakenfutures : Exchange
             {
                 IDictionary<string, object> innerOrder = this.safeDict(orderCanceled, "order", new Dictionary<string, object>() {});
                 innerOrder["status"] = "canceled"; // status not available in the response
-                ((IList<object>)canceledAndRejected).Add(innerOrder);
+                canceledAndRejected.Add(innerOrder);
             }
             IDictionary<string, object> orderRejected = this.safeDict(eventVar, "OrderRejected");
             if ((orderRejected != null))
             {
                 IDictionary<string, object> innerOrder = this.safeDict(orderRejected, "order", new Dictionary<string, object>() {});
                 innerOrder["status"] = "rejected"; // status not available in the response
-                ((IList<object>)canceledAndRejected).Add(innerOrder);
+                canceledAndRejected.Add(innerOrder);
             }
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceledAndRejected, market, since, limit));
@@ -2602,7 +2602,7 @@ public partial class krakenfutures : Exchange
                 object item = getValue(orderEvents, i);
                 if ((this.safeString(item, "type") == "EXECUTION"))
                 {
-                    ((IList<object>)executions).Add(item);
+                    executions.Add(item);
                 }
                 // Final order (after placement / editing / execution / canceling)
                 object orderTrigger = this.safeValue(item, "orderTrigger");
@@ -2892,7 +2892,7 @@ public partial class krakenfutures : Exchange
             string? contract = this.safeString(row, "contract");
             if (((asset != null)) && ((asset != contract)))
             {
-                ((IList<object>)rows).Add(row);
+                rows.Add(row);
             }
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit));
@@ -3386,7 +3386,7 @@ public partial class krakenfutures : Exchange
             }
             Dictionary<string, object> market = this.safeMarket(entry_symbol);
             Dictionary<string, object> parsed = this.parseFundingRate(entry, market);
-            ((IList<object>)fundingRates).Add(parsed);
+            fundingRates.Add(parsed);
         }
         return ccxt.BaseExchange.ToFundingRates(this.indexBy(fundingRates, "symbol"));
     }
@@ -3513,7 +3513,7 @@ public partial class krakenfutures : Exchange
         {
             object item = getValue(rates, i);
             string? datetime = this.safeString(item, "timestamp");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", item },
                 { "symbol", symbol },
                 { "fundingRate", this.safeNumber(item, "relativeFundingRate") },
@@ -3580,7 +3580,7 @@ public partial class krakenfutures : Exchange
         for (int i = 0; isLessThan(i, positions.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> position = this.parsePosition(getValue(positions, i));
-            ((IList<object>)result).Add(position);
+            result.Add(position);
         }
         return result;
     }
@@ -3770,7 +3770,7 @@ public partial class krakenfutures : Exchange
                 object previousTier = getValue(tiers, subtract(tiersLength, 1));
                 ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
             }
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+            tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },

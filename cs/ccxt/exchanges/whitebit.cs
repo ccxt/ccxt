@@ -2714,14 +2714,14 @@ public partial class whitebit : Exchange
             parameters = isMarginparametersVariable[1];
             if (isTrue(isMargin))
             {
-                ((IList<object>)requestType).Add("margin");
+                requestType.Add("margin");
             } else
             {
-                ((IList<object>)requestType).Add("spot");
+                requestType.Add("spot");
             }
         } else if (type == "swap")
         {
-            ((IList<object>)requestType).Add("futures");
+            requestType.Add("futures");
         } else
         {
             throw new NotSupported (add(add(add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
@@ -3027,7 +3027,7 @@ public partial class whitebit : Exchange
             for (int j = 0; isLessThan(j, orders.Count); postFixIncrement(ref j))
             {
                 Dictionary<string, object> order = this.parseOrder(getValue(orders, j), marketNew);
-                ((IList<object>)results).Add(this.extend(order, new Dictionary<string, object>() {
+                results.Add(this.extend(order, new Dictionary<string, object>() {
                     { "status", "closed" },
                 }));
             }
@@ -3549,7 +3549,7 @@ public partial class whitebit : Exchange
             IDictionary<string, object> subAccount = this.safeDict(subAccounts, i, new Dictionary<string, object>() {});
             string? accountId = this.safeString(subAccount, "id");
             string? accountName = this.safeString(subAccount, "alias");
-            ((IList<object>)accounts).Add(new Dictionary<string, object>() {
+            accounts.Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", "subaccount" },
                 { "name", accountName },
@@ -4272,7 +4272,7 @@ public partial class whitebit : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
-            ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
+            result.Add(this.parseFundingHistory(contract, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit);

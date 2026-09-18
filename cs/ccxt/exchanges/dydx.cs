@@ -969,7 +969,7 @@ public partial class dydx : Exchange
             object entry = getValue(rows, i);
             Int64? timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
             string? marketId = this.safeString(entry, "ticker");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "fundingRate", this.safeNumber(entry, "rate") },
@@ -2676,7 +2676,7 @@ public partial class dydx : Exchange
         {
             object account = getValue(rows, i);
             string? accountId = this.safeString(account, "subaccountNumber");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", null },
                 { "currency", null },

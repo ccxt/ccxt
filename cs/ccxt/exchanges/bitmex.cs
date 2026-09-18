@@ -2576,11 +2576,11 @@ public partial class bitmex : Exchange
         List<object> execInstructions = new List<object>() {};
         if (isEqual(reduceOnly, true))
         {
-            ((IList<object>)execInstructions).Add("ReduceOnly");
+            execInstructions.Add("ReduceOnly");
         }
         if ((postOnly == true))
         {
-            ((IList<object>)execInstructions).Add("ParticipateDoNotInitiate");
+            execInstructions.Add("ParticipateDoNotInitiate");
         }
         int execInstLength = execInstructions.Count;
         if (isGreaterThan(execInstLength, 0))
@@ -3293,7 +3293,7 @@ public partial class bitmex : Exchange
             bool? swap = this.safeBool(market, "swap", false);
             if ((swap == true))
             {
-                ((IList<object>)filteredResponse).Add(item);
+                filteredResponse.Add(item);
             }
         }
         symbols = this.marketSymbols(symbols);
@@ -4184,7 +4184,7 @@ public partial class bitmex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement(getValue(settlements, i), market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         string? symbol = this.safeString(market, "symbol");

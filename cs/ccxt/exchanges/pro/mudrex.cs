@@ -108,10 +108,10 @@ public partial class mudrex : ccxt.mudrex
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
+                messageHashes.Add(add("ticker:", GetValue(market, "symbol")));
                 object baseIdString = (!isEqual(GetValue(market, "baseId"), null)) ? GetValue(market, "baseId") : "";
                 object quoteIdString = (!isEqual(GetValue(market, "quoteId"), null)) ? GetValue(market, "quoteId") : "";
-                ((IList<object>)assets).Add(add(((string)baseIdString).ToLower(), ((string)quoteIdString).ToLower()));
+                assets.Add(add(((string)baseIdString).ToLower(), ((string)quoteIdString).ToLower()));
             }
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));

@@ -1341,7 +1341,7 @@ public partial class derive : Exchange
             }
             Dictionary<string, object> parsed = this.parseTrade(rawTrade, market);
             Dictionary<string, object> trade = this.extend(parsed, parameters);
-            ((IList<object>)result).Add(trade);
+            result.Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
         string? symbol = this.safeString(market, "symbol");
@@ -1457,7 +1457,7 @@ public partial class derive : Exchange
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", GetValue(market, "symbol") },
                 { "fundingRate", this.safeNumber(entry, "funding_rate") },

@@ -163,8 +163,8 @@ public partial class cryptocom : ccxt.cryptocom
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = add(add(add(add("book", "."), GetValue(market, "id")), "."), limitVar.ToString());
             string messageHash = add("orderbook:", GetValue(market, "symbol"));
-            ((IList<object>)messageHashes).Add(messageHash);
-            ((IList<object>)topics).Add(currentTopic);
+            messageHashes.Add(messageHash);
+            topics.Add(currentTopic);
         }
         object orderbook = await this.watchPublicMultiple(messageHashes, topics, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -226,9 +226,9 @@ public partial class cryptocom : ccxt.cryptocom
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = add(add(add(add("book", "."), GetValue(market, "id")), "."), ((object)limit).ToString());
             string messageHash = add("orderbook:", GetValue(market, "symbol"));
-            ((IList<object>)subMessageHashes).Add(messageHash);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:", messageHash));
-            ((IList<object>)topics).Add(currentTopic);
+            subMessageHashes.Add(messageHash);
+            messageHashes.Add(add("unsubscribe:", messageHash));
+            topics.Add(currentTopic);
         }
         return await this.unWatchPublicMultiple("orderbook", symbols, messageHashes, subMessageHashes, topics, parameters);
     }
@@ -408,7 +408,7 @@ public partial class cryptocom : ccxt.cryptocom
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = add(add("trade", "."), GetValue(market, "id"));
-            ((IList<object>)topics).Add(currentTopic);
+            topics.Add(currentTopic);
         }
         object trades = await this.watchPublicMultiple(topics, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -444,8 +444,8 @@ public partial class cryptocom : ccxt.cryptocom
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = add(add("trade", "."), GetValue(market, "id"));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", GetValue(market, "symbol")));
-            ((IList<object>)topics).Add(currentTopic);
+            messageHashes.Add(add("unsubscribe:trades:", GetValue(market, "symbol")));
+            topics.Add(currentTopic);
         }
         return await this.unWatchPublicMultiple("trades", symbols, messageHashes, topics, topics, parameters);
     }
@@ -607,7 +607,7 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            ((IList<object>)messageHashes).Add(add("ticker.", marketId));
+            messageHashes.Add(add("ticker.", marketId));
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Int64 id = this.nonce();
@@ -652,8 +652,8 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object marketId = getValue(marketIds, i);
             object symbol = getValue(symbols, i);
-            ((IList<object>)subMessageHashes).Add(add("ticker.", marketId));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            subMessageHashes.Add(add("ticker.", marketId));
+            messageHashes.Add(add("unsubscribe:ticker:", symbol));
         }
         return await this.unWatchPublicMultiple("ticker", symbols, messageHashes, subMessageHashes, subMessageHashes, parameters);
     }
@@ -773,8 +773,8 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            ((IList<object>)messageHashes).Add(add("bidask.", getValue(symbols, i)));
-            ((IList<object>)topics).Add(add("ticker.", marketId));
+            messageHashes.Add(add("bidask.", getValue(symbols, i)));
+            topics.Add(add("ticker.", marketId));
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Int64 id = this.nonce();
@@ -1159,7 +1159,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");

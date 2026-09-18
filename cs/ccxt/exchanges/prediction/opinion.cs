@@ -198,17 +198,17 @@ public partial class opinion : PredictionExchange
                     int childMarketsLength = getArrayLength(childMarkets);
                     for (int ci = 0; isLessThan(ci, childMarketsLength); postFixIncrement(ref ci))
                     {
-                        ((IList<object>)flatMarkets).Add(getValue(childMarkets, ci));
+                        flatMarkets.Add(getValue(childMarkets, ci));
                     }
                     string? eventKey = this.safeString(eventVar, "event");
                     if (((eventKey != null)) && (eventKey != "") && !(inOp(seenEvents, eventKey)))
                     {
                         seenEvents[(string)eventKey] = true;
-                        ((IList<object>)eventsList).Add(eventVar);
+                        eventsList.Add(eventVar);
                     }
                 } else
                 {
-                    ((IList<object>)flatMarkets).Add(this.parseOpinionMarket(raw));
+                    flatMarkets.Add(this.parseOpinionMarket(raw));
                 }
             }
             int collectedLength = flatMarkets.Count;
@@ -319,7 +319,7 @@ public partial class opinion : PredictionExchange
                     resolvedOutcome = outcomeHandle;
                 }
             }
-            ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
+            outcomes.Add(new Dictionary<string, object>() {
                 { "id", tokenId },
                 { "outcomeId", tokenId },
                 { "outcome", outcomeHandle },
@@ -479,7 +479,7 @@ public partial class opinion : PredictionExchange
             fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
             for (int i = 0; isLessThan(i, pageEventsLength); postFixIncrement(ref i))
             {
-                ((IList<object>)rawEvents).Add(getValue(pageEvents, i));
+                rawEvents.Add(getValue(pageEvents, i));
             }
             Int64? total = this.safeInteger(result, "total");
             if ((isLessThan(pageEventsLength, reqLimit)) || (isGreaterThanOrEqual(page, maxPages)) || ((!isEqual(total, null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (isGreaterThanOrEqual(fetchedRawCount, fetchCap)))
@@ -497,7 +497,7 @@ public partial class opinion : PredictionExchange
         for (int i = 0; isLessThan(i, rawEventsLength); postFixIncrement(ref i))
         {
             Dictionary<string, object> eventVar = this.parseEvent(getValue(rawEvents, i));
-            ((IList<object>)parsedEvents).Add(eventVar);
+            parsedEvents.Add(eventVar);
             // register the parsed markets so populateOutcomes can index their outcomes
             List<object> eventMarkets = this.safeList(eventVar, "markets", new List<object>() {});
             int eventMarketsLength = eventMarkets.Count;
@@ -650,7 +650,7 @@ public partial class opinion : PredictionExchange
         List<object> marketsList = new List<object>() {};
         for (int i = 0; isLessThan(i, rawChildrenLength); postFixIncrement(ref i))
         {
-            ((IList<object>)marketsList).Add(this.parseOpinionMarket(getValue(rawChildren, i), slug));
+            marketsList.Add(this.parseOpinionMarket(getValue(rawChildren, i), slug));
         }
         string? statusEnum = this.safeString(rawEvent, "statusEnum");
         bool active = (statusEnum == "Activated");
@@ -796,10 +796,10 @@ public partial class opinion : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
-            ((IList<object>)promises).Add(this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
+            promises.Add(this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
                 { "token_id", tokenId },
             }, parameters)));
-            ((IList<object>)promises).Add(this.opinionPublicGetTokenOrderbook(this.extend(new Dictionary<string, object>() {
+            promises.Add(this.opinionPublicGetTokenOrderbook(this.extend(new Dictionary<string, object>() {
                 { "token_id", tokenId },
             }, parameters)));
         }
@@ -916,7 +916,7 @@ public partial class opinion : PredictionExchange
             object timestamp = this.safeTimestamp(point, "t");
             if ((!isEqual(price, null)) && (!isEqual(timestamp, null)))
             {
-                ((IList<object>)candles).Add(new List<object>() {timestamp, price, price, price, price, null});
+                candles.Add(new List<object>() {timestamp, price, price, price, price, null});
             }
         }
         List<object> sorted = this.sortBy(candles, 0);
@@ -1660,7 +1660,7 @@ public partial class opinion : PredictionExchange
             string? tokenId = this.safeString(info, "tokenId");
             if (((tokenId != null)) && (inOp(wantedTokenIds, tokenId)))
             {
-                ((IList<object>)filtered).Add(position);
+                filtered.Add(position);
             }
         }
         return ccxt.BaseExchange.ToPredictionPositionList(filtered);

@@ -597,8 +597,8 @@ public partial class upbit : Exchange
             throw new ExchangeError (add(this.id, " parseMarket() missing id")) ;
         }
         var quoteIdbaseIdVariable = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-        var quoteId = ((IList<object>) quoteIdbaseIdVariable)[0];
-        var baseId = ((IList<object>) quoteIdbaseIdVariable)[1];
+        var quoteId = quoteIdbaseIdVariable[0];
+        var baseId = quoteIdbaseIdVariable[1];
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -905,7 +905,7 @@ public partial class upbit : Exchange
                 string? quoteId = ((string)GetValue(market, "quoteId"));
                 if (!this.inArray(quoteId, quoteIds))
                 {
-                    ((IList<object>)quoteIds).Add(quoteId);
+                    quoteIds.Add(quoteId);
                 }
             }
             object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
@@ -930,7 +930,7 @@ public partial class upbit : Exchange
             for (int i = 0; isLessThan(i, queries?.Count ?? 0); postFixIncrement(ref i))
             {
                 object idsQuery = getValue(queries, i);
-                ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
+                promises.Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
                     { "markets", idsQuery },
                 }, parameters)));
             }
@@ -986,13 +986,13 @@ public partial class upbit : Exchange
             idsString = add(idsString, id);
             if (isGreaterThanOrEqual(((string)idsString).Length, maxQueryLength))
             {
-                ((IList<object>)queries).Add(idsString);
+                queries.Add(idsString);
                 idsString = "";
             }
         }
         if (!isEqual(idsString, ""))
         {
-            ((IList<object>)queries).Add(idsString);
+            queries.Add(idsString);
         }
         return ((List<object>)((object)(queries)));
     }
