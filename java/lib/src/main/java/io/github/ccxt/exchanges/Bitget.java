@@ -4803,10 +4803,10 @@ final Object finalMinNotional = minNotional;
             {
                 if (java.util.Objects.equals(uta, true))
                 {
-                    since = Helpers.subtract(this.milliseconds(), 2592000000L); // uta allows a window of 30 days at most
+                    since = (this.milliseconds() - 2592000000L); // uta allows a window of 30 days at most
                 } else
                 {
-                    since = Helpers.subtract(this.milliseconds(), 7776000000L); // 90 days
+                    since = (this.milliseconds() - 7776000000L); // 90 days
                 }
             }
             final Object finalSince = since;
@@ -5034,10 +5034,10 @@ final Object finalMinNotional = minNotional;
             {
                 if (java.util.Objects.equals(uta, true))
                 {
-                    since = Helpers.subtract(this.milliseconds(), 2592000000L); // uta allows a window of 30 days at most
+                    since = (this.milliseconds() - 2592000000L); // uta allows a window of 30 days at most
                 } else
                 {
-                    since = Helpers.subtract(this.milliseconds(), 7776000000L); // 90 days
+                    since = (this.milliseconds() - 7776000000L); // 90 days
                 }
             }
             final Object finalSince = since;
@@ -9627,7 +9627,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (java.util.Objects.equals(since, null))
                     {
-                        since = Helpers.subtract(this.milliseconds(), 7776000000L);
+                        since = (this.milliseconds() - 7776000000L);
                         ((Map<String, Object>)request).put("startTime", since);
                     }
                     if (java.util.Objects.equals(marginMode, "isolated"))
@@ -10902,7 +10902,7 @@ final Object finalMinNotional = minNotional;
                     {
                         if (java.util.Objects.equals(since, null))
                         {
-                            ((Map<String, Object>)request).put("startTime", Helpers.subtract(this.milliseconds(), 7776000000L));
+                            ((Map<String, Object>)request).put("startTime", (this.milliseconds() - 7776000000L));
                         }
                         if (java.util.Objects.equals(marginMode, "isolated"))
                         {
@@ -13375,7 +13375,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", Helpers.subtract(this.milliseconds(), 7776000000L));
+                ((Map<String, Object>)request).put("startTime", (this.milliseconds() - 7776000000L));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -13820,7 +13820,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", Helpers.subtract(this.milliseconds(), 7776000000L));
+                ((Map<String, Object>)request).put("startTime", (this.milliseconds() - 7776000000L));
             }
             if (!java.util.Objects.equals(limit, null))
             {

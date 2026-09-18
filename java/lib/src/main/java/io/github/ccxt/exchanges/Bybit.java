@@ -9650,7 +9650,7 @@ public class Bybit extends BybitApi
             }};
             if (java.util.Objects.equals(since, null))
             {
-                since = Helpers.subtract(this.milliseconds(), (86400000L * 30L)); // last 30 days
+                since = (this.milliseconds() - (86400000L * 30L)); // last 30 days
             }
             ((Map<String, Object>)request).put("startTime", since);
             Object endTime = this.safeInteger2(parameters, "until", "endTime");
