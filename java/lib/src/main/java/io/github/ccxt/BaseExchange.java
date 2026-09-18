@@ -153,6 +153,8 @@ public class BaseExchange {
     // HTTP
     public HttpClient httpClient;                         // no default (like C#)
     public Object fetchResponse = null;                   // tmp for response tests
+    // response-test mock keyed by url fragment, for methods that call several endpoints
+    public Object fetchResponseByUrl = null;
 
     // Basic info
     public String id = "Exchange";
@@ -2140,6 +2142,21 @@ public class BaseExchange {
     }
 
     public CompletableFuture<Object> fetch(Object url2, Object method2, Object headers2, Object body2) {
+        if (this.fetchResponseByUrl != null) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> byUrl = (Map<String, Object>) this.fetchResponseByUrl;
+            String mockUrl = String.valueOf(url2);
+            Object firstBody = null;
+            for (Map.Entry<String, Object> entry : byUrl.entrySet()) {
+                if (firstBody == null) {
+                    firstBody = entry.getValue();
+                }
+                if (mockUrl.contains(entry.getKey())) {
+                    return CompletableFuture.completedFuture(entry.getValue());
+                }
+            }
+            return CompletableFuture.completedFuture(firstBody);
+        }
         if (this.fetchResponse != null) {
             return CompletableFuture.completedFuture(this.fetchResponse);
         }
@@ -3627,6 +3644,11 @@ public class BaseExchange {
 
     public void setFetchResponse(Object response) {
         this.fetchResponse = response;
+        this.fetchResponseByUrl = null; // a plain body (or the null reset) drops any url-keyed mock
+    }
+
+    public void setFetchResponseByUrl(Object responsesByUrl) {
+        this.fetchResponseByUrl = responsesByUrl;
     }
 
     public static BaseExchange dynamicallyCreateInstance(String className, Object args, boolean isWs) {

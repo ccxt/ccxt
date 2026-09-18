@@ -8,6 +8,26 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "open interest for all markets",
+                "method": "fetchOpenInterests",
+                "url": "https://api.pacifica.fi/api/v1/info/prices",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "open interest for a single market",
+                "method": "fetchOpenInterest",
+                "url": "https://api.pacifica.fi/api/v1/info/prices",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
         "createSubAccount": [
             {
                 "description": "create a subaccount with an agent wallet header",

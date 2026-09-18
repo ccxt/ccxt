@@ -2663,7 +2663,11 @@
         }
     },
     "lighter": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "watchTicker": "the market_stats ws channel serves swap markets only - subscribing a spot market id answers 30004 Failed to fetch (verified on a raw socket for ids 2048, 2049, 2050 while 0 and 1 subscribe fine), and the live ws harness picks a spot symbol. recheck 2026-12-17",
+            "watchTickers": "same market_stats channel as watchTicker - the all-markets feed carries 235 swap ids and no spot id. recheck 2026-12-17",
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
                 "contractSize": "not provided",
