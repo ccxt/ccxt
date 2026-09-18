@@ -90,7 +90,10 @@ public class WsClient {
     public volatile long connectionEstablished = 0;
     public volatile CompletableFuture<Boolean> connected;
     public volatile long lastPong = 0;
-    public boolean error = false;
+    // mirrors js Client.error: null while live, the terminal error once the
+    // client is retired. The write is elected under futuresSync in retire();
+    // volatile covers the unsynchronized reads (BaseExchange.onClose guard).
+    public volatile Object error = null;
     public boolean isMock = false; // static ws tests: transport is stubbed, sends are recorded
     public final java.util.List<Object> mockSentMessages = java.util.Collections.synchronizedList(new java.util.ArrayList<>()); // frames recorded in mock mode
     /**
@@ -263,6 +266,29 @@ public class WsClient {
 
     public void reject(Object error) {
         reject(error, (Object) null);
+    }
+
+    /**
+     * Retire this client: mark it with the terminal error, then release every
+     * consumer — reject all pending futures and clear the subscriptions.
+     * Mirrors js Client.onError (this.error = error + reset), same shape as
+     * the C# fix for https://github.com/ccxt/ccxt/issues/30463. The lock
+     * elects one winner when onError, a late onClose and the registry cleanup
+     * race on separate threads: the first error wins, repeat calls are no-ops.
+     * Unlike reset(), retire never touches the transport or the message
+     * executor — the error path must not tear those down inline (see the note
+     * in BaseExchange.cleanupWsClient).
+     */
+    public void retire(Object error) {
+        synchronized (futuresSync) {
+            if (this.error != null) {
+                return;
+            }
+            this.error = error;
+        }
+        this.isConnected = false;
+        this.subscriptionsMap().clear();
+        this.reject(error); // no messageHash: drains and rejects every pending future
     }
 
     /**
@@ -483,7 +509,9 @@ public class WsClient {
         synchronized (connectedLock) {
             this.startedConnecting.set(false);
         }
-        this.error = false;
+        // this.error is deliberately NOT cleared here (js parity): it is the
+        // terminal retirement marker — BaseExchange.onClose reads it to decide
+        // whether the error path already cleaned this client up.
         if (this.onCloseCallback != null) {
             this.onCloseCallback.accept(this, reason);
         }
@@ -494,7 +522,6 @@ public class WsClient {
             System.err.println( getFormattedDate() + "WsClient error on " + this.url + ": " + err);
         }
         this.isConnected = false;
-        this.error = true;
 
         Throwable t = (err instanceof Throwable th)
                 ? th
@@ -519,6 +546,17 @@ public class WsClient {
             // that wins the CAS must be guaranteed to read the new future
             this.startedConnecting.set(false);
         }
+
+        // Retire this client: mark it with the terminal error and reject every
+        // pending future (js parity — Client.onError sets this.error and
+        // resets). The Java client historically relied on the exchange's
+        // registry cleanup for this, which breaks when a concurrent reconnect
+        // has replaced the registry entry under the same url — the erroring
+        // client's consumers then hang forever, see
+        // https://github.com/ccxt/ccxt/issues/30463. Retiring here ties
+        // futures cleanup to the erroring reference by construction; the
+        // retire in cleanupWsClient becomes an idempotent no-op.
+        this.retire(wrapped);
 
         if (this.onErrorCallback != null) {
             this.onErrorCallback.accept(this, wrapped);
@@ -656,6 +694,16 @@ public class WsClient {
 
     /**
      * Close the WebSocket connection and reject all pending futures.
+     *
+     * Deliberately does NOT retire() the client, unlike the C# fix for
+     * https://github.com/ccxt/ccxt/issues/30463 where Close() retires: in
+     * Java, transpiled exchange code calls client.reset() (= reject + close)
+     * on unrecoverable app-level errors, and the registry entry for such a
+     * client is detached only by BaseExchange.onClose's cleanup — which is
+     * guarded by client.error == null. Setting the terminal error marker here
+     * would make that guard skip the cleanup and strand a closed client
+     * (whose messageExecutor is already shut down) in the registry forever.
+     * The user path, Exchange.close(), clears its registry entries itself.
      */
     public void close() {
         if (this.verbose) {
