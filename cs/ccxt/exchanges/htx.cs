@@ -3182,7 +3182,7 @@ public partial class htx : Exchange
         //     }
         //
         List<object> rawTickers = this.safeList2(response, "data", "ticks", new List<object>() {});
-        object tickers = this.parseTickers(rawTickers, symbols, parameters);
+        Dictionary<string, object> tickers = this.parseTickers(rawTickers, symbols, parameters);
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
@@ -8891,7 +8891,7 @@ public partial class htx : Exchange
         //    }
         //
         object data = this.safeValue(response, "data");
-        object interest = this.parseBorrowInterests(data, market);
+        List<object> interest = this.parseBorrowInterests(data, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
@@ -10652,12 +10652,12 @@ public partial class htx : Exchange
         if (isEqual(GetValue(market, "linear"), true))
         {
             List<object> dataLinear = this.safeList(response, "data", new List<object>() {});
-            object settlementsLinear = this.parseSettlements(dataLinear, market);
+            List<object> settlementsLinear = this.parseSettlements(dataLinear, market);
             return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
         object data = this.safeValue(response, "data");
         object settlementRecord = this.safeValue(data, "settlement_record");
-        object settlements = this.parseSettlements(settlementRecord, market);
+        List<object> settlements = this.parseSettlements(settlementRecord, market);
         return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));
     }
 
@@ -10792,7 +10792,7 @@ public partial class htx : Exchange
         return result;
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
     {
         //
         // coin-m swap, fetchSettlementHistory

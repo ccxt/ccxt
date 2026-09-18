@@ -1032,7 +1032,7 @@ public partial class onetrading : ccxt.onetrading
         {
             string? orderId = this.safeString(update, "order_id");
             string? datetime = this.safeString2(update, "time", "timestamp");
-            object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
+            IList<object> previousOrderArray = ((IList<object>)this.filterByArray(this.orders, "id", orderId, false));
             IDictionary<string, object> previousOrder = this.safeDict(previousOrderArray, 0, new Dictionary<string, object>() {});
             symbol = GetValue(previousOrder, "symbol");
             string? filled = this.safeString(update, "filled_amount");

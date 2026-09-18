@@ -3559,11 +3559,11 @@ public partial class krakenfutures : Exchange
         //        "serverTime": "2022-03-03T22:51:16.566Z"
         //    }
         //
-        object result = this.parsePositions(response);
+        IList<object> result = this.parsePositions(response);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
-    public override object parsePositions(object response, object symbols = null, object parameters = null)
+    public override IList<object> parsePositions(object response, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
@@ -3582,7 +3582,7 @@ public partial class krakenfutures : Exchange
             Dictionary<string, object> position = this.parsePosition(getValue(positions, i));
             ((IList<object>)result).Add(position);
         }
-        return result;
+        return ((IList<object>)((object)(result)));
     }
 
     public override Dictionary<string, object> parsePosition(object position, object market = null)

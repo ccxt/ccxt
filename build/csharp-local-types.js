@@ -873,6 +873,10 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'getMarketFromSymbols': 'Dictionary<string, object>',
     'opinionOrderRawAmounts': 'Dictionary<string, object>', 'parseAccountPosition': 'Dictionary<string, object>', 'parseAccountSettings': 'Dictionary<string, object>', 'parseBidAskCustom': 'Dictionary<string, object>',
     'parseBorrowRateHistories': 'Dictionary<string, object>', 'parseBorrowRates': 'Dictionary<string, object>', 'parseContractMarket': 'Dictionary<string, object>', 'parseCurrenciesCustom': 'Dictionary<string, object>',
+    // parseBorrowRate: the BaseExchange `throw` stub plus 7 venue overrides whose only return is
+    // an object literal, so base virtual and every override print one type (the stub has no
+    // return path at all); every caller reads one borrow-rate row.
+    'parseBorrowRate': 'Dictionary<string, object>',
     'parseCurrencyCustom': 'Dictionary<string, object>', 'parseDepositMethodId': 'Dictionary<string, object>', 'parseDepositWithdrawFees': 'Dictionary<string, object>', 'parseDustTrade': 'Dictionary<string, object>',
     'parseFeeTiers': 'Dictionary<string, object>', 'parseLedgerComment': 'Dictionary<string, object>', 'parseLeverages': 'Dictionary<string, object>', 'parseMarginLoan': 'Dictionary<string, object>',
     'parseMarginModes': 'Dictionary<string, object>', 'parseMarketToEvent': 'Dictionary<string, object>', 'parseNetworks': 'Dictionary<string, object>', 'parseOptionChain': 'Dictionary<string, object>',
@@ -886,6 +890,10 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // unchanged), a peer builder with the same single return, a literal, or a typed local
     'parseOrder': 'Dictionary<string, object>', 'parsePosition': 'Dictionary<string, object>',
     'parseTicker': 'Dictionary<string, object>', 'parseTrade': 'Dictionary<string, object>',
+    // parseTickers: the BaseExchange declaration and hollaex's override, whose only returns are
+    // `this.filterByArray (results, 'symbol', symbols)` (3-argument default) and the same box
+    // through filterByArrayTickers — indexBy's Dictionary, so the override pair moves together.
+    'parseTickers': 'Dictionary<string, object>',
     // parseBalance (the BaseExchange declaration + 79 venue overrides): every override hands its
     // own argument back (this.safeBalance(<local>)), the local is initialised by an object
     // literal and never reassigned (79/79 censused), so the boundary cast names the existing box.
@@ -951,6 +959,10 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'parseCreateEditOrderArgs': 'List<object>', 'parseDepositMethodIds': 'List<object>', 'parseEventToMarkets': 'List<object>', 'parseEvents': 'List<object>',
     'parseMarginModifications': 'List<object>', 'parseOrderBookBidAsk': 'List<object>', 'parseOrderBookBidsAsks': 'List<object>', 'parseOrderSideAndReduceOnly': 'List<object>',
     'parseOrderTypeTimeInForceAndPostOnly': 'List<object>', 'parsePortfolioDetails': 'List<object>', 'parseSearchQueries': 'List<object>', 'parseVolatilityHistory': 'List<object>',
+    // parsePositions: the BaseExchange declaration (single return `filterByArrayPositions
+    // (result, 'symbol', symbols, false)` — the `false` literal proves IList<object>) and
+    // krakenfutures' override returning its own `List<object> result`.
+    'parsePositions': 'IList<object>',
     'parseWsOHLCVs': 'List<object>', 'parsedFeeAndFees': 'List<object>', 'prepareOrdersByStatusRequest': 'List<object>', 'prepareRequest': 'List<object>',
     'prepareRequestForDepositAddress': 'List<object>', 'reduceFeesByCurrency': 'List<object>', 'resolveAuthType': 'List<object>', 'resolvePath': 'List<object>',
     'separateBidsOrAsks': 'List<object>', 'spotOrderPrepareRequest': 'List<object>',
@@ -1079,6 +1091,16 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS, CSHARP_COLLECTION_RETURN_METHOD
 // skipped, the return line stays byte-identical) — the by-declaration route.
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'orderToTrade': 'Dictionary<string, object>',
+    // parseBorrowInterests (single BaseExchange declaration): the only return is its own
+    // `interests` local, declared List<object> by the same local pass.
+    'parseBorrowInterests': 'List<object>',
+    // parsePredictionPositions (single PredictionExchange declaration, prediction tier): the
+    // only return is its own `results` local, declared List<object>.
+    'parsePredictionPositions': 'List<object>',
+    // parseSettlements (9 venue declarations, no base): 8 return their own `List<object> result`
+    // local; bitmex delegates to filterBySymbolSinceLimit (IList<object>) and keeps `object`.
+    // Venue-local name: no declaration overrides another, so the two spellings never meet.
+    'parseSettlements': 'List<object>',
 });
 
 // the mapped collection type for a method declaration, or undefined to leave the printer's
@@ -1155,13 +1177,23 @@ function rowBuilderReturnIsTyped (csharp, enclosing, expression, mapped) {
 // expression unchanged for every target that is not `any` / `string` / an array type), so the
 // proof unwraps them to see the value the C# actually holds; the special-cased targets keep
 // their printed cast and stay opaque.
+// `x as T[]` over a named element type prints the bare expression too (only `as any[]` prints a
+// cast), so it unwraps as well; `as any[]` / `as string[]` stay opaque — the first prints a cast,
+// the second asserts a box an IList<object> claim must not accept.
+function printsBareArrayAssertion (type) {
+    return type.kind === ts.SyntaxKind.ArrayType && type.elementType !== undefined
+        && type.elementType.kind !== ts.SyntaxKind.AnyKeyword
+        && type.elementType.kind !== ts.SyntaxKind.StringKeyword;
+}
+
 function unwrapPassthroughExpression (node) {
     while (node !== undefined) {
         if (node.kind === ts.SyntaxKind.ParenthesizedExpression || node.kind === ts.SyntaxKind.NonNullExpression) {
             node = node.expression;
             continue;
         }
-        if (node.kind === ts.SyntaxKind.AsExpression && node.type !== undefined && ts.isTypeReferenceNode (node.type)) {
+        if (node.kind === ts.SyntaxKind.AsExpression && node.type !== undefined
+                && (ts.isTypeReferenceNode (node.type) || printsBareArrayAssertion (node.type))) {
             node = node.expression;
             continue;
         }
@@ -2919,6 +2951,40 @@ function callResultCastType (initializer) {
         return CSHARP_LOCAL_CAST_CALL_TYPES[methodName];
     }
     return sameFileCallCastType (initializer, methodName);
+}
+
+// Box of the hand-written filterByArray family, keyed on the `indexed` argument literal: false
+// -> IList<object> (`this.toArray (objects)` / the `results` list), the 3-argument default and
+// `true` -> indexBy's Dictionary. Never List<object>: toArray can hand back a non-List IList.
+const FILTER_BY_ARRAY_BOX_METHODS = new Set ([
+    'filterByArray', 'filterByArrayPositions', 'filterByArrayTickers', 'filterByArrayADLRanks',
+]);
+
+function filterByArrayBoxType (initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    if (!FILTER_BY_ARRAY_BOX_METHODS.has (callee.name?.escapedText)) {
+        return undefined;
+    }
+    const args = initializer.arguments ?? [];
+    if (args.length === 3) {
+        return 'Dictionary<string, object>'; // `indexed` defaulted to true
+    }
+    if (args.length !== 4) {
+        return undefined;
+    }
+    if (args[3].kind === ts.SyntaxKind.FalseKeyword) {
+        return 'IList<object>';
+    }
+    if (args[3].kind === ts.SyntaxKind.TrueKeyword) {
+        return 'Dictionary<string, object>';
+    }
+    return undefined;
 }
 
 // `this.requestId (...)` in a file whose own definition boxes an Int64: installCsharpNumericReturns
@@ -5680,6 +5746,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // itself proves (see the family comment); the use-shape veto runs after the retype scan
     let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
     let safeValueTwinShape;
+    // `this.filterByArray (…, indexed)` keyed on the indexed literal (see filterByArrayBoxType):
+    // the box the call site carries behind an exact cast
+    const filterByArrayBox = (csharpType === undefined) ? filterByArrayBoxType (declaration.initializer) : undefined;
     if (csharpType === undefined) {
         // `this.sum (a, b)` over the operand family its hand-written helper boxes as Int64:
         // the declaration names that box behind an exact `((Int64))` cast. `a % b` is the
@@ -5735,6 +5804,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             csharpType = safeValueTwin.type;
             cast = safeValueTwin.cast;
             safeValueTwinShape = safeValueTwin.shape;
+        } else if (filterByArrayBox !== undefined) {
+            // `const x = this.filterByArray (…, indexed)`: the hand-written helper's per-literal
+            // box (see filterByArrayBoxType). The call's own C# type is `object`, so the
+            // declaration names the box behind the exact cast.
+            csharpType = filterByArrayBox;
+            cast = filterByArrayBox;
         } else if (safeIntegerProduct2CallCastType (declaration.initializer) !== undefined) {
             // `const x = this.safeIntegerProduct2 (obj, k1, k2, multiplier)`: the hand-written
             // helper (Exchange.SafeMethods.cs) hands back the caller's `defaultValue` — an

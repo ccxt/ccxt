@@ -3594,7 +3594,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
@@ -3620,7 +3620,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
     {
         //
         //     [

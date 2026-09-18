@@ -2727,7 +2727,7 @@ public partial class extended : Exchange
             }
             ((IList<object>)result).Add(entry);
         }
-        object positions = this.parsePositions(result, symbols);
+        IList<object> positions = this.parsePositions(result, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit, "timestamp"));
     }
 

@@ -9024,7 +9024,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToCrossBorrowRate(this.parseBorrowRate(coin, currency));
     }
 
-    public override object parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
     {
         //
         // fetchCrossBorrowRate
@@ -9109,7 +9109,7 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> rows = this.safeList(data, "loanAccountList", new List<object>() {});
-        object interest = this.parseBorrowInterests(rows);
+        List<object> interest = this.parseBorrowInterests(rows);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
@@ -9866,7 +9866,7 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
@@ -9938,7 +9938,7 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
@@ -9978,7 +9978,7 @@ public partial class bybit : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
     {
         //
         // fetchSettlementHistory
@@ -10528,7 +10528,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> tiers = new Dictionary<string, object>() {};
         IList<object> marketIds = this.marketIds(symbols);
         object idKey = (isEqual(marketIdKey, null)) ? "symbol" : marketIdKey;
-        object filteredResults = this.filterByArray(response, idKey, marketIds, false);
+        IList<object> filteredResults = ((IList<object>)this.filterByArray(response, idKey, marketIds, false));
         Dictionary<string, object> grouped = this.groupBy(filteredResults, idKey);
         List<object> keys = new List<object>(((IDictionary<string,object>)grouped).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
@@ -10992,7 +10992,7 @@ public partial class bybit : Exchange
         {
             rawPositionsList = rawPositions;
         }
-        object positions = this.parsePositions(rawPositionsList, symbols, parameters);
+        IList<object> positions = this.parsePositions(rawPositionsList, symbols, parameters);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

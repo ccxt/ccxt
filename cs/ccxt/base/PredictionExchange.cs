@@ -1877,7 +1877,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public virtual object parsePredictionPositions(object positions, object parameters = null)
+    public virtual List<object> parsePredictionPositions(object positions, object parameters = null)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.
@@ -1904,7 +1904,7 @@ public partial class PredictionExchange : BaseExchange
     public virtual object filterByOutcomesSinceLimit(object array, object outcomes = null, object since = null, object limit = null, object tail = null)
     {
         tail ??= false;
-        object result = this.filterByArray(array, "outcome", outcomes, false);
+        IList<object> result = ((IList<object>)this.filterByArray(array, "outcome", outcomes, false));
         return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
     }
 

@@ -980,7 +980,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = await this.publicGetApiV1Tickers(this.extend(request, parameters));
-        object tickers = this.parseTickers(response);
+        Dictionary<string, object> tickers = this.parseTickers(response);
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
@@ -2494,7 +2494,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         List<object> response = await this.privateGetApiV1Position(parameters);
-        object positions = this.parsePositions(response);
+        IList<object> positions = this.parsePositions(response);
         if (isTrue(this.isEmpty(symbols)))
         {
             return ccxt.BaseExchange.ToPositionList(positions);

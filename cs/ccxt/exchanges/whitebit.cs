@@ -3989,7 +3989,7 @@ public partial class whitebit : Exchange
         //         }
         //     ]
         //
-        object interest = this.parseBorrowInterests(response, market);
+        List<object> interest = this.parseBorrowInterests(response, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
@@ -4625,7 +4625,7 @@ public partial class whitebit : Exchange
         //         }
         //     ]
         //
-        object positions = this.parsePositions(response);
+        IList<object> positions = this.parsePositions(response);
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolSinceLimit(positions, symbol, since, limit));
     }
 

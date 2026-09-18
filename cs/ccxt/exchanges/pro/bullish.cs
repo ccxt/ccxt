@@ -833,7 +833,7 @@ public partial class bullish : ccxt.bullish
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
+            IList<object> symbolPositions = ((IList<object>)this.filterByArray(newPositions, "symbol", symbols, false));
             if (!isTrue(this.isEmpty(symbolPositions)))
             {
                 callDynamically(client, "resolve", new object[] {symbolPositions, messageHash});

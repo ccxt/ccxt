@@ -4061,7 +4061,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(position)));
     }
 
-    public virtual object parsePositions(object positions, object symbols = null, object parameters = null)
+    public virtual IList<object> parsePositions(object positions, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols);
@@ -4072,7 +4072,7 @@ public partial class BaseExchange
             Dictionary<string, object> position = this.extend(this.parsePosition(getValue(positionsArray, i)), parameters);
             ((IList<object>)result).Add(position);
         }
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return ((IList<object>)((object)(this.filterByArrayPositions(result, "symbol", symbols, false))));
     }
 
     public virtual object parseADLRank(object info, IDictionary<string, object> market = null)
@@ -5934,7 +5934,7 @@ public partial class BaseExchange
     public virtual IList<object> filterBySymbolsSinceLimit(object array, object symbols = null, object since = null, object limit = null, object tail = null)
     {
         tail ??= false;
-        object result = this.filterByArray(array, "symbol", symbols, false);
+        IList<object> result = ((IList<object>)this.filterByArray(array, "symbol", symbols, false));
         return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
     }
 
@@ -5983,7 +5983,7 @@ public partial class BaseExchange
         return this.filterByArray(results, "symbol", symbols);
     }
 
-    public virtual object parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
+    public virtual Dictionary<string, object> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
     {
         //
         // the value of tickers is either a dict or a list
@@ -6030,7 +6030,7 @@ public partial class BaseExchange
             }
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(results, "symbol", symbols);
+        return ((Dictionary<string, object>)((object)(this.filterByArray(results, "symbol", symbols))));
     }
 
     public virtual object parseDepositAddresses(object addresses, object codes = null, object indexed = null, object parameters = null)
@@ -6054,7 +6054,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual object parseBorrowInterests(object response, IDictionary<string, object> market = null)
+    public virtual List<object> parseBorrowInterests(object response, IDictionary<string, object> market = null)
     {
         List<object> interests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -6065,7 +6065,7 @@ public partial class BaseExchange
         return interests;
     }
 
-    public virtual object parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
     {
         throw new NotSupported (add(this.id, " parseBorrowRate() is not supported yet")) ;
     }
@@ -6076,7 +6076,7 @@ public partial class BaseExchange
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object item = getValue(response, i);
-            object borrowRate = this.parseBorrowRate(item);
+            Dictionary<string, object> borrowRate = this.parseBorrowRate(item);
             ((IList<object>)result).Add(borrowRate);
         }
         List<object> sorted = this.sortBy(result, "timestamp");

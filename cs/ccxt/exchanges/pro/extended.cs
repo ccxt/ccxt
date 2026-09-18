@@ -499,7 +499,7 @@ public partial class extended : ccxt.extended
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
+            IList<object> filtered = ((IList<object>)this.filterByArray(newPositions, "symbol", symbols, false));
             if (!isTrue(this.isEmpty(filtered)))
             {
                 callDynamically(client, "resolve", new object[] {filtered, messageHash});

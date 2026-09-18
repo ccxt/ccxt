@@ -3723,7 +3723,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object rows = this.safeValue(response, "positions");
-        object interest = this.parseBorrowInterests(rows, market);
+        List<object> interest = this.parseBorrowInterests(rows, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
@@ -3848,7 +3848,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToCrossBorrowRates(this.parseBorrowRates(result, "currency"));
     }
 
-    public override object parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3886,7 +3886,7 @@ public partial class digifinex : Exchange
             object item = getValue(info, i);
             string? currency = this.safeString(item, codeKey);
             string? code = this.safeCurrencyCode(currency);
-            object borrowRate = this.parseBorrowRate(item);
+            Dictionary<string, object> borrowRate = this.parseBorrowRate(item);
             if ((code != null))
             {
                 result[(string)code] = borrowRate;

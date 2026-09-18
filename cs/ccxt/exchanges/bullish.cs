@@ -2910,7 +2910,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        object results = this.parsePositions(response, symbols);
+        IList<object> results = this.parsePositions(response, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
     }
 
@@ -3207,7 +3207,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(response,code, since, limit));
     }
 
-    public override object parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
     {
         //
         //     {

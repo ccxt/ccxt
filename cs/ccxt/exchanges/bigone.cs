@@ -1054,7 +1054,7 @@ public partial class bigone : Exchange
             List<object> instruments = await this.contractPublicGetInstruments(parameters);
             data = this.toArray(instruments);
         }
-        object tickers = this.parseTickers(data, symbols);
+        Dictionary<string, object> tickers = this.parseTickers(data, symbols);
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 

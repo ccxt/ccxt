@@ -1884,7 +1884,7 @@ public partial class bitmex : Exchange
             request["count"] = limit;
         }
         List<object> response = await this.privateGetUserWalletHistory(this.extend(request, parameters));
-        object transactions = this.filterByArray(response, "transactType", new List<object>() {"Withdrawal", "Deposit"}, false);
+        IList<object> transactions = ((IList<object>)this.filterByArray(response, "transactType", new List<object>() {"Withdrawal", "Deposit"}, false));
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
     }
 
@@ -3049,7 +3049,7 @@ public partial class bitmex : Exchange
         //         }
         //     ]
         //
-        object results = this.parsePositions(response, symbols);
+        IList<object> results = this.parsePositions(response, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
     }
 

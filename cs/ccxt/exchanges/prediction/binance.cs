@@ -1446,13 +1446,13 @@ public partial class binance : PredictionExchange
         // }
         //
         List<object> data = this.safeList(response, "positions", new List<object>() {});
-        object positions = this.parsePredictionPositions(data);
+        List<object> positions = this.parsePredictionPositions(data);
         if (isEqual(outcomes, null))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(positions);
         }
         List<object> filtered = new List<object>() {};
-        int positionsLength = getArrayLength(positions);
+        int positionsLength = positions?.Count ?? 0;
         for (int i = 0; isLessThan(i, positionsLength); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
@@ -1492,7 +1492,7 @@ public partial class binance : PredictionExchange
         //
         //
         List<object> positions = this.safeList(response, "positions", new List<object>() {});
-        object parsedPositions = this.parsePredictionPositions(positions);
+        List<object> parsedPositions = this.parsePredictionPositions(positions);
         IList<object> filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null, null);
         return ccxt.BaseExchange.ToPredictionPosition(this.safeDict(filteredPositions, 0));
     }

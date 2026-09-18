@@ -6356,7 +6356,7 @@ public partial class xt : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> items = this.safeList(result, "items", new List<object>() {});
-        object positions = this.parsePositions(items, symbols);
+        IList<object> positions = this.parsePositions(items, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

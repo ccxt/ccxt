@@ -3470,7 +3470,7 @@ public partial class delta : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        object settlements = this.parseSettlements(result, market);
+        List<object> settlements = this.parseSettlements(result, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
@@ -3541,7 +3541,7 @@ public partial class delta : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))

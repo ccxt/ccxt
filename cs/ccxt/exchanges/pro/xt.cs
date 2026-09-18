@@ -930,7 +930,7 @@ public partial class xt : ccxt.xt
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            object positions = this.filterByArray(new List<object>() {position}, "symbol", symbols, false);
+            IList<object> positions = ((IList<object>)this.filterByArray(new List<object>() {position}, "symbol", symbols, false));
             if (!isTrue(this.isEmpty(positions)))
             {
                 callDynamically(client, "resolve", new object[] {positions, messageHash});
@@ -1114,7 +1114,7 @@ public partial class xt : ccxt.xt
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 2));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
+            Dictionary<string, object> tickers = ((Dictionary<string, object>)this.filterByArray(newTickers, "symbol", symbols));
             List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
             int numTickers = tickersSymbols.Count;
             if (isGreaterThan(numTickers, 0))

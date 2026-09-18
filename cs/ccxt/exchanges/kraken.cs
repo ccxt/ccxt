@@ -3914,7 +3914,7 @@ public partial class kraken : Exchange
         //
         symbols = this.marketSymbols(symbols);
         List<object> result = this.safeList(response, "result");
-        object results = this.parsePositions(result, symbols);
+        IList<object> results = this.parsePositions(result, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
     }
 

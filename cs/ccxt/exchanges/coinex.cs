@@ -5378,7 +5378,7 @@ public partial class coinex : Exchange
         //     }
         //
         object rows = this.safeValue(response, "data", new List<object>() {});
-        object interest = this.parseBorrowInterests(rows, market);
+        List<object> interest = this.parseBorrowInterests(rows, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
@@ -5900,7 +5900,7 @@ public partial class coinex : Exchange
         //     }
         //
         List<object> records = this.safeList(response, "data", new List<object>() {});
-        object positions = this.parsePositions(records);
+        IList<object> positions = this.parsePositions(records);
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolSinceLimit(positions, symbol, since, limit));
     }
 

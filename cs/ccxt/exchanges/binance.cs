@@ -15060,7 +15060,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        object settlements = this.parseSettlements(response, market);
+        List<object> settlements = this.parseSettlements(response, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
@@ -15127,7 +15127,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        object settlements = this.parseSettlements(response, market);
+        List<object> settlements = this.parseSettlements(response, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
@@ -15175,7 +15175,7 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
     {
         //
         // fetchSettlementHistory
@@ -16187,7 +16187,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(response,code, since, limitVar));
     }
 
-    public override object parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -16436,7 +16436,7 @@ public partial class binance : Exchange
         //     }
         //
         List<object> rows = this.safeList(response, "rows");
-        object interest = this.parseBorrowInterests(rows, market);
+        List<object> interest = this.parseBorrowInterests(rows, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
