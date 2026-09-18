@@ -3493,7 +3493,7 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var takerFee *float64 = this.SafeNumber(takerData, 0)
 	var takerFeeFiat *float64 = this.SafeNumber(takerData, 2)
 	var takerFeeDeriv *float64 = this.SafeNumber(takerData, 5)
-	for i := 0; i < GetArrayLength(this.Symbols); i++ {
+	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
 		var fee map[string]any = map[string]any{

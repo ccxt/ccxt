@@ -1178,7 +1178,7 @@ func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) any {
 	var maker *float64 = this.SafeNumber(feesValue, "maker")
 	var taker *float64 = this.SafeNumber(feesValue, "taker")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(this.Symbols); i++ {
+	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fees,

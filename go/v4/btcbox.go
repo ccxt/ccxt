@@ -495,7 +495,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var numSymbols int = GetArrayLength(this.Symbols)
+	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
 		request["coin"] = GetValue(market, "baseId")
 	}
@@ -561,7 +561,7 @@ func (this *Btcbox) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var numSymbols int = GetArrayLength(this.Symbols)
+	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
 		request["coin"] = GetValue(market, "baseId")
 	}
@@ -675,7 +675,7 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var numSymbols int = GetArrayLength(this.Symbols)
+	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
 		request["coin"] = GetValue(market, "baseId")
 	}

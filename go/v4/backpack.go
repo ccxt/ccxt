@@ -3043,7 +3043,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(method, "GET") {
 		var query string = this.Urlencode(sortedParams)
-		if GetLength(query) != 0 {
+		if len(query) != 0 {
 			endpoint = Add(endpoint, "?"+query)
 		}
 	}

@@ -2814,7 +2814,7 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		if IsEqual(method, "POST") {
 			body = this.Json(request)
-		} else if GetLength(query) != 0 {
+		} else if len(query) != 0 {
 			url = Add(url, "?"+query)
 		}
 		var auth any = Add(Add(this.ApiKey, ":"), this.Secret)
@@ -2824,7 +2824,7 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 			"Authorization": signature,
 			"Content-Type":  "application/json",
 		}
-	} else if GetLength(query) != 0 {
+	} else if len(query) != 0 {
 		url = Add(url, "?"+query)
 	}
 	return map[string]any{

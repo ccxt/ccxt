@@ -1097,7 +1097,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var makerFees any = this.SafeValue(fees, "maker", map[string]any{})
 	var takerFees any = this.SafeValue(fees, "taker", map[string]any{})
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(this.Symbols); i++ {
+	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
 		var makerString *string = this.SafeString(makerFees, GetValue(market, "id"))
