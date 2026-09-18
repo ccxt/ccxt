@@ -2489,7 +2489,7 @@ export default class modetrade extends Exchange {
             direction = (side === 'DEPOSIT') ? 'in' : 'out';
         }
         const timestamp = this.safeInteger (item, 'created_time');
-        const feeCost = this.safeNumber (item, 'fee');
+        const feeCost = this.parseNumber (this.safeString (item, 'fee'));
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -2565,7 +2565,7 @@ export default class modetrade extends Exchange {
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.parseNumber (this.safeString (transaction, 'fee'));
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
