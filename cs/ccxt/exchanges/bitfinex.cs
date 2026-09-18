@@ -949,8 +949,8 @@ public partial class bitfinex : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", parseInt("8") },
-                    { "price", parseInt("5") },
+                    { "amount", 8L },
+                    { "price", 5L },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
