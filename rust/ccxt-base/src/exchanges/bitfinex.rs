@@ -1543,8 +1543,8 @@ impl BitfinexCore {
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), crate::runtime::parse_int(&Value::Str("8".to_string())));
-        m.insert("price".to_string(), crate::runtime::parse_int(&Value::Str("5".to_string())));
+        m.insert("amount".to_string(), Value::Int(8));
+        m.insert("price".to_string(), Value::Int(5));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -3092,7 +3092,7 @@ impl BitfinexCore {
         }  else {
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), crate::runtime::parse_int(&id));
+                    m.insert("id".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m
             });
         }
@@ -3235,7 +3235,7 @@ impl BitfinexCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::List(vec![crate::runtime::parse_int(&id)]));
+                m.insert("id".to_string(), Value::List(vec![(match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })]));
             m
         });
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
@@ -3268,7 +3268,7 @@ impl BitfinexCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::List(vec![crate::runtime::parse_int(&id)]));
+                m.insert("id".to_string(), Value::List(vec![(match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })]));
             m
         });
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
@@ -3510,7 +3510,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut orderId: Value = crate::runtime::parse_int(&id);
+        let mut orderId: Value = (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), orderId.clone());

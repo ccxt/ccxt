@@ -1663,7 +1663,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut marginBuyEnabled: Value = self.safe_bool_k(market.clone(), "margin_buy_enabled", &[]);
             let mut marginSellEnabled: Value = self.safe_bool_k(market.clone(), "margin_sell_enabled", &[]);
             let mut expiryString: Value = self.omit_zero(self.safe_string_k(market.clone(), "expiry_timestamp_ms", &[]));
-            let mut expiry: Value = (if is_true(&(Value::Bool(expiryString != Value::Null))) { crate::runtime::parse_int(&expiryString) } else { Value::Null });
+            let mut expiry: Value = (if is_true(&(Value::Bool(expiryString != Value::Null))) { (match &expiryString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }) } else { Value::Null });
             let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
             let mut type_var: Value = Value::Null;
             let mut contract: Value = Value::Null;

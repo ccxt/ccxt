@@ -4554,7 +4554,7 @@ impl PoloniexCore {
         m.insert("collateral".to_string(), collateral.clone());
         m.insert("initialMargin".to_string(), initialMargin.clone());
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), crate::runtime::parse_int(&leverage));
+        m.insert("leverage".to_string(), (match &leverage { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
         m.insert("marginRatio".to_string(), self.safe_number_k(position.clone(), "mgnRatio", &[]));
         m.insert("stopLossPrice".to_string(), self.safe_number_k(position.clone(), "slTrgPx", &[]));
         m.insert("takeProfitPrice".to_string(), self.safe_number_k(position.clone(), "tpTrgPx", &[]));

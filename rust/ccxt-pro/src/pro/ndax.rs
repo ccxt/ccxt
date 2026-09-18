@@ -492,7 +492,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId.clone());
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market.clone(), "id", &[]));
-                m.insert("Interval".to_string(), crate::runtime::parse_int(&self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])));
+                m.insert("Interval".to_string(), (match &self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("IncludeLastCount".to_string(), Value::Int(100));
             m
         });
@@ -571,7 +571,7 @@ impl NdaxCore {
                 let mut timeframe: Value = get_value(&keys, &j);
                 let mut timeframe: Value = get_value(&keys, &j);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-                let mut duration: Value = (match (&(crate::runtime::parse_int(&interval)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut duration: Value = (match (&((match &interval { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 let mut timestamp: Value = self.safe_integer(ohlcv.clone(), Value::Int(0), &[]);
                 if (timestamp == Value::Null) {
                     continue;

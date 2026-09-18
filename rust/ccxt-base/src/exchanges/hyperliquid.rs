@@ -1382,7 +1382,7 @@ impl HyperliquidCore {
             let mut innerBaseTokenInfo: Value = self.safe_dict_k(baseTokenInfo.clone(), "spec", &[baseTokenInfo.clone()]);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Value = self.safe_string_k(innerBaseTokenInfo.clone(), "szDecimals", &[]);
-            let mut amountPrecision: Value = crate::runtime::parse_int(&amountPrecisionStr);
+            let mut amountPrecision: Value = (match &amountPrecisionStr { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
             let mut price: Value = self.safe_number_k(extraData.clone(), "midPx", &[]);
             let mut pricePrecision: Value = Value::Int(0);
             if (price != Value::Null) {
@@ -1515,7 +1515,7 @@ impl HyperliquidCore {
         let mut taker: Value = self.safe_number_k(fees.clone(), "taker", &[]);
         let mut maker: Value = self.safe_number_k(fees.clone(), "maker", &[]);
         let mut amountPrecisionStr: Value = self.safe_string_k(market.clone(), "szDecimals", &[]);
-        let mut amountPrecision: Value = crate::runtime::parse_int(&amountPrecisionStr);
+        let mut amountPrecision: Value = (match &amountPrecisionStr { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
         let mut price: Value = self.safe_number_k(market.clone(), "markPx", &[Value::Int(0)]);
         let mut pricePrecision: Value = Value::Int(0);
         if (price != Value::Null) {

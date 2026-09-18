@@ -987,8 +987,8 @@ impl BithumbCore {
                         m.insert("optionType".to_string(), Value::Null);
                         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), crate::runtime::parse_int(&Value::Str("4".to_string())));
-        m.insert("price".to_string(), crate::runtime::parse_int(&Value::Str("4".to_string())));
+        m.insert("amount".to_string(), Value::Int(4));
+        m.insert("price".to_string(), Value::Int(4));
     m
 }));
                         m.insert("limits".to_string(), Value::Map({
@@ -1106,8 +1106,8 @@ impl BithumbCore {
                             m.insert("optionType".to_string(), Value::Null);
                             m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), crate::runtime::parse_int(&Value::Str("4".to_string())));
-        m.insert("price".to_string(), crate::runtime::parse_int(&Value::Str("4".to_string())));
+        m.insert("amount".to_string(), Value::Int(4));
+        m.insert("price".to_string(), Value::Int(4));
     m
 }));
                             m.insert("limits".to_string(), Value::Map({

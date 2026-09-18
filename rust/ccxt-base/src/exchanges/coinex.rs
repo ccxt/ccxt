@@ -4022,7 +4022,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_562: bool = true;
             while { if !__for_first_562 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_562 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            append_to_array(&mut requestIds, crate::runtime::parse_int(&get_value(&ids, &i)));
+            append_to_array(&mut requestIds, (match &get_value(&ids, &i) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
         }
         }
         if (trigger.as_bool() == Some(true)) {
