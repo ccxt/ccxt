@@ -3871,7 +3871,7 @@ public class Okx extends OkxApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 200)).join();
             }
             String priceType = this.safeString(parameters, "price");
-            Object isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
+            boolean isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
             parameters = this.omit(parameters, "price");
             Object options = this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
@@ -3881,7 +3881,7 @@ public class Okx extends OkxApi
                 limit = 100; // default 100, max 300
             } else
             {
-                Object maxLimit = ((Helpers.isTrue(isMarkOrIndex))) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+                Object maxLimit = ((isMarkOrIndex)) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
                 limit = Helpers.mathMin(limit, maxLimit);
             }
             int duration = this.parseTimeframe(timeframe);
@@ -3907,7 +3907,7 @@ public class Okx extends OkxApi
                 if (Helpers.isLessThan(since, historyBorder))
                 {
                     defaultType = "HistoryCandles";
-                    Object maxLimit = ((Helpers.isTrue(isMarkOrIndex))) ? 100 : 300;
+                    Object maxLimit = ((isMarkOrIndex)) ? 100 : 300;
                     limit = Helpers.mathMin(limit, maxLimit);
                 }
                 Object startTime = Helpers.mathMax(Helpers.subtract(since, 1), 0);

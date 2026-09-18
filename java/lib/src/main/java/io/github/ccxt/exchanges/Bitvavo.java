@@ -740,7 +740,7 @@ final Object finalBase = base;
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id);
-        Object isFiat = this.inArray(code, fiatCurrencies);
+        boolean isFiat = this.inArray(code, fiatCurrencies);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object networksArray = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         Boolean deposit = java.util.Objects.equals(this.safeString(rawCurrency, "depositStatus"), "OK");
@@ -788,7 +788,7 @@ final Object finalBase = base;
             put( "networks", networks );
             put( "fee", withdrawFee );
             put( "precision", null );
-            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((isFiat)) ? "fiat" : "crypto" );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );

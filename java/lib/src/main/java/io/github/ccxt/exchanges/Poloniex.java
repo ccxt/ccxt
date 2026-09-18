@@ -1911,10 +1911,10 @@ public class Poloniex extends PoloniexApi
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object isContract = this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future")));
+            boolean isContract = this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future")));
             Object request = new HashMap<String, Object>() {{}};
-            String startKey = ((Helpers.isTrue(isContract))) ? "sTime" : "startTime";
-            String endKey = ((Helpers.isTrue(isContract))) ? "eTime" : "endTime";
+            String startKey = ((isContract)) ? "sTime" : "startTime";
+            String endKey = ((isContract)) ? "eTime" : "endTime";
             if (!java.util.Objects.equals(since, null))
             {
                 Helpers.addElementToObject(request, startKey, since);
@@ -1923,14 +1923,14 @@ public class Poloniex extends PoloniexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            if (Helpers.isTrue(isContract) && !java.util.Objects.equals(symbol, null))
+            if (isContract && !java.util.Objects.equals(symbol, null))
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(endKey, request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
-            if (Helpers.isTrue(isContract))
+            if (isContract)
             {
                 Map<String, Object> raw = (this.swapPrivateGetV3TradeOrderTrades(this.extend(request, parameters))).join();
                 //

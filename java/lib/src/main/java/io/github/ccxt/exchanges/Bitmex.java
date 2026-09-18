@@ -924,8 +924,8 @@ public class Bitmex extends BitmexApi
             return this.parseNumber(rawQuantity);
         }
         symbol = this.safeSymbol(symbol);
-        Object marketExists = this.inArray(symbol, this.symbols);
-        if (!Helpers.isTrue(marketExists))
+        boolean marketExists = this.inArray(symbol, this.symbols);
+        if (!marketExists)
         {
             return this.parseNumber(rawQuantity);
         }
@@ -4051,11 +4051,11 @@ public class Bitmex extends BitmexApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        Object isAuthenticated = this.checkRequiredCredentials(false);
+        boolean isAuthenticated = Helpers.isTrue(this.checkRequiredCredentials(false));
         Object cost = this.safeValue(config, "cost", 1);
         if (!Helpers.isEqual(cost, 1))
         {
-            if (Helpers.isTrue(isAuthenticated))
+            if (isAuthenticated)
             {
                 return cost;
             } else
@@ -4653,8 +4653,8 @@ public class Bitmex extends BitmexApi
             }
         }
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), query);
-        Object isAuthenticated = this.checkRequiredCredentials(false);
-        if (java.util.Objects.equals(api, "private") || (java.util.Objects.equals(api, "public") && Helpers.isTrue(isAuthenticated)))
+        boolean isAuthenticated = Helpers.isTrue(this.checkRequiredCredentials(false));
+        if (java.util.Objects.equals(api, "private") || (java.util.Objects.equals(api, "public") && isAuthenticated))
         {
             this.checkRequiredCredentials();
             Object auth = Helpers.add(method, query);
