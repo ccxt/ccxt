@@ -74,7 +74,7 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-class RustTranspilerBuilder {
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -4399,6 +4399,86 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    /**
+     * Undo the `&self` encoding of a nested-key write once the enclosing method
+     * has become `&mut self`. `this.options['k1'][k2] = v` in a `&self` method
+     * is emitted as a forged borrow —
+     * `get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &k1)` —
+     * while the same write in a `&mut self` method can borrow the real field:
+     * `get_value_mut(&mut self.options, &k1)`. Same field, same `get_value_mut`
+     * (both reach `Arc::make_mut` for a dict), no cast. Receiver promotion runs
+     * before this pass, so handlers that `stripMutSelfFieldClones` saw as `&self`
+     * are covered too.
+     * Stays a cast when an arg after the receiver of the same
+     * `add_element_to_object` call mentions `self`: `&mut self.<field>` plus a
+     * whole-`self` borrow in the same call is E0502.
+     */
+    nativeMutSelfCoerceMutSites(content: string): string {
+        const rx = /get_value_mut\(\s*unsafe \{ crate::runtime::coerce_value_to_mut\(&self\.([a-zA-Z_][a-zA-Z0-9_]*)\) \}\s*,/g;
+        const rewriteBody = (body: string): string => body.replace(rx, (match: string, field: string, offset: number) => {
+            // Walk back to the opener of the enclosing `add_element_to_object(…)`.
+            let depth = 0;
+            let opener = -1;
+            for (let k = offset - 1; k >= 0; k--) {
+                const c = body[k];
+                if (c === ')') depth++;
+                else if (c === '(') {
+                    if (depth > 0) depth--;
+                    else if (body.slice(Math.max(0, k - 21), k) === 'add_element_to_object') { opener = k; break; }
+                }
+            }
+            if (opener < 0) return match;
+            // Balance to that call's closing `)`.
+            let d = 1, j = opener + 1, inStr = false, escape = false;
+            while (j < body.length && d > 0) {
+                const c = body[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(') d++;
+                    else if (c === ')') d--;
+                }
+                if (d === 0) break;
+                j++;
+            }
+            if (d !== 0) return match;
+            // Args after the receiver: a bare `self` there (method call, field
+            // read) collides with `&mut self.<field>`.
+            if (/\bself\b/.test(body.slice(offset + match.length, j))) return match;
+            return `get_value_mut(&mut self.${field},`;
+        });
+        const fnRe = /\bpub\s+(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*&mut self\b/g;
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = fnRe.exec(content)) !== null) {
+            const braceIdx = content.indexOf('{', m.index + m[0].length);
+            if (braceIdx < 0) break;
+            let depth = 1, j = braceIdx + 1, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr && c === '/' && content[j + 1] === '/') {
+                    const nl = content.indexOf('\n', j);
+                    j = nl < 0 ? content.length : nl + 1;
+                    continue;
+                }
+                if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) break;
+            out += content.slice(last, braceIdx) + rewriteBody(content.slice(braceIdx, j + 1));
+            last = j + 1;
+            fnRe.lastIndex = last;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
     splitAddElementBorrowConflicts(content: string): string {
         const pattern = /\badd_element_to_object\(/;
         let i = 0;
@@ -6515,6 +6595,9 @@ ${arms.join('\n')}
             /\bpub async fn ([a-zA-Z_][a-zA-Z0-9_]*)\(\s*&self\b/g,
             'pub async fn $1(&mut self',
         );
+        // Receivers are final now: a nested-key write the clone-strip had to
+        // encode as `coerce_value_to_mut(&self.<field>)` can use the real field.
+        content = this.nativeMutSelfCoerceMutSites(content);
         // Some transpiled WS methods (`fetch_order_book_snapshot`,
         // `keep_alive_listen_key`, …) have a `-> Value` signature but
         // a `()` body — TS used `Promise<void>` / no explicit return.
