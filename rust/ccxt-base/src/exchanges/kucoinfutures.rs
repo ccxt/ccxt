@@ -172,9 +172,9 @@ impl crate::exchange_generated::ExchangeBase for KucoinfuturesCore {
     {
         Box::pin(async move {
             match method {
-                "fetch_bids_asks" => self.fetch_bids_asks(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_bids_asks" => self.fetch_bids_asks(&args[..]).await,
                 "parse_transfer_type" => self.parse_transfer_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+                "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
