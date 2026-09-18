@@ -1182,7 +1182,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			for i := 0; i < marketIdsLength; i++ {
 				AppendToArray(&marketIdsChunk, GetValue(marketIds, i))
 				var marketIdsChunkLength int = GetArrayLength(marketIdsChunk)
-				var isLastMarketId bool = (i == (Subtract(marketIdsLength, 1)))
+				var isLastMarketId bool = (i == (marketIdsLength - 1))
 				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
 					AppendToArray(&marketIdsChunks, marketIdsChunk)
 					request["markets"] = Join(marketIdsChunk, ",")
@@ -1681,7 +1681,7 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	if (!IsEqual(timestamp, nil)) && (!isGenerationTwo) {
-		timestamp = Subtract(timestamp, Multiply(9, 3600000)) // they report UTC + 9 hours, server in Korean timezone
+		timestamp = Subtract(timestamp, 9*3600000) // they report UTC + 9 hours, server in Korean timezone
 	}
 	var typeVar any = nil
 	var side any = this.SafeStringLower2(trade, "ask_bid", "type")
@@ -2512,7 +2512,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 			var normalized string = Replace(datetime, "+09:00", "Z")
 			var normalizedTimestamp *int64 = this.Parse8601(normalized)
 			if normalizedTimestamp != nil {
-				timestamp = Subtract(normalizedTimestamp, Multiply(9, 3600000))
+				timestamp = Subtract(normalizedTimestamp, 9*3600000)
 			} else {
 				timestamp = DerefScalar(this.Parse8601(datetime))
 			}
@@ -3246,7 +3246,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 		var normalized string = Replace(datetime, "+09:00", "Z")
 		var normalizedTimestamp *int64 = this.Parse8601(normalized)
 		if normalizedTimestamp != nil {
-			timestamp = Subtract(normalizedTimestamp, Multiply(9, 3600000))
+			timestamp = Subtract(normalizedTimestamp, 9*3600000)
 		}
 	}
 	return map[string]any{

@@ -260,7 +260,7 @@ func (this *Indodax) Describe() any {
 			"1w":  "1W",
 		},
 		"options": map[string]any{
-			"recvWindow":              Multiply(5, 1000),
+			"recvWindow":              5 * 1000,
 			"timeDifference":          0,
 			"adjustForTimeDifference": false,
 			"networks": map[string]any{

@@ -1489,7 +1489,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 	if orderSide != nil {
 		var parts []string = Split(orderSide, "_")
 		var partsLength int = len(parts)
-		side = this.SafeStringLower(parts, Subtract(partsLength, 1))
+		side = this.SafeStringLower(parts, partsLength-1)
 	}
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "type"))
 	var price *string = this.SafeString(order, "price")

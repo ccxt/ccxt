@@ -920,7 +920,7 @@ func (this *Aster) Describe() any {
 		},
 		"options": map[string]any{
 			"defaultType": "spot",
-			"recvWindow":  Multiply(10, 1000),
+			"recvWindow":  10 * 1000,
 			"zeroAddress": "0x0000000000000000000000000000000000000000",
 			"v3ChainId":   1666,
 			"createOrder": map[string]any{

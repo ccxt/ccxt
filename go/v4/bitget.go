@@ -3255,9 +3255,9 @@ func (this *Bitget) Describe() any {
 					"6h":  360,
 					"12h": 720,
 					"1d":  1440,
-					"3d":  Multiply(1440, 3),
-					"1w":  Multiply(1440, 7),
-					"1M":  Multiply(1440, 30),
+					"3d":  1440 * 3,
+					"1w":  1440 * 7,
+					"1M":  1440 * 30,
 				},
 				"spot": map[string]any{
 					"maxLimitPerTimeframe": map[string]any{
@@ -6832,8 +6832,8 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		if GetValue(market, "spot") != true {
 			var maxDistanceDaysForContracts int = 90
 			// only correct if request is larger
-			if IsGreaterThan(Subtract(calculatedEndTime, calculatedStartTime), Multiply(maxDistanceDaysForContracts, msInDay)) {
-				calculatedEndTime = this.Sum(calculatedStartTime, Multiply(maxDistanceDaysForContracts, msInDay))
+			if IsGreaterThan(Subtract(calculatedEndTime, calculatedStartTime), maxDistanceDaysForContracts*msInDay) {
+				calculatedEndTime = this.Sum(calculatedStartTime, maxDistanceDaysForContracts*msInDay)
 				request["endTime"] = calculatedEndTime
 			}
 		}

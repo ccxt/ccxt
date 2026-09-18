@@ -1033,14 +1033,14 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing rHex"))
 	}
 	var rHexLength int = ccxt.GetLength(rHex)
-	if (ccxt.Mod(rHexLength, 2)) != 0 {
+	if (rHexLength % 2) != 0 {
 		rHex = ccxt.Add("0", rHex)
 	}
 	if ccxt.IsEqual(sHex, nil) {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing sHex"))
 	}
 	var sHexLength int = ccxt.GetLength(sHex)
-	if (ccxt.Mod(sHexLength, 2)) != 0 {
+	if (sHexLength % 2) != 0 {
 		sHex = ccxt.Add("0", sHex)
 	}
 	var yParity *int64 = this.SafeInteger(signature, "v")

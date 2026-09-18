@@ -3062,7 +3062,7 @@ func (this *Backpack) GenerateBatchPayload(params any, ts any, recvWindow any, i
 		var sortedOrder map[string]any = this.Keysort(order)
 		var orderQuery string = this.Urlencode(sortedOrder)
 		payload = Add(payload, Add(Add(Add(Add("instruction=", instruction), "&"), orderQuery), "&"))
-		if i == (Subtract(GetArrayLength(params), 1)) {
+		if i == (GetArrayLength(params) - 1) {
 			payload = Add(payload, Add(Add(Add("timestamp=", ts), "&window="), recvWindow))
 		}
 	}

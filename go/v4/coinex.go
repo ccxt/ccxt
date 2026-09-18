@@ -1533,7 +1533,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 			"limits": map[string]any{
 				"leverage": map[string]any{
 					"min": this.SafeNumber(leverages, 0),
-					"max": this.SafeNumber(leverages, Subtract(leveragesLength, 1)),
+					"max": this.SafeNumber(leverages, leveragesLength-1),
 				},
 				"amount": map[string]any{
 					"min": this.SafeNumber(entry, "min_amount"),
@@ -6687,10 +6687,10 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 		var parts []string = Split(path, "/")
 		var firstPart *string = this.SafeString(parts, 0, "")
 		var numParts int = len(parts)
-		var lastPart *string = this.SafeString(parts, Subtract(numParts, 1), "")
+		var lastPart *string = this.SafeString(parts, numParts-1, "")
 		var lastWords []string = Split(lastPart, "_")
 		var numWords int = len(lastWords)
-		var lastWord *string = this.SafeString(lastWords, Subtract(numWords, 1), "")
+		var lastWord *string = this.SafeString(lastWords, numWords-1, "")
 		if (firstPart != nil && *firstPart == "order") && ((lastWord != nil && *lastWord == "limit") || (lastWord != nil && *lastWord == "market")) {
 			// inject in implicit API calls
 			// POST /order/limit - Place limit orders

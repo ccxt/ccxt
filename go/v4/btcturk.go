@@ -885,7 +885,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
 			request["to"] = mathMin(request["to"], to)
 		} else {
-			request["from"] = Subtract(this.ParseToInt(Divide(0, 1000)), limitSeconds)
+			request["from"] = Subtract(this.ParseToInt(0/1000), limitSeconds)
 		}
 	}
 

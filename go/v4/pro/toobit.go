@@ -67,7 +67,7 @@ func (this *Toobit) Describe() any {
 			},
 		},
 		"streaming": map[string]any{
-			"keepAlive": ccxt.Multiply(ccxt.Multiply((ccxt.Subtract(60, 1)), 5), 1000),
+			"keepAlive": (60 - 1) * 5 * 1000,
 			"ping":      this.Ping,
 		},
 		"exceptions": map[string]any{

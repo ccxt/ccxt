@@ -1305,7 +1305,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs .
 		request["serverCreateTimestampFrom"] = since
 	} else if isClosedOrders {
 		// exchange requires a `since` parameter for closed orders, so set default to allowed 365
-		request["serverCreateTimestampFrom"] = Subtract(this.Milliseconds(), Multiply(Multiply(Multiply(Multiply(364, 24), 60), 60), 1000))
+		request["serverCreateTimestampFrom"] = Subtract(this.Milliseconds(), (364*24)*60*60*1000)
 	}
 	var until any = nil
 	untilparamsVariable := this.HandleParamInteger2(params, "until", "till")

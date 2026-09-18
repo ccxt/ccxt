@@ -1609,13 +1609,13 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	// the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
 	var bestBid any = func() any {
 		if bidsLength > 0 {
-			return ccxt.GetValue(bids, ccxt.Subtract(bidsLength, 1))
+			return ccxt.GetValue(bids, bidsLength-1)
 		}
 		return nil
 	}()
 	var bestAsk any = func() any {
 		if asksLength > 0 {
-			return ccxt.GetValue(asks, ccxt.Subtract(asksLength, 1))
+			return ccxt.GetValue(asks, asksLength-1)
 		}
 		return nil
 	}()

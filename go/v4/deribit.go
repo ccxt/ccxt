@@ -4173,7 +4173,7 @@ func (this *Deribit) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	var time int64 = this.Milliseconds()
 	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
-		"start_timestamp": Subtract(time, (Multiply(Multiply(Multiply(8, 60), 60), 1000))),
+		"start_timestamp": Subtract(time, ((8 * 60) * 60 * 1000)),
 		"end_timestamp":   time,
 	}
 
@@ -4444,11 +4444,11 @@ func (this *Deribit) AddPaginationCursorToResult(cursor any, data any) any {
 		var dataLength int = GetArrayLength(data)
 		if dataLength > 0 {
 			var first any = GetValue(data, 0)
-			var last any = GetValue(data, Subtract(dataLength, 1))
+			var last any = GetValue(data, dataLength-1)
 			AddElementToObject(first, "continuation", cursor)
 			AddElementToObject(last, "continuation", cursor)
 			AddElementToObject(data, 0, first)
-			AddElementToObject(data, Subtract(dataLength, 1), last)
+			AddElementToObject(data, dataLength - 1, last)
 		}
 	}
 	return data

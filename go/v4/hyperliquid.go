@@ -865,7 +865,7 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 		// Integer digits is always 0 in this case (0 doesn't count)
 		var integerDigits int = 0
 		// Calculate the price precision
-		pricePrecision = mathMin(Subtract(maxDecimals, amountPrecision), Subtract(significantDigits, integerDigits))
+		pricePrecision = mathMin(Subtract(maxDecimals, amountPrecision), significantDigits - integerDigits)
 	} else if Precise.StringGt(priceStr, "0") && Precise.StringLt(priceStr, "1") {
 		// Significant digits, always 5 in this case
 		var significantDigits int = 5

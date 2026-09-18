@@ -341,13 +341,13 @@ func (this *Poloniex) Describe() any {
 			"swapPublic": map[string]any{
 				"get": map[string]any{
 					"v3/market/allInstruments": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/instruments": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/orderBook": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/candles": map[string]any{
 						"cost": 10,
@@ -362,40 +362,40 @@ func (this *Poloniex) Describe() any {
 						"cost": 10,
 					},
 					"v3/market/trades": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/liquidationOrder": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/tickers": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/markPrice": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/indexPrice": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/indexPriceComponents": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/fundingRate": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/fundingRate/history": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/openInterest": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/insurance": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/riskLimit": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"v3/market/limitPrice": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 				},
 			},
@@ -622,7 +622,7 @@ func (this *Poloniex) Describe() any {
 					"marginMode":       false,
 					"limit":            100,
 					"daysBack":         nil,
-					"daysBackCanceled": Divide(1, 6),
+					"daysBackCanceled": 1 / 6,
 					"untilDays":        nil,
 					"trigger":          false,
 					"trailing":         false,
@@ -3706,7 +3706,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
 		if !IsEqual(since, nil) {
 			return this.ParseToInt(Divide(since, 1000))
 		}
-		return Subtract(now, Multiply(10, year))
+		return Subtract(now, 10*year)
 	}()
 	var request map[string]any = map[string]any{
 		"start": start,
