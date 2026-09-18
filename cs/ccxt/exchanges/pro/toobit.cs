@@ -914,7 +914,7 @@ public partial class toobit : ccxt.toobit
         await this.authenticate();
         object market = this.marketOrNull(symbolVar);
         symbolVar = this.safeString(market, "symbol", symbolVar);
-        object messageHash = "orders";
+        string messageHash = "orders";
         if (!isEqual(symbolVar, null))
         {
             messageHash = add(add(messageHash, ":"), symbolVar);
@@ -1050,7 +1050,7 @@ public partial class toobit : ccxt.toobit
         await this.authenticate();
         object market = this.marketOrNull(symbolVar);
         symbolVar = this.safeString(market, "symbol", symbolVar);
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         if (!isEqual(symbolVar, null))
         {
             messageHash = add(add(messageHash, ":"), symbolVar);

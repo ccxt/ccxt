@@ -1014,7 +1014,7 @@ public partial class bithumb : ccxt.bithumb
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
-        object messageHash = "myOrder";
+        string messageHash = "myOrder";
         List<object> codes = this.safeList(parameters, "codes", new List<object>() {});
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
             { "type", messageHash },

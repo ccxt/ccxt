@@ -701,7 +701,7 @@ public partial class upbit : ccxt.upbit
             parsed["datetime"] = this.safeString(order, "datetime");
         }
         callDynamically(cachedOrders, "append", new object[] {parsed});
-        object messageHash = "myOrder";
+        string messageHash = "myOrder";
         callDynamically(client, "resolve", new object[] {this.orders, messageHash});
         messageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client, "resolve", new object[] {this.orders, messageHash});

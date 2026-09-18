@@ -1752,7 +1752,7 @@ public partial class bitget : ccxt.bitget
         isTrigger = (bool?)((IList<object>)isTriggerparametersVariable)[0];
         parameters = ((IList<object>)isTriggerparametersVariable)[1];
         object messageHash = (isEqual(isTrigger, true)) ? "triggerOrder" : "order";
-        object subscriptionHash = "order:trades";
+        string subscriptionHash = "order:trades";
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
@@ -2333,7 +2333,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);

@@ -1173,7 +1173,7 @@ public partial class mexc : ccxt.mexc
         {
             await this.loadMarkets();
         }
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         IDictionary<string, object> market = null;
         if (!isEqual(symbolVar, null))
         {
@@ -1375,7 +1375,7 @@ public partial class mexc : ccxt.mexc
         {
             await this.loadMarkets();
         }
-        object messageHash = "orders";
+        string messageHash = "orders";
         IDictionary<string, object> market = null;
         if (!isEqual(symbolVar, null))
         {

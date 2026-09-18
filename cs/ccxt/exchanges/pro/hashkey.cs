@@ -424,7 +424,7 @@ public partial class hashkey : ccxt.hashkey
         {
             await this.loadMarkets();
         }
-        object messageHash = "orders";
+        string messageHash = "orders";
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);

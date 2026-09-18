@@ -111,7 +111,7 @@ public partial class PredictionExchange : BaseExchange
         }
         List<object> extraScopeParams = this.safeList(this.options, "eventScopeParams", new List<object>() {});
         int extraScopeParamsLength = extraScopeParams.Count;
-        object extraNames = "";
+        string extraNames = "";
         for (int i = 0; isLessThan(i, extraScopeParamsLength); postFixIncrement(ref i))
         {
             object scopeKey = getValue(extraScopeParams, i);
@@ -289,14 +289,14 @@ public partial class PredictionExchange : BaseExchange
         string lower = ((string)tag).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         object chars = this.stringToCharsArray(lower);
-        object s = "";
+        string s = "";
         bool pendingSep = false;
         for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
             {
-                if (pendingSep && (!isEqual(s, "")))
+                if (pendingSep && (s != ""))
                 {
                     s = add(s, " ");
                 }
@@ -307,7 +307,7 @@ public partial class PredictionExchange : BaseExchange
                 pendingSep = true;
             }
         }
-        return ((string?)((object)(s)));
+        return s;
     }
 
     public virtual object filterEventsByTags(object events, object tags = null)
@@ -588,7 +588,7 @@ public partial class PredictionExchange : BaseExchange
         string lower = (isEqual(slug, null)) ? "" : ((string)slug).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         object chars = this.stringToCharsArray(lower);
-        object s = "";
+        string s = "";
         bool lastDash = true; // start true to drop leading separators
         for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
         {
@@ -610,10 +610,10 @@ public partial class PredictionExchange : BaseExchange
             string? replacementValue = this.safeString(replacements, replacementKey);
             if ((replacementValue != null))
             {
-                s = ((string)s).Replace((string)replacementKey, (string)replacementValue);
+                s = s.Replace((string)replacementKey, (string)replacementValue);
             }
         }
-        List<object> rawParts = ((string)s).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+        List<object> rawParts = s.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> parts = new List<object>() {};
         for (int i = 0; isLessThan(i, rawParts.Count); postFixIncrement(ref i))
         {
@@ -662,14 +662,14 @@ public partial class PredictionExchange : BaseExchange
         string upper = ((string)outcome).ToUpper();
         string allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         object chars = this.stringToCharsArray(upper);
-        object label = "";
+        string label = "";
         bool pendingSep = false;
         for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
             {
-                if (pendingSep && (!isEqual(label, "")))
+                if (pendingSep && (label != ""))
                 {
                     label = add(label, "_");
                 }
@@ -680,7 +680,7 @@ public partial class PredictionExchange : BaseExchange
                 pendingSep = true;
             }
         }
-        if (isEqual(label, ""))
+        if (label == "")
         {
             // a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
             label = upper;

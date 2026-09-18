@@ -1225,7 +1225,7 @@ public partial class pacifica : ccxt.pacifica
         userAddress = (string)userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
         IDictionary<string, object> market = null;
-        object messageHash = "order";
+        string messageHash = "order";
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
