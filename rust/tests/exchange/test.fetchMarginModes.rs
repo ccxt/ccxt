@@ -17,8 +17,8 @@ pub async fn testFetchMarginModes(mut exchange: Value, mut skippedProperties: Va
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), symbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1459: bool = true;
-        while { if !__for_first_1459 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1459 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marginModeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1460: bool = true;
+        while { if !__for_first_1460 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1460 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marginModeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut marginMode: Value = get_value(&marginModes, &get_value(&marginModeKeys, &i));
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginMode.clone(), symbol.clone()]);
         testMarginMode(exchange.clone(), skippedProperties.clone(), method.clone(), marginMode.clone());

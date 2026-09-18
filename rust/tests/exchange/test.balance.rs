@@ -47,8 +47,8 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&(Value::Bool(codesLength.as_f64() == freeLength.as_f64()))) || is_true(&(Value::Bool(codesLength.as_f64() == usedLength.as_f64())))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1431: bool = true;
-        while { if !__for_first_1431 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1431 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1432: bool = true;
+        while { if !__for_first_1432 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1432 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut code: Value = get_value(&allCodes, &i);
         // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
         assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code)))));

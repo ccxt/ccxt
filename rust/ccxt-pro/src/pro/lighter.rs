@@ -228,6 +228,7 @@ impl LighterCore {
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
             "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "handle_all_orders_un_subscription" => { self.handle_all_orders_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -235,13 +236,18 @@ impl LighterCore {
             "handle_liquidation" => { self.handle_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "handle_my_trades_un_subscription" => { self.handle_my_trades_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "handle_order_book_un_subscription" => { self.handle_order_book_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_orders" => self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "handle_orders_un_subscription" => { self.handle_orders_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ping" => { self.handle_ping(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker_un_subscription" => { self.handle_ticker_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades_un_subscription" => { self.handle_trades_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ws_sendtx_api" => { self.handle_ws_sendtx_api(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -553,6 +559,7 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), add(&Value::Str("order_book/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
@@ -584,12 +591,14 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), add(&Value::Str("order_book/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             m
         });
-        let mut messageHash: Value = self.get_message_hash(Value::Str("unsubscribe".to_string()), &[symbol.clone()]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[symbol.clone()]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_4]).await;
 
@@ -697,6 +706,7 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), add(&Value::Str("market_stats/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
@@ -727,12 +737,14 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), add(&Value::Str("market_stats/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             m
         });
-        let mut messageHash: Value = self.get_message_hash(Value::Str("unsubscribe".to_string()), &[symbol.clone()]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_6]).await;
 
@@ -820,7 +832,8 @@ impl LighterCore {
                 m.insert("channel".to_string(), Value::Str("market_stats/all".to_string()));
             m
         });
-        let mut messageHash: Value = self.get_message_hash(Value::Str("unsubscribe".to_string()), &[]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_8]).await;
 
@@ -1088,7 +1101,8 @@ impl LighterCore {
                 m.insert("channel".to_string(), add(&Value::Str("trade/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             m
         });
-        let mut messageHash: Value = self.get_message_hash(Value::Str("unsubscribe".to_string()), &[symbol.clone()]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_10]).await;
 
@@ -1324,9 +1338,10 @@ impl LighterCore {
  * @name lighter#unWatchMyTrades
  * @description unsubscribe from the account trades channel
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
- * @param {string} [symbol] unified market symbol
+ * @param {string} [symbol] not supported by lighter.unWatchMyTrades, the account trades channel covers every market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ * @param {string} [params.accountIndex] account index
+ * @returns {any} status of the unwatch request
  */
     pub async fn un_watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -1334,18 +1349,16 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if (symbol != Value::Null) {
+            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only".to_string())))));
+        }
         let mut accountIndex: Value = Value::Null;
         { let __destr_tmp = self.parent.handle_account_index(params.clone(), Value::Str("unWatchMyTrades".to_string()), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut messageHash: Value = self.get_message_hash(Value::Str("unsubscribe".to_string()), &[Value::Str("myTrades".to_string())]);
-        if (symbol != Value::Null) {
-            self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol.clone());
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            messageHash = self.get_message_hash(Value::Str("unsubscribe".to_string()), &[symbol.clone()]);
-        }
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("myTrades".to_string()), &[]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("account_all_trades/".to_string()), &accountIndex));
+                m.insert("channel".to_string(), add(&Value::Str("account_all_trades/".to_string()), &self.number_to_string(accountIndex.clone())));
             m
         });
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
@@ -1725,20 +1738,21 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut accountIndex: Value = Value::Null;
-        { let __destr_tmp = self.parent.handle_account_index(params.clone(), Value::Str("watchOrders".to_string()), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut messageHash: Value = Value::Null;
+        { let __destr_tmp = self.parent.handle_account_index(params.clone(), Value::Str("unWatchOrders".to_string()), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut subMessageHash: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            messageHash = self.get_message_hash(Value::Str("orders".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
+            subMessageHash = self.get_message_hash(Value::Str("orders".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
             add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str(format!("{}{}", add(&Value::Str("account_orders/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str("/".to_string()))), &self.number_to_string(accountIndex.clone())));
         }  else {
-            messageHash = self.get_message_hash(Value::Str("orders".to_string()), &[]);
+            subMessageHash = self.get_message_hash(Value::Str("orders".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("account_all_orders/".to_string()), &self.number_to_string(accountIndex.clone())));
         }
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_17]).await;
 
@@ -2047,6 +2061,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_ws_sendtx_api(client.clone(), message.clone());
             return;
         }
+        if (type_var.as_str() == Some("unsubscribed")) {
+            self.handle_un_subscription(client.clone(), message.clone());
+            return;
+        }
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         if get_index_of(&channel, &Value::Str("order_book:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_order_book(client.clone(), message.clone());
@@ -2085,48 +2103,144 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
-        //
-        //     {
-        //         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
-        //         "type": "connected"
-        //     }
+    pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) -> Value {
+        return message;
+
+    Value::Null
+}
+
+    pub fn handle_un_subscription(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "unsubscribed",
         //         "channel": "order_book:0"
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
-        let mut id: Value = self.safe_string_k(message.clone(), "session_id", &[]);
-        let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
-        let mut subscription: Value = self.safe_dict(subscriptionsById.clone(), id.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        if (type_var.as_str() == Some("unsubscribed")) {
-            self.handle_un_subscription(client.clone(), subscription.clone());
+        // the venue keys every ack by the channel name plus one id segment, whatever the
+        // subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
+        // "account_orders:{marketId}", so parts[1] is the market id on every family below
+        //
+        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
+        let mut parts: Value = split(&channel, &Value::Str(":".to_string()));
+        let mut name: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".to_string())]);
+        let mut channelId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+        if (name.as_str() == Some("order_book")) {
+            self.handle_order_book_un_subscription(client.clone(), channelId.clone());
+        }  else if (name.as_str() == Some("market_stats")) {
+            self.handle_ticker_un_subscription(client.clone(), channelId.clone());
+        }  else if (name.as_str() == Some("trade")) {
+            self.handle_trades_un_subscription(client.clone(), channelId.clone());
+        }  else if (name.as_str() == Some("account_all_trades")) {
+            self.handle_my_trades_un_subscription(client.clone());
+        }  else if (name.as_str() == Some("account_orders")) {
+            self.handle_orders_un_subscription(client.clone(), channelId.clone());
+        }  else if (name.as_str() == Some("account_all_orders")) {
+            self.handle_all_orders_un_subscription(client.clone());
         }
-        return message;
-
-    Value::Null
 }
 
-    pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
-        let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-        let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_486 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut unsubHash: Value = get_value(&messageHashes, &i);
-            let mut unsubHash: Value = get_value(&messageHashes, &i);
-            let mut subHash: Value = get_value(&subMessageHashes, &i);
-            let mut subHash: Value = get_value(&subMessageHashes, &i);
-            self.clean_unsubscription(client.clone(), subHash.clone(), unsubHash.clone(), &[]);
+    pub fn handle_order_book_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
+        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[symbol.clone()]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
+        self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
+        if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
+            remove(&mut self.orderbooks, &symbol);
         }
+}
+
+    pub fn handle_ticker_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
+        if (marketId.as_str() == Some("all")) {
+            // a ticker hash is served by the one wire channel that created its subscription
+            // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
+            // owned by a live market_stats/<marketId> channel must survive this ack. deleting
+            // it here would make the next watchTicker re-subscribe a channel the venue still
+            // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
+            // so handleErrorMessage rejects every future on the socket
+            let mut subscriptionHashes: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_486: bool = true;
+                while { if !__for_first_486 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_486 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(subscriptionHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut subscriptionHash: Value = get_value(&subscriptionHashes, &i);
+                let mut subscriptionHash: Value = get_value(&subscriptionHashes, &i);
+                if is_true(&Value::Bool(starts_with(&subscriptionHash, &Value::Str("ticker".to_string())))) {
+                    let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), subscriptionHash.clone(), &[]);
+                    let mut subscriptionParams: Value = self.safe_dict_k(subscription.clone(), "params", &[]);
+                    let mut subscribedChannel: Value = self.safe_string_k(subscriptionParams.clone(), "channel", &[]);
+                    if (subscribedChannel.as_str() == Some("market_stats/all")) {
+                        remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash);
+                        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subscriptionHash))) {
+                            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), subscriptionHash))));
+                            client.reject(&[Value::from(error.clone()), subscriptionHash.clone()]);
+                        }
+                    }
+                }
+            }
+            }
+            let mut allMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), self.get_message_hash(Value::Str("ticker".to_string()), &[])));
+            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &allMessageHash))) {
+                remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &allMessageHash);
+            }
+            client.resolve(&[Value::Bool(true), allMessageHash.clone()]);
+            let mut tickersStructure: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("topic".to_string(), Value::Str("ticker".to_string()));
+                m
+            });
+            self.clean_cache(tickersStructure.clone());
+            return;
         }
-        self.clean_cache(subscription.clone());
+        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
+        self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
+        if is_true(&Value::Bool(in_op(&self.tickers, &symbol))) {
+            remove(&mut self.tickers, &symbol);
+        }
+}
+
+    pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
+        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[symbol.clone()]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
+        self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
+        if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
+            remove(&mut self.trades, &symbol);
+        }
+}
+
+    pub fn handle_my_trades_un_subscription(&mut self, mut client: Value) {
+        // one account-wide channel feeds the plural hash and every per-symbol hash
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), self.get_message_hash(Value::Str("myTrades".to_string()), &[])));
+        self.clean_unsubscription(client.clone(), Value::Str("myTrades".to_string()), messageHash.clone(), &[Value::Bool(true)]);
+        let mut myTradesStructure: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("myTrades".to_string()));
+            m
+        });
+        self.clean_cache(myTradesStructure.clone());
+}
+
+    pub fn handle_orders_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
+        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("orders".to_string()), &[symbol.clone()]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
+        self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
+}
+
+    pub fn handle_all_orders_un_subscription(&mut self, mut client: Value) {
+        // only the plural hash is awaited on this channel, per-symbol order hashes
+        // belong to the account_orders/<marketId> channels and stay untouched here
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("orders".to_string()), &[]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
+        self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
+        let mut ordersStructure: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("orders".to_string()));
+            m
+        });
+        self.clean_cache(ordersStructure.clone());
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {

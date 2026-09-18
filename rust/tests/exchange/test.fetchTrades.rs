@@ -20,8 +20,8 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
     let mut isPublicTrade: Value = Value::Bool(true);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1473: bool = true;
-        while { if !__for_first_1473 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1473 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1474: bool = true;
+        while { if !__for_first_1474 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1474 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&trades, &i), symbol.clone(), now.clone(), isPublicTrade.clone());
     }
     }
@@ -69,8 +69,8 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
     let mut lastTrade: Value = Value::Null;
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1474: bool = true;
-        while { if !__for_first_1474 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1474 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1475: bool = true;
+        while { if !__for_first_1475 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1475 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut trade: Value = get_value(&trades, &i);
         let mut ts: Value = get_value(&trade, &Value::Str("timestamp".to_string()));
         let mut price: Value = exchange.safe_string(trade.clone(), Value::Str("price".to_string()), &[]);

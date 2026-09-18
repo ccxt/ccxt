@@ -16,8 +16,8 @@ pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> 
     let mut keys: Value = object_keys(&features);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1444: bool = true;
-        while { if !__for_first_1444 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1444 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1445: bool = true;
+        while { if !__for_first_1445 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1445 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), keys.clone(), i.clone(), marketTypes.clone()]);
         let mut marketType: Value = get_value(&keys, &i);
         let mut value: Value = get_value(&features, &marketType);
@@ -31,8 +31,8 @@ pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> 
             let mut subKeys: Value = object_keys(&value);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1443: bool = true;
-                while { if !__for_first_1443 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1443 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(subKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1444: bool = true;
+                while { if !__for_first_1444 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1444 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(subKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut subKey: Value = get_value(&subKeys, &j);
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), subKeys.clone(), j.clone(), subTypes.clone()]);
                 let mut subValue: Value = get_value(&value, &subKey);
@@ -156,8 +156,8 @@ pub fn testFeaturesInner(mut exchange: Value, mut skippedProperties: Value, mut 
     let mut allMethods: Value = object_keys(&get_value(&exchange, &Value::Str("has".to_string())));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1445: bool = true;
-        while { if !__for_first_1445 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1445 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(featureKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1446: bool = true;
+        while { if !__for_first_1446 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1446 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(featureKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), featureKeys.clone(), i.clone(), allMethods.clone()]);
         crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), featureObj.clone(), format.clone(), Value::Null.clone(), Value::Bool(true).clone()]); // deep structure check
     }

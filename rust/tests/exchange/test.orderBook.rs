@@ -38,8 +38,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut bidsLength: Value = Value::Int(bids.len() as i64);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1437: bool = true;
-        while { if !__for_first_1437 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1437 = false; i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1438: bool = true;
+        while { if !__for_first_1438 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1438 = false; i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) } {
         let mut currentBidString: Value = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -59,8 +59,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut asksLength: Value = Value::Int(asks.len() as i64);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1438: bool = true;
-        while { if !__for_first_1438 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1438 = false; i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1439: bool = true;
+        while { if !__for_first_1439 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1439 = false; i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) } {
         let mut currentAskString: Value = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
