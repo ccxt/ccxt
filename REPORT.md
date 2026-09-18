@@ -97,7 +97,8 @@ after   locals: object=9304 typed=44132 typed%=82   params: object=11572  return
 * **Farm**: `ccxt-farm build --targets cs --wait` (dotnet is farm-only; never run locally). Code+REPORT
   commit `1e6093d58396593c96f645ca058f3e89f72fbe38` → `job 891 exit=0 branch_update=unchanged
   generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2` (`ccxt-farm status 891`); REPORT-tip commit
-  `12037334c826f78c82f07d93d94e0545583344a7` → `job 895 exit=0 branch_update=unchanged` (same generator).
+  `12037334c826f78c82f07d93d94e0545583344a7` → `job 895 exit=0 branch_update=unchanged` (same generator);
+  this REPORT's own commit `7f48922d809260f33b66ab4ad0751ca491deea83` → `job 897 exit=0 branch_update=unchanged`.
   `branch_update=unchanged` on a `transpile_force=0` build means the farm's own transpile reproduced
   this tree byte-for-byte (fixed point), and the generator is the campaign pin.
 
