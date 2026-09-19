@@ -786,13 +786,13 @@ class pacifica extends Exchange {
 
     public function fetch_balance($params = array()): array {
         /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-$account-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] will default to walletAddress if not provided
-         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
         $userAccount = null;
         list($userAccount, $params) = $this->handle_origin_and_single_address('fetchBalance', $params);
@@ -803,21 +803,35 @@ class pacifica extends Exchange {
         // {
         //   "success": true,
         //   "data": {
-        //     "balance": "2000.000000",
+        //     "balance": "4970.000323",           // USDC cash (perp collateral)
         //     "fee_level": 0,
         //     "maker_fee": "0.00015",
         //     "taker_fee": "0.0004",
-        //     "account_equity": "2150.250000",
-        //     "available_to_spend": "1800.750000",
-        //     "available_to_withdraw": "1500.850000",
-        //     "pending_balance": "0.000000",
-        //     "total_margin_used": "349.500000",
-        //     "cross_mmr": "420.690000",
-        //     "positions_count": 2,
-        //     "orders_count": 3,
-        //     "stop_orders_count": 1,
-        //     "updated_at": 1716200000000,
-        //     "use_ltp_for_stop_orders": false
+        //     "account_equity": "5478.140323",     // balance + spot_market_value
+        //     "cross_account_equity": "5376.512323",
+        //     "spot_market_value": "508.14",
+        //     "spot_collateral": "406.512",
+        //     "available_to_spend": "5376.512323",
+        //     "available_to_withdraw": "5376.512323",
+        //     "pending_balance": "0",
+        //     "pending_interest": "0",
+        //     "total_margin_used": "0",
+        //     "cross_mmr": "0",
+        //     "positions_count": 0,
+        //     "orders_count": 0,
+        //     "stop_orders_count": 0,
+        //     "spot_balances": [
+        //       {
+        //         "symbol": "SOL",
+        //         "amount": "5",
+        //         "available_to_withdraw": "5",
+        //         "pending_balance": "0",
+        //         "daily_withdraw_amount_usd": "0",
+        //         "effective_daily_deposit_limit_usd": "50000",
+        //         "effective_daily_withdraw_limit_usd": "250000"
+        //       }
+        //     ],
+        //     "updated_at": 1789394568220
         //   },
         //   "error": null,
         //   "code": null
@@ -826,15 +840,23 @@ class pacifica extends Exchange {
         $result = array(
             'info' => $data,
         );
-        $result['free'] = array();
-        $result['used'] = array();
-        $result['total'] = array();
-        $totalBalance = $this->safe_number($data, 'account_equity');
-        $usedMargin = $this->safe_number($data, 'total_margin_used');
-        $freeBalance = $this->safe_number($data, 'available_to_spend');
-        $result['total']['USDC'] = $totalBalance;
-        $result['used']['USDC'] = $usedMargin;
-        $result['free']['USDC'] = $freeBalance;
+        $usdcAccount = $this->account();
+        $usdcAccount['total'] = $this->safe_string($data, 'balance');
+        $usdcAccount['used'] = $this->safe_string($data, 'total_margin_used');
+        $result['USDC'] = $usdcAccount;
+        $spotBalances = $this->safe_list($data, 'spot_balances', array());
+        for ($i = 0; $i < count($spotBalances); $i++) {
+            $balance = $spotBalances[$i];
+            $currencyId = $this->safe_string($balance, 'symbol');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'amount');
+            $account['free'] = $this->safe_string($balance, 'available_to_withdraw');
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if (($code !== null) && !(is_array($result) && array_key_exists($code ?? '', $result))) {
+                $result[$code] = $account;
+            }
+        }
         $timestamp = $this->safe_integer($data, 'updated_at');
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
@@ -1499,6 +1521,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
+         * @param {string} [$params->slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client $order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
@@ -1509,8 +1532,9 @@ class pacifica extends Exchange {
         $this->initialize_client();
         list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $params = $this->omit($params, array(
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ));
         $response = null;
         if ($operationType === 'create_market_order') {
@@ -1567,6 +1591,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [$params->slippage] the $slippage for $market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an [order structure]
@@ -2963,11 +2988,12 @@ class pacifica extends Exchange {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols);
-        $swapMarkets = $this->fetch_swap_markets();
-        return $this->parse_open_interests($swapMarkets, $symbols);
+        $response = $this->publicGetInfoPrices($params);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -2977,12 +3003,16 @@ class pacifica extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
-        $symbol = $this->symbol($symbol);
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $symbol = $this->symbol($symbol);
         $ois = $this->fetch_open_interests(array( $symbol ), $params);
-        return $ois[$symbol];
+        $oi = $this->safe_dict($ois, $symbol);
+        if ($oi === null) {
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+        }
+        return $oi;
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null) {

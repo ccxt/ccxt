@@ -99,7 +99,7 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes6612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6612)
@@ -110,14 +110,14 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 		"currency": this.SafeString(currency, "id"),
 		"amount":   amountToPrecision,
 	}
-	var toAccountString any = this.ParseTransferType(toAccount)
+	var toAccountString *string = this.ParseTransferType(toAccount)
 	var response any = nil
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(toAccountString, "TRADE")) || ccxt.IsTrue(ccxt.IsEqual(toAccountString, "MAIN"))) {
+	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		ccxt.AddElementToObject(request, "recAccountType", toAccountString)
 
 		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
-	} else if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(toAccount, "future")) || ccxt.IsTrue(ccxt.IsEqual(toAccount, "swap"))) || ccxt.IsTrue(ccxt.IsEqual(toAccount, "contract"))) {
+	} else if (ccxt.IsEqual(toAccount, "future")) || (ccxt.IsEqual(toAccount, "swap")) || (ccxt.IsEqual(toAccount, "contract")) {
 		ccxt.AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
 
 		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
@@ -134,7 +134,7 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	})
 	return nil
 }
-func (this *Kucoinfutures) ParseTransferType(transferType any) any {
+func (this *Kucoinfutures) ParseTransferType(transferType any) *string {
 	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",
@@ -155,6 +155,7 @@ func (this *Kucoinfutures) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name kucoinfutures#fetchBidsAsks

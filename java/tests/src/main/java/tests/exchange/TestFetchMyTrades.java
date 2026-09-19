@@ -15,7 +15,7 @@ public class TestFetchMyTrades extends BaseTest {
     public CompletableFuture<Object> testFetchMyTrades(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMyTrades";
         Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMyTrades", new Object[]{symbol})).join();
@@ -23,7 +23,7 @@ public class TestFetchMyTrades extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
         {
-            TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now);
+            TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now, false);
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
         return true;

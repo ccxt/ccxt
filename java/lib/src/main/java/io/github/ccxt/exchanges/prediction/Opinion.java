@@ -6,6 +6,7 @@ import io.github.ccxt.api.prediction.OpinionApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -188,7 +189,7 @@ public class Opinion extends OpinionApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
@@ -274,7 +275,7 @@ public class Opinion extends OpinionApi
     public CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(Helpers.isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))
             {
@@ -460,7 +461,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.requireEventQuery(parameters);
@@ -577,7 +578,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Boolean isSlug = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "-"), 0));
@@ -756,7 +757,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -852,7 +853,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -911,7 +912,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -959,7 +960,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1d");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1038,7 +1039,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> loadQuoteToken(Object quoteTokenAddress2)
     {
         final Object quoteTokenAddress3 = quoteTokenAddress2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object quoteTokenAddress = quoteTokenAddress3;
             if (Helpers.isTrue(Helpers.isEqual(quoteTokenAddress, null)))
             {
@@ -1086,7 +1087,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> loadMultiSignAddress()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             String cached = this.safeString(this.options, "multiSignAddress");
             if (Helpers.isTrue(!Helpers.isEqual(cached, null)))
@@ -1225,7 +1226,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1336,7 +1337,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1456,7 +1457,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1492,7 +1493,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1526,7 +1527,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // 1 = pending - open status
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
@@ -1555,7 +1556,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // 2 = filled, 3 = canceled, 4 = expired, 5 = failed
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
@@ -1584,7 +1585,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1638,7 +1639,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> loadTradeMarket(Object marketId2)
     {
         final Object marketId3 = marketId2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object marketId = marketId3;
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
@@ -1722,7 +1723,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadApiKey()).join();
@@ -1786,7 +1787,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1936,7 +1937,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> createApiKey(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = (this.opinionPrivatePostAuthApiKey(parameters)).join();
@@ -1957,7 +1958,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> fetchApiKey(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = (this.opinionPrivateGetAuthApiKey(parameters)).join();
@@ -1978,7 +1979,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> deleteApiKey(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = (this.opinionPrivateDeleteAuthApiKey(parameters)).join();
@@ -2005,7 +2006,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> loadApiKey()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Boolean hasDirectApiKey = !Helpers.isTrue(this.isEmptyString(this.apiKey));
             if (Helpers.isTrue(hasDirectApiKey))
@@ -2092,7 +2093,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> subscribeOpinionChannel(Object messageHash, Object channel2, Object marketId)
     {
         final Object channel3 = channel2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object channel = channel3;
             (this.loadApiKey()).join();
             Object url = this.opinionWsUrl();
@@ -2179,7 +2180,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2219,7 +2220,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<Object> seedOrderBook(String outcome, Object sym, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
             Object limit = Helpers.getArg(optionalArgs, 0, null);
@@ -2281,7 +2282,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<PredictionTicker> watchTicker(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -2344,7 +2345,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2429,7 +2430,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionOrder>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2563,7 +2564,7 @@ final Object finalTokenId = tokenId;
     public CompletableFuture<List<PredictionTrade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);

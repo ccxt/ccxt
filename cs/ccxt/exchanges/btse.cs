@@ -896,7 +896,7 @@ public partial class btse : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1317,7 +1317,7 @@ public partial class btse : Exchange
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             if (isTrue(isTrue(isEqual(symbols, null)) || isTrue(this.inArray(symbol, symbols))))
             {
                 List<object> levels = this.safeList(entry, "riskLimits", new List<object>() {});
@@ -1468,7 +1468,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
@@ -1488,7 +1488,7 @@ public partial class btse : Exchange
                 baseVolume = Precise.stringMul(baseVolume, contractSizeString);
             }
         }
-        object timestamp = this.safeTimestamp(ticker, "closeTime");
+        Int64? timestamp = this.safeTimestamp(ticker, "closeTime");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market) },
             { "timestamp", timestamp },
@@ -1582,7 +1582,7 @@ public partial class btse : Exchange
         //
         string? marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeTimestamp(interest, "closeTime");
+        Int64? timestamp = this.safeTimestamp(interest, "closeTime");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "openInterestAmount", this.safeNumber(interest, "openInterest") },
@@ -1682,7 +1682,7 @@ public partial class btse : Exchange
         //
         string? marketId = this.safeString(contract, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeTimestamp(contract, "closeTime");
+        Int64? timestamp = this.safeTimestamp(contract, "closeTime");
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
         object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
@@ -1810,7 +1810,7 @@ public partial class btse : Exchange
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
         Dictionary<string, object> market = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1825,7 +1825,7 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["count"] = limit;
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
@@ -1961,7 +1961,7 @@ public partial class btse : Exchange
         return await this.FetchMyTrades(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2157,10 +2157,10 @@ public partial class btse : Exchange
         }
         bool isMarketOrder = (isEqual(type, "MARKET"));
         bool isLimitOrder = (isEqual(type, "LIMIT"));
-        object postOnly = false;
+        bool postOnly = false;
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1]; // this will remove PO from params.timeInForce if present
         if (isTrue(postOnly))
         {
@@ -2418,10 +2418,10 @@ public partial class btse : Exchange
         }
         bool isMarketOrder = (isEqual(type, "MARKET"));
         bool isLimitOrder = (isEqual(type, "LIMIT"));
-        object postOnly = false;
+        bool postOnly = false;
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1]; // this will remove PO from params.timeInForce if present
         if (isTrue(postOnly))
         {
@@ -2581,7 +2581,7 @@ public partial class btse : Exchange
         }
         // the normal futures endpoint responds with a single order dict, keep a
         // one element array guard in case a gateway wraps it
-        object order = response;
+        IDictionary<string, object> order = response;
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             order = this.safeDict(response, 0, new Dictionary<string, object>() {});
@@ -2943,7 +2943,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows, market, since, limit));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder - spot
@@ -3152,7 +3152,7 @@ public partial class btse : Exchange
             object feeInfo = getValue(responseList, i);
             string? marketId = this.safeString(feeInfo, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             double? makerFee = this.safeNumber(feeInfo, "makerFee");
             double? takerFee = this.safeNumber(feeInfo, "takerFee");
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -3655,7 +3655,7 @@ public partial class btse : Exchange
         return await this.FetchPositions(new List<object>() {symbol}, parameters);
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -3896,7 +3896,7 @@ public partial class btse : Exchange
      */
     public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
-        object marginModeVar = marginMode;
+        string marginModeVar = marginMode;
         // btse do not have specific endpoint for marginModeVar
         // both marginModeVar and positionMode are set and get with the same endpoints
         // it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED

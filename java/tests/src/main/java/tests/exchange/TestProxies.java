@@ -18,7 +18,7 @@ public class TestProxies extends BaseTest {
     public CompletableFuture<Object> testProxies(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         (testProxyUrl(exchange, skippedProperties)).join();
         (testHttpProxy(exchange, skippedProperties)).join();
@@ -31,7 +31,7 @@ public class TestProxies extends BaseTest {
     public CompletableFuture<Object> testProxyUrl(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "proxyUrl";
         String proxyServerIp = "5.75.153.75";
@@ -55,7 +55,7 @@ public class TestProxies extends BaseTest {
     public CompletableFuture<Object> testHttpProxy(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "httpProxy";
         String proxyServerIp = "5.75.153.75";
@@ -78,7 +78,7 @@ public class TestProxies extends BaseTest {
     public CompletableFuture<Object> testProxyForExceptions(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "testProxyForExceptions";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = TestSharedMethods.removeProxyOptions(exchange, skippedProperties);

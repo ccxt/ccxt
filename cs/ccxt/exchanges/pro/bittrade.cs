@@ -44,7 +44,7 @@ public partial class bittrade : ccxt.bittrade
     public virtual object requestId()
     {
         this.lockId();
-        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Int64 requestId = ((Int64)this.sum(this.safeInteger(this.options, "requestId", 0), 1));
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         this.unlockId();
         return ((object)requestId).ToString();
@@ -75,7 +75,7 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -117,7 +117,7 @@ public partial class bittrade : ccxt.bittrade
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object ticker = this.parseTicker(tick, market);
+        Dictionary<string, object> ticker = this.parseTicker(tick, market);
         object timestamp = this.safeValue(message, "ts");
         ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
         ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
@@ -155,7 +155,7 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -206,7 +206,7 @@ public partial class bittrade : ccxt.bittrade
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object tradesCache = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesCache, null)))
         {
@@ -216,7 +216,7 @@ public partial class bittrade : ccxt.bittrade
         }
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object trade = this.parseTrade(getValue(data, i), market);
+            Dictionary<string, object> trade = this.parseTrade(getValue(data, i), market);
             callDynamically(tradesCache, "append", new object[] {trade});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesCache, ch});
@@ -237,7 +237,7 @@ public partial class bittrade : ccxt.bittrade
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -254,7 +254,7 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -300,9 +300,9 @@ public partial class bittrade : ccxt.bittrade
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? interval = this.safeString(parts, 3);
-        object timeframe = this.findTimeframe(interval);
+        string? timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
@@ -349,7 +349,7 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -394,7 +394,7 @@ public partial class bittrade : ccxt.bittrade
         Int64? timestamp = this.safeInteger(message, "ts");
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, ((string)symbol));
         object data = this.safeValue(message, "data");
-        object snapshot = this.parseOrderBook(data, symbol);
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol));
         ((IDictionary<string,object>)snapshot)["nonce"] = this.safeInteger(data, "seqNum");
         ((IDictionary<string,object>)snapshot)["timestamp"] = timestamp;
         ((IDictionary<string,object>)snapshot)["datetime"] = this.iso8601(timestamp);
@@ -422,7 +422,7 @@ public partial class bittrade : ccxt.bittrade
                 { "hostname", this.hostname },
             };
             string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
-            object requestId = this.requestId();
+            string requestId = ((string)this.requestId());
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },
                 { "id", requestId },

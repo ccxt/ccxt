@@ -426,7 +426,7 @@ public partial class delta : Exchange
         List<object> optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
-        object expiry = null;
+        string? expiry = null;
         object optionType = null;
         if (isTrue(isGreaterThan(getIndexOf(symbol, "/"), -1)))
         {
@@ -445,7 +445,7 @@ public partial class delta : Exchange
         }
         string settle = quote;
         string? strike = this.safeString(optionParts, 2);
-        object datetime = this.convertExpireDate(expiry);
+        string? datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         string optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -1081,7 +1081,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1537,7 +1537,7 @@ public partial class delta : Exchange
             {
                 continue;
             }
-            object ticker = this.parseTicker(rawTicker);
+            Dictionary<string, object> ticker = this.parseTicker(rawTicker);
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -1592,7 +1592,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, getValue(market, "symbol"), null, "buy", "sell", "price", "size"));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1767,7 +1767,7 @@ public partial class delta : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1955,7 +1955,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         // fetchPosition
@@ -2040,7 +2040,7 @@ public partial class delta : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
@@ -3725,7 +3725,7 @@ public partial class delta : Exchange
         //
         // {"result":{},"success":true}
         //
-        object position = this.parsePosition(this.safeDict(response, "result", new Dictionary<string, object>() {}));
+        Dictionary<string, object> position = this.parsePosition(this.safeDict(response, "result", new Dictionary<string, object>() {}));
         return new List<object>() {position};
     }
 

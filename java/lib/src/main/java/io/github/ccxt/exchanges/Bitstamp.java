@@ -6,6 +6,7 @@ import io.github.ccxt.api.BitstampApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.DepositWithdrawFees;
@@ -1171,7 +1172,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = (this.fetchMarketsFromCache(parameters)).join();
@@ -1360,7 +1361,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Object> fetchMarketsFromCache(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // this method is now redundant
             // currencies are now fetched before markets
@@ -1411,7 +1412,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = (this.fetchMarketsFromCache(parameters)).join();
@@ -1492,7 +1493,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1596,7 +1597,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1640,7 +1641,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1920,7 +1921,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1984,12 +1985,13 @@ public class Bitstamp extends BitstampApi
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2005,17 +2007,31 @@ public class Bitstamp extends BitstampApi
                 put( "step", Bitstamp.this.safeString(Bitstamp.this.timeframes, timeframe, timeframe) );
             }};
             int duration = this.parseTimeframe(timeframe);
+            Long until = this.safeInteger(parameters, "until");
+            Boolean untilIsDefined = (!Helpers.isEqual(until, null));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
+                limit = 1000;
                 if (Helpers.isTrue(Helpers.isEqual(since, null)))
                 {
-                    Helpers.addElementToObject(request, "limit", 1000); // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                    Helpers.addElementToObject(request, "limit", limit);
+                    if (Helpers.isTrue(untilIsDefined))
+                    {
+                        Object end = this.parseToInt(Helpers.divide(until, 1000));
+                        Helpers.addElementToObject(request, "start", Helpers.subtract(Helpers.subtract(end, (Helpers.multiply(duration, limit))), 1));
+                        Helpers.addElementToObject(request, "end", end);
+                    }
                 } else
                 {
-                    limit = 1000;
                     Long start = this.parseToInt(Helpers.divide(since, 1000));
                     Helpers.addElementToObject(request, "start", start);
-                    Helpers.addElementToObject(request, "end", this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
+                    if (Helpers.isTrue(untilIsDefined))
+                    {
+                        Helpers.addElementToObject(request, "end", this.parseToInt(Helpers.divide(until, 1000)));
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "end", this.sum(start, Helpers.subtract(Helpers.multiply(duration, limit), 1)));
+                    }
                     Helpers.addElementToObject(request, "limit", limit);
                 }
             } else
@@ -2024,10 +2040,21 @@ public class Bitstamp extends BitstampApi
                 {
                     Long start = this.parseToInt(Helpers.divide(since, 1000));
                     Helpers.addElementToObject(request, "start", start);
-                    Helpers.addElementToObject(request, "end", this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
+                    Object end = this.sum(start, Helpers.subtract(Helpers.multiply(duration, limit), 1));
+                    if (Helpers.isTrue(untilIsDefined))
+                    {
+                        end = Helpers.mathMin(end, this.parseToInt(Helpers.divide(until, 1000)));
+                    }
+                    Helpers.addElementToObject(request, "end", end);
+                } else if (Helpers.isTrue(untilIsDefined))
+                {
+                    Object end = this.parseToInt(Helpers.divide(until, 1000));
+                    Helpers.addElementToObject(request, "end", end);
+                    Helpers.addElementToObject(request, "start", Helpers.subtract(Helpers.subtract(end, (Helpers.multiply(duration, limit))), 1));
                 }
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // min 1, max 1000
             }
+            parameters = this.omit(parameters, "until");
             Map<String, Object> response = (this.publicGetOhlcPair(this.extend(request, parameters))).join();
             //
             //     {
@@ -2088,7 +2115,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2124,7 +2151,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2204,7 +2231,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2245,7 +2272,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Object> fetchTransactionFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2308,7 +2335,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2386,7 +2413,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2464,7 +2491,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -2508,7 +2535,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2547,7 +2574,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2603,7 +2630,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<String> fetchOrderStatus(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2640,7 +2667,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2702,7 +2729,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2754,7 +2781,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2841,7 +2868,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2908,7 +2935,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3356,7 +3383,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3394,7 +3421,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3429,6 +3456,8 @@ public class Bitstamp extends BitstampApi
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
         Long nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
@@ -3436,8 +3465,8 @@ public class Bitstamp extends BitstampApi
         return new HashMap<String, Object>() {{
             put( "info", fundingRate );
             put( "symbol", Bitstamp.this.safeSymbol(marketId, market) );
-            put( "markPrice", null );
-            put( "indexPrice", null );
+            put( "markPrice", Bitstamp.this.safeNumber(fundingRate, "mark_price") );
+            put( "indexPrice", Bitstamp.this.safeNumber(fundingRate, "index_price") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", currentTime );
@@ -3470,7 +3499,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3535,7 +3564,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(this.isFiat(code)))
@@ -3576,7 +3605,7 @@ public class Bitstamp extends BitstampApi
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             // For fiat withdrawals please provide all required additional parameters in the 'params'
             // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
@@ -3644,7 +3673,7 @@ public class Bitstamp extends BitstampApi
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});

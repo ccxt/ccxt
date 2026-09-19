@@ -18,7 +18,7 @@ func testFetchLedgerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	items := (<-exchange.FetchLedgerAsync(code))
 	PanicOnError(items)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
 		TestLedgerEntry(exchange, skippedProperties, method, GetValue(items, i), code, now)
 	}

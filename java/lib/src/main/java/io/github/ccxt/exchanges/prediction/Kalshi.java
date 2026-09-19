@@ -6,6 +6,7 @@ import io.github.ccxt.api.prediction.KalshiApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -389,7 +390,7 @@ public class Kalshi extends KalshiApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object queries = this.parseSearchQueries(parameters);
@@ -515,7 +516,7 @@ public class Kalshi extends KalshiApi
     public CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
             // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
@@ -617,7 +618,7 @@ public class Kalshi extends KalshiApi
     public CompletableFuture<Object> fetchOutcomes(Object outcomeSymbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             List<Object> tickers = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
@@ -972,7 +973,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadOutcome(outcome)).join();
@@ -1054,7 +1055,7 @@ final Object finalOi = oi;
     public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.kalshiPublicGetExchangeStatus(parameters)).join();
@@ -1086,7 +1087,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadOutcome(outcome)).join();
@@ -1282,7 +1283,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1379,7 +1380,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1488,7 +1489,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1661,7 +1662,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1780,7 +1781,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1940,7 +1941,7 @@ final Object finalOi = oi;
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
@@ -1990,7 +1991,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2059,7 +2060,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionSettlement>> fetchSettlements(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2249,7 +2250,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2293,7 +2294,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2336,7 +2337,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
             // both executed and canceled, so fetch every order and keep the non-open ones client-side
@@ -2373,7 +2374,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // outcome is only a labelling hint here — the request needs just the id, and
             // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
@@ -2520,7 +2521,7 @@ final Object finalOi = oi;
         final Object type3 = type2;
         final Object side3 = side2;
         final Object amount3 = amount2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object amount = amount3;
@@ -2644,7 +2645,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
             // so edit = cancel the resting order then place a fresh one with the new terms. validate the
@@ -2681,7 +2682,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2723,7 +2724,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2785,7 +2786,7 @@ final Object finalOi = oi;
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object queries = this.parseSearchQueries(parameters);
@@ -2885,7 +2886,7 @@ final Object finalOi = oi;
     public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit2, Object... optionalArgs)
     {
         final Object limit3 = limit2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
             Object rest = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object pageSize = ((Helpers.isTrue((!Helpers.isEqual(limit, null))))) ? limit : this.safeInteger(this.options, "searchSeriesLimit", 25);
@@ -2955,7 +2956,7 @@ final Object finalOi = oi;
     public CompletableFuture<Object> fetchRawEventByTicker(Object ticker, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2985,7 +2986,7 @@ final Object finalOi = oi;
     public CompletableFuture<Object> resolveEventSeriesTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
@@ -3071,7 +3072,7 @@ final Object finalOi = oi;
     public CompletableFuture<Object> fetchSeriesEvents(Object seriesTickers, Object status, Object limit2, Object... optionalArgs)
     {
         final Object limit3 = limit2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
             Object rest = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
@@ -3149,7 +3150,7 @@ final Object finalOi = oi;
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object fullEvent = (this.fetchRawEventByTicker(id, parameters)).join();

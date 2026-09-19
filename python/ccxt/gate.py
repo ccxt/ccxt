@@ -4347,7 +4347,7 @@ class gate(Exchange, ImplicitAPI):
             extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
             triggerValue = self.safe_value_n(orderParams, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
             if triggerValue is not None:
-                raise NotSupported(self.id + ' createOrders() does not support advanced order properties(stopPrice, takeProfitPrice, stopLossPrice)')
+                raise NotSupported(self.id + ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)')
             extendedParams['textIsRequired'] = True  # the exchange requires a text parameter for each order here
             orderRequest = self.create_order_request(marketId, type, side, amount, price, extendedParams)
             ordersRequests.append(orderRequest)
@@ -4411,10 +4411,10 @@ class gate(Exchange, ImplicitAPI):
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for ' + type + ' orders')
+            raise ArgumentsRequired(self.id + ' createOrder () requires a price argument for ' + type + ' orders')
         if isMarketOrder:
             if (timeInForce == 'poc') or (timeInForce == 'gtc'):
-                raise ExchangeError(self.id + ' createOrder() timeInForce for market order can only be "FOK" or "IOC"')
+                raise ExchangeError(self.id + ' createOrder () timeInForce for market order can only be "FOK" or "IOC"')
             else:
                 if timeInForce is None:
                     defaultTif = self.safe_string(self.options, 'defaultTimeInForce', 'IOC')
@@ -4480,7 +4480,7 @@ class gate(Exchange, ImplicitAPI):
                         quoteAmount = self.cost_to_precision(symbol, cost)
                     elif createMarketBuyOrderRequiresPrice:
                         if price is None:
-                            raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                            raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
                         else:
                             amountString = self.number_to_string(amount)
                             priceString = self.number_to_string(price)
@@ -4502,7 +4502,7 @@ class gate(Exchange, ImplicitAPI):
                 #     no longer than 28 bytes without t- prefix
                 #     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if len(clientOrderId) > 28:
-                    raise BadRequest(self.id + ' createOrder() clientOrderId or text param must be up to 28 characters')
+                    raise BadRequest(self.id + ' createOrder () clientOrderId or text param must be up to 28 characters')
                 params = self.omit(params, 'textIsRequired')
                 if clientOrderId[0] != 't':
                     clientOrderId = 't-' + clientOrderId
@@ -4545,7 +4545,7 @@ class gate(Exchange, ImplicitAPI):
                         triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
                     priceType = self.safe_integer(params, 'price_type', 0)
                     if priceType < 0 or priceType > 2:
-                        raise BadRequest(self.id + ' createOrder() price_type should be 0 latest deal price, 1 mark price, 2 index price')
+                        raise BadRequest(self.id + ' createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price')
                     params = self.omit(params, ['price_type'])
                     request['trigger'] = {
                         # 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently

@@ -1731,6 +1731,65 @@ class Transpiler {
         return -1
     }
 
+    maskStringSpaceParens (js: string) {
+        // a space before a left paren inside a string literal is data, not
+        // code style - the PEP8 E225 collapse and its siblings must not
+        // rewrite it (see #30286). quote state is tracked per line exactly
+        // like findCommentStart; every ' (' inside a single- or double-quoted
+        // literal is swapped for a regex-inert token before the transforms
+        // and restored verbatim afterwards. backticks stay out of the quote
+        // set so jsdoc code spans remain visible to the method-conversion
+        // rules. runs after maskComments, so line-comment bodies are already
+        // inert and cannot desync the state.
+        //
+        // the per-line quote-state reset is DELIBERATE: cross-line scanning
+        // is exactly what let stray apostrophes desync the earlier span
+        // design, and multi-line string content (jsdoc-derived docstring
+        // prose) is knowingly left to the long-standing collapse - see the
+        // coverage notes in the commit message. do not "fix" this into a
+        // multi-line scanner.
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (line.indexOf (' (') < 0) {
+                continue
+            }
+            let quote = ''
+            let out = ''
+            for (let j = 0; j < line.length; j++) {
+                const c = line[j]
+                if (quote !== '') {
+                    if (c === '\\') {
+                        out += c + (line[j + 1] ?? '')
+                        j++
+                        continue
+                    }
+                    if (c === quote) {
+                        quote = ''
+                        out += c
+                        continue
+                    }
+                    if (c === ' ' && line[j + 1] === '(') {
+                        out += '\x02'
+                        continue
+                    }
+                    out += c
+                } else {
+                    if (c === "'" || c === '"') {
+                        quote = c
+                    }
+                    out += c
+                }
+            }
+            lines[i] = out
+        }
+        return lines.join ('\n')
+    }
+
+    unmaskStringSpaceParens (body: string) {
+        return body.replace (/\x02/g, ' ')
+    }
+
     maskComments (js: string) {
         // comment text is documentation, not code to translate, so the body of
         // every comment is replaced by a regex-inert token before any transform
@@ -1766,7 +1825,8 @@ class Transpiler {
 
         // protect comment bodies from every code transform below
         const { masked, masks } = this.maskComments (args.js)
-        args.js = masked
+        // protect data spaces inside string literals from the style rules
+        args.js = this.maskStringSpaceParens (masked)
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1794,10 +1854,10 @@ class Transpiler {
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
-        python3Body = this.unmaskComments (python3Body, masks)
-        python2Body = this.unmaskComments (python2Body, masks)
-        phpBody = this.unmaskComments (phpBody, masks)
-        phpAsyncBody = this.unmaskComments (phpAsyncBody, masks)
+        python3Body = this.unmaskStringSpaceParens (this.unmaskComments (python3Body, masks))
+        python2Body = this.unmaskStringSpaceParens (this.unmaskComments (python2Body, masks))
+        phpBody = this.unmaskStringSpaceParens (this.unmaskComments (phpBody, masks))
+        phpAsyncBody = this.unmaskStringSpaceParens (this.unmaskComments (phpAsyncBody, masks))
 
         return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
@@ -1821,7 +1881,11 @@ class Transpiler {
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
-                        .replace ('asyncio.gather\(\*', '(') // needed for async -> sync
+                        // needed for async -> sync. the previous string pattern also matched
+                        // (a plain literal drops the backslashes, so it was exactly
+                        // `asyncio.gather(*`), but String.replace with a string only rewrites the
+                        // first occurrence - the /g regex unwraps every gather on the line
+                        .replace (/asyncio\.gather\(\*/g, '(')
                         .replace ('asyncio.run', '') // needed for async -> sync
             })
 
@@ -3158,7 +3222,7 @@ class Transpiler {
 
         // ########### PHP ###########
         if (this.buildPHP) {
-            const phpReform = (cont: string) => {
+            const phpReform = (cont: string, isAsync: boolean) => {
                 // add exceptions
                 let exceptions = '';
                 for (const eType of Object.keys(errors)) {
@@ -3166,7 +3230,8 @@ class Transpiler {
                         exceptions += `use ccxt\\${eType};\n`;
                     }
                 }
-                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
+                const reactIncludes = isAsync ? 'use \\React\\Async;\nuse \\React\\Promise;\n' : '';
+                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + reactIncludes + exceptions + '\n\n\n';
                 let newContent = head + cont;
                 newContent = newContent.
                     replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
@@ -3178,9 +3243,9 @@ class Transpiler {
                 newContent = this.phpReplaceException (newContent);
                 return newContent;
             }
-            let bodyPhpAsync = phpReform (phpAsync);
+            let bodyPhpAsync = phpReform (phpAsync, true);
             overwriteSafe (files.phpFileAsync, bodyPhpAsync);
-            let bodyPhpSync = phpReform (php);
+            let bodyPhpSync = phpReform (php, false);
             bodyPhpSync = bodyPhpSync.replace (/(?:\\React\\)?Promise\\all/g, '');
             overwriteSafe (files.phpFileSync, bodyPhpSync);
         }
@@ -3337,7 +3402,10 @@ class Transpiler {
                 phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
             } else if (this.buildPython) {
                 pythonAsync = pyFixes(result[1].content);
-                pythonSync = pyFixes(result[0].content);
+                // the sync flag drives the async->sync fixes (asyncio.gather unwrap);
+                // omitting it here left every python-only build - the CI python lane -
+                // emitting a bare asyncio.gather over non-awaitables in sync tests
+                pythonSync = pyFixes(result[0].content, true);
             }
 
             const usesEqualsFunction = needsEquals[i];

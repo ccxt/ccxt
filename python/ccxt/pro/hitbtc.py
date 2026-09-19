@@ -474,7 +474,7 @@ class hitbtc(ccxt.async_support.hitbtc):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.method]: 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch(default)'
+        :param str [params.method]: 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
         :param str [params.speed]: '100ms'(default) or '500ms' or '1000ms'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """

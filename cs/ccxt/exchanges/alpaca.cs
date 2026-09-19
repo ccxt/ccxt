@@ -534,8 +534,8 @@ public partial class alpaca : Exchange
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
-                            { "FOK", true },
-                            { "PO", true },
+                            { "FOK", false },
+                            { "PO", false },
                             { "GTD", false },
                         } },
                         { "hedged", false },
@@ -605,6 +605,7 @@ public partial class alpaca : Exchange
                     { "40410000", typeof(InvalidOrder) },
                     { "40010001", typeof(BadRequest) },
                     { "40110000", typeof(PermissionDenied) },
+                    { "42210000", typeof(BadRequest) },
                     { "42910000", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
@@ -828,7 +829,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marketId = getValue(market, "id");
+        string? marketId = ((string)getValue(market, "id"));
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -916,7 +917,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object id = getValue(market, "id");
+        string? id = ((string)getValue(market, "id"));
         string? loc = this.safeString(parameters, "loc", "us");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", id },
@@ -986,7 +987,7 @@ public partial class alpaca : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -994,7 +995,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marketId = getValue(market, "id");
+        string? marketId = ((string)getValue(market, "id"));
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         object paginate = false;
@@ -1144,7 +1145,7 @@ public partial class alpaca : Exchange
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1374,6 +1375,7 @@ public partial class alpaca : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1385,7 +1387,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object id = getValue(market, "id");
+        string? id = ((string)getValue(market, "id"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", id },
             { "side", side },
@@ -1422,6 +1424,11 @@ public partial class alpaca : Exchange
         IList<object> defaultTIFparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
         defaultTIF = ((IList<object>)defaultTIFparametersVariable)[0];
         parameters = ((IList<object>)defaultTIFparametersVariable)[1];
+        if (isTrue(!isEqual(defaultTIF, null)))
+        {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = ((string)defaultTIF).ToLower();
+        }
         ((IDictionary<string,object>)request)["time_in_force"] = defaultTIF;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
@@ -1694,7 +1701,7 @@ public partial class alpaca : Exchange
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1733,7 +1740,8 @@ public partial class alpaca : Exchange
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
         if (isTrue(!isEqual(timeInForce, null)))
         {
-            ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            ((IDictionary<string,object>)request)["time_in_force"] = ((string)timeInForce).ToLower();
         }
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -1741,7 +1749,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //    {
@@ -1811,7 +1819,7 @@ public partial class alpaca : Exchange
             { "clientOrderId", this.safeString(order, "client_order_id") },
             { "timestamp", timestamp },
             { "datetime", datetime },
-            { "lastTradeTimeStamp", null },
+            { "lastTradeTimestamp", this.parse8601(this.safeString(order, "filled_at")) },
             { "status", status },
             { "symbol", symbol },
             { "type", orderType },
@@ -1836,10 +1844,22 @@ public partial class alpaca : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "pending_new", "open" },
             { "accepted", "open" },
+            { "accepted_for_bidding", "open" },
             { "new", "open" },
             { "partially_filled", "open" },
             { "activated", "open" },
+            { "done_for_day", "open" },
+            { "stopped", "open" },
+            { "suspended", "open" },
+            { "held", "open" },
+            { "pending_replace", "open" },
+            { "pending_cancel", "canceling" },
             { "filled", "closed" },
+            { "calculated", "closed" },
+            { "canceled", "canceled" },
+            { "replaced", "canceled" },
+            { "expired", "expired" },
+            { "rejected", "rejected" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1848,6 +1868,9 @@ public partial class alpaca : Exchange
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "day", "Day" },
+            { "gtc", "GTC" },
+            { "ioc", "IOC" },
+            { "fok", "FOK" },
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
@@ -1920,7 +1943,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2386,8 +2409,11 @@ public partial class alpaca : Exchange
      * @name alpaca#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.alpaca.markets/reference/getaccount-1
+     * @see https://docs.alpaca.markets/reference/getallopenpositions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}. note that `info` is
+     * the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+     * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
      */
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
@@ -2396,7 +2422,10 @@ public partial class alpaca : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.traderPrivateGetV2Account(parameters);
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        Dictionary<string, object> account = await this.traderPrivateGetV2Account(parameters);
+        List<object> positions = await this.traderPrivateGetV2Positions();
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2445,22 +2474,87 @@ public partial class alpaca : Exchange
         //         "pending_reg_taf_fees": "0"
         //     }
         //
+        Dictionary<string, object> response = new Dictionary<string, object>() {
+            { "account", account },
+            { "positions", positions },
+        };
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseBalance(object response)
     {
+        //
+        // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        //
+        //     "positions": [
+        //         {
+        //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //             "symbol": "BTCUSD",
+        //             "exchange": "CRYPTO",
+        //             "asset_class": "crypto",
+        //             "asset_marginable": false,
+        //             "qty": "0.000207296",
+        //             "avg_entry_price": "80037",
+        //             "side": "long",
+        //             "market_value": "16.592345",
+        //             "cost_basis": "16.59135",
+        //             "unrealized_pl": "0.000995",
+        //             "unrealized_plpc": "0.00006",
+        //             "current_price": "80041.8",
+        //             "qty_available": "0.000207296"
+        //         }
+        //     ]
+        //
+        IDictionary<string, object> account = this.safeDict(response, "account", new Dictionary<string, object>() {});
+        List<object> positions = this.safeList(response, "positions", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        Dictionary<string, object> account = this.account();
-        string? currencyId = this.safeString(response, "currency");
+        string? currencyId = this.safeString(account, "currency");
         string? code = this.safeCurrencyCode(currencyId);
-        ((IDictionary<string,object>)account)["free"] = this.safeString(response, "cash");
-        ((IDictionary<string,object>)account)["total"] = this.safeString(response, "equity");
         if (isTrue(!isEqual(code, null)))
         {
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            Dictionary<string, object> cashAccount = this.account();
+            ((IDictionary<string,object>)cashAccount)["free"] = this.safeString(account, "cash"); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            string? equity = this.safeString(account, "equity");
+            string? positionsValue = this.safeString(account, "position_market_value");
+            ((IDictionary<string,object>)cashAccount)["total"] = Precise.stringSub(equity, positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            ((IDictionary<string,object>)result)[(string)code] = cashAccount;
+        }
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        {
+            object position = getValue(positions, i);
+            string? positionSymbol = this.safeString(position, "symbol");
+            if (isTrue(isEqual(positionSymbol, null)))
+            {
+                continue;
+            }
+            string? baseId = null;
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(positionSymbol, "/"), 0)))
+            {
+                List<object> parts = ((string)positionSymbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                baseId = this.safeString(parts, 0);
+            } else
+            {
+                // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                int baseLength = subtract(((string)positionSymbol).Length, 3);
+                if (isTrue(isTrue((isGreaterThan(baseLength, 0))) && isTrue((isEqual(slice(positionSymbol, baseLength, null), "USD")))))
+                {
+                    baseId = slice(positionSymbol, 0, baseLength);
+                }
+            }
+            if (isTrue(isEqual(baseId, null)))
+            {
+                continue;
+            }
+            string? positionCode = this.safeCurrencyCode(baseId);
+            if (isTrue(isTrue((!isEqual(positionCode, null))) && !isTrue((inOp(result, positionCode)))))
+            {
+                Dictionary<string, object> positionAccount = this.account();
+                ((IDictionary<string,object>)positionAccount)["free"] = this.safeString(position, "qty_available");
+                ((IDictionary<string,object>)positionAccount)["total"] = this.safeString(position, "qty");
+                ((IDictionary<string,object>)result)[(string)positionCode] = positionAccount;
+            }
         }
         return this.safeBalance(result);
     }

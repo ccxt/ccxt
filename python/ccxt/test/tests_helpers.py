@@ -281,6 +281,24 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     exchange.fetch = fetch
     return exchange
 
+def set_fetch_response_by_url(exchange: ccxt.Exchange, responses_by_url):
+    # serves a body per url fragment for methods that call several endpoints;
+    # one shared body cannot cover two endpoints of different declared shapes
+    def pick(url):
+        for fragment, body in responses_by_url.items():
+            if fragment in url:
+                return body
+        return list(responses_by_url.values())[0]
+    if (IS_SYNCHRONOUS):
+        def fetch(url, method='GET', headers=None, body=None):
+            return pick(url)
+        exchange.fetch = fetch
+        return exchange
+    async def fetch(url, method='GET', headers=None, body=None):
+        return pick(url)
+    exchange.fetch = fetch
+    return exchange
+
 class FakeWsConnection:
     # transport stub used by the static ws tests: everything above the socket
     # (subscriptions, futures, caches, message routing) runs unmodified

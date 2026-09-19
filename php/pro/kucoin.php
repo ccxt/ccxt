@@ -1867,6 +1867,9 @@ class kucoin extends \ccxt\async\kucoin {
         $firstDelta = $this->safe_value($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDeltaStart = $this->safe_integer_n($firstDelta, array( 'sequenceStart', 'sequence', 'O' ));
+        if (($nonce === null) || ($firstDeltaStart === null)) {
+            return -1;
+        }
         if ($nonce < $firstDeltaStart - 1) {
             return -1;
         }
@@ -1874,6 +1877,9 @@ class kucoin extends \ccxt\async\kucoin {
             $delta = $cache[$i];
             $deltaStart = $this->safe_integer_n($delta, array( 'sequenceStart', 'sequence', 'O' ));
             $deltaEnd = $this->safe_integer_n($delta, array( 'sequenceEnd', 'sequence', 'C' )); // todo check
+            if (($deltaStart === null) || ($deltaEnd === null)) {
+                continue;
+            }
             if (($nonce >= $deltaStart - 1) && ($nonce < $deltaEnd)) {
                 return $i;
             }

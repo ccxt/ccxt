@@ -18,7 +18,7 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	Assert(IsGreaterThan(GetArrayLength(timeframeKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
-	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
+	if !EvalTruthy(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
 		chosenTimeframeKey = GetValue(timeframeKeys, 0)
 	}
 	var limit int = 10
@@ -28,7 +28,7 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	ohlcvs := (<-exchange.FetchOHLCVAsync(symbol, chosenTimeframeKey, since, limit))
 	PanicOnError(ohlcvs)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol)
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
 		TestOHLCV(exchange, skippedProperties, method, GetValue(ohlcvs, i), symbol, now)
 	}

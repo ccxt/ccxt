@@ -589,7 +589,11 @@ impl BingxCore {
         let mut marketType: Value = ternary(is_true(&isSwap), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone()]);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        let mut inverseUrl: Value = self.safe_string(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), Value::Str("inverse".to_string()), &[]);
+        let mut isInverse: Value = Value::Bool(is_true(&(!is_equal(&inverseUrl, &Value::Null))) && is_true(&(is_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &inverseUrl), &Value::Int(0)))));
+        let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone(), isInverse.clone()]);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()])]);
         if is_equal(&self.safe_string_k(message.clone(), "dataType", &[]), &Value::Str("all@ticker".to_string())) {
@@ -599,6 +603,7 @@ impl BingxCore {
 
     pub fn parse_ws_ticker(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let mut isInverse = get_arg(optional_args, 1, Value::Null);
         //
         //     {
         //         "e": "24hTicker",
@@ -625,6 +630,11 @@ impl BingxCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut close: Value = self.safe_string_k(message.clone(), "c", &[]);
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        let mut inverse: Value = ternary(is_true(&(is_equal(&isInverse, &Value::Null))), Value::Bool((is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)))), isInverse.clone());
+        let mut baseVolumeKey: Value = ternary(is_true(&inverse), Value::Str("m".to_string()), Value::Str("v".to_string()));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
@@ -644,7 +654,7 @@ impl BingxCore {
         m.insert("change".to_string(), self.safe_string_k(message.clone(), "p", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(message.clone(), "v", &[]));
+        m.insert("baseVolume".to_string(), self.safe_string(message.clone(), baseVolumeKey.clone(), &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(message.clone(), "q", &[]));
         m.insert("info".to_string(), message.clone());
     m
