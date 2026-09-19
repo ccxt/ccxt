@@ -1540,7 +1540,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 			messageHashes = append(messageHashes, ccxt.Add("trade::", symbol))
 			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-			var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+			var underlying any = *baseIdLower + "" + *quoteIdLower
 			if !(ccxt.InOp(seenUnderlyings, underlying)) {
 				ccxt.AddElementToObject(seenUnderlyings, underlying, true)
 				subParams = append(subParams, ccxt.Add(underlying, "@optionTrade"))
@@ -1649,7 +1649,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 			messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trade:", symbol))
 			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-			var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+			var underlying any = *baseIdLower + "" + *quoteIdLower
 			if !(ccxt.InOp(seenUnderlyings, underlying)) {
 				ccxt.AddElementToObject(seenUnderlyings, underlying, true)
 				subParams = append(subParams, ccxt.Add(underlying, "@optionTrade"))
@@ -3104,7 +3104,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 				// subscribe per underlying, not per contract
 				var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 				var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-				var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+				var underlying any = *baseIdLower + "" + *quoteIdLower
 				if !(ccxt.InOp(seenUnderlyings, underlying)) {
 					ccxt.AddElementToObject(seenUnderlyings, underlying, true)
 					subscriptionArgs = append(subscriptionArgs, ccxt.Add(underlying, "@optionMarkPrice"))
@@ -3117,7 +3117,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 				var expiryDate *string = this.SafeString(parts, 1)
 				var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 				var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-				var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+				var underlying any = *baseIdLower + "" + *quoteIdLower
 				var subscriptionArg any = ccxt.Add(ccxt.Add(underlying, "@optionTicker@"), expiryDate)
 				if !(ccxt.InOp(seenUnderlyings, subscriptionArg)) {
 					ccxt.AddElementToObject(seenUnderlyings, subscriptionArg, true)

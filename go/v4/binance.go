@@ -15705,7 +15705,7 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		symbol = DerefScalar(this.SafeString(market, "symbol"))
-		request["underlying"] = Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", ""))
+		request["underlying"] = *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
 	}
 	if since != nil {
 		request["startTime"] = since
