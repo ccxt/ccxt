@@ -1317,7 +1317,7 @@ impl TokocryptoCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit); }; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let mut response: Value = Value::Null;
-        if is_true(&self.is_native_market(market)) {
+        if self.is_native_market(market).as_bool() == Some(true) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_open_v1_market_depth(&[__ws_arg_0]).await;
         }  else {
@@ -1546,7 +1546,7 @@ impl TokocryptoCore {
         // not by the quote currency: type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), self.get_market_id_by_type(market.clone())); }
-        if is_true(&self.is_native_market(market.clone())) {
+        if self.is_native_market(market.clone()).as_bool() == Some(true) {
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
             }
@@ -1790,7 +1790,7 @@ impl TokocryptoCore {
  * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
  */
     pub fn get_market_id_by_type(&self, mut market: Value) -> Value {
-        if is_true(&self.is_native_market(market.clone())) {
+        if self.is_native_market(market.clone()).as_bool() == Some(true) {
             return self.safe_string_k(market.clone(), "id", &[]);
         }
         return Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market, "quoteId", &[Value::Str("".into())])).into());
@@ -1816,7 +1816,7 @@ impl TokocryptoCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if is_true(&self.is_native_market(market.clone())) {
+        if self.is_native_market(market.clone()).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() does not support ".into())).into()), symbol).into()), Value::Str(" yet, the venue serves 24hr ticker statistics only for its binance backed markets".into()))));
         }
         let mut request: Value = Value::Map({
@@ -1922,7 +1922,7 @@ impl TokocryptoCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
         }
         let mut response: Value = Value::Null;
-        if is_true(&self.is_native_market(market.clone())) {
+        if self.is_native_market(market.clone()).as_bool() == Some(true) {
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_open_v1_market_klines(&[__ws_arg_6]).await;
         }  else {
@@ -2292,7 +2292,7 @@ impl TokocryptoCore {
             }
         }
         let mut validOrderTypes: Value = self.safe_value(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[]);
-        if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes)) {
+        if !(self.in_array(uppercaseType.clone(), validOrderTypes).as_bool() == Some(true)) {
             if (initialUppercaseType.as_str() != uppercaseType.as_str()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
             }  else {

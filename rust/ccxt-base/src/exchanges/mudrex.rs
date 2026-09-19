@@ -504,7 +504,7 @@ impl MudrexCore {
     m
 }), &[])).into())).into());
                 }
-                if (methodUpper.as_str() == Some("DELETE")) && is_true(&self.is_empty(query.clone())) {
+                if (methodUpper.as_str() == Some("DELETE")) && self.is_empty(query.clone()).as_bool() == Some(true) {
                     return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -784,7 +784,7 @@ impl MudrexCore {
             }
             let mut m: Value = self.safe_market(&[sym]);
             let mut symbol: Value = m.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if (symbols != Value::Null) && !is_true(&self.in_array(symbol.clone(), symbols.clone())) {
+            if (symbols != Value::Null) && !(self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true)) {
                 continue;
             }
             add_element_to_object(&mut resultTickers, &symbol, self.parse_ticker(t, &[m.clone()]));

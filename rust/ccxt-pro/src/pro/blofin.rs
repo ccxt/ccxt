@@ -1227,7 +1227,7 @@ impl BlofinCore {
             append_to_array(&mut messageHashes, channelName.clone());
         }
         // private channel are difference, they only need plural channel name for multiple symbols
-        if is_true(&self.in_array(channelName.clone(), Value::from(vec![Value::Str("orders".into()), Value::Str("orders-algo".into()), Value::Str("positions".into())]))) {
+        if self.in_array(channelName.clone(), Value::from(vec![Value::Str("orders".into()), Value::Str("orders-algo".into()), Value::Str("positions".into())])).as_bool() == Some(true) {
             rawSubscriptions = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channelName);

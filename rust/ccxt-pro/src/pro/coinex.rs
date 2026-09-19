@@ -1215,13 +1215,13 @@ impl CoinexCore {
         if (limit == Value::Null) {
             limit = self.safe_integer_k(options.clone(), "defaultLimit", &[Value::Int(50)]);
         }
-        if !is_true(&self.in_array(limit.clone(), limits.clone())) {
+        if !(self.in_array(limit.clone(), limits.clone()).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() limit must be one of ".into())).into()), join(&limits, &Value::Str(", ".into())))));
         }
         let mut defaultAggregation: Value = self.safe_string_k(options.clone(), "defaultAggregation", &[Value::Str("0".into())]);
         let mut aggregations: Value = self.safe_list_k(options, "aggregations", &[Value::from(vec![])]);
         let mut aggregation: Value = self.safe_string_k(params.clone(), "aggregation", &[defaultAggregation]);
-        if !is_true(&self.in_array(aggregation.clone(), aggregations.clone())) {
+        if !(self.in_array(aggregation.clone(), aggregations.clone()).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() aggregation must be one of ".into())).into()), join(&aggregations, &Value::Str(", ".into())))));
         }
         params = self.omit(params.clone(), Value::Str("aggregation".into()), &[]);

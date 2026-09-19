@@ -2619,7 +2619,7 @@ impl WeexCore {
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash.clone()]);
             }
         }
@@ -2738,7 +2738,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        if is_true(&self.handle_error_message(client.clone(), message.clone())) {
+        if self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true) {
             return;
         }
         let mut id: Option<String> = self.safe_string_k(message.clone(), "id", &[]).as_str().map(str::to_owned);

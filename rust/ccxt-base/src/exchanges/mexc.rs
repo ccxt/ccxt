@@ -2301,7 +2301,7 @@ impl MexcCore {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7276,7 +7276,7 @@ impl MexcCore {
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut currency: Value = self.safe_currency(currencyId, &[]);
             let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
-            if (codes == Value::Null) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
+            if (codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true) {
                 add_element_to_object(&mut withdrawFees, &code, self.parse_transaction_fee(entry.clone(), &[currency.clone()]));
             }
         }

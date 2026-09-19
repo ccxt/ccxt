@@ -3864,7 +3864,7 @@ impl OkxCore {
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = is_true(&(partsLength > ((3i64) as f64))) && ((ends_with(&marketId, &Value::Str("-C".into()))) || (ends_with(&marketId, &Value::Str("-P".into()))));
+            isOption = (partsLength > ((3i64) as f64)) && ((ends_with(&marketId, &Value::Str("-C".into()))) || (ends_with(&marketId, &Value::Str("-P".into()))));
         }
         if isOption && (marketId != Value::Null) && ((self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId))) {
             return self.create_expired_option_market(marketId.clone());
@@ -4426,7 +4426,7 @@ impl OkxCore {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) || (isSandboxMode.as_bool() == Some(true)) {
+        if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) || (isSandboxMode.as_bool() == Some(true)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10360,7 +10360,7 @@ impl OkxCore {
             while { if !__for_first_1013 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1013 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut item: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "ccy", &[]), &[]);
-            if (code != Value::Null) && ((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone()))) {
+            if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 if !(in_op(&borrowRateHistories, &code)) {
                     add_element_to_object(&mut borrowRateHistories, &code, Value::from(vec![]));
                 }
@@ -11437,7 +11437,7 @@ impl OkxCore {
             let mut feeInfo: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(feeInfo.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if (code != Value::Null) && ((codes == Value::Null) || is_true(&(self.in_array(code.clone(), codes.clone())))) {
+            if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 let mut depositWithdrawFee: Value = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]);
                 if (depositWithdrawFee == Value::Null) {
                     add_element_to_object(&mut depositWithdrawFees, &code, self.deposit_withdraw_fee(Value::Map({

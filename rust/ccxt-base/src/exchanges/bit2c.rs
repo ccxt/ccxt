@@ -1397,7 +1397,7 @@ impl Bit2cCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        if is_true(&self.is_fiat(code)) {
+        if self.is_fiat(code).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() does not support fiat currencies".into()))));
         }
         let mut request: Value = Value::Map({

@@ -2103,7 +2103,7 @@ impl BitvavoCore {
             add_element_to_object(&mut request, &Value::Str("triggerAmount".into()), self.price_to_precision(symbol, triggerPrice));
         }
         request = self.extend(request.clone(), &[params.clone()]);
-        if is_true(&self.is_empty(request.clone())) {
+        if self.is_empty(request.clone()).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, or a price argument, or non-empty params".into()))));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);

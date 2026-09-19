@@ -3754,7 +3754,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn set_positions_cache(&mut self, mut client: Value, mut uta: Value) {
-        if !is_true(&(self.is_empty(self.positions.clone()))) {
+        if !(self.is_empty(self.positions.clone()).as_bool() == Some(true)) {
             return;
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);

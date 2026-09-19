@@ -6273,7 +6273,7 @@ impl XtCore {
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".into()), Value::Str("contract".into())]);
             let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
             if (symbols != Value::Null) {
-                if is_true(&self.in_array(symbol.clone(), symbols.clone())) {
+                if self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true) {
                     add_element_to_object(&mut result, &symbol, self.parse_market_leverage_tiers(entry, &[market.clone()]));
                 }
             }  else {

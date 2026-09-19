@@ -1530,7 +1530,7 @@ impl ToobitCore {
         self.authenticate(&[]).await;
         let mut type_var: Value = Value::Str("swap".into()); // the only account type that carries positions here
         let mut messageHash: Value = Value::Str("".into());
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             symbols = self.market_symbols(&[symbols.clone()]);
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
@@ -1676,7 +1676,7 @@ impl ToobitCore {
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut filtered: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(filtered.clone())) {
+            if !(self.is_empty(filtered.clone()).as_bool() == Some(true)) {
                 client.resolve(&[filtered, messageHash]);
             }
         }

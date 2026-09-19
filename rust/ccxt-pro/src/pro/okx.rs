@@ -1939,7 +1939,7 @@ impl OkxCore {
             }
         }
         if (depth.as_str() == Some("books-l2-tbt")) || (depth.as_str() == Some("books50-l2-tbt")) {
-            if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+            if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5".into()))));
             }
             self.authenticate(&[Value::Map({
@@ -3130,7 +3130,7 @@ impl OkxCore {
         // filter out partial errors
         args = self.filter_by(args.clone(), Value::Str("sCode".into()), Value::Str("0".into()), &[]);
         // if empty means request failed and handle error
-        if is_true(&self.is_empty(args.clone())) {
+        if self.is_empty(args.clone()).as_bool() == Some(true) {
             let mut method: Value = self.safe_string_k(message.clone(), "op", &[]);
             let mut stringMsg: Value = json_stringify(&message);
             self.handle_errors(Value::Int(1), Value::Str("".into()), client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), method, Value::Map({

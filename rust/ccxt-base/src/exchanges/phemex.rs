@@ -5836,7 +5836,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut isCross: bool = marginMode.as_str() == Some("cross");
-        if is_true(&self.in_array(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null), Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]))) {
+        if self.in_array(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null), Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())])).as_bool() == Some(true) {
             let mut currentLeverage: Value = self.safe_string_k(params.clone(), "leverage", &[]);
             if (currentLeverage == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a \"leverage\" parameter for USDT markets".into()))));
@@ -6580,7 +6580,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut stableCoins: Value = self.safe_value_k(self.options.clone(), "stableCoins", &[]);
         if (networkId == Value::Null) {
-            if !is_true(&(self.in_array(code.clone(), stableCoins))) {
+            if !(self.in_array(code.clone(), stableCoins).as_bool() == Some(true)) {
                 networkId = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             }  else {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw () requires an extra argument params[\"network\"]".into()))));

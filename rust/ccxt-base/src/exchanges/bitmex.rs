@@ -2764,7 +2764,7 @@ impl BitmexCore {
         let mut reduceOnly: Value = Value::Null;
         if ((execInst.len() as i64) as f64) > ((0i64) as f64) {
             postOnly = (Value::Bool(Value::Int(execInst.as_str().and_then(|__s| __s.find("ParticipateDoNotInitiate")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
-            reduceOnly = Value::Bool(is_true(&(Value::Int(execInst.as_str().and_then(|__s| __s.find("ReduceOnly")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || is_true(&(Value::Int(execInst.as_str().and_then(|__s| __s.find("Close")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))));
+            reduceOnly = Value::Bool((Value::Int(execInst.as_str().and_then(|__s| __s.find("ReduceOnly")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(execInst.as_str().and_then(|__s| __s.find("Close")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "timestamp", &[]));
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "stopPx", &[]);
@@ -3666,7 +3666,7 @@ impl BitmexCore {
             let mut splitSymbol: Value = split(&symbol, &Value::Str(":".into()));
             let mut splitSymbolLength: f64 = ((splitSymbol.len() as i64) as f64);
             let mut timeframes: Value = Value::from(vec![Value::Str("nearest".into()), Value::Str("daily".into()), Value::Str("weekly".into()), Value::Str("monthly".into()), Value::Str("quarterly".into()), Value::Str("biquarterly".into()), Value::Str("perpetual".into())]);
-            if (splitSymbolLength > ((1i64) as f64)) && is_true(&self.in_array(splitSymbol.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), timeframes)) {
+            if (splitSymbolLength > ((1i64) as f64)) && self.in_array(splitSymbol.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), timeframes).as_bool() == Some(true) {
                 let mut code: Value = self.currency(splitSymbol.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str(":".into())).into()), splitSymbol.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)).into());
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), symbol.clone()); }

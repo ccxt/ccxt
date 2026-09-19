@@ -3957,7 +3957,7 @@ impl LbankCore {
             if (canWithdraw.as_bool() == Some(true)) {
                 let mut currencyId: Value = self.safe_string_k(fee.clone(), "assetCode", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
-                if (code != Value::Null) && ((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone()))) {
+                if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                     let mut withdrawFee: Value = self.safe_number_k(fee.clone(), "fee", &[]);
                     if (withdrawFee != Value::Null) {
                         let mut resultValue: Value = self.safe_dict(result.clone(), code.clone(), &[]);

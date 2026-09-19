@@ -2327,7 +2327,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         }
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), messageHash.clone());
-        if !is_true(&self.is_empty(messageHashes)) {
+        if !(self.is_empty(messageHashes).as_bool() == Some(true)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_36: bool = true;
@@ -2542,7 +2542,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         // accumulate order fees
                         let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[Value::from(vec![])]);
                         let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
-                        if !is_true(&self.is_empty(fees.clone())) {
+                        if !(self.is_empty(fees.clone()).as_bool() == Some(true)) {
                             let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: Value = Value::Int(0);
@@ -2680,7 +2680,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         cache.append(parsed);
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), messageHash.clone());
-        if !is_true(&self.is_empty(messageHashes)) {
+        if !(self.is_empty(messageHashes).as_bool() == Some(true)) {
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[cache.clone(), symbolMessageHash]);
             client.resolve(&[cache, messageHash]);

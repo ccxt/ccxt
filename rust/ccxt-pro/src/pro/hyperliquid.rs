@@ -1860,7 +1860,7 @@ impl HyperliquidCore {
         params = self.safe_dict(userAddressResult, Value::Int(1), &[params.clone()]);
         let mut topic: Value = Value::Str("clearinghouseState".into());
         let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::positions".into())).into());
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             symbols = self.market_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into())).into());
         }
@@ -1941,7 +1941,7 @@ impl HyperliquidCore {
             }
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash]);
             }
         }
@@ -1967,7 +1967,7 @@ impl HyperliquidCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols)) {
+        if (symbols != Value::Null) && !(self.is_empty(symbols).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchPositions() does not support a symbol parameter, you must unwatch all orders".into()))));
         }
         let mut messageHash: Value = Value::Str("unsubscribe:clearinghouseState".into());

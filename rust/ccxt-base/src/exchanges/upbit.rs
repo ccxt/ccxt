@@ -1376,7 +1376,7 @@ impl UpbitCore {
                 while { if !__for_first_1097 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1097 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketSymbols.len() as i64) as f64) } {
                 let mut market: Value = self.market(marketSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 let mut quoteId: Value = market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
-                if !is_true(&self.in_array(quoteId.clone(), quoteIds.clone())) {
+                if !(self.in_array(quoteId.clone(), quoteIds.clone()).as_bool() == Some(true)) {
                     append_to_array(&mut quoteIds, quoteId);
                 }
             }

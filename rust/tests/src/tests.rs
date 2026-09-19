@@ -361,7 +361,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut skipMessage: Value = Value::Null;
         let mut supportedByExchange: bool = (in_op(&get_value(&exchange, &Value::Str("has".into())), &methodName)) && (get_value(&get_value(&exchange, &Value::Str("has".into())), &methodName) != Value::Null) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".into())), &methodName), &Value::Bool(false)));
-        if !isLoadMarkets && is_true(&((Value::Int(self.onlySpecificTests.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (!is_equal(&exchange.in_array(methodName.clone(), self.onlySpecificTests.clone()), &Value::Bool(true))))) {
+        if !isLoadMarkets && ((Value::Int(self.onlySpecificTests.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (!is_equal(&exchange.in_array(methodName.clone(), self.onlySpecificTests.clone()), &Value::Bool(true)))) {
             skipMessage = Value::Str("[INFO] IGNORED_TEST".into());
         }  else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
             skipMessage = Value::Str("[INFO] UNSUPPORTED_TEST".into()); // keep it aligned with the longest message
@@ -1803,7 +1803,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!(&value, Value::Str(_))) || (matches!(&value, Value::Bool(_))) {
             return Value::Bool(false);
         }
-        return Value::Bool(is_true(&(value.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(value.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))));
+        return Value::Bool((value.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (value.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
 
     Value::Null
 }

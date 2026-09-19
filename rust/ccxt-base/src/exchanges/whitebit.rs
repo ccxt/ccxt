@@ -1818,7 +1818,7 @@ impl WhitebitCore {
             let mut feeInfo: Value = get_value(&response, &entry);
             let mut feeInfo: Value = get_value(&response, &entry);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            if (code != Value::Null) && ((codes == Value::Null) || is_true(&(self.in_array(code.clone(), codes.clone())))) {
+            if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 let mut depositWithdrawFee: Value = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]);
                 if (depositWithdrawFee == Value::Null) {
                     add_element_to_object(&mut depositWithdrawFees, &code, self.deposit_withdraw_fee(Value::Map({
@@ -2188,7 +2188,7 @@ impl WhitebitCore {
             if (currency == Value::Null) {
                 continue;
             }
-            if (codes != Value::Null) && !is_true(&self.in_array(code.clone(), codes.clone())) {
+            if (codes != Value::Null) && !(self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 continue;
             }
             // Find corresponding fee data for this currency

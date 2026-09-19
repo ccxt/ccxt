@@ -1216,7 +1216,7 @@ impl KrakenCore {
             m
         });
         if (limit != Value::Null) {
-            if is_true(&self.in_array(limit.clone(), Value::from(vec![Value::Int(10), Value::Int(25), Value::Int(100), Value::Int(500), Value::Int(1000)]))) {
+            if self.in_array(limit.clone(), Value::from(vec![Value::Int(10), Value::Int(25), Value::Int(100), Value::Int(500), Value::Int(1000)])).as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut requiredParams { std::sync::Arc::make_mut(__d).insert("depth".to_string(), limit.clone()); }; // default 10, valid options 10, 25, 100, 500, 1000
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only".into()))));

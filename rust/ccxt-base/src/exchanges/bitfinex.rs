@@ -1527,7 +1527,7 @@ impl BitfinexCore {
                     m.insert("type".to_string(), type_var.clone());
                     m.insert("spot".to_string(), spot.clone());
                     m.insert("tradfi".to_string(), self.in_array(id.clone(), securitiesMarketsIds.clone()));
-                    m.insert("margin".to_string(), Value::Bool((spot.as_bool() == Some(true) && is_true(&self.in_array(id.clone(), marginIds.clone())))));
+                    m.insert("margin".to_string(), Value::Bool((spot.as_bool() == Some(true) && self.in_array(id.clone(), marginIds.clone()).as_bool() == Some(true))));
                     m.insert("swap".to_string(), swap.clone());
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));

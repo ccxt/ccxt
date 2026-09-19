@@ -1860,7 +1860,7 @@ impl DeribitCore {
                 if (kind == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && is_true(&(Value::Int(kind.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))));
+                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && (Value::Int(kind.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
                 if (kind == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }

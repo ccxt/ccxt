@@ -780,7 +780,7 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -947,15 +947,15 @@ impl LunoCore {
             let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
             let mut taker: Value = Value::Null;
             let mut maker: Value = Value::Null;
-            if is_true(&self.in_array(quote.clone(), fiats)) {
-                if is_true(&self.in_array(base.clone(), stablecoins)) {
+            if self.in_array(quote.clone(), fiats).as_bool() == Some(true) {
+                if self.in_array(base.clone(), stablecoins).as_bool() == Some(true) {
                     taker = self.parse_number(Value::Str("0.002".into()), &[]);
                     maker = self.parse_number(Value::Str("-0.0001".into()), &[]); // a rebate, not a charge
                 }  else {
                     taker = self.parse_number(Value::Str("0.006".into()), &[]);
                     maker = self.parse_number(Value::Str("0.004".into()), &[]);
                 }
-            }  else if !is_true(&self.in_array(quote.clone(), unverifiedQuotes)) {
+            }  else if !(self.in_array(quote.clone(), unverifiedQuotes).as_bool() == Some(true)) {
                 // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 // are both in Luno's crypto/crypto column
                 taker = self.parse_number(Value::Str("0.001".into()), &[]);

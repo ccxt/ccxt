@@ -1487,7 +1487,7 @@ impl ModetradeCore {
         }
         let mut messageHashes: Value = Value::from(vec![]);
         symbols = self.market_symbols(&[symbols.clone()]);
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_501: bool = true;

@@ -1163,7 +1163,7 @@ impl BackpackCore {
         let mut active: Value = Value::Null;
         let mut deposit: Value = Value::Null;
         let mut withdraw: Value = Value::Null;
-        if is_true(&self.is_empty(parsedNetworks.clone())) {
+        if self.is_empty(parsedNetworks.clone()).as_bool() == Some(true) {
             active = Value::Bool(false);
             deposit = Value::Bool(false);
             withdraw = Value::Bool(false);
@@ -3122,7 +3122,7 @@ impl BackpackCore {
         }
         let mut response: Value = self.private_get_api_v1_position(&[params]).await;
         let mut positions: Value = self.parse_positions(response, &[]);
-        if is_true(&self.is_empty(symbols.clone())) {
+        if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return positions;
         }
         symbols = self.market_symbols(&[symbols.clone()]);

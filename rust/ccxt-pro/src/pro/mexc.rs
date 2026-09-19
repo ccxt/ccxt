@@ -2720,7 +2720,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 return;
             }
         }
-        if is_true(&self.is_binary_message(message.clone(), &[])) {
+        if self.is_binary_message(message.clone(), &[]).as_bool() == Some(true) {
             message = self.decode_proto_msg(&[message.clone()]);
             self.handle_protobuf_message(client.clone(), message.clone());
             return;

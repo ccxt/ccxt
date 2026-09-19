@@ -421,7 +421,7 @@ impl CoinbaseinternationalCore {
             self.load_markets(&[]).await;
         }
         self.check_required_credentials(&[]);
-        if is_true(&self.is_empty(symbols.clone())) {
+        if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             symbols = self.symbols.clone();
         }  else {
             symbols = self.market_symbols(&[symbols.clone()]);

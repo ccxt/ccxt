@@ -2413,7 +2413,7 @@ impl ToobitCore {
         let mut response: Value = Value::Null;
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&self.in_array(marketType, Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())]))) {
+        if self.in_array(marketType, Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())])).as_bool() == Some(true) {
             response = self.private_get_api_v1_futures_balance(&[]).await;
         }  else {
             response = self.private_get_api_v1_account(&[]).await;
@@ -2574,7 +2574,7 @@ impl ToobitCore {
         if (price != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
-        if is_true(&self.in_array(type_var.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("LIMIT".into())]))) {
+        if self.in_array(type_var.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("LIMIT".into())])).as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), to_upper(&type_var)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }  else if (type_var.as_str() == Some("market")) {
@@ -3391,7 +3391,7 @@ impl ToobitCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees(): does not support ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
-        }  else if is_true(&self.in_array(marketType, Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())]))) {
+        }  else if self.in_array(marketType, Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())])).as_bool() == Some(true) {
             let mut symbol: Value = Value::Null;
             { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("symbol".into()), &[]); symbol = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if (symbol == Value::Null) {

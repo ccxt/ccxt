@@ -1955,7 +1955,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut response: Value = self.public_get_asset_details(&[params.clone()]).await;
-        if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             self.pre_load_lighter_library(&[]).await;
         }
         //
@@ -4383,7 +4383,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (direction == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)".into()))));
         }
-        if !is_true(&self.in_array(direction.clone(), Value::from(vec![Value::Int(0), Value::Int(1)]))) {
+        if !(self.in_array(direction.clone(), Value::from(vec![Value::Int(0), Value::Int(1)])).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)".into()))));
         }
         if (symbol == Value::Null) {

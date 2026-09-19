@@ -1962,7 +1962,7 @@ impl IndodaxCore {
             let mut marketId: Value = addressKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(marketId.clone(), &[]);
             let mut address: Value = self.safe_string(addresses.clone(), marketId.clone(), &[]);
-            if (address != Value::Null) && ((codes == Value::Null) || is_true(&(self.in_array(code.clone(), codes.clone())))) {
+            if (address != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 self.check_address(&[address.clone()]);
                 let mut network: Value = Value::Null;
                 if (in_op(&networks, &marketId)) {

@@ -1366,7 +1366,7 @@ impl KrakenfuturesCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             let mut volumesResponse: Value = self.private_get_feeschedules_volumes(&[]).await;
             //
             //    {
@@ -2759,7 +2759,7 @@ impl KrakenfuturesCore {
                 m.insert("notFound".to_string(), Value::Str("OrderNotFound".into()).clone());
             m
         });
-        if (in_op(&errors, &status)) && !is_true(&self.in_array(status.clone(), omit)) {
+        if (in_op(&errors, &status)) && !(self.in_array(status.clone(), omit).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&errors, &status))), &crate::runtime::stringify_param(&(add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(": ".into())).into()), &method), Value::Str(" failed due to ".into())).into()), &status)))));
         }
 }
@@ -3972,7 +3972,7 @@ impl KrakenfuturesCore {
             let mut entry: Value = tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut entry_symbol: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             if (marketIds != Value::Null) {
-                if !is_true(&self.in_array(entry_symbol.clone(), marketIds.clone())) {
+                if !(self.in_array(entry_symbol.clone(), marketIds.clone()).as_bool() == Some(true)) {
                     continue;
                 }
             }

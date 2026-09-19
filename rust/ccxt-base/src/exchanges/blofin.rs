@@ -4395,7 +4395,7 @@ impl BlofinCore {
         let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &request);
         // const type = this.getPathAuthenticationType (path);
         if (api.as_str() == Some("public")) {
-            if !is_true(&self.is_empty(query.clone())) {
+            if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }  else if (api.as_str() == Some("private")) {
@@ -4411,13 +4411,13 @@ impl BlofinCore {
             });
             let mut sign_body: Value = Value::Str("".into());
             if (method.as_str() == Some("GET")) {
-                if !is_true(&self.is_empty(query.clone())) {
+                if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
                     let mut urlencodedQuery: Value = Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into());
                     url = Value::Str(format!("{}{}", url, urlencodedQuery).into());
                     request = Value::Str(format!("{}{}", request, urlencodedQuery).into());
                 }
             }  else {
-                if !is_true(&self.is_empty(query.clone())) {
+                if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
                     body = json_stringify(&query);
                     sign_body = body.clone();
                 }
