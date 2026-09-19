@@ -1861,7 +1861,7 @@ impl DeribitCore {
                 if (kind == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".to_string()))));
                 }
-                let mut future: Value = Value::Bool(!is_true(&swap) && is_true(&(Value::Int(kind.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))));
+                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && is_true(&(Value::Int(kind.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))));
                 if (kind == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".to_string()))));
                 }
@@ -1875,22 +1875,22 @@ impl DeribitCore {
                 let mut optionType: Value = Value::Null;
                 let mut symbol: Value = id.clone();
                 let mut type_var: Value = Value::Str("swap".to_string());
-                if is_true(&future) {
+                if matches!(&future, Value::Bool(true)) {
                     type_var = Value::Str("future".to_string());
-                }  else if is_true(&option) {
+                }  else if matches!(&option, Value::Bool(true)) {
                     type_var = Value::Str("option".to_string());
-                }  else if is_true(&isSpot) {
+                }  else if matches!(&isSpot, Value::Bool(true)) {
                     type_var = Value::Str("spot".to_string());
                 }
                 let mut inverse: Value = Value::Null;
                 let mut linear: Value = Value::Null;
-                if is_true(&isSpot) {
+                if matches!(&isSpot, Value::Bool(true)) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
                 }  else if !isComboMarket {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
-                    if is_true(&option) || is_true(&future) {
+                    if matches!(&option, Value::Bool(true)) || matches!(&future, Value::Bool(true)) {
                         symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[Value::Str("".to_string())])));
-                        if is_true(&option) {
+                        if matches!(&option, Value::Bool(true)) {
                             strike = self.safe_number_k(market.clone(), "strike", &[]);
                             optionType = self.safe_string_k(market.clone(), "option_type", &[]);
                             let mut letter: Value = (if is_true(&(optionType.as_str() == Some("call"))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
@@ -1926,7 +1926,7 @@ impl DeribitCore {
                         m.insert("future".to_string(), future.clone());
                         m.insert("option".to_string(), option.clone());
                         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
-                        m.insert("contract".to_string(), Value::Bool(!is_true(&isSpot)));
+                        m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
                         m.insert("linear".to_string(), linear.clone());
                         m.insert("inverse".to_string(), inverse.clone());
                         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "taker_commission", &[]));
@@ -3278,7 +3278,7 @@ impl DeribitCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trigger_price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trigger".to_string(), trigger.clone()); }
             if isStopLossOrder {
-                if is_true(&isMarketOrder) {
+                if matches!(&isMarketOrder, Value::Bool(true)) {
                     // stop_market (sell only)
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("stop_market".to_string())); }
                 }  else {
@@ -3286,7 +3286,7 @@ impl DeribitCore {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("stop_limit".to_string())); }
                 }
             }  else {
-                if is_true(&isMarketOrder) {
+                if matches!(&isMarketOrder, Value::Bool(true)) {
                     // take_market (buy only)
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("take_market".to_string())); }
                 }  else {

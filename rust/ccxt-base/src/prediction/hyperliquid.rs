@@ -1778,7 +1778,7 @@ impl HyperliquidCore {
         let mut px: Value = Value::Null;
         if isMarket {
             let mut priceStr: Value = self.number_to_string(price.clone());
-            px = (if is_true(&isBuy) { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)) } else { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)) });
+            px = (if matches!(&isBuy, Value::Bool(true)) { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)) } else { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)) });
             px = self.price_to_precision(marketSymbol.clone(), px.clone());
         }  else {
             px = self.price_to_precision(marketSymbol.clone(), price.clone());

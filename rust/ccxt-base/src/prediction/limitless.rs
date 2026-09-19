@@ -934,10 +934,10 @@ impl LimitlessCore {
             }
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
-            if is_true(&marketResolved) {
+            if matches!(&marketResolved, Value::Bool(true)) {
                 winnerRaw = (Value::Bool(legIndex.as_f64() == winningOutcomeIndex.as_f64()));
-                settleFractionRaw = (if is_true(&winnerRaw) { Value::Int(1) } else { Value::Int(0) });
-                if is_true(&winnerRaw) {
+                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
+                if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
             }
@@ -2912,10 +2912,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         if (timeInForce == Value::Null) {
-            timeInForce = (if is_true(&isMarket) { Value::Str("FOK".to_string()) } else { Value::Str("GTC".to_string()) });
+            timeInForce = (if matches!(&isMarket, Value::Bool(true)) { Value::Str("FOK".to_string()) } else { Value::Str("GTC".to_string()) });
         }
         let mut marketSymbol: Value = self.safe_string_k(outcomeObj.clone(), "market", &[]);
-        if is_true(&isMarket) && is_true(&(side.as_str() == Some("buy"))) {
+        if matches!(&isMarket, Value::Bool(true)) && is_true(&(side.as_str() == Some("buy"))) {
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
@@ -2931,7 +2931,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 makerAmount = self.cost_to_prediction_precision(outcome.clone(), amount.clone());
             }
-        }  else if is_true(&isMarket) {
+        }  else if matches!(&isMarket, Value::Bool(true)) {
             makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone());
         }  else {
             let mut calculatedCost: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
@@ -2945,11 +2945,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
         add_element_to_object(&mut signRequest, &Value::Str("makerAmount".to_string()), self.parse_to_int(self.apply_scale(makerAmount.clone(), &[Value::Bool(true)])));
-        add_element_to_object(&mut signRequest, &Value::Str("takerAmount".to_string()), (if is_true(&isMarket) { Value::Int(1) } else { self.parse_to_int(self.apply_scale(takerAmount.clone(), &[Value::Bool(true)])) }));
+        add_element_to_object(&mut signRequest, &Value::Str("takerAmount".to_string()), (if matches!(&isMarket, Value::Bool(true)) { Value::Int(1) } else { self.parse_to_int(self.apply_scale(takerAmount.clone(), &[Value::Bool(true)])) }));
         let mut signature: Value = self.sign_order_request(signRequest.clone(), marketSymbol.clone());
         add_element_to_object(&mut signRequest, &Value::Str("signature".to_string()), signature.clone());
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
-        if !is_true(&isMarket) && is_true(&(price != Value::Null)) {
+        if !(matches!(&isMarket, Value::Bool(true))) && is_true(&(price != Value::Null)) {
             add_element_to_object(&mut signRequest, &Value::Str("price".to_string()), self.parse_number(priceString.clone(), &[]));
         }
         let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);

@@ -1356,7 +1356,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade.clearing".to_string()), Value::Str("#".to_string()))), marketId)), Value::Str("#".to_string()))), mode));
             channel = messageHash.clone();
-        }  else if is_true(&isV5Linear) {
+        }  else if matches!(&isV5Linear, Value::Bool(true)) {
             let mut channelAndMessageHashAndParams: Value = self.get_v5_linear_channel_and_message_hash(Value::Str("trade".to_string()), &[market.clone(), params.clone()]);
             channel = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(0), &[]);
             messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]);
@@ -1512,7 +1512,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (type_var.as_str() == Some("spot")) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".to_string()), Value::Str("#".to_string()))), suffix));
             channel = messageHash.clone();
-        }  else if is_true(&isV5Linear) {
+        }  else if matches!(&isV5Linear, Value::Bool(true)) {
             let mut channelAndMessageHashAndParams: Value = self.get_v5_linear_channel_and_message_hash(Value::Str("orders".to_string()), &[market.clone(), params.clone()]);
             channel = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(0), &[]);
             messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]);
@@ -2146,7 +2146,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear.clone(), Value::Bool(true), Value::Bool(false), isV5Linear.clone()]);
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginMode, Value::Str(":positions".to_string()))), messageHash));
         let mut channel: Value = (if is_true(&(marginMode.as_str() == Some("cross"))) { Value::Str("positions_cross.*".to_string()) } else { Value::Str("positions.*".to_string()) });
-        if is_true(&isV5Linear) {
+        if matches!(&isV5Linear, Value::Bool(true)) {
             let mut v5Market: Value = Value::Null;
             if is_true(&(symbols != Value::Null)) && is_true(&(Value::Int(symbols.len() as i64).as_f64() == Some(1.0))) {
                 v5Market = market.clone();
@@ -2383,7 +2383,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             mode = self.safe_string_k(params.clone(), "mode", &[mode.clone()]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("accounts.update".to_string()), Value::Str("#".to_string()))), mode));
             channel = messageHash.clone();
-        }  else if is_true(&isV5Linear) {
+        }  else if matches!(&isV5Linear, Value::Bool(true)) {
             marginMode = self.safe_string_k(params.clone(), "margin", &[Value::Str("cross".to_string())]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("currency".to_string()), Value::Str("symbol".to_string()), Value::Str("margin".to_string())]), &[]);
             channel = Value::Str("account".to_string());

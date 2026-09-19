@@ -3352,7 +3352,7 @@ pub trait ExchangeBase:
         }
         let mut cost: Value = self.number_to_string(amount.clone());
         let mut key: Value = Value::Null;
-        if is_true(&useQuote) {
+        if useQuote.as_bool() == Some(true) {
             let mut priceString: Value = self.number_to_string(price.clone());
             cost = crate::precise::Precise::stringMul(&cost, &priceString);
             key = Value::Str("quote".to_string());
@@ -7602,7 +7602,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else if is_true(&isMarketOrder) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" market orders cannot be postOnly".to_string()))));
             }  else {
-                if is_true(&po) {
+                if matches!(&po, Value::Bool(true)) {
                     params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
                 }
                 params = self.omit(params.clone(), Value::Str("postOnly".to_string()), &[]);

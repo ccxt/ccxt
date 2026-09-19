@@ -2581,7 +2581,7 @@ impl XtCore {
             spot = Value::Bool(false);
         }
         let mut isActive: Value = Value::Bool(false);
-        if is_true(&contract) {
+        if contract.as_bool() == Some(true) {
             isActive = self.safe_bool_k(market.clone(), "isOpenApi", &[Value::Bool(false)]);
         }  else {
             if is_true(&(state.as_deref() == Some("ONLINE"))) && is_true(&(self.safe_bool_k(market.clone(), "tradingEnabled", &[]).as_bool() == Some(true))) && is_true(&(self.safe_bool_k(market.clone(), "openapiEnabled", &[]).as_bool() == Some(true))) {
@@ -3662,7 +3662,7 @@ impl XtCore {
         let mut takerOrMaker: Value = Value::Null;
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "b", &[]);
         if (isBuyerMaker != Value::Null) {
-            side = (if is_true(&isBuyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
             takerOrMaker = Value::Str("taker".to_string()); // public trades always taker
         }  else {
             let mut takerMaker: Value = self.safe_string_lower(trade.clone(), Value::Str("takerMaker".to_string()), &[]);
@@ -3671,7 +3671,7 @@ impl XtCore {
             }  else {
                 let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
                 if (isMaker != Value::Null) {
-                    takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+                    takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
                 }
             }
             let mut orderSide: Value = self.safe_string_lower(trade.clone(), Value::Str("orderSide".to_string()), &[]);

@@ -1703,7 +1703,7 @@ impl BinanceCore {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
                             conditional = (Value::Bool(((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64() == nonce.as_f64()));
                         }
-                        if is_true(&conditional) {
+                        if conditional.as_bool() == Some(true) {
                             self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
                             if nonce.as_f64().unwrap_or(f64::NAN) < self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_f64().unwrap_or(f64::NAN) {
                                 client.resolve(&[orderbook.clone(), messageHash.clone()]);

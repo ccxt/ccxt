@@ -1683,7 +1683,7 @@ impl ToobitCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut isContract: Value = (Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("contractMultiplier"))));
         let mut inverse: Value = self.safe_bool2(market.clone(), Value::Str("isInverse".to_string()), Value::Str("inverse".to_string()), &[]);
-        if is_true(&isContract) {
+        if matches!(&isContract, Value::Bool(true)) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
         }
         return self.safe_market_structure(&[Value::Map({
@@ -1696,16 +1696,16 @@ impl ToobitCore {
         m.insert("baseId".to_string(), baseId.clone());
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), settleId.clone());
-        m.insert("type".to_string(), (if is_true(&isContract) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) }));
-        m.insert("spot".to_string(), Value::Bool(!is_true(&isContract)));
+        m.insert("type".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) }));
+        m.insert("spot".to_string(), Value::Bool(!(matches!(&isContract, Value::Bool(true)))));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), isContract.clone());
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active.clone());
         m.insert("contract".to_string(), isContract.clone());
-        m.insert("linear".to_string(), (if is_true(&isContract) { (Value::Bool(inverse.as_bool() != Some(true))) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if is_true(&isContract) { inverse.clone() } else { Value::Null }));
+        m.insert("linear".to_string(), (if matches!(&isContract, Value::Bool(true)) { (Value::Bool(inverse.as_bool() != Some(true))) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if matches!(&isContract, Value::Bool(true)) { inverse.clone() } else { Value::Null }));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractMultiplier", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1907,11 +1907,11 @@ impl ToobitCore {
         if (isBuyerMaker == Value::Null) {
             let mut isBuyerTaker: Value = self.safe_bool_k(trade.clone(), "m", &[]);
             if (isBuyerTaker != Value::Null) {
-                isBuyerMaker = Value::Bool(!is_true(&isBuyerTaker));
+                isBuyerMaker = Value::Bool(!(isBuyerTaker.as_bool() == Some(true)));
             }
         }
         if (isBuyerMaker != Value::Null) {
-            if is_true(&isBuyerMaker) {
+            if isBuyerMaker.as_bool() == Some(true) {
                 side = Value::Str("sell".to_string());
             }  else {
                 side = Value::Str("buy".to_string());
@@ -1937,7 +1937,7 @@ impl ToobitCore {
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         market = self.safe_market(&[Value::Null, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

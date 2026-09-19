@@ -2301,10 +2301,10 @@ impl NadoCore {
             let mut quoteAsset: Value = self.safe_dict(assetsByCode.clone(), quote.clone(), &[]);
             let mut baseId: Value = self.safe_string_k(baseAsset.clone(), "product_id", &[rawBaseId.clone()]);
             let mut quoteId: Value = self.safe_string_k(quoteAsset.clone(), "product_id", &[rawQuoteId.clone()]);
-            let mut settleId: Value = (if is_true(&contract) { quoteId.clone() } else { Value::Null });
-            let mut settle: Value = (if is_true(&contract) { quote.clone() } else { Value::Null });
+            let mut settleId: Value = (if matches!(&contract, Value::Bool(true)) { quoteId.clone() } else { Value::Null });
+            let mut settle: Value = (if matches!(&contract, Value::Bool(true)) { quote.clone() } else { Value::Null });
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-            if is_true(&contract) {
+            if matches!(&contract, Value::Bool(true)) {
                 symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
             }
             let mut tradingStatus: Option<String> = self.safe_string_k(market.clone(), "trading_status", &[]).as_str().map(str::to_owned);
@@ -2331,11 +2331,11 @@ impl NadoCore {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active.clone());
         m.insert("contract".to_string(), contract.clone());
-        m.insert("linear".to_string(), (if is_true(&contract) { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if is_true(&contract) { Value::Bool(false) } else { Value::Null }));
+        m.insert("linear".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
         m.insert("taker".to_string(), self.parse_x18(self.safe_string_k(market.clone(), "taker_fee_rate_x18", &[])));
         m.insert("maker".to_string(), self.parse_x18(self.safe_string_k(market.clone(), "maker_fee_rate_x18", &[])));
-        m.insert("contractSize".to_string(), (if is_true(&contract) { Value::Int(1) } else { Value::Null }));
+        m.insert("contractSize".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Int(1) } else { Value::Null }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -3030,7 +3030,7 @@ impl NadoCore {
         let mut takerOrMaker: Value = Value::Null;
         let mut isTaker: Value = self.safe_bool_k(trade.clone(), "is_taker", &[]);
         if (isTaker != Value::Null) {
-            if is_true(&isTaker) {
+            if isTaker.as_bool() == Some(true) {
                 takerOrMaker = Value::Str("taker".to_string());
             }  else {
                 takerOrMaker = Value::Str("maker".to_string());

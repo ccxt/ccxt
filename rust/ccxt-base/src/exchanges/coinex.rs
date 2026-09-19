@@ -3718,7 +3718,7 @@ impl CoinexCore {
                     requestType = Value::Str("fok".to_string());
                 }
             }
-            if !is_true(&isMarketOrder) {
+            if !(matches!(&isMarketOrder, Value::Bool(true))) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), requestType.clone()); }

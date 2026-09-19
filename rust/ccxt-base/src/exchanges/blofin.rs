@@ -1302,7 +1302,7 @@ impl BlofinCore {
         let mut future: Value = (Value::Bool(type_var.as_str() == Some("future")));
         let mut swap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
         let mut option: Value = (Value::Bool(type_var.as_str() == Some("option")));
-        let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future));
+        let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)));
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settleCurrency", &[quoteId.clone()]);
@@ -1310,7 +1310,7 @@ impl BlofinCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-        if is_true(&swap) {
+        if matches!(&swap, Value::Bool(true)) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
         }
         let mut expiry: Value = Value::Null;
@@ -1326,7 +1326,7 @@ impl BlofinCore {
         let mut maxLeverage: Value = self.safe_string_k(market.clone(), "maxLeverage", &[Value::Str("100".to_string())]);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".to_string()));
         let mut isActive: Value = (Value::Bool(self.safe_string_k(market.clone(), "state", &[]).as_str() == Some("live")));
-        let mut isMargin: Value = Value::Bool(is_true(&spot) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string())))));
+        let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string())))));
         let mut contractType: Option<String> = self.safe_string_k(market.clone(), "contractType", &[]).as_str().map(str::to_owned);
         let mut maxLimitAmount: Value = self.safe_number_k(market.clone(), "maxLimitSize", &[]);
         let mut maxSpotCost: Value = self.safe_number_k(market.clone(), "maxMarketSize", &[]); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -1350,9 +1350,9 @@ impl BlofinCore {
         m.insert("taker".to_string(), taker.clone());
         m.insert("maker".to_string(), maker.clone());
         m.insert("contract".to_string(), contract.clone());
-        m.insert("linear".to_string(), (if is_true(&contract) { (Value::Bool(contractType.as_deref() == Some("linear"))) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if is_true(&contract) { (Value::Bool(contractType.as_deref() == Some("inverse"))) } else { Value::Null }));
-        m.insert("contractSize".to_string(), (if is_true(&contract) { self.safe_number_k(market.clone(), "contractValue", &[]) } else { Value::Null }));
+        m.insert("linear".to_string(), (if matches!(&contract, Value::Bool(true)) { (Value::Bool(contractType.as_deref() == Some("linear"))) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if matches!(&contract, Value::Bool(true)) { (Value::Bool(contractType.as_deref() == Some("inverse"))) } else { Value::Null }));
+        m.insert("contractSize".to_string(), (if matches!(&contract, Value::Bool(true)) { self.safe_number_k(market.clone(), "contractValue", &[]) } else { Value::Null }));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), expiry.clone());
         m.insert("strike".to_string(), strikePrice.clone());
@@ -1387,7 +1387,7 @@ impl BlofinCore {
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), (if is_true(&contract) { Value::Null } else { maxSpotCost.clone() }));
+        m.insert("max".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Null } else { maxSpotCost.clone() }));
     m
 }));
     m
@@ -2237,8 +2237,8 @@ impl BlofinCore {
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".to_string())]), &[]);
         let mut ioc: bool = is_true(&(timeInForce.as_deref() == Some("IOC"))) || is_true(&(type_var.as_str() == Some("ioc")));
-        let mut marketIOC: bool = is_true(&isMarketOrder) && ioc;
-        if is_true(&isMarketOrder) || marketIOC {
+        let mut marketIOC: bool = matches!(&isMarketOrder, Value::Bool(true)) && ioc;
+        if matches!(&isMarketOrder, Value::Bool(true)) || marketIOC {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), Value::Str("market".to_string())); }
         }  else {
             let mut key: Value = (if is_true(&(triggerPriceAny != Value::Null)) { Value::Str("orderPrice".to_string()) } else { Value::Str("price".to_string()) });
@@ -2270,7 +2270,7 @@ impl BlofinCore {
         }  else if (triggerPriceAny != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), Value::Str("trigger".to_string())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPriceAny.clone())); }
-            if is_true(&isMarketOrder) {
+            if matches!(&isMarketOrder, Value::Bool(true)) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderPrice".to_string(), Value::Str("-1".to_string())); }
             }
             if (triggerPriceSlTp.is_some()) {
@@ -2478,7 +2478,7 @@ impl BlofinCore {
         let mut response: Value = Value::Null;
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         if (reduceOnly != Value::Null) {
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("reduceOnly".to_string(), (if is_true(&reduceOnly) { Value::Str("true".to_string()) } else { Value::Str("false".to_string()) })); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("reduceOnly".to_string(), (if reduceOnly.as_bool() == Some(true) { Value::Str("true".to_string()) } else { Value::Str("false".to_string()) })); }
         }
         if isCombinedSlTp {
             let mut tpslRequest: Value = self.create_tpsl_order_request(symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]);

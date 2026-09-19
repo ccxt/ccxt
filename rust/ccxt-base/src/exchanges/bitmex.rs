@@ -1333,7 +1333,7 @@ impl BitmexCore {
         }
         }
         let mut currencyEnabled: Value = self.safe_bool_k(currency.clone(), "enabled", &[]);
-        let mut currencyActive: Value = Value::Bool(is_true(&(currencyEnabled.as_bool() == Some(true))) || (is_true(&depositEnabled) || is_true(&withdrawEnabled)));
+        let mut currencyActive: Value = Value::Bool(is_true(&(currencyEnabled.as_bool() == Some(true))) || (depositEnabled.as_bool() == Some(true) || withdrawEnabled.as_bool() == Some(true)));
         let mut minWithdrawalString: Value = self.safe_string_k(currency.clone(), "minWithdrawalAmount", &[]);
         let mut minWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&minWithdrawalString, &precisionString), &[]);
         let mut maxWithdrawalString: Value = self.safe_string_k(currency.clone(), "maxWithdrawalAmount", &[]);
@@ -1495,19 +1495,19 @@ impl BitmexCore {
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future));
+        let mut contract: Value = Value::Bool(swap.as_bool() == Some(true) || future.as_bool() == Some(true));
         let mut contractSize: Value = Value::Null;
         let mut isInverse: Value = self.safe_value_k(market.clone(), "isInverse", &[]); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         let mut isQuanto: Value = self.safe_value_k(market.clone(), "isQuanto", &[]); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        let mut linear: Value = (if is_true(&contract) { Value::Bool(((!is_equal(&isInverse, &Value::Bool(true))) && (!is_equal(&isQuanto, &Value::Bool(true))))) } else { Value::Null });
+        let mut linear: Value = (if matches!(&contract, Value::Bool(true)) { Value::Bool(((!is_equal(&isInverse, &Value::Bool(true))) && (!is_equal(&isQuanto, &Value::Bool(true))))) } else { Value::Null });
         let mut status: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool(status.as_deref() == Some("Open")); // Open, Settled, Unlisted
         let mut expiry: Value = Value::Null;
         let mut expiryDatetime: Value = Value::Null;
         let mut symbol: Value = Value::Null;
-        if is_true(&spot) {
+        if spot.as_bool() == Some(true) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-        }  else if is_true(&contract) {
+        }  else if matches!(&contract, Value::Bool(true)) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
             if (linear.as_bool() == Some(true)) {
                 let mut multiplierString: Value = self.safe_string2(market.clone(), Value::Str("underlyingToPositionMultiplier".to_string()), Value::Str("underlyingToSettleMultiplier".to_string()), &[]);
@@ -1517,7 +1517,7 @@ impl BitmexCore {
             }
             expiryDatetime = self.safe_string2(market.clone(), Value::Str("expiry".to_string()), Value::Str("closingTimestamp".to_string()), &[]);
             expiry = self.parse8601(expiryDatetime.clone());
-            if (expiry != Value::Null) && is_true(&future) {
+            if (expiry != Value::Null) && future.as_bool() == Some(true) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
             }
         }  else {
@@ -1531,7 +1531,7 @@ impl BitmexCore {
         let mut initMargin: Value = self.safe_string_k(market.clone(), "initMargin", &[Value::Str("1".to_string())]);
         let mut maxLeverage: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &initMargin), &[]);
         // subtype should be undefined for spot markets
-        if is_true(&spot) {
+        if spot.as_bool() == Some(true) {
             isInverse = Value::Null;
             isQuanto = Value::Null;
             linear = Value::Null;
@@ -1577,8 +1577,8 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), (if is_true(&contract) { self.parse_number(Value::Str("1".to_string()), &[]) } else { Value::Null }));
-        m.insert("max".to_string(), (if is_true(&contract) { maxLeverage.clone() } else { Value::Null }));
+        m.insert("min".to_string(), (if matches!(&contract, Value::Bool(true)) { self.parse_number(Value::Str("1".to_string()), &[]) } else { Value::Null }));
+        m.insert("max".to_string(), (if matches!(&contract, Value::Bool(true)) { maxLeverage.clone() } else { Value::Null }));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -2748,7 +2748,7 @@ impl BitmexCore {
         }  else {
             isInverse = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]);
         }
-        if is_true(&isInverse) {
+        if isInverse.as_bool() == Some(true) {
             cost = self.convert_from_raw_quantity(symbol.clone(), qty.clone(), &[]);
         }  else {
             amount = self.convert_from_raw_quantity(symbol.clone(), qty.clone(), &[]);
@@ -2756,7 +2756,7 @@ impl BitmexCore {
         let mut average: Value = self.safe_string_k(order.clone(), "avgPx", &[]);
         let mut filled: Value = Value::Null;
         let mut cumQty: Value = self.number_to_string(self.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(order.clone(), "cumQty", &[]), &[]));
-        if is_true(&isInverse) {
+        if isInverse.as_bool() == Some(true) {
             filled = crate::precise::Precise::stringDiv(&cumQty, &average);
         }  else {
             filled = cumQty.clone();

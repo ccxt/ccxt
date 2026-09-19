@@ -899,12 +899,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isFuturesMethod: Value = Value::Bool(is_true(&(marketType.as_str() != Some("spot"))) && is_true(&(marketType.as_str() != Some("margin"))));
-        if (is_true(&isFuturesMethod) || is_true(&uta)) && (symbols == Value::Null) {
+        if (matches!(&isFuturesMethod, Value::Bool(true)) || is_true(&uta)) && (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols for ".to_string()))), marketType)), Value::Str(" markets and unified trading account (uta)".to_string()))));
         }
         let mut messageHash: Value = Value::Str("tickers".to_string());
         let mut method: Value = Value::Str("/market/ticker".to_string());
-        if is_true(&isFuturesMethod) {
+        if matches!(&isFuturesMethod, Value::Bool(true)) {
             method = Value::Str("/contractMarket/ticker".to_string());
         }  else {
             { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("method".to_string()), Value::Str("spotMethod".to_string()), &[method.clone()]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1268,7 +1268,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isFuturesMethod: Value = Value::Bool(is_equal(&firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null), &Value::Bool(true)));
         let mut channelName: Value = Value::Str("/spotMarket/level1:".to_string());
-        if is_true(&isFuturesMethod) {
+        if matches!(&isFuturesMethod, Value::Bool(true)) {
             channelName = Value::Str("/contractMarket/tickerV2:".to_string());
         }
         let mut ticker: Value = self.watch_multi_helper(Value::Str("watchBidsAsks".to_string()), channelName.clone(), isFuturesMethod.clone(), &[symbols.clone(), params.clone()]).await;
@@ -1742,7 +1742,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut subscriptionHashes: Value = Value::from(vec![]);
         let mut channelName: Value = Value::Str("/market/match:".to_string());
-        if is_true(&isFuturesMethod) {
+        if matches!(&isFuturesMethod, Value::Bool(true)) {
             channelName = Value::Str("/contractMarket/execution:".to_string());
         }
         let mut topic: Value = Value::Str(format!("{}{}", channelName, join(&marketIds, &Value::Str(",".to_string()))));
@@ -1795,7 +1795,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut subscriptionHashes: Value = Value::from(vec![]);
         let mut channelName: Value = Value::Str("/market/match:".to_string());
-        if is_true(&isFuturesMethod) {
+        if matches!(&isFuturesMethod, Value::Bool(true)) {
             channelName = Value::Str("/contractMarket/execution:".to_string());
         }
         let mut topic: Value = Value::Str(format!("{}{}", channelName, join(&marketIds, &Value::Str(",".to_string()))));
@@ -2164,12 +2164,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isFuturesMethod: Value = Value::Bool(is_equal(&firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null), &Value::Bool(true)));
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
-        let mut method: Value = (if is_true(&isFuturesMethod) { Value::Str("/contractMarket/level2".to_string()) } else { Value::Str("/market/level2".to_string()) });
-        let mut optionName: Value = (if is_true(&isFuturesMethod) { Value::Str("contractMethod".to_string()) } else { Value::Str("spotMethod".to_string()) });
+        let mut method: Value = (if matches!(&isFuturesMethod, Value::Bool(true)) { Value::Str("/contractMarket/level2".to_string()) } else { Value::Str("/market/level2".to_string()) });
+        let mut optionName: Value = (if matches!(&isFuturesMethod, Value::Bool(true)) { Value::Str("contractMethod".to_string()) } else { Value::Str("spotMethod".to_string()) });
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("watchOrderBook".to_string()), optionName.clone(), Value::Str("method".to_string()), &[method.clone()]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if Value::Int(method.as_str().and_then(|__s| __s.find("Depth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
             if is_true(&(limit.as_f64() == Some(5.0))) || is_true(&(limit.as_f64() == Some(50.0))) {
-                if !is_true(&isFuturesMethod) {
+                if !(matches!(&isFuturesMethod, Value::Bool(true))) {
                     method = Value::Str("/spotMarket/level2".to_string());
                 }
                 method = Value::Str(format!("{}{}", method, Value::Str(format!("{}{}", Value::Str("Depth".to_string()), to_string_val(&limit)))));
@@ -2239,12 +2239,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isFuturesMethod: Value = Value::Bool(is_equal(&firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null), &Value::Bool(true)));
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
-        let mut method: Value = (if is_true(&isFuturesMethod) { Value::Str("/contractMarket/level2".to_string()) } else { Value::Str("/market/level2".to_string()) });
-        let mut optionName: Value = (if is_true(&isFuturesMethod) { Value::Str("contractMethod".to_string()) } else { Value::Str("spotMethod".to_string()) });
+        let mut method: Value = (if matches!(&isFuturesMethod, Value::Bool(true)) { Value::Str("/contractMarket/level2".to_string()) } else { Value::Str("/market/level2".to_string()) });
+        let mut optionName: Value = (if matches!(&isFuturesMethod, Value::Bool(true)) { Value::Str("contractMethod".to_string()) } else { Value::Str("spotMethod".to_string()) });
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("watchOrderBook".to_string()), optionName.clone(), Value::Str("method".to_string()), &[method.clone()]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if Value::Int(method.as_str().and_then(|__s| __s.find("Depth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
             if is_true(&(limit.as_f64() == Some(5.0))) || is_true(&(limit.as_f64() == Some(50.0))) {
-                if !is_true(&isFuturesMethod) {
+                if !(matches!(&isFuturesMethod, Value::Bool(true))) {
                     method = Value::Str("/spotMarket/level2".to_string());
                 }
                 method = Value::Str(format!("{}{}", method, Value::Str(format!("{}{}", Value::Str("Depth".to_string()), to_string_val(&limit)))));
@@ -2700,7 +2700,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isFuturesMethod: Value = (Value::Bool(is_true(&(marketType.as_str() != Some("spot"))) && is_true(&(marketType.as_str() != Some("margin")))));
             let mut url: Value = self.negotiate(Value::Bool(true), &[isFuturesMethod.clone()]).await;
             let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("/spotMarket/advancedOrders".to_string()) } else { Value::Str("/spotMarket/tradeOrders".to_string()) });
-            if is_true(&isFuturesMethod) {
+            if matches!(&isFuturesMethod, Value::Bool(true)) {
                 topic = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("/contractMarket/advancedOrders".to_string()) } else { Value::Str("/contractMarket/tradeOrders".to_string()) });
             }
             if (symbol == Value::Null) {
@@ -3154,8 +3154,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             trades = self.subscribe_private_uta(Value::from(vec![messageHash.clone()]), channel.clone(), channel.clone(), &[Value::Null, params.clone()]).await;
         }  else {
             let mut url: Value = self.negotiate(Value::Bool(true), &[isFuturesMethod.clone()]).await;
-            let mut topic: Value = (if is_true(&isFuturesMethod) { Value::Str("/contractMarket/tradeOrders".to_string()) } else { Value::Str("/spotMarket/tradeOrders".to_string()) });
-            let mut optionName: Value = (if is_true(&isFuturesMethod) { Value::Str("contractMethod".to_string()) } else { Value::Str("spotMethod".to_string()) });
+            let mut topic: Value = (if matches!(&isFuturesMethod, Value::Bool(true)) { Value::Str("/contractMarket/tradeOrders".to_string()) } else { Value::Str("/spotMarket/tradeOrders".to_string()) });
+            let mut optionName: Value = (if matches!(&isFuturesMethod, Value::Bool(true)) { Value::Str("contractMethod".to_string()) } else { Value::Str("spotMethod".to_string()) });
             { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("watchMyTrades".to_string()), optionName.clone(), Value::Str("method".to_string()), &[topic.clone()]); topic = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3393,7 +3393,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut uniformType: Value = self.safe_string(accountsByType.clone(), type_var.clone(), &[type_var.clone()]);
         let mut isClassicFuturesMethod: Value = (Value::Bool(uniformType.as_str() == Some("contract")));
-        let mut subscriptionHash: Value = (if is_true(&isClassicFuturesMethod) { Value::Str("/contractAccount/wallet".to_string()) } else { Value::Str("/account/balance".to_string()) });
+        let mut subscriptionHash: Value = (if matches!(&isClassicFuturesMethod, Value::Bool(true)) { Value::Str("/contractAccount/wallet".to_string()) } else { Value::Str("/account/balance".to_string()) });
         let mut url: Value = Value::Null;
         if is_true(&uta) {
             url = self.get_uta_url().await;

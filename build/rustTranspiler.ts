@@ -4963,6 +4963,164 @@ export class RustTranspilerBuilder {
         return out;
     }
 
+    /**
+     * `is_true(&X)` -> `X.as_bool() == Some(true)` when `X` is a `Value` local
+     * that can only hold a bool-valued payload: one declaration in its fn, and
+     * the initializer plus every later assignment a `Value::Bool(..)` box or a
+     * `safe_bool*` call whose default is a bool/null literal. Exact for every
+     * admitted value — `is_truthy` is false for Null and `as_bool()` is None
+     * there — and `safe_bool*` only ever returns a bool member or that
+     * default. A negated site keeps its comparison parenthesised.
+     */
+    dropBoolValuedIsTrue(content: string): string {
+        const masked = this.maskStringsAndComments(content);
+        // Fn regions: a local of one fn is never in scope in another.
+        const headers: number[] = [];
+        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
+        let hm: RegExpExecArray | null;
+        while ((hm = headerRe.exec(masked)) !== null) {
+            headers.push(hm.index + 1);
+        }
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const to = headers[h + 1];
+            const region = masked.slice(from, to);
+            const declRe = /let (?:mut )?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*Value\s*=\s*/g;
+            const proven = new Set<string>();
+            let dm: RegExpExecArray | null;
+            while ((dm = declRe.exec(region)) !== null) {
+                const name = dm[1];
+                if (proven.has(name)) continue;
+                const initEnd = this.endOfRustStatement(region, dm.index + dm[0].length);
+                if (initEnd < 0 || !this.isBoolValuedRhs(region.slice(dm.index + dm[0].length, initEnd))) continue;
+                // One declaration only: a second `let` of the name makes the
+                // variant unprovable at the read (D2).
+                if ((region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length !== 1) continue;
+                // A closure param / `for` pattern of the same name rebinds it.
+                if (new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(region)) continue;
+                if (new RegExp(`(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`).test(region)) continue;
+                // Every later assignment must keep the bool-valued variant.
+                const asgRe = new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=\\s*(?!=)`, 'g');
+                let ok = true;
+                let am: RegExpExecArray | null;
+                while ((am = asgRe.exec(region)) !== null) {
+                    if (am.index < dm.index + dm[0].length) continue; // the declaration's own `=`
+                    const asgEnd = this.endOfRustStatement(region, am.index + am[0].length);
+                    if (asgEnd < 0 || !this.isBoolValuedRhs(region.slice(am.index + am[0].length, asgEnd))) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) proven.add(name);
+            }
+            for (const name of proven) {
+                const siteRe = new RegExp(`(?<![A-Za-z0-9_:])is_true\\(&(?:\\(${name}\\)|${name})\\)`, 'g');
+                let sm: RegExpExecArray | null;
+                while ((sm = siteRe.exec(region)) !== null) {
+                    const start = from + sm.index;
+                    const end = start + sm[0].length;
+                    // A comparison cannot feed a postfix use; keep the helper.
+                    if (/^\s*\./.test(content.slice(end, end + 4))) continue;
+                    // `!is_true(&X)` -> `!(X.as_bool() == Some(true))`: the `!`
+                    // stays in place, but `!` binds tighter than `==`.
+                    let k = start - 1;
+                    while (k >= 0 && /\s/.test(content[k])) k--;
+                    const negated = k >= 0 && content[k] === '!' && content[k - 1] !== '=';
+                    const cmp = `${name}.as_bool() == Some(true)`;
+                    rewrites.push({ start, end, text: negated ? `(${cmp})` : cmp });
+                }
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = '';
+        let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue; // overlapping match: keep the first
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /** Index of the `;` closing the statement whose RHS starts at `start`, or -1. */
+    private endOfRustStatement(text: string, start: number): number {
+        let depth = 0;
+        for (let i = start; i < text.length; i++) {
+            const c = text[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') {
+                if (depth === 0) return -1;
+                depth -= 1;
+            } else if (c === ';' && depth === 0) return i;
+        }
+        return -1;
+    }
+
+    /** True when a printed RHS can only evaluate to `Value::Bool(..)` / Null. */
+    private isBoolValuedRhs(raw: string): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (e === 'Value::Null' || e === 'crate::Value::Null') return true;
+        if (/^(?:crate::)?Value::Bool\(/.test(e)) {
+            // The box must span the whole RHS: its `(` closes at the last char.
+            return e.endsWith(')') && this.closeParenAt(e, e.indexOf('(')) === e.length - 1;
+        }
+        const call = /^self\.safe_bool\w*\(/.exec(e);
+        if (call === null) return false;
+        const open = call[0].length - 1;
+        if (this.closeParenAt(e, open) !== e.length - 1) return false;
+        // `safe_bool*` returns the member only when it is a Bool, else the
+        // trailing default; only a bool/null literal keeps the variant.
+        const args = this.splitTopLevelCommas(e.slice(open + 1, e.length - 1));
+        return args.length > 0 && this.isBoolValuedDefault(args[args.length - 1].trim());
+    }
+
+    /** True when a `safe_bool*` default argument (`&[<literal>, ..]`) is bool/null-valued. */
+    private isBoolValuedDefault(arg: string): boolean {
+        if (!arg.startsWith('&')) return false;
+        const bracket = arg.indexOf('[', 1);
+        if (bracket < 0) return false;
+        let depth = 0;
+        for (let i = bracket; i < arg.length; i++) {
+            if (arg[i] === '[') depth += 1;
+            else if (arg[i] === ']') {
+                depth -= 1;
+                if (depth === 0) {
+                    if (i !== arg.length - 1) return false;
+                    const inner = arg.slice(bracket + 1, i).trim();
+                    if (inner === '') return true;
+                    const first = this.splitTopLevelCommas(inner)[0]?.trim() ?? '';
+                    return this.isBoolValuedRhs(first);
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Splits `s` on its depth-0 commas (strings/parens/brackets/braces aware). */
+    private splitTopLevelCommas(s: string): string[] {
+        const parts: string[] = [];
+        let depth = 0;
+        let start = 0;
+        for (let i = 0; i < s.length; i++) {
+            const c = s[i];
+            if (c === '"') {
+                i = this.endOfRustStringLiteral(s, i) - 1;
+                continue;
+            }
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') depth -= 1;
+            else if (c === ',' && depth === 0) {
+                parts.push(s.slice(start, i));
+                start = i + 1;
+            }
+        }
+        parts.push(s.slice(start));
+        return parts;
+    }
+
     /** Closure-param list at `open` (`|a: Value, b|`), or null. */
     private matchClosureParams(text: string, open: number): { names: string[], end: number } | null {
         const close = text.indexOf('|', open + 1);
@@ -8240,6 +8398,10 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.collapseNumericBoxAccessors(rustContent);
                 // Then drop the `is_true(&x)` those locals no longer need.
                 rustContent = this.dropRedundantIsTrue(rustContent);
+                // Then `is_true(&x)` over a local that can only hold a
+                // bool-valued `Value` (one decl, every assignment a
+                // `Value::Bool` box / `safe_bool*` default).
+                rustContent = this.dropBoolValuedIsTrue(rustContent);
                 // Last: drop `.clone()` on the value arg of
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
@@ -8957,6 +9119,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.narrowFloatLocals(finalFile);
         finalFile = this.collapseNumericBoxAccessors(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
+        finalFile = this.dropBoolValuedIsTrue(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);

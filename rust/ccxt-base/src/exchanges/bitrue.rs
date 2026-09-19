@@ -1510,7 +1510,7 @@ impl BitrueCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
-        if is_true(&isContract) {
+        if matches!(&isContract, Value::Bool(true)) {
             let mut symbolSplit: Value = split(&id, &Value::Str("-".to_string()));
             baseId = self.safe_string(symbolSplit.clone(), Value::Int(1), &[]);
             quoteId = self.safe_string(symbolSplit.clone(), Value::Int(2), &[]);
@@ -2353,10 +2353,10 @@ impl BitrueCore {
         let mut buyerMaker: Value = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]); // ignore "m" until Bitrue fixes api
         let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
         if (buyerMaker != Value::Null) {
-            side = (if is_true(&buyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if buyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         if (isBuyer != Value::Null) {
-            side = (if is_true(&isBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }); // this is a true side
+            side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }); // this is a true side
         }
         let mut fee: Value = Value::Null;
         if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("commission")))) {
@@ -2370,7 +2370,7 @@ impl BitrueCore {
         let mut takerOrMaker: Value = Value::Null;
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2671,7 +2671,7 @@ impl BitrueCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("contractName".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if is_true(&isMarket) && is_true(&(side.as_str() == Some("buy"))) && is_true(&createMarketBuyOrderRequiresPrice) {
+            if matches!(&isMarket, Value::Bool(true)) && is_true(&(side.as_str() == Some("buy"))) && is_true(&createMarketBuyOrderRequiresPrice) {
                 let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                 if (price == Value::Null) && (cost == Value::Null) {

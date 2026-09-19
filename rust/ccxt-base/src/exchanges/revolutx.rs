@@ -1812,7 +1812,7 @@ impl RevolutxCore {
         let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("s".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("tdt".to_string()), Value::Str("pdt".to_string()), &[]);
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "im", &[Value::Bool(false)]);
-        let mut takerOrMaker: Value = (if is_true(&(isMaker)) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+        let mut takerOrMaker: Value = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         let mut cost: Value = Value::Null;
         if (price != Value::Null) && (amount != Value::Null) {
             cost = (match (&(price), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });

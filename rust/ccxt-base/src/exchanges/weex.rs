@@ -1686,7 +1686,7 @@ impl WeexCore {
             amountPrecision = self.parse_number(amountPrecisionString, &[]);
             pricePrecision = self.parse_number(pricePrecisionString, &[]);
         }
-        let mut fees: Value = self.safe_dict(self.fees.clone(), (if is_true(&isSpot) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) }), &[Value::Map({
+        let mut fees: Value = self.safe_dict(self.fees.clone(), (if isSpot.as_bool() == Some(true) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) }), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1705,14 +1705,14 @@ impl WeexCore {
         m.insert("baseId".to_string(), baseId.clone());
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), settleId.clone());
-        m.insert("type".to_string(), (if is_true(&isSpot) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) }));
+        m.insert("type".to_string(), (if isSpot.as_bool() == Some(true) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) }));
         m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(!is_true(&isSpot)));
+        m.insert("swap".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active.clone());
-        m.insert("contract".to_string(), Value::Bool(!is_true(&isSpot)));
+        m.insert("contract".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
         m.insert("linear".to_string(), isLinear.clone());
         m.insert("inverse".to_string(), isInverse.clone());
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
@@ -2513,9 +2513,9 @@ impl WeexCore {
         let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]);
         if (isBuyer != Value::Null) {
-            side = (if is_true(&isBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }  else if (isBuyerMaker != Value::Null) {
-            side = (if is_true(&isBuyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         let mut isSpot: Value = Value::Bool(true);
         if (market == Value::Null) {
@@ -2549,7 +2549,7 @@ impl WeexCore {
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }  else if (isBuyerMaker != Value::Null) {
             takerOrMaker = Value::Str("taker".to_string());
         }

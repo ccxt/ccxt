@@ -5992,7 +5992,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 contract = Value::Bool(true);
                 inverse = (Value::Bool(base.as_str() == settle.as_str()));
-                linear = Value::Bool(!is_true(&inverse));
+                linear = Value::Bool(!(inverse.as_bool() == Some(true)));
                 let mut priceDecimals: Value = self.safe_integer_k(market.clone(), "pricePlace", &[]);
                 let mut amountDecimals: Value = self.safe_integer_k(market.clone(), "volumePlace", &[]);
                 let mut priceStep: Value = self.safe_string_k(market.clone(), "priceEndStep", &[]);
@@ -6023,7 +6023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (quote.as_str() == Some("USDT")) {
                 minCost = self.safe_number_k(market.clone(), "minTradeUSDT", &[]);
             }
-            let mut contractSize: Value = (if is_true(&contract) { Value::Int(1) } else { Value::Null });
+            let mut contractSize: Value = (if contract.as_bool() == Some(true) { Value::Int(1) } else { Value::Null });
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -6036,7 +6036,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("settleId".to_string(), settleId.clone());
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), spot.clone());
-        m.insert("margin".to_string(), Value::Bool(is_true(&spot) && isMarginTradingAllowed));
+        m.insert("margin".to_string(), Value::Bool(spot.as_bool() == Some(true) && isMarginTradingAllowed));
         m.insert("marginModes".to_string(), marginModes.clone());
         m.insert("swap".to_string(), swap.clone());
         m.insert("future".to_string(), future.clone());
@@ -6291,7 +6291,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 contract = Value::Bool(true);
                 inverse = (Value::Bool(base.as_str() == settle.as_str()));
-                linear = Value::Bool(!is_true(&inverse));
+                linear = Value::Bool(!(inverse.as_bool() == Some(true)));
                 marginModes = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cross".to_string(), Value::Bool(true));
@@ -6306,7 +6306,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (status.is_some()) {
                 active = (Value::Bool(is_true(&(status.as_deref() == Some("online"))) || is_true(&(status.as_deref() == Some("normal")))));
             }
-            let mut contractSize: Value = (if is_true(&contract) { Value::Int(1) } else { Value::Null });
+            let mut contractSize: Value = (if contract.as_bool() == Some(true) { Value::Int(1) } else { Value::Null });
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -6319,7 +6319,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("settleId".to_string(), settleId.clone());
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), spot.clone());
-        m.insert("margin".to_string(), Value::Bool(is_true(&spot) && isMarginTradingAllowed));
+        m.insert("margin".to_string(), Value::Bool(spot.as_bool() == Some(true) && isMarginTradingAllowed));
         m.insert("marginModes".to_string(), marginModes.clone());
         m.insert("swap".to_string(), swap.clone());
         m.insert("future".to_string(), future.clone());
@@ -6464,8 +6464,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             network = to_upper(&network);
             let mut withdrawable: Value = (Value::Bool(self.safe_string_k(chain.clone(), "withdrawable", &[]).as_str() == Some("true")));
             let mut rechargeable: Value = (Value::Bool(self.safe_string_k(chain.clone(), "rechargeable", &[]).as_str() == Some("true")));
-            withdraw = (if is_true(&(withdraw == Value::Null)) { withdrawable.clone() } else { Value::Bool((is_true(&withdraw) || is_true(&withdrawable))) });
-            deposit = (if is_true(&(deposit == Value::Null)) { rechargeable.clone() } else { Value::Bool((is_true(&deposit) || is_true(&rechargeable))) });
+            withdraw = (if is_true(&(withdraw == Value::Null)) { withdrawable.clone() } else { Value::Bool((is_true(&withdraw) || matches!(&withdrawable, Value::Bool(true)))) });
+            deposit = (if is_true(&(deposit == Value::Null)) { rechargeable.clone() } else { Value::Bool((is_true(&deposit) || matches!(&rechargeable, Value::Bool(true)))) });
             add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
@@ -9714,7 +9714,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
-            if !is_true(&isMarketOrder) {
+            if !(matches!(&isMarketOrder, Value::Bool(true))) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), type_var.clone()); }
@@ -9800,7 +9800,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isTakeProfitTriggerOrder: Value = Value::Bool(takeProfitTriggerPrice != Value::Null);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
-        let mut isStopLossOrTakeProfitTrigger: bool = is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder);
+        let mut isStopLossOrTakeProfitTrigger: bool = matches!(&isStopLossTriggerOrder, Value::Bool(true)) || matches!(&isTakeProfitTriggerOrder, Value::Bool(true));
         let mut isStopLossOrTakeProfit: bool = hasStopLoss || hasTakeProfit;
         let mut trailingTriggerPrice: Value = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
@@ -9848,11 +9848,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (clientOrderId != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOid".to_string(), clientOrderId.clone()); }
             }
-            if is_true(&isTriggerOrder) || isStopLossOrTakeProfitTrigger || is_true(&isTrailingPercentOrder) {
+            if matches!(&isTriggerOrder, Value::Bool(true)) || isStopLossOrTakeProfitTrigger || matches!(&isTrailingPercentOrder, Value::Bool(true)) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerType".to_string(), triggerPriceType.clone()); }
             }
-            if is_true(&isTrailingPercentOrder) {
-                if !is_true(&isMarketOrder) {
+            if matches!(&isTrailingPercentOrder, Value::Bool(true)) {
+                if !(matches!(&isMarketOrder, Value::Bool(true))) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() bitget trailing orders must be market orders".to_string()))));
                 }
                 if (trailingTriggerPrice == Value::Null) {
@@ -9861,7 +9861,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("planType".to_string(), Value::Str("track_plan".to_string())); }
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone())); }
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("callbackRatio".to_string(), trailingPercent.clone()); }
-            }  else if is_true(&isTriggerOrder) {
+            }  else if matches!(&isTriggerOrder, Value::Bool(true)) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("planType".to_string(), Value::Str("normal_plan".to_string())); }
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
                 if (price != Value::Null) {
@@ -9895,10 +9895,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }  else {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("holdSide".to_string(), (if is_true(&(side.as_str() == Some("sell"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) })); }
                 }
-                if is_true(&isStopLossTriggerOrder) {
+                if matches!(&isStopLossTriggerOrder, Value::Bool(true)) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone())); }
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("planType".to_string(), Value::Str("pos_loss".to_string())); }
-                }  else if is_true(&isTakeProfitTriggerOrder) {
+                }  else if matches!(&isTakeProfitTriggerOrder, Value::Bool(true)) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone())); }
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("planType".to_string(), Value::Str("pos_profit".to_string())); }
                 }
@@ -9959,7 +9959,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut planType: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if is_true(&isMarketOrder) && is_true(&(side.as_str() == Some("buy"))) {
+            if matches!(&isMarketOrder, Value::Bool(true)) && is_true(&(side.as_str() == Some("buy"))) {
                 planType = Value::Str("total".to_string());
                 let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
@@ -9986,7 +9986,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             if (marginMode != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("loanType".to_string(), Value::Str("normal".to_string())); }
-                if is_true(&isMarketOrder) && is_true(&(side.as_str() == Some("buy"))) {
+                if matches!(&isMarketOrder, Value::Bool(true)) && is_true(&(side.as_str() == Some("buy"))) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quoteSize".to_string(), quantity.clone()); }
                 }  else {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("baseSize".to_string(), quantity.clone()); }
@@ -10299,8 +10299,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (amount != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("qty".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
-            if is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder) {
-                if is_true(&isStopLossOrder) {
+            if matches!(&isStopLossOrder, Value::Bool(true)) || matches!(&isTakeProfitOrder, Value::Bool(true)) {
+                if matches!(&isStopLossOrder, Value::Bool(true)) {
                     let mut slType: Value = self.safe_string_k(params.clone(), "slTriggerBy", &[Value::Str("mark".to_string())]);
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slTriggerBy".to_string(), slType.clone()); }
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopLoss".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.clone())); }
@@ -10310,7 +10310,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }  else {
                         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slOrderType".to_string(), self.safe_string_k(params.clone(), "slOrderType", &[Value::Str("market".to_string())])); }
                     }
-                }  else if is_true(&isTakeProfitOrder) {
+                }  else if matches!(&isTakeProfitOrder, Value::Bool(true)) {
                     let mut tpType: Value = self.safe_string_k(params.clone(), "tpTriggerBy", &[Value::Str("mark".to_string())]);
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpTriggerBy".to_string(), tpType.clone()); }
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("takeProfit".to_string(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())); }
@@ -10372,15 +10372,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("productType".to_string(), productType.clone()); }
-            if !is_true(&isTakeProfitOrder) && !is_true(&isStopLossOrder) {
+            if !(matches!(&isTakeProfitOrder, Value::Bool(true))) && !(matches!(&isStopLossOrder, Value::Bool(true))) {
                 if (amount != Value::Null) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newSize".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
                 }
-                if is_true(&(price != Value::Null)) && !is_true(&isTrailingPercentOrder) {
+                if is_true(&(price != Value::Null)) && !(matches!(&isTrailingPercentOrder, Value::Bool(true))) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newPrice".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
                 }
             }
-            if is_true(&isTrailingPercentOrder) {
+            if matches!(&isTrailingPercentOrder, Value::Bool(true)) {
                 if !isMarketOrder {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() bitget trailing orders must be market orders".to_string()))));
                 }
@@ -10390,20 +10390,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newCallbackRatio".to_string(), trailingPercent.clone()); }
                 let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_46]).await;
-            }  else if is_true(&isTakeProfitOrder) || is_true(&isStopLossOrder) {
+            }  else if matches!(&isTakeProfitOrder, Value::Bool(true)) || matches!(&isStopLossOrder, Value::Bool(true)) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marginCoin".to_string(), market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null)); }
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
                 if (price != Value::Null) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("executePrice".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
                 }
-                if is_true(&isStopLossOrder) {
+                if matches!(&isStopLossOrder, Value::Bool(true)) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.clone())); }
-                }  else if is_true(&isTakeProfitOrder) {
+                }  else if matches!(&isTakeProfitOrder, Value::Bool(true)) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())); }
                 }
                 let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_mix_post_v2_mix_order_modify_tpsl_order(&[__ws_arg_47]).await;
-            }  else if is_true(&isTriggerOrder) {
+            }  else if matches!(&isTriggerOrder, Value::Bool(true)) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
                 if hasStopLoss {
                     let mut slTriggerPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);

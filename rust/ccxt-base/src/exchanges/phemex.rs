@@ -1521,7 +1521,7 @@ impl PhemexCore {
             // "1.0"
             contractSize = self.parse_number(contractSizeString, &[]);
         }
-        let mut isLinear: Value = Value::Bool(!is_true(&inverse));
+        let mut isLinear: Value = Value::Bool(!(inverse.as_bool() == Some(true)));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());

@@ -7612,7 +7612,7 @@ impl BinanceCore {
             future = Value::Bool(true);
         }
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut spot: Value = Value::Bool(!is_true(&contract));
+        let mut spot: Value = Value::Bool(!(contract.as_bool() == Some(true)));
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
         let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
         let mut status: Option<String> = self.safe_string2(market.clone(), Value::Str("status".to_string()), Value::Str("contractStatus".to_string()), &[]).as_str().map(str::to_owned);
@@ -7622,26 +7622,26 @@ impl BinanceCore {
         let mut inverse: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut strike: Value = Value::Null;
-        if is_true(&contract) {
-            if is_true(&swap) {
+        if contract.as_bool() == Some(true) {
+            if swap.as_bool() == Some(true) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
-            }  else if is_true(&future) {
+            }  else if future.as_bool() == Some(true) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
-            }  else if is_true(&option) {
+            }  else if option.as_bool() == Some(true) {
                 strike = self.number_to_string(self.parse_to_numeric(self.safe_string_k(market.clone(), "strikePrice", &[])));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), self.safe_string(optionParts.clone(), Value::Int(3), &[])));
             }
             contractSize = self.safe_number2(market.clone(), Value::Str("contractSize".to_string()), Value::Str("unit".to_string()), &[self.parse_number(Value::Str("1".to_string()), &[])]);
             linear = Value::Bool(settle.as_str() == quote.as_str());
             inverse = Value::Bool(settle.as_str() == base.as_str());
-            let mut feesType: Value = (if is_true(&linear) { Value::Str("linear".to_string()) } else { Value::Str("inverse".to_string()) });
+            let mut feesType: Value = (if linear.as_bool() == Some(true) { Value::Str("linear".to_string()) } else { Value::Str("inverse".to_string()) });
             fees = self.safe_dict(self.fees.clone(), feesType.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
         let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
-        if is_true(&spot) {
+        if matches!(&spot, Value::Bool(true)) {
             let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
@@ -7656,7 +7656,7 @@ impl BinanceCore {
         }
         let mut isMarginTradingAllowed: Value = self.safe_bool_k(market.clone(), "isMarginTradingAllowed", &[Value::Bool(false)]);
         let mut marginModes: Value = Value::Null;
-        if is_true(&spot) {
+        if matches!(&spot, Value::Bool(true)) {
             let mut hasCrossMargin: Value = self.in_array(id.clone(), self.options.as_map().and_then(|__m| __m.get("crossMarginPairsData")).cloned().unwrap_or(Value::Null));
             let mut hasIsolatedMargin: Value = self.in_array(id.clone(), self.options.as_map().and_then(|__m| __m.get("isolatedMarginPairsData")).cloned().unwrap_or(Value::Null));
             marginModes = Value::Map({
@@ -7674,13 +7674,13 @@ impl BinanceCore {
             });
         }
         let mut unifiedType: Value = Value::Null;
-        if is_true(&spot) {
+        if matches!(&spot, Value::Bool(true)) {
             unifiedType = Value::Str("spot".to_string());
-        }  else if is_true(&swap) {
+        }  else if swap.as_bool() == Some(true) {
             unifiedType = Value::Str("swap".to_string());
-        }  else if is_true(&future) {
+        }  else if future.as_bool() == Some(true) {
             unifiedType = Value::Str("future".to_string());
-        }  else if is_true(&option) {
+        }  else if option.as_bool() == Some(true) {
             unifiedType = Value::Str("option".to_string());
             active = Value::Null;
         }
@@ -7707,7 +7707,7 @@ impl BinanceCore {
                 m.insert("settleId".to_string(), settleId.clone());
                 m.insert("type".to_string(), unifiedType.clone());
                 m.insert("spot".to_string(), spot.clone());
-                m.insert("margin".to_string(), Value::Bool(is_true(&spot) && is_true(&isMarginTradingAllowed)));
+                m.insert("margin".to_string(), Value::Bool(matches!(&spot, Value::Bool(true)) && isMarginTradingAllowed.as_bool() == Some(true)));
                 m.insert("marginModes".to_string(), marginModes.clone());
                 m.insert("swap".to_string(), swap.clone());
                 m.insert("future".to_string(), future.clone());
@@ -9335,7 +9335,7 @@ impl BinanceCore {
         let mut buyerMaker: Value = self.safe_bool2(trade.clone(), Value::Str("m".to_string()), Value::Str("isBuyerMaker".to_string()), &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (buyerMaker != Value::Null) {
-            side = (if is_true(&buyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) }); // this is reversed intentionally
+            side = (if buyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) }); // this is reversed intentionally
         }  else if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("side")))) {
             side = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         }  else {
@@ -11078,7 +11078,7 @@ impl BinanceCore {
                     if is_true(&(stopLossOrTakeProfit.as_deref() != Some("stopLoss"))) && is_true(&(stopLossOrTakeProfit.as_deref() != Some("takeProfit"))) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), symbol)), Value::Str(" trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit".to_string()))));
                     }
-                    if is_true(&isMarketOrder) {
+                    if matches!(&isMarketOrder, Value::Bool(true)) {
                         if (stopLossOrTakeProfit.as_deref() == Some("stopLoss")) {
                             uppercaseType = Value::Str("STOP_LOSS".to_string());
                         }  else if (stopLossOrTakeProfit.as_deref() == Some("takeProfit")) {
@@ -11103,7 +11103,7 @@ impl BinanceCore {
             }
         }  else if isStopLoss {
             stopPrice = stopLossPrice.clone();
-            if is_true(&isMarketOrder) {
+            if matches!(&isMarketOrder, Value::Bool(true)) {
                 // spot STOP_LOSS market orders are not a valid order type
                 uppercaseType = (if is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { Value::Str("STOP_MARKET".to_string()) } else { Value::Str("STOP_LOSS".to_string()) });
             }  else if isLimitOrder {
@@ -11111,7 +11111,7 @@ impl BinanceCore {
             }
         }  else if isTakeProfit {
             stopPrice = takeProfitPrice.clone();
-            if is_true(&isMarketOrder) {
+            if matches!(&isMarketOrder, Value::Bool(true)) {
                 // spot TAKE_PROFIT market orders are not a valid order type
                 uppercaseType = (if is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { Value::Str("TAKE_PROFIT_MARKET".to_string()) } else { Value::Str("TAKE_PROFIT".to_string()) });
             }  else if isLimitOrder {
@@ -12151,7 +12151,7 @@ impl BinanceCore {
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("fetchOpenOrder".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isConditional: Value = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
-        let mut isPortfolioMarginConditional: bool = is_true(&isPortfolioMargin) && is_true(&isConditional);
+        let mut isPortfolioMarginConditional: bool = is_true(&isPortfolioMargin) && isConditional.as_bool() == Some(true);
         let mut orderIdRequest: Value = (if (isPortfolioMarginConditional) { Value::Str("strategyId".to_string()) } else { Value::Str("orderId".to_string()) });
         add_element_to_object(&mut request, &orderIdRequest, id.clone());
         let mut response: Value = Value::Null;
@@ -15359,7 +15359,7 @@ impl BinanceCore {
         let mut marginMode: Value = Value::Null;
         let mut collateralString: Value = Value::Null;
         let mut walletBalance: Value = Value::Null;
-        if is_true(&isolated) {
+        if isolated.as_bool() == Some(true) {
             marginMode = Value::Str("isolated".to_string());
             walletBalance = self.safe_string_k(position.clone(), "isolatedWallet", &[]);
             collateralString = crate::precise::Precise::stringAdd(&walletBalance, &unrealizedPnlString);
@@ -16736,7 +16736,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginModeRaw: Value = self.safe_bool_k(leverage.clone(), "isolated", &[]);
         let mut marginMode: Value = Value::Null;
         if (marginModeRaw != Value::Null) {
-            marginMode = (if is_true(&marginModeRaw) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
+            marginMode = (if marginModeRaw.as_bool() == Some(true) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
         }
         let mut marginTypeRaw: Option<String> = self.safe_string_lower(leverage.clone(), Value::Str("marginType".to_string()), &[]).as_str().map(str::to_owned);
         if (marginTypeRaw.is_some()) {
@@ -19220,7 +19220,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginModeRaw: Value = self.safe_bool_k(marginMode.clone(), "isolated", &[]);
         let mut reMarginMode: Value = Value::Null;
         if (marginModeRaw != Value::Null) {
-            reMarginMode = (if is_true(&marginModeRaw) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
+            reMarginMode = (if marginModeRaw.as_bool() == Some(true) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
         }
         let mut marginTypeRaw: Option<String> = self.safe_string_lower(marginMode.clone(), Value::Str("marginType".to_string()), &[]).as_str().map(str::to_owned);
         if (marginTypeRaw.is_some()) {

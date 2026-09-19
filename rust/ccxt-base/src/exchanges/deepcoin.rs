@@ -1094,9 +1094,9 @@ impl DeepcoinCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut isLinear: Value = Value::Null;
-        if is_true(&swap) {
+        if matches!(&swap, Value::Bool(true)) {
             isLinear = (Value::Bool(quoteId.as_str() != Some("USD")));
-            settleId = (if is_true(&isLinear) { quoteId.clone() } else { baseId.clone() });
+            settleId = (if isLinear.as_bool() == Some(true) { quoteId.clone() } else { baseId.clone() });
             settle = self.safe_currency_code(settleId.clone(), &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
         }
@@ -1110,8 +1110,8 @@ impl DeepcoinCore {
         let mut maxLimitSize: Value = self.safe_string_k(market.clone(), "maxLmtSz", &[]);
         let mut maxAmount: Value = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize, &maxLimitSize), &[]);
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut isMargin: Value = Value::Bool(is_true(&spot) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string())))));
-        let mut isInverse: Value = (if is_true(&swap) { (Value::Bool(isLinear.as_bool() != Some(true))) } else { Value::Null });
+        let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string())))));
+        let mut isInverse: Value = (if matches!(&swap, Value::Bool(true)) { (Value::Bool(isLinear.as_bool() != Some(true))) } else { Value::Null });
         let __ws_arg_1 = self.safe_number_k(market.clone(), "ctVal", &[]);
         let __ws_arg_2 = self.safe_number_k(market.clone(), "lotSz", &[]);
         let __ws_arg_3 = self.safe_number_k(market.clone(), "tickSz", &[]);
@@ -1138,7 +1138,7 @@ impl DeepcoinCore {
         m.insert("contract".to_string(), swap.clone());
         m.insert("linear".to_string(), isLinear.clone());
         m.insert("inverse".to_string(), isInverse.clone());
-        m.insert("contractSize".to_string(), (if is_true(&swap) { __ws_arg_1 } else { Value::Null }));
+        m.insert("contractSize".to_string(), (if matches!(&swap, Value::Bool(true)) { __ws_arg_1 } else { Value::Null }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);

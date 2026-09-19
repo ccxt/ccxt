@@ -1611,7 +1611,7 @@ impl HashkeyCore {
         let mut subType: Value = Value::Null;
         let mut isInverse: Value = self.safe_bool_k(market.clone(), "inverse", &[]);
         if (isInverse != Value::Null) {
-            if is_true(&isInverse) {
+            if isInverse.as_bool() == Some(true) {
                 isLinear = Value::Bool(false);
                 subType = Value::Str("inverse".to_string());
             }  else {
@@ -1640,7 +1640,7 @@ impl HashkeyCore {
         let mut amountMaxLimitString: Value = self.safe_string_k(amountFilter.clone(), "maxQty", &[]);
         let mut minLeverage: Value = Value::Null;
         let mut maxLeverage: Value = Value::Null;
-        if is_true(&isSwap) {
+        if isSwap.as_bool() == Some(true) {
             amountPrecisionString = crate::precise::Precise::stringDiv(&amountPrecisionString, &contractSizeString);
             amountMinLimitString = crate::precise::Precise::stringDiv(&amountMinLimitString, &contractSizeString);
             amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString, &contractSizeString);
@@ -1659,7 +1659,7 @@ impl HashkeyCore {
             }
         }
         let mut tradingFees: Value = self.safe_dict_k(self.fees.clone(), "trading", &[]);
-        let mut fees: Value = (if is_true(&isSpot) { self.safe_dict_k(tradingFees.clone(), "spot", &[]) } else { self.safe_dict_k(tradingFees, "swap", &[]) });
+        let mut fees: Value = (if isSpot.as_bool() == Some(true) { self.safe_dict_k(tradingFees.clone(), "spot", &[]) } else { self.safe_dict_k(tradingFees, "swap", &[]) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -2075,18 +2075,18 @@ impl HashkeyCore {
         }
         let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
         if (isBuyer != Value::Null) {
-            side = (if is_true(&isBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut takerOrMaker: Value = Value::Null;
         let mut isMaker: Value = self.safe_bool2(trade.clone(), Value::Str("isMaker".to_string()), Value::Str("isMarker".to_string()), &[]);
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "ibm", &[]);
         // if public trade
         if (isBuyerMaker != Value::Null) {
             takerOrMaker = Value::Str("taker".to_string());
-            side = (if is_true(&isBuyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "commission", &[]);
         let mut feeCurrncyId: Value = self.safe_string_k(trade.clone(), "commissionAsset", &[]);
@@ -3415,7 +3415,7 @@ impl HashkeyCore {
             m
         });
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
-        if is_true(&isMarketOrder) {
+        if matches!(&isMarketOrder, Value::Bool(true)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("priceType".to_string(), Value::Str("MARKET".to_string())); }
         }
         if (price != Value::Null) {

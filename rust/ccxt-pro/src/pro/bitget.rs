@@ -1103,7 +1103,7 @@ impl BitgetCore {
         }
         }
         let mut messageHash: Value = Value::Null;
-        if is_true(&isUta) {
+        if isUta.as_bool() == Some(true) {
             messageHash = Value::Str(format!("{}{}", Value::Str("kline:".to_string()), symbol));
         }  else {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
@@ -3619,7 +3619,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Null;
         let mut subMessageHash: Value = Value::Null;
-        if is_true(&isUta) {
+        if isUta.as_bool() == Some(true) {
             messageHash = Value::Str(format!("{}{}", Value::Str("unsubscribe:kline:".to_string()), symbol));
             subMessageHash = Value::Str(format!("{}{}", Value::Str("kline:".to_string()), symbol));
         }  else {

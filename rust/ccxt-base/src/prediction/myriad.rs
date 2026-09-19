@@ -3022,7 +3022,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut resolvedOutcomeId: Value = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".to_string())]);
         let mut voided: Value = self.safe_bool_k(raw.clone(), "voided", &[Value::Bool(false)]);
         let mut hasResolution: bool = is_true(&(resolvedOutcomeId.as_str() != Some("-1"))) && is_true(&(resolvedOutcomeId != Value::Null)) && is_true(&(resolvedOutcomeId.as_str() != Some("")));
-        let mut marketResolved: Value = Value::Bool(hasResolution || is_true(&voided));
+        let mut marketResolved: Value = Value::Bool(hasResolution || voided.as_bool() == Some(true));
         let mut resolvedOutcome: Value = Value::Null;
         let mut volume24h: Value = self.safe_number_k(raw.clone(), "volume24h", &[]);
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
@@ -3070,8 +3070,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut settleFractionRaw: Value = Value::Null;
             if hasResolution {
                 winnerRaw = (Value::Bool(outcomeId.as_str() == resolvedOutcomeId.as_str()));
-                settleFractionRaw = (if is_true(&winnerRaw) { Value::Int(1) } else { Value::Int(0) });
-                if is_true(&winnerRaw) {
+                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
+                if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
             }  else if (voided.as_bool() == Some(true)) {

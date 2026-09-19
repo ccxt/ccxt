@@ -1867,7 +1867,7 @@ impl HollaexCore {
         let mut exchangeSpecificParam: Value = self.safe_bool_k(meta.clone(), "post_only", &[Value::Bool(false)]);
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificParam.clone(), &[params.clone()]);
-        if !is_true(&isMarketOrder) {
+        if !(matches!(&isMarketOrder, Value::Bool(true))) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if (triggerPrice != Value::Null) {

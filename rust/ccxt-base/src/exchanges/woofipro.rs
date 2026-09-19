@@ -2931,7 +2931,7 @@ impl WoofiproCore {
         let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]);
         let mut success: Value = self.safe_bool_k(order.clone(), "success", &[]);
         if (success != Value::Null) {
-            status = (if is_true(&(success)) { Value::Str("NEW".to_string()) } else { Value::Str("REJECTED".to_string()) });
+            status = (if success.as_bool() == Some(true) { Value::Str("NEW".to_string()) } else { Value::Str("REJECTED".to_string()) });
         }
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         let mut filled: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("total_executed_quantity".to_string()), Value::Str("totalExecutedQuantity".to_string()), Value::Str("executed_quantity".to_string()), Value::Str("executed".to_string())]), &[]);
@@ -3109,7 +3109,7 @@ impl WoofiproCore {
         if (price != Value::Null) {
             add_element_to_object(&mut request, &priceKey, self.price_to_precision(symbol.clone(), price.clone()));
         }
-        if is_true(&isMarket) && !isConditional {
+        if matches!(&isMarket, Value::Bool(true)) && !isConditional {
             add_element_to_object(&mut request, &orderQtyKey, self.amount_to_precision(symbol.clone(), amount.clone()));
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
             add_element_to_object(&mut request, &orderQtyKey, self.amount_to_precision(symbol.clone(), amount.clone()));

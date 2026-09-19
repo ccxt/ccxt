@@ -1176,10 +1176,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventTicker.clone(), subtitleOrTicker.clone(), label.clone());
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
-            if is_true(&resolved) && is_true(&(result != Value::Null)) && is_true(&(result.as_str() != Some(""))) {
+            if matches!(&resolved, Value::Bool(true)) && is_true(&(result != Value::Null)) && is_true(&(result.as_str() != Some(""))) {
                 winnerRaw = (Value::Bool(to_lower(&label).as_str() == result.as_str()));
-                settleFractionRaw = (if is_true(&(winnerRaw)) { Value::Int(1) } else { Value::Int(0) });
-                if is_true(&winnerRaw) {
+                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
+                if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
             }
@@ -2544,7 +2544,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("result".to_string(), marketResult.clone());
         m.insert("won".to_string(), won.clone());
         m.insert("amount".to_string(), (if (heldYes) { yesCount.clone() } else { noCount.clone() }));
-        m.insert("price".to_string(), (if is_true(&(won)) { Value::Int(1) } else { Value::Int(0) }));
+        m.insert("price".to_string(), (if matches!(&won, Value::Bool(true)) { Value::Int(1) } else { Value::Int(0) }));
         m.insert("cost".to_string(), cost.clone());
         m.insert("payout".to_string(), payout.clone());
         m.insert("pnl".to_string(), pnl.clone());

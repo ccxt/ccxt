@@ -1413,7 +1413,7 @@ impl ParadexCore {
         let mut isOptionPerpetual: bool = assetKind.as_deref() == Some("PERP_OPTION");
         let mut isOptionDelivery: bool = assetKind.as_deref() == Some("OPTION");
         let mut isOption: Value = Value::Bool(isOptionPerpetual || isOptionDelivery);
-        let mut type_var: Value = (if is_true(&(isOption)) { Value::Str("option".to_string()) } else { Value::Str("swap".to_string()) });
+        let mut type_var: Value = (if matches!(&isOption, Value::Bool(true)) { Value::Str("option".to_string()) } else { Value::Str("swap".to_string()) });
         let mut isSwap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_currency", &[]);
@@ -1428,7 +1428,7 @@ impl ParadexCore {
         let mut strikePrice: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
         let mut takerFee: Value = self.parse_number(Value::Str("0.0003".to_string()), &[]);
         let mut makerFee: Value = self.parse_number(Value::Str("-0.00005".to_string()), &[]);
-        if is_true(&isOption) {
+        if matches!(&isOption, Value::Bool(true)) {
             let mut optionTypeSuffix: Value = (if is_true(&(optionType.as_deref() == Some("CALL"))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
             let mut deliveryValue: Value = (if is_true(&(expiry.as_f64() == Some(0.0))) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", self.yymmdd(expiry.clone(), &[]), Value::Str("-".to_string()))) });
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), deliveryValue)), strikePrice)), Value::Str("-".to_string()))), optionTypeSuffix));
@@ -2767,7 +2767,7 @@ impl ParadexCore {
         let mut isStopOrder: bool = is_true(&(triggerPrice != Value::Null)) || isTakeProfitOrder || isStopLossOrder;
         let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
-        if !is_true(&isMarket) {
+        if !(matches!(&isMarket, Value::Bool(true))) {
             if is_true(&postOnly) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("instruction".to_string(), Value::Str("POST_ONLY".to_string())); }
             }  else if (timeInForce.as_deref() == Some("IOC")) {
@@ -2785,7 +2785,7 @@ impl ParadexCore {
         let mut stopPrice: Value = Value::Null;
         if isStopOrder {
             // flags: Reduce_Only must be provided for TPSL orders.
-            if is_true(&isMarket) {
+            if matches!(&isMarket, Value::Bool(true)) {
                 if isStopLossOrder {
                     stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice.clone());
                     reduceOnly = Value::Bool(true);

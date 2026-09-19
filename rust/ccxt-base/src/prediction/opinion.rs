@@ -503,7 +503,7 @@ impl OpinionCore {
         let mut active: Value = (Value::Bool(statusEnum.as_deref() == Some("Activated")));
         let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
         let mut resultTokenId: Value = self.safe_string_k(raw.clone(), "resultTokenId", &[]);
-        let mut hasResult: bool = is_true(&resolved) && is_true(&(resultTokenId != Value::Null)) && is_true(&(resultTokenId.as_str() != Some("")));
+        let mut hasResult: bool = matches!(&resolved, Value::Bool(true)) && is_true(&(resultTokenId != Value::Null)) && is_true(&(resultTokenId.as_str() != Some("")));
         let mut outcomeLabels: Value = Value::from(vec![self.safe_string_k(raw.clone(), "yesLabel", &[Value::Str("YES".to_string())]), self.safe_string_k(raw.clone(), "noLabel", &[Value::Str("NO".to_string())])]);
         let mut outcomeTokenIds: Value = Value::from(vec![self.safe_string_k(raw.clone(), "yesTokenId", &[]), self.safe_string_k(raw.clone(), "noTokenId", &[])]);
         let mut outcomes: Value = Value::from(vec![]);
@@ -521,8 +521,8 @@ impl OpinionCore {
             let mut settleFraction: Value = Value::Null;
             if hasResult {
                 winner = (Value::Bool(tokenId.as_str() == resultTokenId.as_str()));
-                settleFraction = (if is_true(&winner) { Value::Int(1) } else { Value::Int(0) });
-                if is_true(&winner) {
+                settleFraction = (if winner.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
+                if winner.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
             }
@@ -1544,7 +1544,7 @@ impl OpinionCore {
         let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let mut sideStr: Value = to_upper(&side);
         if (price == Value::Null) {
-            if !is_true(&isMarket) {
+            if !(matches!(&isMarket, Value::Bool(true))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price for limit orders".to_string()))));
             }
             if (sideStr.as_str() == Some("SELL")) {
@@ -1552,7 +1552,7 @@ impl OpinionCore {
             }
         }
         let mut marketOrderPrice: Value = Value::Str("0".to_string());
-        if is_true(&isMarket) && is_true(&(sideStr.as_str() == Some("SELL"))) {
+        if matches!(&isMarket, Value::Bool(true)) && is_true(&(sideStr.as_str() == Some("SELL"))) {
             marketOrderPrice = self.number_to_string(price.clone());
         }
         let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
@@ -1617,8 +1617,8 @@ impl OpinionCore {
                 m.insert("contractAddress".to_string(), Value::Str("".to_string()));
                 m.insert("currencyAddress".to_string(), quoteTokenAddress.clone());
                 m.insert("topicId".to_string(), topicId.clone());
-                m.insert("price".to_string(), (if is_true(&isMarket) { marketOrderPrice.clone() } else { __ws_arg_17 }));
-                m.insert("tradingMethod".to_string(), (if is_true(&isMarket) { Value::Int(1) } else { Value::Int(2) }));
+                m.insert("price".to_string(), (if matches!(&isMarket, Value::Bool(true)) { marketOrderPrice.clone() } else { __ws_arg_17 }));
+                m.insert("tradingMethod".to_string(), (if matches!(&isMarket, Value::Bool(true)) { Value::Int(1) } else { Value::Int(2) }));
                 m.insert("timestamp".to_string(), __ws_arg_18);
                 m.insert("safeRate".to_string(), Value::Str("0".to_string()));
                 m.insert("orderExpTime".to_string(), Value::Str("0".to_string()));

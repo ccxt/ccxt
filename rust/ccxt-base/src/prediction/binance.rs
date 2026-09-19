@@ -1002,7 +1002,7 @@ impl BinanceCore {
             let mut price: Value = self.safe_string_k(rawOutcome.clone(), "price", &[]);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
-            if is_true(&resolved) && is_true(&(price != Value::Null)) {
+            if matches!(&resolved, Value::Bool(true)) && is_true(&(price != Value::Null)) {
                 winnerRaw = crate::precise::Precise::stringEq(&price, &Value::Str("1".to_string()));
                 settleFractionRaw = (if is_true(&(winnerRaw)) { Value::Int(1) } else { Value::Int(0) });
                 if is_true(&winnerRaw) {

@@ -2032,7 +2032,7 @@ impl NadoCore {
         let mut isTakerBuyer: Value = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]);
         let mut side: Value = Value::Null;
         if (isTakerBuyer != Value::Null) {
-            side = (if is_true(&isTakerBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if isTakerBuyer.as_bool() == Some(true) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2082,12 +2082,12 @@ impl NadoCore {
         let mut isBid: Value = self.safe_bool_k(trade.clone(), "is_bid", &[]);
         let mut side: Value = Value::Null;
         if (isBid != Value::Null) {
-            side = (if is_true(&isBid) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if isBid.as_bool() == Some(true) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut isTaker: Value = self.safe_bool_k(trade.clone(), "is_taker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isTaker != Value::Null) {
-            takerOrMaker = (if is_true(&isTaker) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if isTaker.as_bool() == Some(true) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }
         let mut feeCost: Value = self.parent.parse_x18(self.safe_string_k(trade.clone(), "fee", &[]));
         let mut fee: Value = Value::Null;

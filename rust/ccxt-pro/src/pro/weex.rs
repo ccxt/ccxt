@@ -1015,7 +1015,7 @@ impl WeexCore {
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         if (isBuyerMaker != Value::Null) {
-            side = (if is_true(&isBuyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
             takerOrMaker = Value::Str("taker".to_string()); // a public trade is reported from the aggressor's side, same as parseTrade
         }
         return self.safe_trade(Value::Map({
@@ -1712,7 +1712,7 @@ impl WeexCore {
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchMyTrades".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut messageHash: Value = (if is_true(&isContract) { Value::Str("myContractTrades".to_string()) } else { Value::Str("myTrades".to_string()) });
+        let mut messageHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("myContractTrades".to_string()) } else { Value::Str("myTrades".to_string()) });
         let mut subscriptionHash: Value = messageHash.clone();
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), symbol))));
@@ -1750,7 +1750,7 @@ impl WeexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("unWatchMyTrades".to_string()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut subHash: Value = (if is_true(&isContract) { Value::Str("myContractTrades".to_string()) } else { Value::Str("myTrades".to_string()) });
+        let mut subHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("myContractTrades".to_string()) } else { Value::Str("myTrades".to_string()) });
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subHash));
         let mut channel: Value = Value::Str("fill".to_string());
         let mut subscription: Value = Value::Map({
@@ -1960,7 +1960,7 @@ impl WeexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchOrders".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut messageHash: Value = (if is_true(&isContract) { Value::Str("contractOrders".to_string()) } else { Value::Str("orders".to_string()) });
+        let mut messageHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contractOrders".to_string()) } else { Value::Str("orders".to_string()) });
         let mut subscriptionHash: Value = messageHash.clone();
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), symbol))));
@@ -1997,7 +1997,7 @@ impl WeexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("unWatchOrders".to_string()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut subHash: Value = (if is_true(&isContract) { Value::Str("contractOrders".to_string()) } else { Value::Str("orders".to_string()) });
+        let mut subHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contractOrders".to_string()) } else { Value::Str("orders".to_string()) });
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subHash));
         let mut channel: Value = Value::Str("orders".to_string());
         let mut subscription: Value = Value::Map({
@@ -2287,7 +2287,7 @@ impl WeexCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
-        let mut urlType: Value = (if is_true(&isContract) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut urlType: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &urlType), &Value::Str("/private".to_string()));
         self.authenticate(url.clone());
         let mut client: Value = self.client(&[url.clone()]);

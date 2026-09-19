@@ -1653,8 +1653,8 @@ impl GeminiCore {
             linear = Value::Bool(true); // always linear
             inverse = Value::Bool(false);
         }
-        let mut type_var: Value = (if is_true(&swap) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
-        let mut isSpot: Value = Value::Bool(!is_true(&swap));
+        let mut type_var: Value = (if swap.as_bool() == Some(true) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut isSpot: Value = Value::Bool(!(swap.as_bool() == Some(true)));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());

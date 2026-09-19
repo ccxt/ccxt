@@ -513,12 +513,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut id: Value = Value::Str(format!("{}{}", self.number_to_string(self.milliseconds()), name)); // call back ID
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), (if is_true(&isContract) { Value::Str("SUBSCRIBE".to_string()) } else { Value::Str("subscribe".to_string()) }));
+                m.insert("method".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("SUBSCRIBE".to_string()) } else { Value::Str("subscribe".to_string()) }));
                 m.insert("id".to_string(), id.clone());
             m
         });
         if privateAccess {
-            if !is_true(&isContract) {
+            if !(matches!(&isContract, Value::Bool(true))) {
                 add_element_to_object(&mut subscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
                 add_element_to_object(&mut subscribe, &Value::Str("listenKey".to_string()), self.get_listen_key(isContract.clone()).await);
             }  else {
@@ -529,14 +529,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut subscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
         }
-        let mut tradeType: Value = (if is_true(&isContract) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut tradeType: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".to_string()))), tradeType));
         if (symbols != Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), join(&symbols, &Value::Str(",".to_string()))));
         }
         let mut request: Value = self.extend(subscribe, &[params.clone()]);
         let mut tail: Value = access.clone();
-        if is_true(&isContract) {
+        if matches!(&isContract, Value::Bool(true)) {
             tail = (if privateAccess { Value::Str("user".to_string()) } else { Value::Str("market".to_string()) });
         }
         let mut subscription: Value = Value::Map({
@@ -585,12 +585,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut id: Value = Value::Str(format!("{}{}", self.number_to_string(self.milliseconds()), name)); // call back ID
         let mut unsubscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), (if is_true(&isContract) { Value::Str("UNSUBSCRIBE".to_string()) } else { Value::Str("unsubscribe".to_string()) }));
+                m.insert("method".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("UNSUBSCRIBE".to_string()) } else { Value::Str("unsubscribe".to_string()) }));
                 m.insert("id".to_string(), id.clone());
             m
         });
         if privateAccess {
-            if !is_true(&isContract) {
+            if !(matches!(&isContract, Value::Bool(true))) {
                 add_element_to_object(&mut unsubscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
                 add_element_to_object(&mut unsubscribe, &Value::Str("listenKey".to_string()), self.get_listen_key(isContract.clone()).await);
             }  else {
@@ -601,11 +601,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut unsubscribe, &Value::Str("params".to_string()), Value::from(vec![name.clone()]));
         }
-        let mut tradeType: Value = (if is_true(&isContract) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut tradeType: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".to_string()))), tradeType));
         let mut request: Value = self.extend(unsubscribe.clone(), &[params.clone()]);
         let mut tail: Value = access.clone();
-        if is_true(&isContract) {
+        if matches!(&isContract, Value::Bool(true)) {
             tail = (if privateAccess { Value::Str("user".to_string()) } else { Value::Str("market".to_string()) });
         }
         let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &tradeType), &Value::Str("/".to_string())), tail));

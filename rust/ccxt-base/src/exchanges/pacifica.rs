@@ -1314,7 +1314,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base_asset", &[id.clone()]);
         let mut instrumentType: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut isSpot: Value = (Value::Bool(instrumentType.as_deref() == Some("spot")));
-        let mut isSwap: Value = Value::Bool(!is_true(&isSpot));
+        let mut isSwap: Value = Value::Bool(!(matches!(&isSpot, Value::Bool(true))));
         let mut quoteId: Value = Value::Str("USDC".to_string());
         let mut settleId: Value = Value::Null;
         let mut type_var: Value = Value::Str("spot".to_string());
@@ -1328,12 +1328,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".to_string()))));
         }
-        if is_true(&isSpot) {
+        if matches!(&isSpot, Value::Bool(true)) {
             let mut idParts: Value = split(&id, &Value::Str("-".to_string()));
             quoteId = self.safe_string(idParts.clone(), Value::Int(1), &[quoteId.clone()]);
         }
         let mut isolatedOnly: Value = self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]);
-        if is_true(&isSwap) {
+        if matches!(&isSwap, Value::Bool(true)) {
             settleId = quoteId.clone();
             type_var = Value::Str("swap".to_string());
             linear = Value::Bool(true);
@@ -1348,7 +1348,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-        if is_true(&isSwap) {
+        if matches!(&isSwap, Value::Bool(true)) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
         }
         let mut fees: Value = self.safe_dict(self.fees.clone(), type_var.clone(), &[Value::Map({
@@ -4784,7 +4784,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             error = Value::Bool(true);
         }
         let mut nonEmptyMessage: bool = is_true(&(message != Value::Null)) && is_true(&(message.as_str() != Some("")));
-        if is_true(&error) || nonEmptyMessage {
+        if error.as_bool() == Some(true) || nonEmptyMessage {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone()); // Try deeper catch first
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), inCode.clone(), feedback.clone());

@@ -1682,7 +1682,7 @@ impl PoloniexCore {
         let mut active: Value = Value::Bool(status.as_deref() == Some("OPEN"));
         let mut linear: Value = Value::Bool(market.as_map().and_then(|__m| __m.get("ctType")).cloned().unwrap_or(Value::Null).as_str() == Some("LINEAR"));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-        if is_true(&linear) {
+        if matches!(&linear, Value::Bool(true)) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
         }  else {
             // actually, exchange does not have any inverse future now
@@ -1713,7 +1713,7 @@ impl PoloniexCore {
         m.insert("active".to_string(), active.clone());
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), linear.clone());
-        m.insert("inverse".to_string(), Value::Bool(!is_true(&linear)));
+        m.insert("inverse".to_string(), Value::Bool(!(matches!(&linear, Value::Bool(true)))));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "ctVal", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2929,7 +2929,7 @@ impl PoloniexCore {
             upperCaseType = Value::Str("LIMIT_MAKER".to_string());
         }
         add_element_to_object(&mut request, &Value::Str("type".to_string()), upperCaseType.clone());
-        if is_true(&isMarket) {
+        if matches!(&isMarket, Value::Bool(true)) {
             if (side.as_str() == Some("buy")) {
                 let mut quoteAmount: Value = Value::Null;
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);

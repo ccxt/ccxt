@@ -2493,10 +2493,10 @@ impl WooCore {
         if (reduceOnly.as_bool() == Some(true)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reduceOnly".to_string(), reduceOnly.clone()); }
         }
-        if !is_true(&isMarket) && (price != Value::Null) {
+        if !(matches!(&isMarket, Value::Bool(true))) && (price != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
-        if is_true(&isMarket) && !isConditional {
+        if matches!(&isMarket, Value::Bool(true)) && !isConditional {
             // for market buy it requires the amount of quote currency to spend
             let mut cost: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
@@ -4604,7 +4604,7 @@ impl WooCore {
         let mut success: Value = self.safe_bool_k(transfer.clone(), "success", &[]);
         let mut status: Value = Value::Null;
         if (success != Value::Null) {
-            status = (if is_true(&success) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+            status = (if success.as_bool() == Some(true) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
         }
         let mut fromAccount: Value = self.safe_dict_k(transfer.clone(), "from", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

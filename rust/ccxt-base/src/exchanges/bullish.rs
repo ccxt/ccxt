@@ -1353,7 +1353,7 @@ impl BullishCore {
             contractSize = self.safe_number_k(market.clone(), "contractMultiplier", &[]);
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
             linear = Value::Bool(settle.as_str() == quote.as_str());
-            inverse = Value::Bool(!is_true(&linear));
+            inverse = Value::Bool(!(linear.as_bool() == Some(true)));
             if (type_var.as_str() == Some("swap")) {
                 swap = Value::Bool(true);
             }  else {
@@ -2465,12 +2465,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut timeInForce: Value = Value::Str("GTC".to_string()); // is mandatory
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("timeInForce".to_string()), &[timeInForce.clone()]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         add_element_to_object(&mut params, &Value::Str("timeInForce".to_string()), to_upper(&timeInForce));
-        if !is_true(&isMarketOrder) {
+        if !(matches!(&isMarketOrder, Value::Bool(true))) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         if (triggerPrice != Value::Null) {
-            if is_true(&isMarketOrder) {
+            if matches!(&isMarketOrder, Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support market trigger orders".to_string()))));
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }

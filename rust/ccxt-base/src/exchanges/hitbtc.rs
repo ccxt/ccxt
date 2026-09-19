@@ -1426,9 +1426,9 @@ impl HitbtcCore {
             let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
             let mut spot: Value = (Value::Bool(marketType.as_deref() == Some("spot")));
             let mut marginTrading: Value = self.safe_bool_k(market.clone(), "margin_trading", &[Value::Bool(false)]);
-            let mut margin: Value = Value::Bool(is_true(&spot) && is_true(&marginTrading));
+            let mut margin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && marginTrading.as_bool() == Some(true));
             let mut future: Value = (Value::Bool(expiry != Value::Null));
-            let mut swap: Value = Value::Bool(is_true(&contract) && !is_true(&future));
+            let mut swap: Value = Value::Bool(matches!(&contract, Value::Bool(true)) && !(matches!(&future, Value::Bool(true))));
             let mut option: Value = Value::Bool(false);
             let mut baseId: Value = self.safe_string2(market.clone(), Value::Str("base_currency".to_string()), Value::Str("underlying".to_string()), &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_currency", &[]);
@@ -1443,14 +1443,14 @@ impl HitbtcCore {
             let mut contractSize: Value = Value::Null;
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
-            if is_true(&contract) {
+            if matches!(&contract, Value::Bool(true)) {
                 contractSize = self.parse_number(Value::Str("1".to_string()), &[]);
                 settleId = feeCurrencyId.clone();
                 settle = self.safe_currency_code(settleId.clone(), &[]);
                 linear = (Value::Bool(is_true(&(quote != Value::Null)) && is_true(&(quote.as_str() == settle.as_str()))));
-                inverse = Value::Bool(!is_true(&linear));
+                inverse = Value::Bool(!(linear.as_bool() == Some(true)));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
-                if is_true(&future) {
+                if matches!(&future, Value::Bool(true)) {
                     symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), &expiry);
                     type_var = Value::Str("future".to_string());
                 }  else {

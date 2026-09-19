@@ -1503,8 +1503,8 @@ impl HyperliquidCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut contract: Value = Value::Bool(true);
         let mut swap: Value = Value::Bool(true);
-        if is_true(&contract) {
-            if is_true(&swap) {
+        if matches!(&contract, Value::Bool(true)) {
+            if matches!(&swap, Value::Bool(true)) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
             }
         }
@@ -1525,7 +1525,7 @@ impl HyperliquidCore {
         let mut isDelisted: Value = self.safe_bool_k(market.clone(), "isDelisted", &[]);
         let mut active: Value = Value::Bool(true);
         if (isDelisted != Value::Null) {
-            active = Value::Bool(!is_true(&isDelisted));
+            active = Value::Bool(!(isDelisted.as_bool() == Some(true)));
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3137,7 +3137,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isBuy: Value = (Value::Bool(side.as_str() == Some("BUY")));
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
         let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[]);
-        let mut defaultTimeInForce: Value = (if is_true(&(isMarket)) { Value::Str("ioc".to_string()) } else { Value::Str("gtc".to_string()) });
+        let mut defaultTimeInForce: Value = (if matches!(&isMarket, Value::Bool(true)) { Value::Str("ioc".to_string()) } else { Value::Str("gtc".to_string()) });
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         if (postOnly.as_bool() == Some(true)) {
             defaultTimeInForce = Value::Str("alo".to_string());
@@ -3149,11 +3149,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut isTrigger: bool = is_true(&(stopLossPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null));
         let mut px: Value = Value::Null;
-        if is_true(&isMarket) {
+        if matches!(&isMarket, Value::Bool(true)) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).".to_string()))));
             }
-            px = (if is_true(&(isBuy)) { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)) } else { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)) });
+            px = (if matches!(&isBuy, Value::Bool(true)) { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)) } else { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)) });
             px = self.price_to_precision(symbol.clone(), px.clone()); // round after adding slippage
         }  else {
             px = self.price_to_precision(symbol.clone(), price.clone());
@@ -3843,7 +3843,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]);
             let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[defaultSlippage.clone()]);
-            let mut defaultTimeInForce: Value = (if is_true(&(isMarket)) { Value::Str("ioc".to_string()) } else { Value::Str("gtc".to_string()) });
+            let mut defaultTimeInForce: Value = (if matches!(&isMarket, Value::Bool(true)) { Value::Str("ioc".to_string()) } else { Value::Str("gtc".to_string()) });
             let mut postOnly: Value = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]);
             if (postOnly.as_bool() == Some(true)) {
                 defaultTimeInForce = Value::Str("alo".to_string());
@@ -3858,8 +3858,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut reduceOnly: Value = self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]);
             orderParams = self.omit(orderParams, Value::from(vec![Value::Str("slippage".to_string()), Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string())]), &[]);
             let mut px: Value = self.number_to_string(price.clone());
-            if is_true(&isMarket) {
-                px = (if is_true(&(isBuy)) { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)) } else { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)) });
+            if matches!(&isMarket, Value::Bool(true)) {
+                px = (if matches!(&isBuy, Value::Bool(true)) { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)) } else { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)) });
                 px = self.price_to_precision(symbol.clone(), px.clone());
             }  else {
                 px = self.price_to_precision(symbol.clone(), px.clone());
@@ -4887,7 +4887,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut takerOrMaker: Value = Value::Null;
         let mut crossed: Value = self.safe_bool_k(trade.clone(), "crossed", &[]);
         if (crossed != Value::Null) {
-            takerOrMaker = (if is_true(&crossed) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if crossed.as_bool() == Some(true) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }
         let mut builderFee: Value = self.safe_string_k(trade.clone(), "builderFee", &[]);
         if (builderFee != Value::Null) {
@@ -5123,7 +5123,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut absRawUnrealizedPnl: Value = crate::precise::Precise::stringAbs(&rawUnrealizedPnl);
         let mut marginUsed: Value = self.safe_string_k(entry.clone(), "marginUsed", &[]);
         let mut initialMargin: Value = Value::Null;
-        if is_true(&isIsolated) {
+        if matches!(&isIsolated, Value::Bool(true)) {
             initialMargin = crate::precise::Precise::stringSub(&marginUsed, &rawUnrealizedPnl);
         }  else {
             initialMargin = marginUsed.clone();
