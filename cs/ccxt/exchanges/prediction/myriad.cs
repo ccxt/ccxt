@@ -1030,7 +1030,7 @@ public partial class myriad : PredictionExchange
         {
             ((IDictionary<string,object>)parsed)["timeInForce"] = timeInForce;
         }
-        if ((isEqual(this.safeNumber(parsed, "price"), null)) && (!isEqual(price, null)))
+        if ((isEqual(this.safeNumber(parsed, "price"), null)) && ((price != null)))
         {
             ((IDictionary<string,object>)parsed)["price"] = price;
         }
@@ -1702,11 +1702,11 @@ public partial class myriad : PredictionExchange
             ((IDictionary<string,object>)request)["network_id"] = this.safeString(info, "networkId");
             rowOutcomeId = this.safeString(info, "outcomeId");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3284,7 +3284,7 @@ public partial class myriad : PredictionExchange
             { "id", marketId },
             { "network_id", networkId },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
