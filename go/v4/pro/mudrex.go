@@ -88,20 +88,20 @@ func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes6912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	this.SetBrokerHeaders()
 	var baseIdString any = func() any {
 		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
-			return ccxt.GetValue(market, "baseId")
+			return market["baseId"]
 		}
 		return ""
 	}()
 	var quoteIdString any = func() any {
 		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
-			return ccxt.GetValue(market, "quoteId")
+			return market["quoteId"]
 		}
 		return ""
 	}()
@@ -141,17 +141,17 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var assets []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var market any = this.Market(ccxt.GetValue(symbols, i))
-			messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
+			var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 			var baseIdString any = func() any {
 				if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
-					return ccxt.GetValue(market, "baseId")
+					return market["baseId"]
 				}
 				return ""
 			}()
 			var quoteIdString any = func() any {
 				if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
-					return ccxt.GetValue(market, "quoteId")
+					return market["quoteId"]
 				}
 				return ""
 			}()
@@ -202,8 +202,8 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes12512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes12512)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var priceType *string = this.SafeString(params, "price")
 	params = this.Omit(params, "price")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -216,13 +216,13 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var streamBaseId any = func() any {
 		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
-			return ccxt.GetValue(market, "baseId")
+			return market["baseId"]
 		}
 		return ""
 	}()
 	var streamQuoteId any = func() any {
 		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
-			return ccxt.GetValue(market, "quoteId")
+			return market["quoteId"]
 		}
 		return ""
 	}()

@@ -2477,7 +2477,7 @@ func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any
 		retRes194712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes194712)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],
 		"amount":  this.NumberToString(amount),
@@ -2807,7 +2807,7 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes221212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes221212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],
 		"network": networkId,

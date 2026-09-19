@@ -2439,7 +2439,7 @@ func (this *Extended) withdrawBody(ch chan any, code any, amount any, address an
 
 	retRes18288 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18288)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var chainId *string = this.SafeStringUpper2(params, "chainId", "network", "STRK")
 	if chainId == nil || *chainId != "STRK" {
 		panic(BadRequest(this.Id + " withdraw() only supports Starknet withdrawals with chainId STRK"))
@@ -2605,7 +2605,7 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 
 	retRes19438 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes19438)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 
 	account := (<-this.FetchExtendedAccountAsync())
 	PanicOnError(account)

@@ -2666,7 +2666,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
 		retRes226212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes226212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -3052,7 +3052,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 		PanicOnError(retRes258512)
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],
 		"address": address,

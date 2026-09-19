@@ -1834,12 +1834,12 @@ func (this *Paradex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 		retRes134212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes134212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketsSummary(this.Extend(request, params)))

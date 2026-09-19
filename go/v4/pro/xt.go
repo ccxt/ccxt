@@ -1069,11 +1069,11 @@ func (this *Xt) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...an
 		retRes67312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes67312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchFundingRate() supports swap contracts only"))
 	}
-	var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
+	var name any = ccxt.Add("fund_rate@", market["id"])
 
 	retRes68015 := (<-this.SubscribeAsync(name, "public", "watchFundingRate", market, nil, params))
 	ccxt.PanicOnError(retRes68015)
@@ -1105,11 +1105,11 @@ func (this *Xt) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		retRes69412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes69412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " unWatchFundingRate() supports swap contracts only"))
 	}
-	var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
+	var name any = ccxt.Add("fund_rate@", market["id"])
 	var messageHash any = ccxt.Add("unsubscribe::", name)
 
 	retRes70215 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, nil, params))
@@ -1979,7 +1979,7 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	if tradeSymbol == nil {
 		return
 	}
-	var market any = this.Market(tradeSymbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(tradeSymbol))
 	stored.(ccxt.Appender).Append(parsedTrade)
 	var tradeType string = func() string {
 		if ccxt.GetValue(market, "contract") == true {

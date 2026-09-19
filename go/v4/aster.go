@@ -1565,7 +1565,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes116112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{}
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
@@ -1583,17 +1583,17 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	params = this.Omit(params, "price")
 	var response any = nil
 	if isMark {
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		AddElementToObject(request, "symbol", market["id"])
 
 		response = (<-this.FapiPublicGetV3MarkPriceKlines(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if isIndex {
-		AddElementToObject(request, "pair", GetValue(market, "id"))
+		AddElementToObject(request, "pair", market["id"])
 
 		response = (<-this.FapiPublicGetV3IndexPriceKlines(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		AddElementToObject(request, "symbol", market["id"])
 		if GetValue(market, "linear") == true {
 
 			response = (<-this.FapiPublicGetV3Klines(this.Extend(request, params)))
@@ -1759,9 +1759,9 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes132712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes132712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -1919,9 +1919,9 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes146612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes146612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if limit != nil {
@@ -2085,9 +2085,9 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes160412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes160412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -2891,9 +2891,9 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 
 	retRes22068 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes22068)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -3069,9 +3069,9 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 
 	retRes23618 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes23618)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
 	params = this.Omit(params, []any{"clientOrderId", "clientOid"})
@@ -3153,9 +3153,9 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 	retRes24268 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes24268)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
 	params = this.Omit(params, []any{"clientOrderId", "clientOid"})
@@ -3243,9 +3243,9 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes24938 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes24938)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -3439,7 +3439,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol any, typeVar any, side an
 
 	retRes26418 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes26418)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -3527,9 +3527,9 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market any = this.Market(GetValue(orderSymbols, 0))
+	var market map[string]any = MapTyped(this.Market(GetValue(orderSymbols, 0)))
 	if GetValue(market, "spot") == true {
-		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", GetValue(market, "type")), " orders")))
+		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
 	var request map[string]any = map[string]any{
 		"batchOrders": ordersRequests,
@@ -3595,12 +3595,12 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} request to be sent to the exchange
 	 */
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var initialUppercaseType string = ToUpper(typeVar)
 	var isMarketOrder bool = (initialUppercaseType == "MARKET")
 	var isLimitOrder bool = (initialUppercaseType == "LIMIT")
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ToUpper(side),
 	}
 	var clientOrderId *string = this.SafeString2(params, "newClientOrderId", "clientOrderId")
@@ -3661,7 +3661,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
-				var precision any = GetValue(GetValue(market, "precision"), "price")
+				var precision any = GetValue(market["precision"], "price")
 				if quoteOrderQtyNew != nil {
 					request["quoteOrderQty"] = this.DecimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.PrecisionMode)
 				} else if price != nil {
@@ -3698,7 +3698,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		}
 	}
 	if quantityIsRequired {
-		var marketAmountPrecision *string = this.SafeString(GetValue(market, "precision"), "amount")
+		var marketAmountPrecision *string = this.SafeString(market["precision"], "amount")
 		var isPrecisionAvailable bool = (marketAmountPrecision != nil)
 		if isPrecisionAvailable {
 			request["quantity"] = this.AmountToPrecision(symbol, amount)
@@ -3710,7 +3710,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		if price == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
-		var pricePrecision *string = this.SafeString(GetValue(market, "precision"), "price")
+		var pricePrecision *string = this.SafeString(market["precision"], "price")
 		var isPricePrecisionAvailable bool = (pricePrecision != nil)
 		if isPricePrecisionAvailable {
 			request["price"] = this.PriceToPrecision(symbol, price)
@@ -3769,9 +3769,9 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes29328 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes29328)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -3827,9 +3827,9 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 	retRes29738 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes29738)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 	if clientOrderId != nil {
@@ -3886,9 +3886,9 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 
 	retRes30138 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes30138)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var clientOrderIdList any = this.SafeList(params, "origClientOrderIdList")
 	if !IsEqual(clientOrderIdList, nil) {
@@ -5334,7 +5334,7 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 
 	retRes41548 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes41548)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var nonce any = this.Milliseconds() * 1000
 	var request map[string]any = map[string]any{
 		"asset":     currency["id"],
@@ -5428,7 +5428,7 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 
 	retRes42328 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes42328)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset":  currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),

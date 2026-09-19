@@ -3812,7 +3812,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 		retRes314412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes314412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
@@ -4172,8 +4172,8 @@ func (this *Krakenfutures) ParseAccount(account any) any {
 	if InOp(accountByType, account) {
 		return GetValue(accountByType, account)
 	} else if (this.Markets != nil) && (InOp(this.Markets, account)) {
-		var market any = this.Market(account)
-		var marketId any = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(account))
+		var marketId any = market["id"]
 		var splitId []string = Split(marketId, "_")
 		if GetValue(market, "inverse") == true {
 			return Add("fi_", this.SafeString(splitId, 1))
@@ -4239,7 +4239,7 @@ func (this *Krakenfutures) transferBody(ch chan any, code any, amount any, fromA
 		retRes350412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes350412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	if IsEqual(fromAccount, "spot") {
 		panic(BadRequest(this.Id + " transfer does not yet support transfers from spot"))
 	}

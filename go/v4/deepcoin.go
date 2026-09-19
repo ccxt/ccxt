@@ -1530,7 +1530,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 		panic(NotSupported(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
 	var code any = GetValue(codes, 0)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency_id": currency["id"],
 		"lang":        "en",
@@ -1849,7 +1849,7 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 		retRes142012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes142012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -2009,7 +2009,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	// const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
 	var isTriggerOrder bool = (triggerPrice != nil)
@@ -2057,13 +2057,13 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderType any = typeVar
 	orderTypeparamsVariable := this.HandleTypePostOnlyAndTimeInForce(typeVar, params)
 	orderType = GetValue(orderTypeparamsVariable, 0)
 	params = GetValue(orderTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"instId":  GetValue(market, "id"),
+		"instId":  market["id"],
 		"side":    side,
 		"ordType": orderType,
 	}
@@ -2164,10 +2164,10 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId":       GetValue(market, "id"),
-		"productGroup": this.Capitalize(GetValue(market, "type")),
+		"instId":       market["id"],
+		"productGroup": this.Capitalize(market["type"]),
 		"sz":           this.AmountToPrecision(symbol, amount),
 		"side":         side,
 		"orderType":    typeVar,
@@ -2948,7 +2948,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " cancelAllOrders() is not supported for spot markets"))
 	}
@@ -2972,7 +2972,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		return 0
 	}()
 	var request map[string]any = map[string]any{
-		"InstrumentID":  GetValue(market, "id"),
+		"InstrumentID":  market["id"],
 		"ProductGroup":  productGroup,
 		"IsCrossMargin": encodedMarginMode,
 		"IsMergeMode":   isMergedMode,
@@ -3629,12 +3629,12 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		retRes281212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes281212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
 	var request map[string]any = map[string]any{
-		"instId":   GetValue(market, "id"),
+		"instId":   market["id"],
 		"instType": this.GetProductGroupFromMarket(market),
 	}
 

@@ -354,7 +354,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
 		var account any = this.Account()
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		var uppercase string = ToUpper(currency["id"])
 		if InOp(response, uppercase) {
 			AddElementToObject(account, "free", this.SafeString(response, "AVAILABLE_"+uppercase))
@@ -1276,7 +1276,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes101012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes101012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	if EvalTruthy(this.IsFiat(code)) {
 		panic(NotSupported(this.Id + " fetchDepositAddress() does not support fiat currencies"))
 	}

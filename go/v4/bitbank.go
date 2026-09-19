@@ -1255,7 +1255,7 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes97412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes97412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -1313,7 +1313,7 @@ func (this *Bitbank) withdrawBody(ch chan any, code any, amount any, address any
 		retRes101312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes101312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset":  currency["id"],
 		"amount": amount,

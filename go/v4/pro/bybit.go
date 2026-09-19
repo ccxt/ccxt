@@ -482,8 +482,8 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes38812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes38812)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("ticker:", symbol)
 
 	url := (<-this.GetUrlByMarketTypeAsync(symbol, false, "watchTicker", params))
@@ -494,7 +494,7 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	if (ccxt.GetValue(market, "spot") != true) && !ccxt.IsEqual(topic, "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
 	}
-	topic = ccxt.Add(topic, ccxt.Add(".", ccxt.GetValue(market, "id")))
+	topic = ccxt.Add(topic, ccxt.Add(".", market["id"]))
 	var topics []any = []any{topic}
 
 	retRes40215 := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
@@ -1197,7 +1197,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	url := (<-this.GetUrlByMarketTypeAsync(ccxt.GetValue(symbols, 0), false, "watchOrderBook", params))
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
-	var market any = this.Market(ccxt.GetValue(symbols, 0))
+	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
 	if limit == nil {
 		limit = 50
 		if ccxt.GetValue(market, "option") == true {
@@ -1209,9 +1209,9 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 			"option":  []any{25, 100},
 			"default": []any{1, 50, 200, 1000},
 		}
-		var selectedLimits any = this.SafeList2(limits, ccxt.GetValue(market, "type"), "default", []any{})
+		var selectedLimits any = this.SafeList2(limits, market["type"], "default", []any{})
 		if !this.InArray(limit, selectedLimits) {
-			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" watchOrderBookForSymbols(): for ", ccxt.GetValue(market, "type")), " markets limit can be one of: "), this.Json(selectedLimits))))
+			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" watchOrderBookForSymbols(): for ", market["type"]), " markets limit can be one of: "), this.Json(selectedLimits))))
 		}
 	}
 	var topics []any = []any{}
@@ -1263,7 +1263,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	if !ccxt.IsEqual(limit, nil) {
 		params = this.Omit(params, "limit")
 	} else {
-		var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
+		var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
 		limit = func() int {
 			if ccxt.GetValue(firstMarket, "spot") == true {
 				return 50

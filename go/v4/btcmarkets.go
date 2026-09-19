@@ -1444,17 +1444,17 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	_ = takerOrMaker
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var currency any = nil
 	var cost any = nil
 	if GetValue(market, "quote") == "AUD" {
-		currency = GetValue(market, "quote")
+		currency = market["quote"]
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)
 		var otherUnitsAmount *string = Precise.StringMul(amountString, priceString)
 		cost = this.CostToPrecision(symbol, otherUnitsAmount)
 	} else {
-		currency = GetValue(market, "base")
+		currency = market["base"]
 		cost = this.AmountToPrecision(symbol, amount)
 	}
 	var rate any = this.SafeValue(market, takerOrMaker)
@@ -1824,7 +1824,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 		retRes139512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes139512)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"assetName": currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),

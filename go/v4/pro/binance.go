@@ -888,8 +888,8 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		ccxt.PanicOnError(retRes74912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
+	var typeVar any = firstMarket["type"]
 	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
 	} else if ccxt.GetValue(firstMarket, "contract") == true {
@@ -989,8 +989,8 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		ccxt.PanicOnError(retRes82612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
+	var typeVar any = firstMarket["type"]
 	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
 	} else if ccxt.GetValue(firstMarket, "contract") == true {
@@ -1515,9 +1515,9 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
 	params = this.Omit(params, "callerMethodName")
-	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-	var typeVar any = ccxt.GetValue(firstMarket, "type")
-	var isOption any = ccxt.GetValue(firstMarket, "option")
+	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
+	var typeVar any = firstMarket["type"]
+	var isOption any = firstMarket["option"]
 	if isOption == true {
 		typeVar = "option"
 	} else if ccxt.GetValue(firstMarket, "contract") == true {
@@ -1622,9 +1622,9 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
 	params = this.Omit(params, "callerMethodName")
-	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-	var typeVar any = ccxt.GetValue(firstMarket, "type")
-	var isOption any = ccxt.GetValue(firstMarket, "option")
+	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
+	var typeVar any = firstMarket["type"]
+	var isOption any = firstMarket["option"]
 	if isOption == true {
 		typeVar = "option"
 	} else if ccxt.GetValue(firstMarket, "contract") == true {
@@ -2108,8 +2108,8 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	params = ccxt.GetValue(klineTypeparamsVariable, 1)
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols any = this.MarketSymbols(symbols, nil, false, false, true)
-	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
-	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(marketSymbols, 0)))
+	var typeVar any = firstMarket["type"]
 	var wsUrlType any = typeVar
 	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
@@ -2216,8 +2216,8 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	params = ccxt.GetValue(klineTypeparamsVariable, 1)
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols any = this.MarketSymbols(symbols, nil, false, false, true)
-	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
-	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(marketSymbols, 0)))
+	var typeVar any = firstMarket["type"]
 	var wsUrlType any = typeVar
 	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
@@ -4773,7 +4773,7 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 		retRes371412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes371412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var marketType any = this.GetMarketType("createOrderWs", market, params)
 	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "future")) && (!ccxt.IsEqual(marketType, "delivery")) {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs only supports spot or swap markets"))
@@ -5145,7 +5145,7 @@ func (this *Binance) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	if symbol == nil {
 		panic(ccxt.BadRequest(this.Id + " cancelOrderWs requires a symbol"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var typeVar any = this.GetMarketType("cancelOrderWs", market, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
 	var requestId any = this.RequestId(url)

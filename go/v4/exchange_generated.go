@@ -3824,11 +3824,11 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 	var isLinearSubType any = nil
 	for i := 0; i < GetArrayLength(symbols); i++ {
 
-		var market any = this.DerivedExchange.Market(GetValue(symbols, i))
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(GetValue(symbols, i)))
 		PanicOnError(market)
 		if EvalTruthy(sameTypeOnly) && (marketType != nil) {
 			if GetValue(market, "type") != marketType {
-				panic(BadRequest(Add(Add(Add(Add(this.Id+" symbols must be of the same type, either ", marketType), " or "), GetValue(market, "type")), ".")))
+				panic(BadRequest(Add(Add(Add(Add(this.Id+" symbols must be of the same type, either ", marketType), " or "), market["type"]), ".")))
 			}
 		}
 		if EvalTruthy(sameSubTypeOnly) && (isLinearSubType != nil) {
@@ -3839,9 +3839,9 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 		if (typeVar != nil) && (GetValue(market, "type") != typeVar) {
 			panic(BadRequest(Add(Add(this.Id+" symbols must be of the same type ", typeVar), ". If the type is incorrect you can change it in options or the params of the request")))
 		}
-		marketType = GetValue(market, "type")
+		marketType = market["type"]
 		if GetValue(market, "spot") != true {
-			isLinearSubType = GetValue(market, "linear")
+			isLinearSubType = market["linear"]
 		}
 		var symbol *string = this.SafeString(market, "symbol", GetValue(symbols, i))
 		result = append(result, symbol)
@@ -6578,7 +6578,7 @@ func (this *BaseExchange) fetchMarketLeverageTiersBody(ch chan any, symbol any, 
 	_ = params
 	if !IsEqual(this.Has["fetchLeverageTiers"], nil) && !IsEqual(this.Has["fetchLeverageTiers"], false) {
 
-		var market any = this.DerivedExchange.Market(symbol)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 		PanicOnError(market)
 		if GetValue(market, "contract") != true {
 			panic(BadSymbol(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
@@ -7125,9 +7125,9 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan any, symbol any, optional
 		retRes790412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes790412)
 
-		var market any = this.DerivedExchange.Market(symbol)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 		PanicOnError(market)
-		symbol = GetValue(market, "symbol")
+		symbol = market["symbol"]
 		if GetValue(market, "contract") != true {
 			panic(BadSymbol(this.Id + " fetchFundingRate() supports contract markets only"))
 		}
@@ -7161,9 +7161,9 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan any, symbol any, opti
 		retRes792412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes792412)
 
-		var market any = this.DerivedExchange.Market(symbol)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 		PanicOnError(market)
-		symbol = GetValue(market, "symbol")
+		symbol = market["symbol"]
 		if GetValue(market, "contract") != true {
 			panic(BadSymbol(this.Id + " fetchFundingInterval() supports contract markets only"))
 		}

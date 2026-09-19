@@ -2468,11 +2468,11 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 
 	retRes18468 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18468)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
-	var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
+	var tickerId *string = this.SafeString(market["info"], "ticker_id")
 
 	response := (<-this.ArchiveV2PublicGetContracts(params))
 	PanicOnError(response)
@@ -2542,7 +2542,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 
 	retRes18998 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18998)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingHistory() supports swap contracts only"))
 	}
@@ -2553,7 +2553,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"interest_and_funding": map[string]any{
 			"subaccount":  this.CreateSubaccount(this.WalletAddress, subaccount),
-			"product_ids": []any{this.ParseToInt(GetValue(market, "id"))},
+			"product_ids": []any{this.ParseToInt(market["id"])},
 			"limit": func() any {
 				if limit == nil {
 					return 100
@@ -2684,11 +2684,11 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes19998 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes19998)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
-	var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
+	var tickerId *string = this.SafeString(market["info"], "ticker_id")
 
 	response := (<-this.ArchiveV2PublicGetContracts(params))
 	PanicOnError(response)

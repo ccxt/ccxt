@@ -219,7 +219,7 @@ func (this *Paymium) ParseBalance(response any) any {
 	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(currencies); i++ {
 		var code string = GetValue(currencies, i).(string)
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		var currencyId any = currency["id"]
 		var free any = Add("balance_", currencyId)
 		if InOp(response, free) {
@@ -736,7 +736,7 @@ func (this *Paymium) transferBody(ch chan any, code any, amount any, fromAccount
 		retRes52212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	if GetIndexOf(toAccount, "@") < 0 {
 		panic(ExchangeError(this.Id + " transfer() only allows transfers to an email address"))
 	}

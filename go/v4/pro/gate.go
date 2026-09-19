@@ -240,7 +240,7 @@ func (this *Gate) createOrdersWsBody(ch chan any, orders any, optionalArgs ...an
 	}
 	var request any = this.CreateOrdersRequest(orders, params)
 	var firstOrder any = ccxt.GetValue(orders, 0)
-	var market any = this.Market(ccxt.GetValue(firstOrder, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(firstOrder, "symbol")))
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " createOrdersWs is not supported for swap markets"))
 	}
@@ -656,9 +656,9 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		retRes42112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes42112)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var marketId any = ccxt.GetValue(market, "id")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var marketId any = market["id"]
 	var url any = this.GetUrlByMarket(market)
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
 	var isNonEuSpot bool = (ccxt.GetValue(market, "spot") == true) && !isEuUrl
@@ -695,7 +695,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		if ccxt.IsEqual(limit, 400) {
 			finalInterval = "400"
 		}
-		payload = []any{ccxt.Add(ccxt.Add(ccxt.Add("ob.", ccxt.GetValue(market, "id")), "."), finalInterval)}
+		payload = []any{ccxt.Add(ccxt.Add(ccxt.Add("ob.", market["id"]), "."), finalInterval)}
 	} else {
 		channel = ccxt.Add(messageType, ".order_book_update")
 		payload = []any{marketId, interval}
@@ -737,10 +737,10 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes47512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes47512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = this.GetUrlByMarket(market)
-	symbol = ccxt.GetValue(market, "symbol")
-	var marketId any = ccxt.GetValue(market, "id")
+	symbol = market["symbol"]
+	var marketId any = market["id"]
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
 	var isNonEuSpot bool = (ccxt.GetValue(market, "spot") == true) && !isEuUrl
 	var intervalDefault string = func() string {
@@ -777,7 +777,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		if ccxt.IsEqual(limit, 400) {
 			finalInterval = "400"
 		}
-		payload = []any{ccxt.Add(ccxt.Add(ccxt.Add("ob.", ccxt.GetValue(market, "id")), "."), finalInterval)}
+		payload = []any{ccxt.Add(ccxt.Add(ccxt.Add("ob.", market["id"]), "."), finalInterval)}
 	} else {
 		channel = ccxt.Add(messageType, ".order_book_update")
 		payload = []any{marketId, interval}
@@ -2276,9 +2276,9 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
-		var market any = this.Market(symbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		if !ccxt.IsEqual(ccxt.GetValue(market, "id"), nil) {
-			ccxt.AddElementToObject(marketIds, ccxt.GetValue(market, "id"), true)
+			ccxt.AddElementToObject(marketIds, market["id"], true)
 		}
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)

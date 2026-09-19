@@ -1320,7 +1320,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
 		var code string = GetValue(depositWithdrawCodes, i).(string)
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}
 	return depositWithdrawFees
@@ -3794,7 +3794,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		retRes287212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes287212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"ticker": currency["id"],
 	}
@@ -3890,7 +3890,7 @@ func (this *Whitebit) createDepositAddressBody(ch chan any, code any, optionalAr
 		retRes295112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes295112)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"ticker": currency["id"],
 	}
@@ -4071,7 +4071,7 @@ func (this *Whitebit) transferBody(ch chan any, code any, amount any, fromAccoun
 		retRes308712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes308712)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromAccountId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -4140,7 +4140,7 @@ func (this *Whitebit) withdrawBody(ch chan any, code any, amount any, address an
 		retRes313812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes313812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any) // check if it has canDeposit
+	var currency map[string]any = MapTyped(this.Currency(code)) // check if it has canDeposit
 	var request map[string]any = map[string]any{
 		"ticker":  currency["id"],
 		"amount":  this.CurrencyToPrecision(code, amount),
@@ -4986,8 +4986,8 @@ func (this *Whitebit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode an
 		retRes380512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes380512)
 	}
-	var fromCurrency map[string]any = this.Currency(fromCode).(map[string]any)
-	var toCurrency map[string]any = this.Currency(toCode).(map[string]any)
+	var fromCurrency map[string]any = MapTyped(this.Currency(fromCode))
+	var toCurrency map[string]any = MapTyped(this.Currency(toCode))
 	var request map[string]any = map[string]any{
 		"from":      fromCode,
 		"to":        toCode,
@@ -5042,8 +5042,8 @@ func (this *Whitebit) createConvertTradeBody(ch chan any, id any, fromCode any, 
 		retRes384412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes384412)
 	}
-	var fromCurrency map[string]any = this.Currency(fromCode).(map[string]any)
-	var toCurrency map[string]any = this.Currency(toCode).(map[string]any)
+	var fromCurrency map[string]any = MapTyped(this.Currency(fromCode))
+	var toCurrency map[string]any = MapTyped(this.Currency(toCode))
 	var request map[string]any = map[string]any{
 		"quoteId": id,
 	}

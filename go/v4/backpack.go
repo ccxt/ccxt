@@ -1302,12 +1302,12 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		retRes105412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes105412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		panic(BadRequest(Add(this.Id+" fetchFundingRate() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetApiV1MarkPrices(this.Extend(request, params)))
@@ -1379,12 +1379,12 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 		retRes111512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes111512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		panic(BadRequest(Add(this.Id+" fetchOpenInterest() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetApiV1OpenInterest(this.Extend(request, params)))
@@ -1978,7 +1978,7 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 		retRes153712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes153712)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol":   currency["id"],
 		"quantity": this.NumberToString(amount),
@@ -2167,7 +2167,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes"))
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
 	}

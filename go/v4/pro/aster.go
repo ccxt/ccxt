@@ -206,7 +206,7 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil
@@ -278,7 +278,7 @@ func (this *Aster) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil
@@ -406,7 +406,7 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil
@@ -484,7 +484,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil
@@ -637,7 +637,7 @@ func (this *Aster) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
@@ -704,7 +704,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
@@ -874,7 +874,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 		ccxt.PanicOnError(retRes63612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil
@@ -939,7 +939,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		ccxt.PanicOnError(retRes68412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil
@@ -1262,7 +1262,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		ccxt.PanicOnError(retRes94512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil
@@ -1326,7 +1326,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		ccxt.PanicOnError(retRes99212)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbols))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var methodName any = nil

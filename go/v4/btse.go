@@ -1146,7 +1146,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 
 	retRes9618 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9618)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
@@ -1167,7 +1167,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		}
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"period": period,
 	}
 	var until any = nil
@@ -1493,7 +1493,7 @@ func (this *Btse) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 
 	retRes12568 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes12568)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
@@ -1680,12 +1680,12 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes13978 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes13978)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		panic(BadRequest(Add(this.Id+" fetchOpenInterest() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params)))
@@ -1787,12 +1787,12 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 
 	retRes14668 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes14668)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support spot markets"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params)))
@@ -2357,7 +2357,7 @@ func (this *Btse) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 	retRes19168 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes19168)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
 
 		retRes191919 := (<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))
@@ -2942,7 +2942,7 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 
 	retRes24138 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes24138)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
@@ -2970,7 +2970,7 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3030,7 +3030,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 
 	retRes24828 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes24828)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
@@ -3043,7 +3043,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3976,9 +3976,9 @@ func (this *Btse) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 
 	retRes32238 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes32238)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {

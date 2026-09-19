@@ -1677,9 +1677,9 @@ func (this *Coinex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes109812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes109812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -1908,12 +1908,12 @@ func (this *Coinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes127612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes127612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
 		limit = 20 // default
 	}
 	var request map[string]any = map[string]any{
-		"market":   GetValue(market, "id"),
+		"market":   market["id"],
 		"limit":    limit,
 		"interval": "0",
 	}
@@ -2041,9 +2041,9 @@ func (this *Coinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes143712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes143712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -2105,9 +2105,9 @@ func (this *Coinex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		retRes148512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes148512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
@@ -2248,9 +2248,9 @@ func (this *Coinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes166812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
@@ -2909,7 +2909,7 @@ func (this *Coinex) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		retRes219412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes219412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -2931,8 +2931,8 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
-	var swap any = GetValue(market, "swap")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var swap any = market["swap"]
 	var clientOrderId *string = this.SafeString2(params, "client_id", "clientOrderId")
 	var triggerPrice *string = this.SafeString2(params, "stopPrice", "triggerPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -2944,11 +2944,11 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil && *reduceOnly == true {
 		if GetValue(market, "swap") != true {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduceOnly for ", GetValue(market, "type")), " orders, reduceOnly orders are supported for swap markets only")))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduceOnly for ", market["type"]), " orders, reduceOnly orders are supported for swap markets only")))
 		}
 	}
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if clientOrderId == nil {
 		var defaultId string = "x-167673045"
@@ -3081,7 +3081,7 @@ func (this *Coinex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes233712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	var triggerPrice *string = this.SafeString2(params, "stopPrice", "triggerPrice")
 	var stopLossTriggerPrice *string = this.SafeString(params, "stopLossPrice")
@@ -3196,9 +3196,9 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 		"orders": ordersRequests,
 	}
 	var response any = nil
@@ -3297,9 +3297,9 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		retRes277712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes277712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -3393,9 +3393,9 @@ func (this *Coinex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		retRes296712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes296712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if amount != nil {
 		request["amount"] = this.AmountToPrecision(symbol, amount)
@@ -3480,7 +3480,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
-		var market any = this.Market(marketId)
+		var market map[string]any = MapTyped(this.Market(marketId))
 		if marketId != nil {
 			AppendToArray(&orderSymbols, marketId)
 		}
@@ -3500,7 +3500,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		}
 		var orderRequest map[string]any = map[string]any{
 			"order_id":    this.ParseToNumeric(id),
-			"market":      GetValue(market, "id"),
+			"market":      market["id"],
 			"market_type": market_type,
 		}
 		if amount != nil {
@@ -3513,7 +3513,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var firstSymbol *string = this.SafeString(orderSymbols, 0)
-	var firstMarket any = this.Market(firstSymbol)
+	var firstMarket map[string]any = MapTyped(this.Market(firstSymbol))
 	var request map[string]any = map[string]any{
 		"orders": ordersRequests,
 	}
@@ -3705,9 +3705,9 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes348212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes348212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -3767,9 +3767,9 @@ func (this *Coinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		retRes353112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes353112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":   GetValue(market, "id"),
+		"market":   market["id"],
 		"order_id": this.ParseToNumeric(id),
 	}
 	var response any = nil
@@ -4012,7 +4012,7 @@ func (this *Coinex) createDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes398012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes398012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var network *string = this.SafeString2(params, "chain", "network")
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " createDepositAddress() requires a network parameter"))
@@ -4066,7 +4066,7 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes401912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes401912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"ccy": currency["id"],
 	}
@@ -4163,9 +4163,9 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes409212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes409212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
@@ -4508,12 +4508,12 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		retRes441312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes441312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "type") != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var leverage *int64 = this.SafeInteger(params, "leverage")
-	var maxLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "max", 100)
+	var maxLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "max", 100)
 	if leverage == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
 	}
@@ -4521,7 +4521,7 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		panic(BadRequest(Add(this.Id+" setMarginMode() leverage should be between 1 and "+ToString(maxLeverage)+" for ", symbol)))
 	}
 	var request map[string]any = map[string]any{
-		"market":      GetValue(market, "id"),
+		"market":      market["id"],
 		"market_type": "FUTURES",
 		"margin_mode": marginMode,
 		"leverage":    leverage,
@@ -4564,7 +4564,7 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		retRes446212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes446212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
@@ -4572,13 +4572,13 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var minLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "min", 1)
-	var maxLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "max", 100)
+	var minLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "min", 1)
+	var maxLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "max", 100)
 	if (IsLessThan(leverage, minLeverage)) || (IsGreaterThan(leverage, maxLeverage)) {
 		panic(BadRequest(Add(this.Id+" setLeverage() leverage should be between "+ToString(minLeverage)+" and "+ToString(maxLeverage)+" for ", symbol)))
 	}
 	var request map[string]any = map[string]any{
-		"market":      GetValue(market, "id"),
+		"market":      market["id"],
 		"market_type": "FUTURES",
 		"margin_mode": marginMode,
 		"leverage":    leverage,
@@ -5025,12 +5025,12 @@ func (this *Coinex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		retRes481412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes481412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V2PublicGetFuturesFundingRate(this.Extend(request, params)))
@@ -5239,7 +5239,7 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes497912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes497912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"ccy":        currency["id"],
 		"to_address": address,
@@ -5554,7 +5554,7 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes523812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes523812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -5660,7 +5660,7 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request any = map[string]any{
 		"ccy": currency["id"],
 	}
@@ -5938,7 +5938,7 @@ func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 		panic(ArgumentsRequired(this.Id + " fetchIsolatedBorrowRate() requires a code parameter"))
 	}
 	params = this.Omit(params, "code")
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"market": market["id"],
@@ -6105,7 +6105,7 @@ func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 		PanicOnError(retRes566612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var isAutoRenew *bool = this.SafeBool2(params, "isAutoRenew", "is_auto_renew", false)
 	params = this.Omit(params, "isAutoRenew")
 	var request map[string]any = map[string]any{
@@ -6171,7 +6171,7 @@ func (this *Coinex) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 		PanicOnError(retRes571712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"ccy":    currency["id"],
@@ -6249,7 +6249,7 @@ func (this *Coinex) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalA
 		retRes578012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes578012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"ccy": currency["id"],
 	}
@@ -6494,7 +6494,7 @@ func (this *Coinex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		panic(ArgumentsRequired(this.Id + " fetchLeverage() requires a code parameter"))
 	}
 	params = this.Omit(params, "code")
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"market": market["id"],

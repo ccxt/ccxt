@@ -2833,9 +2833,9 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		retRes232612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes232612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
-		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", GetValue(market, "type")), " orders, only spot orders are accepted")))
+		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", market["type"]), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{
 		"txid": id,
@@ -3844,7 +3844,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		request["asset"] = currency["id"]
 	}
 	if since != nil {
@@ -3965,7 +3965,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		request["asset"] = currency["id"]
 	}
 	if since != nil {
@@ -4095,7 +4095,7 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan any, code any, optionalArgs 
 		retRes330012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes330012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -4154,7 +4154,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes334412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes334412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var network *string = this.SafeStringUpper(params, "network")
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
@@ -4268,7 +4268,7 @@ func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any,
 
 		retRes343712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes343712)
-		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currency map[string]any = MapTyped(this.Currency(code))
 		var request map[string]any = map[string]any{
 			"asset":  currency["id"],
 			"amount": amount,
@@ -4499,7 +4499,7 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes361912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes361912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var fromAccountParsed *string = this.ParseAccountType(fromAccount)
 	var toAccountParsed *string = this.ParseAccountType(toAccount)
 	var request map[string]any = map[string]any{

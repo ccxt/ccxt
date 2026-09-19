@@ -3103,7 +3103,7 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
 		retRes248212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes248212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -3157,7 +3157,7 @@ func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalA
 		retRes251912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes251912)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -3828,9 +3828,9 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes315812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes315812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var uta any = false
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "fetchTicker", "uta", uta)
@@ -3964,9 +3964,9 @@ func (this *Kucoin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 		retRes326912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes326912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if GetValue(market, "contract") == true {
@@ -4048,7 +4048,7 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes334112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes334112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var uta any = false
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "uta", uta)
 	uta = GetValue(utaparamsVariable, 0)
@@ -4397,7 +4397,7 @@ func (this *Kucoin) createDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes358012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes358012)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -4487,7 +4487,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		ch <- retRes363719
 		return nil
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -4542,7 +4542,7 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
 		retRes367812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes367812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var currencyId any = currency["id"]
 	var request map[string]any = map[string]any{
 		"currency": currencyId,
@@ -4627,7 +4627,7 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 		retRes374712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes374712)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -4929,7 +4929,7 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes400512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes400512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
@@ -4955,7 +4955,7 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		ch <- retRes401519
 		return nil
 	} else {
-		panic(NotSupported(Add(this.Id+" createOrder() does not support market ", GetValue(market, "type"))))
+		panic(NotSupported(Add(this.Id+" createOrder() does not support market ", market["type"])))
 	}
 }
 
@@ -5856,7 +5856,7 @@ func (this *Kucoin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		if GetValue(market, "spot") == true {
 			isSpot = true
 		} else if GetValue(market, "contract") == true {
@@ -9480,7 +9480,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		retRes755512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes755512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
@@ -9496,7 +9496,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		} else {
 			request["tradeType"] = "FUTURES"
 		}
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.UtaPrivateGetUserFeeRate(this.Extend(request, params)))
 		PanicOnError(response)
@@ -9519,7 +9519,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		var dataList any = this.SafeList(data, "list", []any{})
 		entry = this.SafeDict(dataList, 0)
 	} else if GetValue(market, "spot") == true {
-		request["symbols"] = GetValue(market, "id")
+		request["symbols"] = market["id"]
 
 		response = (<-this.PrivateGetTradeFees(this.Extend(request, params)))
 		PanicOnError(response)
@@ -9538,7 +9538,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		var data any = this.SafeList(response, "data", []any{})
 		entry = this.SafeDict(data, 0)
 	} else {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.FuturesPrivateGetTradeFees(this.Extend(request, params)))
 		PanicOnError(response)
@@ -9601,7 +9601,7 @@ func (this *Kucoin) withdrawBody(ch chan any, code any, amount any, address any,
 		PanicOnError(retRes764812)
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency":     currency["id"],
 		"toAddress":    address,
@@ -10500,7 +10500,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchContractBalance() requires a code parameter"))
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -10777,7 +10777,7 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
 		retRes857612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes857612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var requestedAmount any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -10893,7 +10893,7 @@ func (this *Kucoin) transferClassicBody(ch chan any, code any, amount any, fromA
 		retRes866412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes866412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var requestedAmount any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -11937,7 +11937,7 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
 	var marginResult any = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
 	var marginMode *string = this.SafeString(marginResult, 0, "cross")
 	var isIsolated bool = (marginMode != nil && *marginMode == "isolated") // true-isolated, false-cross
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request any = map[string]any{
 		"isIsolated": isIsolated,
 		"currency":   currency["id"],
@@ -12047,7 +12047,7 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		retRes963112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes963112)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -12099,7 +12099,7 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan any, code any, amount any, opt
 		retRes966812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes966812)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency":    currency["id"],
 		"size":        this.CurrencyToPrecision(code, amount),
@@ -12154,7 +12154,7 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 		PanicOnError(retRes970712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency":    currency["id"],
 		"size":        this.CurrencyToPrecision(code, amount),
@@ -12208,7 +12208,7 @@ func (this *Kucoin) repayCrossMarginBody(ch chan any, code any, amount any, opti
 		retRes974712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes974712)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"size":     this.CurrencyToPrecision(code, amount),
@@ -12261,7 +12261,7 @@ func (this *Kucoin) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 		PanicOnError(retRes978412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency":   currency["id"],
 		"size":       this.CurrencyToPrecision(code, amount),
@@ -12394,12 +12394,12 @@ func (this *Kucoin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		retRes988312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes988312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " fetchLeverage() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.FuturesPrivateGetGetCrossUserLeverage(this.Extend(request, params)))
@@ -14103,12 +14103,12 @@ func (this *Kucoin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		retRes1127312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1127312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " setMarginMode() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"marginMode": ToUpper(marginMode),
 	}
 
@@ -14297,7 +14297,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 		retRes1139612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1139612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
@@ -14314,7 +14314,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.FuturesPublicGetContractsRiskLimitSymbol(this.Extend(request, params)))

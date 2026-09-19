@@ -389,8 +389,8 @@ func (this *Bitrue) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes32012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes32012)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var url any = nil
 	var channel any = nil
@@ -522,7 +522,7 @@ func (this *Bitrue) ConvertFromRawQuantity(symbol any, rawQuantity any) any {
 	if ccxt.IsEqual(rawQuantity, nil) {
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if ccxt.GetValue(market, "contract") != true {
 		return rawQuantity
 	}
@@ -560,8 +560,8 @@ func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes47612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes47612)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchTrades is only supported for swap markets"))
 	}
@@ -701,8 +701,8 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes59112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes59112)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV is only supported for swap markets"))
 	}
@@ -826,8 +826,8 @@ func (this *Bitrue) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes69612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes69612)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchTicker is only supported for swap markets"))
 	}

@@ -1744,7 +1744,7 @@ func (this *Foxbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes132212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes132212)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency_symbol": currency["id"],
 	}
@@ -2142,7 +2142,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes160412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes160412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency_symbol":     currency["id"],
 		"amount":              this.NumberToString(amount),
@@ -2218,7 +2218,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	request["symbol"] = currency["id"]
 
 	response := (<-this.V3PrivateGetAccountsSymbolTransactions(this.Extend(request, params)))

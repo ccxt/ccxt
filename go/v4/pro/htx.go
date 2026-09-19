@@ -176,17 +176,17 @@ func (this *Htx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes15712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var options any = this.SafeDict(this.Options, "watchTicker", map[string]any{})
 	var topic *string = this.SafeString(options, "name", "market.{marketId}.detail")
 	if (topic != nil && *topic == "market.{marketId}.ticker") && (ccxt.GetValue(market, "type") != "spot") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
 	}
 	var messageHash any = this.ImplodeParams(topic, map[string]any{
-		"marketId": ccxt.GetValue(market, "id"),
+		"marketId": market["id"],
 	})
-	var url any = this.GetUrlByMarketType(ccxt.GetValue(market, "type"), ccxt.GetValue(market, "linear"))
+	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
 	retRes16815 := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
 	ccxt.PanicOnError(retRes16815)
@@ -219,7 +219,7 @@ func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes18312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes18312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var topic string = "ticker"
 	var options any = this.SafeDict(this.Options, "watchTicker", map[string]any{})
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.detail")
@@ -227,7 +227,7 @@ func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
 	}
 	var subMessageHash any = this.ImplodeParams(channel, map[string]any{
-		"marketId": ccxt.GetValue(market, "id"),
+		"marketId": market["id"],
 	})
 
 	retRes19315 := (<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params))
@@ -587,8 +587,8 @@ func (this *Htx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		retRes45612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes45612)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var allowedLimits []any = []any{5, 20, 150, 400}
 	// 2) 5-level/20-level incremental MBP is a tick by tick feed,
 	// which means whenever there is an order book change at that level, it pushes an update
@@ -603,11 +603,11 @@ func (this *Htx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var messageHash any = nil
 	if ccxt.GetValue(market, "spot") == true {
-		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), this.NumberToString(limit))
+		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".mbp."), this.NumberToString(limit))
 	} else {
-		messageHash = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".depth.size_"), this.NumberToString(limit)), ".high_freq")
+		messageHash = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".depth.size_"), this.NumberToString(limit)), ".high_freq")
 	}
-	var url any = this.GetUrlByMarketType(ccxt.GetValue(market, "type"), ccxt.GetValue(market, "linear"), false, true)
+	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, true)
 	var method any = this.HandleOrderBookSubscription
 	if ccxt.GetValue(market, "spot") != true {
 		params = this.Extend(params)
@@ -649,15 +649,15 @@ func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes50312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes50312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var topic string = "orderbook"
 	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var depth *int64 = this.SafeInteger(options, "depth", 150)
 	var subMessageHash any = nil
 	if ccxt.GetValue(market, "spot") == true {
-		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), this.NumberToString(depth))
+		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".mbp."), this.NumberToString(depth))
 	} else {
-		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".depth.size_"), this.NumberToString(depth)), ".high_freq")
+		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".depth.size_"), this.NumberToString(depth)), ".high_freq")
 	}
 	if ccxt.GetValue(market, "spot") != true {
 		ccxt.AddElementToObject(params, "data_type", "incremental")
@@ -923,8 +923,8 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var ch any = this.SafeValue(message, "ch")
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var tick any = this.SafeDict(message, "tick", map[string]any{})
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
@@ -1035,7 +1035,7 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 }
 func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))

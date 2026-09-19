@@ -993,7 +993,7 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 		retRes75512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75512)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	if IsEqual(code, "JPY") {
 		panic(ExchangeError(Add(Add(this.Id+" withdraw() does not allow ", code), " withdrawals")))
 	}

@@ -3376,7 +3376,7 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
 		retRes264312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes264312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -3449,7 +3449,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		retRes269512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes269512)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate == true {
 		var maxLimit int = 50
@@ -3650,7 +3650,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 		retRes283312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes283312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate == true {
 		var maxLimit int = 50

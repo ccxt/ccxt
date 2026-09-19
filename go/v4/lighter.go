@@ -3261,10 +3261,10 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var currency map[string]any = this.Currency(code).(map[string]any)
-	if currency["code"] == "USDC" {
+	var currency map[string]any = MapTyped(this.Currency(code))
+	if GetValue(currency, "code") == "USDC" {
 		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
-	} else if currency["code"] == "ETH" {
+	} else if GetValue(currency, "code") == "ETH" {
 		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "8"), this.CurrencyToPrecision(code, amount)))
 	} else {
 		panic(ExchangeError(this.Id + " transfer() only supports USDC and ETH transfers"))
@@ -3762,10 +3762,10 @@ func (this *Lighter) withdrawBody(ch chan any, code any, amount any, address any
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var currency map[string]any = this.Currency(code).(map[string]any)
-	if currency["code"] == "USDC" {
+	var currency map[string]any = MapTyped(this.Currency(code))
+	if GetValue(currency, "code") == "USDC" {
 		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
-	} else if currency["code"] == "ETH" {
+	} else if GetValue(currency, "code") == "ETH" {
 		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "8"), this.CurrencyToPrecision(code, amount)))
 	} else {
 		panic(ExchangeError(this.Id + " withdraw() only supports USDC and ETH transfers"))

@@ -1674,7 +1674,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
 		retRes127812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes127812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -1710,7 +1710,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost
 		retRes129912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes129912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
@@ -1859,10 +1859,10 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		retRes139312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes139312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderSide string = ToUpper(side)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   orderSide,
 	}
 	var marginMode any = nil
@@ -1956,7 +1956,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	} else if hasStopLoss || hasTakeProfit {
 		request["algoType"] = "BRACKET"
 		var outterOrder map[string]any = map[string]any{
-			"symbol":      GetValue(market, "id"),
+			"symbol":      market["id"],
 			"reduceOnly":  false,
 			"algoType":    "POSITIONAL_TP_SL",
 			"childOrders": []any{},
@@ -2906,12 +2906,12 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes239612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes239612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.V3PublicGetFutures(this.Extend(request, params)))
@@ -2989,7 +2989,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			// BadRequest, so callers (and the live test harness) can tell "wrong market
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
-			var firstMarket any = this.Market(GetValue(symbols, 0))
+			var firstMarket map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
 			if GetValue(firstMarket, "swap") != true {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
@@ -3513,7 +3513,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 		retRes286612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes286612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -3989,7 +3989,7 @@ func (this *Woo) transferBody(ch chan any, code any, amount any, fromAccount any
 		retRes321412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes321412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"token":  currency["id"],
 		"amount": this.ParseToNumeric(amount),
@@ -4210,7 +4210,7 @@ func (this *Woo) withdrawBody(ch chan any, code any, amount any, address any, op
 		PanicOnError(retRes339012)
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"amount":  amount,
 		"address": address,
@@ -4284,7 +4284,7 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"token":  currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
@@ -4947,7 +4947,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes395512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes395512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var response any = nil
 	if GetValue(market, "spot") == true {
 
@@ -4955,7 +4955,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(response)
 	} else if GetValue(market, "swap") == true {
 		var request map[string]any = map[string]any{
-			"symbol": GetValue(market, "id"),
+			"symbol": market["id"],
 		}
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params, "cross")
@@ -4966,7 +4966,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		response = (<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", GetValue(market, "type")), " markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", market["type"]), " markets")))
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 
@@ -5464,9 +5464,9 @@ func (this *Woo) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var fromCurrencyId *string = this.SafeString(data, "sellToken", fromCode)
-	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
+	var fromCurrency map[string]any = MapTyped(this.Currency(fromCurrencyId))
 	var toCurrencyId *string = this.SafeString(data, "buyToken", toCode)
-	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
+	var toCurrency map[string]any = MapTyped(this.Currency(toCurrencyId))
 
 	ch <- this.ParseConversion(data, fromCurrency, toCurrency)
 	return nil
@@ -5919,7 +5919,7 @@ func (this *Woo) ParseADLRank(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
-	var currencyItem map[string]any = this.Currency(code).(map[string]any)
+	var currencyItem map[string]any = MapTyped(this.Currency(code))
 	var networks any = currencyItem["networks"]
 	var networkKeys []string = ObjectKeys(networks)
 	for i := 0; i < len(networkKeys); i++ {

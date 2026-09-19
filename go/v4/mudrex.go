@@ -1640,7 +1640,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
 				continue
 			}
-			if IsEqual(GetValue(p, "symbol"), market["symbol"]) {
+			if IsEqual(GetValue(p, "symbol"), GetValue(market, "symbol")) {
 				positionId = this.SafeString(p, "id")
 				break
 			}

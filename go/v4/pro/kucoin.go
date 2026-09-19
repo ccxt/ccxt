@@ -267,7 +267,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan any, messageHash any, channel
 	subscription := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = subscription
 	var requestId string = ccxt.ToString(this.RequestId())
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var urlType string = func() string {
 		if ccxt.GetValue(market, "contract") == true {
 			return "futures"
@@ -290,7 +290,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan any, messageHash any, channel
 		"action":    action,
 		"channel":   channel,
 		"tradeType": tradeType,
-		"symbol":    ccxt.GetValue(market, "id"),
+		"symbol":    market["id"],
 	}
 	var message map[string]any = this.Extend(request, params)
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType)

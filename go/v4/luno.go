@@ -2011,7 +2011,7 @@ func (this *Luno) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes157312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes157312)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -2069,7 +2069,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 		retRes161612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes161612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -2161,7 +2161,7 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArg
 
 	retRes16938 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes16938)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}

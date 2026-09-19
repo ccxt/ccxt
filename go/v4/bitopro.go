@@ -2223,7 +2223,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 		PanicOnError(retRes181412)
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   this.NumberToString(amount),

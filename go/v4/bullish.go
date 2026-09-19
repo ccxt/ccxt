@@ -1857,12 +1857,12 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		ch <- retRes144419
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
@@ -1898,7 +1898,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 
@@ -2811,7 +2811,7 @@ func (this *Bullish) withdrawBody(ch chan any, code any, amount any, address any
 	retRes21388 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
 	PanicOnError(retRes21388)
 	// todo check this method properly
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"command": map[string]any{
 			"commandType":   "V1Withdraw",
@@ -3114,7 +3114,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 
 	retRes23988 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
 	PanicOnError(retRes23988)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 	}
@@ -3516,7 +3516,7 @@ func (this *Bullish) transferBody(ch chan any, code any, amount any, fromAccount
 	retRes27108 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
 	PanicOnError(retRes27108)
 	// todo check this method properly
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"commandType":          "V2TransferAsset",
 		"assetSymbol":          currency["id"],
@@ -3631,7 +3631,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request any = map[string]any{
 		"assetSymbol":      currency["id"],
 		"tradingAccountId": tradingAccountId,

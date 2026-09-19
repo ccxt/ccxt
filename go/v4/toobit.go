@@ -2133,7 +2133,7 @@ func (this *Toobit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes176312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes176312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{}
 	var response any = map[string]any{}
 	if GetValue(market, "spot") == true {
@@ -2666,7 +2666,7 @@ func (this *Toobit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var response any = map[string]any{}
 	if GetValue(market, "spot") == true {
 
@@ -3002,7 +3002,7 @@ func (this *Toobit) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes255612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes255612)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -3487,7 +3487,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes296512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes296512)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin": currency["id"],
 	}
@@ -3568,7 +3568,7 @@ func (this *Toobit) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes302412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes302412)
 	}
-	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"coin":          currency["id"],
 		"address":       address,
@@ -3626,13 +3626,13 @@ func (this *Toobit) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		retRes306512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes306512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "type") != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	marginMode = ToUpper(marginMode)
 	var request map[string]any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"marginType": marginMode,
 	}
 
