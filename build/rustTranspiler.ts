@@ -6069,8 +6069,14 @@ export class RustTranspilerBuilder {
                 // body carries a `;` inside its condition, which a
                 // statement-start header would lose along with the `while`.
                 const header = content.slice(Math.min(headerStart, lineStart), i);
+                // A block is a closure only when its header ENDS with the
+                // parameter list (`|…|`, optionally followed by a `-> Type`
+                // return annotation). `||` conditions and the printer's read
+                // shadows (`|__m| …` / `|__arr| …` inside an if/let header) are
+                // not closure bodies: the enclosing block captures nothing, so
+                // mentions inside it must not block a move (B-32 rule).
                 const kind = /\b(?:while|for|loop)\b/.test(header) ? 'loop'
-                    : header.includes('|') ? 'closure'
+                    : /\|\s*(?:->\s*[A-Za-z_][A-Za-z0-9_:<>&,\[\]\s]*)?$/.test(header) ? 'closure'
                         : /\bfn\b/.test(header) ? 'fn' : 'plain';
                 blocks.push({ open: i, end: -1, kind, parent: stack.length ? stack[stack.length - 1] : -1, headerStart });
                 stack.push(blocks.length - 1);
