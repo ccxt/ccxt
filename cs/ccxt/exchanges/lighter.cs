@@ -3924,7 +3924,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "public"));
         } else
         {
-            url = ((((this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/api/") + (this.version)) + "/") + (path));
+            url = ((((this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/api/") + this.version) + "/") + (path));
         }
         if (isEqual(api, "private"))
         {

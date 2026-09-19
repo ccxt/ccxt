@@ -6916,7 +6916,7 @@ public partial class mexc : Exchange
                         url = add(url, ("?" + (auth)));
                     }
                 }
-                auth = add(add(this.apiKey, timestamp), auth);
+                auth = ((this.apiKey + timestamp) + (auth));
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 ((IDictionary<string,object>)headers)["Signature"] = signature;
             }

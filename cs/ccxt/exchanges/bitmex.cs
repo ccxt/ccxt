@@ -4300,7 +4300,7 @@ public partial class bitmex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string query = ((("/api/" + (this.version)) + "/") + (path));
+        string query = ((("/api/" + this.version) + "/") + (path));
         if (isEqual(method, "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)

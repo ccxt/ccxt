@@ -11724,7 +11724,7 @@ public partial class bybit : Exchange
                     // '[]' on empty arrays even when forced to use objects
                     body = "{}";
                 }
-                object payload = ((timestamp + (this.apiKey)) + (body));
+                object payload = ((timestamp + this.apiKey) + (body));
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
@@ -11746,7 +11746,7 @@ public partial class bybit : Exchange
                 }
                 Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
                 string queryEncoded = this.rawencode(query);
-                object auth_base = ((((object)timestamp).ToString() + (this.apiKey)) + ((object)(this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)).ToString());
+                object auth_base = ((((object)timestamp).ToString() + this.apiKey) + ((object)(this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)).ToString());
                 object authFull = null;
                 if (isEqual(method, "POST"))
                 {

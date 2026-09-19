@@ -1728,7 +1728,7 @@ public partial class phemex : ccxt.phemex
         {
             Int64? expiryDelta = this.safeInteger(this.options, "expires", 120);
             object expiration = add(this.seconds(), expiryDelta);
-            object payload = add(this.apiKey, ((object)expiration).ToString());
+            string payload = (this.apiKey + ((object)expiration).ToString());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             string method = "user.auth";
             Dictionary<string, object> request = new Dictionary<string, object>() {

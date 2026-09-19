@@ -6051,7 +6051,7 @@ public partial class coinex : Exchange
             }, query);
             query = this.keysort(query);
             string urlencoded = this.rawencode(query);
-            object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + (this.secret))), sha256);
+            object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + this.secret)), sha256);
             headers = new Dictionary<string, object>() {
                 { "Authorization", ((string)signature).ToLower() },
                 { "AccessId", this.apiKey },
@@ -6081,7 +6081,7 @@ public partial class coinex : Exchange
                 }, query);
                 query = this.keysort(query);
                 string urlencoded = this.rawencode(query);
-                object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + (this.secret))), md5);
+                object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + this.secret)), md5);
                 headers = new Dictionary<string, object>() {
                     { "Authorization", ((string)signature).ToUpper() },
                     { "Content-Type", "application/json" },
@@ -6107,7 +6107,7 @@ public partial class coinex : Exchange
                 {
                     preparedString = add(preparedString, ("?" + urlencoded));
                 }
-                preparedString = add(preparedString, (nonce + (this.secret)));
+                preparedString = add(preparedString, (nonce + this.secret));
                 object signature = this.hash(this.encode(preparedString), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },

@@ -1396,7 +1396,7 @@ public partial class bitflyer : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = (("/" + (this.version)) + "/");
+        object request = (("/" + this.version) + "/");
         if (isEqual(api, "private"))
         {
             request = add(request, "me/");

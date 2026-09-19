@@ -4897,7 +4897,7 @@ public partial class whitebit : Exchange
         {
             headers = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + (this.version));
+        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
         string pathWithParams = ("/" + this.implodeParams(path, parameters));
         object url = add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), version), accessibility), pathWithParams);
         if (isEqual(accessibility, "public"))

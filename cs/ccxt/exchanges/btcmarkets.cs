@@ -1591,7 +1591,7 @@ public partial class btcmarkets : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
+        string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
         if (isEqual(api, "private"))
         {

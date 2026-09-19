@@ -8646,7 +8646,7 @@ public partial class gate : Exchange
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt((nonce / 1000));
             string timestampString = ((object)timestamp).ToString();
-            string signaturePath = (("/api/" + (this.version)) + entirePath);
+            string signaturePath = (("/api/" + this.version) + entirePath);
             List<object> payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
             string payload = String.Join("\n", ((IList<object>)payloadArray).ToArray());

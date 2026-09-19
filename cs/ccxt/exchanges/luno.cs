@@ -1866,7 +1866,7 @@ public partial class luno : Exchange
         if ((isEqual(api, "private")) || (isEqual(api, "exchangePrivate")))
         {
             this.checkRequiredCredentials();
-            string auth = this.stringToBase64(add(add(this.apiKey, ":"), this.secret));
+            string auth = this.stringToBase64(((this.apiKey + ":") + this.secret));
             headers = new Dictionary<string, object>() {
                 { "Authorization", ("Basic " + auth) },
             };

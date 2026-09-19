@@ -1228,14 +1228,14 @@ public partial class bitbank : Exchange
             {
                 auth = nonce;
             }
-            url = add(url, add(add(this.version, "/"), this.implodeParams(path, parameters)));
+            url = add(url, ((this.version + "/") + this.implodeParams(path, parameters)));
             if (isEqual(method, "POST"))
             {
                 body = this.json(query);
                 auth = add(auth, body);
             } else
             {
-                auth = add(auth, ((("/" + (this.version)) + "/") + (path)));
+                auth = add(auth, ((("/" + this.version) + "/") + (path)));
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     query = this.urlencode(query);

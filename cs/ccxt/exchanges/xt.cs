@@ -6765,10 +6765,10 @@ public partial class xt : Exchange
         {
             if (signed)
             {
-                payload = (("/" + (this.version)) + request);
+                payload = (("/" + this.version) + request);
             } else
             {
-                payload = ((("/" + (this.version)) + "/public") + request);
+                payload = ((("/" + this.version) + "/public") + request);
             }
         } else
         {
@@ -6815,7 +6815,7 @@ public partial class xt : Exchange
             object payloadString = null;
             if ((isEqual(endpoint, "spot")) || (isEqual(endpoint, "user")))
             {
-                payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + (this.apiKey)) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (isUndefinedBody)
                 {
                     if ((urlencoded != ""))
@@ -6834,7 +6834,7 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)headers)["xt-validate-recvwindow"] = recvWindow;
             } else
             {
-                payloadString = (((("xt-validate-appkey=" + (this.apiKey)) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
+                payloadString = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
                 if (isEqual(method, "GET"))
                 {
                     if ((urlencoded != ""))

@@ -2165,7 +2165,7 @@ public partial class bitso : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
+        string endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(method, "GET") || isEqual(method, "DELETE"))
         {
@@ -2191,9 +2191,9 @@ public partial class bitso : Exchange
                 }
             }
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
-            object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
+            string auth = ((((this.apiKey + ":") + nonce) + ":") + signature);
             headers = new Dictionary<string, object>() {
-                { "Authorization", ("Bitso " + (auth)) },
+                { "Authorization", ("Bitso " + auth) },
             };
         }
         return new Dictionary<string, object>() {

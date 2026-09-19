@@ -1987,7 +1987,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             Int64 timestamp = this.milliseconds();
             string stringTimestamp = ((object)timestamp).ToString();
-            string auth = (((stringTimestamp + "GET/") + (this.version)) + "/websocket");
+            string auth = (((stringTimestamp + "GET/") + this.version) + "/websocket");
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             string action = "authenticate";
             Dictionary<string, object> request = new Dictionary<string, object>() {

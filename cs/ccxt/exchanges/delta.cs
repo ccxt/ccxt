@@ -4378,7 +4378,7 @@ public partial class delta : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         headers ??= new Dictionary<string, object>();
-        string requestPath = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
+        string requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), requestPath);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))

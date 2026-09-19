@@ -3036,7 +3036,7 @@ public partial class ndax : Exchange
         {
             if (isEqual(path, "Authenticate"))
             {
-                object auth = add(add(this.login, ":"), this.password);
+                string auth = ((this.login + ":") + this.password);
                 string auth64 = this.stringToBase64(auth);
                 headers = new Dictionary<string, object>() {
                     { "Authorization", ("Basic " + auth64) },
@@ -3063,7 +3063,7 @@ public partial class ndax : Exchange
             if ((sessionToken == null))
             {
                 string nonce = ((object)this.nonce()).ToString();
-                object auth = ((nonce + (this.uid)) + (this.apiKey));
+                object auth = ((nonce + this.uid) + this.apiKey);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },

@@ -248,5 +248,34 @@ check ('nullable += target demoted by the later write keeps add()',
     'function f (t) { const x = this.safeInteger (t, \'k\'); x += 1; return x; }',
     'x = add(x, 1)');
 
+
+// ---- B-21: `this.<string field>` operands of the hand-written base -------------------------
+// Exchange.Options.cs declares these `public string <name> { get; set; }`; the enclosing add()
+// binds add(string, string) / add(string, object), both of which ARE C# concatenation, so the
+// LEFT-operand string rule covers them exactly as it covers `this.id`.
+
+check ('this.apiKey + literal', 
+    'function f () { const x = this.apiKey + ":signature"; return x; }',
+    '(this.apiKey + ":signature")');
+check ('this.version + unproven param',
+    'function f (o) { const x = this.version + o; return x; }',
+    '(this.version + (o))');
+check ('this.login + this.password (both members)',
+    'function f () { const x = this.login + this.password; return x; }',
+    '(this.login + this.password)');
+// a member the hand-written base does NOT declare as a string keeps the helper
+check ('an unproven this.<member> keeps add()',
+    'function f () { const x = this.someUnknownField + "-"; return x; }',
+    'add(this.someUnknownField, "-")');
+
+// ---- B-21: `x as string` prints `((string)x)` — a statically string operand ---------------
+check ('(x as string) + literal',
+    'function f (o) { const x = (o as string) + "-"; return x; }',
+    '(((string)o) + "-")');
+// `as any` prints the bare operand and stays unproven
+check ('(x as any) + literal keeps add()',
+    'function f (o) { const x = (o as any) + "-"; return x; }',
+    'add(((object)o), "-")');
+
 console.log (failures === 0 ? 'all checks passed' : failures + ' check(s) failed');
 process.exit (failures === 0 ? 0 : 1);

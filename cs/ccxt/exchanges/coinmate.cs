@@ -1486,7 +1486,7 @@ public partial class coinmate : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
-            object auth = ((nonce + (this.uid)) + (this.apiKey));
+            object auth = ((nonce + this.uid) + this.apiKey);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "clientId", this.uid },

@@ -3532,7 +3532,7 @@ public partial class bitfinex : Exchange
             request = add(api, request);
         } else
         {
-            request = add(this.version, request);
+            request = (this.version + (request));
         }
         object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), request);
         if (isEqual(api, "public"))

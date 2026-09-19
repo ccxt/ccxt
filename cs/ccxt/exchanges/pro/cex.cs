@@ -1719,7 +1719,7 @@ public partial class cex : ccxt.cex
         {
             this.checkRequiredCredentials();
             string nonce = ((object)this.seconds()).ToString();
-            object auth = (nonce + (this.apiKey));
+            object auth = (nonce + this.apiKey);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "e", "auth" },

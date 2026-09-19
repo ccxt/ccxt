@@ -1168,13 +1168,13 @@ public partial class mercado : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            url = add(url, add(this.version, "/"));
+            url = add(url, (this.version + "/"));
             Int64 nonce = this.nonce();
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "tapi_method", path },
                 { "tapi_nonce", nonce },
             }, parameters));
-            string auth = (((("/tapi/" + (this.version)) + "/") + "?") + (body));
+            string auth = (((("/tapi/" + this.version) + "/") + "?") + (body));
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "TAPI-ID", this.apiKey },

@@ -1651,7 +1651,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             string method = "public/auth";
             string nonce = ((object)this.nonce()).ToString();
-            string auth = (((method + nonce) + (this.apiKey)) + nonce);
+            string auth = (((method + nonce) + this.apiKey) + nonce);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", nonce },

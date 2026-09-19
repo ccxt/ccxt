@@ -943,10 +943,10 @@ public partial class zaif : Exchange
         object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/");
         if (isEqual(api, "public"))
         {
-            url = add(url, ((("api/" + (this.version)) + "/") + this.implodeParams(path, parameters)));
+            url = add(url, ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else if (isEqual(api, "fapi"))
         {
-            url = add(url, ((("fapi/" + (this.version)) + "/") + this.implodeParams(path, parameters)));
+            url = add(url, ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else
         {
             this.checkRequiredCredentials();
