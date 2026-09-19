@@ -1495,7 +1495,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId(url);
             String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrderWs", symbol, type, side, amount, price, parameters)).join();
+            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrderWs", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoordermarketVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoordermarketVariable).get(1);
             var order = ((List<Object>) txTypetxInfoordermarketVariable).get(2);
@@ -1820,26 +1820,26 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String channelId = this.safeString(parts, 1);
         if (java.util.Objects.equals(name, "order_book"))
         {
-            this.handleOrderBookUnSubscription(client, channelId);
+            this.handleOrderBookUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "market_stats"))
         {
-            this.handleTickerUnSubscription(client, channelId);
+            this.handleTickerUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "trade"))
         {
-            this.handleTradesUnSubscription(client, channelId);
+            this.handleTradesUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "account_all_trades"))
         {
             this.handleMyTradesUnSubscription(client);
         } else if (java.util.Objects.equals(name, "account_orders"))
         {
-            this.handleOrdersUnSubscription(client, channelId);
+            this.handleOrdersUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "account_all_orders"))
         {
             this.handleAllOrdersUnSubscription(client);
         }
     }
 
-    public void handleOrderBookUnSubscription(Client client, Object marketId)
+    public void handleOrderBookUnSubscription(Client client, String marketId)
     {
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("orderbook", symbol);
@@ -1851,7 +1851,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public void handleTickerUnSubscription(Client client, Object marketId)
+    public void handleTickerUnSubscription(Client client, String marketId)
     {
         if (java.util.Objects.equals(marketId, "all"))
         {
@@ -1903,7 +1903,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public void handleTradesUnSubscription(Client client, Object marketId)
+    public void handleTradesUnSubscription(Client client, String marketId)
     {
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("trade", symbol);
@@ -1926,7 +1926,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         this.cleanCache(myTradesStructure);
     }
 
-    public void handleOrdersUnSubscription(Client client, Object marketId)
+    public void handleOrdersUnSubscription(Client client, String marketId)
     {
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("orders", symbol);

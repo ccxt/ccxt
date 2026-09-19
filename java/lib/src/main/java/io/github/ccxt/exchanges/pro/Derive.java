@@ -145,7 +145,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -219,7 +219,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -461,7 +461,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         client.resolve(error, Helpers.add("unwatch", topic));
     }
 
-    public Object handleUnSubscribe(Client client, Object message)
+    public Object handleUnSubscribe(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -538,7 +538,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         //
@@ -650,7 +650,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchOrders", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchOrders", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             Object topic = Helpers.add(this.numberToString(subaccountId), ".orders");
@@ -683,7 +683,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -795,7 +795,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchMyTrades", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchMyTrades", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             Object topic = Helpers.add(this.numberToString(subaccountId), ".trades");
@@ -828,7 +828,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //
@@ -851,7 +851,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -859,7 +859,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if (!(((Map<?, ?>)message).containsKey("error")))
+        if (!(message.containsKey("error")))
         {
             return false;
         }
@@ -894,7 +894,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -943,16 +943,16 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 if (java.util.Objects.equals(((Map<String, Object>)subscription).get("method"), "public/login"))
                 {
-                    this.handleAuth(client, message);
+                    this.handleAuth(client, (Map<String, Object>) (message));
                 } else if (java.util.Objects.equals(((Map<String, Object>)subscription).get("method"), "unsubscribe"))
                 {
-                    this.handleUnSubscribe(client, message);
+                    this.handleUnSubscribe(client, (Map<String, Object>) (message));
                 }
             }
         }
     }
 
-    public void handleAuth(Client client, Object message)
+    public void handleAuth(Client client, Map<String, Object> message)
     {
         //
         // {

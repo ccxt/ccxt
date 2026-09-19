@@ -812,7 +812,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Object uppercaseStatus = (((java.util.Objects.equals(status, null)))) ? null : ((String)status).toUpperCase();
         Map<String, Object> statuses = new HashMap<String, Object>() {{
@@ -998,7 +998,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object orderMessage(Object market, Object nonce, Object feeRate, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object orderMessage(Map<String, Object> market, Object nonce, Object feeRate, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(type, null))
@@ -1061,7 +1061,7 @@ public class Hibachi extends HibachiApi
         return message;
     }
 
-    public Object createOrderRequest(Object nonce, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1092,7 +1092,7 @@ public class Hibachi extends HibachiApi
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
-        Object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
+        Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
         final Object finalSideInternal = sideInternal;
         final Object finalType = type;
@@ -1154,7 +1154,7 @@ public class Hibachi extends HibachiApi
                 (this.loadMarkets()).join();
             }
             Object nonce = this.nonce();
-            Object request = this.createOrderRequest(nonce, symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Helpers.addElementToObject(request, "accountId", this.getAccountId());
             Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
             //
@@ -1228,7 +1228,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object editOrderRequest(Object nonce, Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public Object editOrderRequest(Object nonce, String id, String symbol, String type, String side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -1247,7 +1247,7 @@ public class Hibachi extends HibachiApi
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
         Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
         Object feeRate = Helpers.mathMax(takerFeeValue, makerFeeValue);
-        Object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
+        Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orderId", id );
@@ -1287,7 +1287,7 @@ public class Hibachi extends HibachiApi
                 (this.loadMarkets()).join();
             }
             Object nonce = this.nonce();
-            Object request = this.editOrderRequest(nonce, id, symbol, type, side, amount, price, parameters);
+            Object request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Helpers.addElementToObject(request, "accountId", this.getAccountId());
             (this.privatePutTradeOrder(request)).join();
             // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
@@ -2266,7 +2266,7 @@ public class Hibachi extends HibachiApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "pending" );
@@ -2658,7 +2658,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object parseSettlement(Object settlement, Object... optionalArgs)
+    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         //     {
@@ -2689,7 +2689,7 @@ public class Hibachi extends HibachiApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }
         return result;
     }

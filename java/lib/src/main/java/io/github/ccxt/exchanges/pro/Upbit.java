@@ -612,7 +612,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "wait", "open" );

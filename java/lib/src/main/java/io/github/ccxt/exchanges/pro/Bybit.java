@@ -324,7 +324,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
+            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, true);
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade");
             (this.authenticate(url)).join();
             Object requestId = String.valueOf(this.requestId());
@@ -379,7 +379,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Object orderRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade");
             (this.authenticate(url)).join();
             Object requestId = String.valueOf(this.requestId());

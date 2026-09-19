@@ -1350,7 +1350,7 @@ public class Woo extends WooApi
         return fee;
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
@@ -1403,7 +1403,7 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(data, market);
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2533,7 +2533,7 @@ public class Woo extends WooApi
 
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "ioc", "IOC" );
@@ -2691,7 +2691,7 @@ public class Woo extends WooApi
             put( "status", Woo.this.parseOrderStatus(status) );
             put( "symbol", symbol );
             put( "type", finalOrderType );
-            put( "timeInForce", Woo.this.parseTimeInForce(finalOrderType) );
+            put( "timeInForce", Woo.this.parseTimeInForce((String) (finalOrderType)) );
             put( "postOnly", finalPostOnly );
             put( "reduceOnly", Woo.this.safeBool(order, "reduceOnly") );
             put( "side", side );
@@ -2713,7 +2713,7 @@ public class Woo extends WooApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         if (!java.util.Objects.equals(status, null))
         {
@@ -3453,12 +3453,12 @@ public class Woo extends WooApi
 
     }
 
-    public Object getDedicatedNetworkId(Object currency, Object parameters)
+    public Object getDedicatedNetworkId(Object currency, Map<String, Object> parameters)
     {
         Object networkCode = null;
         List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         networkCode = ((List<Object>) networkCodeparametersVariable).get(0);
-        parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
         networkCode = this.networkIdToCode(networkCode, Helpers.GetValue(currency, "code"));
         Object networkEntry = (((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode);
         if (java.util.Objects.equals(networkEntry, null))
@@ -3827,7 +3827,7 @@ public class Woo extends WooApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "pending" );

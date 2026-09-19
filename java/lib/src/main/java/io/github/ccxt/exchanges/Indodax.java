@@ -899,7 +899,7 @@ public class Indodax extends IndodaxApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "open", "open" );
@@ -1677,7 +1677,7 @@ public class Indodax extends IndodaxApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "success", "ok" );

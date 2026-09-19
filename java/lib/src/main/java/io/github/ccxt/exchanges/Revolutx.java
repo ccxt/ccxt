@@ -1045,7 +1045,7 @@ public class Revolutx extends RevolutxApi
      * @param {string} status the exchange-specific order status
      * @returns {string|undefined} the unified order status
      */
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending_new", "open" );
@@ -1562,7 +1562,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public Object parseMyTrade(Object trade, Object... optionalArgs)
+    public Object parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(trade, "tid");
@@ -1677,7 +1677,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseMyTrade(trade, market));
+                ((List<Object>)result).add(this.parseMyTrade((Map<String, Object>) (trade), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

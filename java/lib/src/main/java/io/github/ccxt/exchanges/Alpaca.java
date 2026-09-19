@@ -1988,7 +1988,7 @@ public class Alpaca extends AlpacaApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending_new", "open" );
@@ -2013,7 +2013,7 @@ public class Alpaca extends AlpacaApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "day", "Day" );
@@ -2600,7 +2600,7 @@ public class Alpaca extends AlpacaApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PROCESSING", "pending" );

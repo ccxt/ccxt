@@ -565,12 +565,12 @@ public class Upbit extends UpbitApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            return (this.fetchMarketById(((Map<String, Object>)market).get("id"), parameters)).join();
+            return (this.fetchMarketById((String) (((Map<String, Object>)market).get("id")), parameters)).join();
         });
 
     }
 
-    public CompletableFuture<Object> fetchMarketById(Object id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarketById(String id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2186,7 +2186,7 @@ public class Upbit extends UpbitApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "submitting", "pending" );
@@ -2273,7 +2273,7 @@ public class Upbit extends UpbitApi
         }};
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "wait", "open" );

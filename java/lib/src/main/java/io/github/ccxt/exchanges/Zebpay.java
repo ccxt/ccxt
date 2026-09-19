@@ -716,7 +716,7 @@ public class Zebpay extends ZebpayApi
                 List<Object> responseData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseTradingFee(data, market);
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -765,7 +765,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1370,7 +1370,7 @@ public class Zebpay extends ZebpayApi
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                var requestparametersVariable = this.orderRequest(symbol, type, amount, request, price, parameters);
+                var requestparametersVariable = this.orderRequest(symbol, type, amount, (Map<String, Object>) (request), price, parameters);
                 request = ((List<Object>) requestparametersVariable).get(0);
                 parameters = ((List<Object>) requestparametersVariable).get(1);
                 response = (this.privateSpotPostV2ExOrders(this.extend(request, parameters))).join();
@@ -1421,7 +1421,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object orderRequest(Object symbol, Object type, Object amount, Object request, Object... optionalArgs)
+    public Object orderRequest(Object symbol, Object type, Object amount, Map<String, Object> request, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2314,7 +2314,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");

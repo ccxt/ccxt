@@ -1212,7 +1212,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "-1", "open" );
@@ -1829,7 +1829,7 @@ final Object finalJ = j;
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> states = new HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );

@@ -1180,7 +1180,7 @@ public class Coincheck extends CoincheckApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "pending" );

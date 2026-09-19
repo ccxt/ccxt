@@ -4936,7 +4936,7 @@ public class Xt extends XtApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -5458,7 +5458,7 @@ public class Xt extends XtApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUBMIT", "pending" );
@@ -6221,7 +6221,7 @@ final Object finalMarket = market;
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(result, market);
+            return this.parseTradingFee((Map<String, Object>) (result), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -6268,7 +6268,7 @@ final Object finalMarket = market;
                 Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? ((Map<String, Object>)market).get("inverse") : ((Map<String, Object>)market).get("linear");
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(fee, market));
+                    ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee((Map<String, Object>) (fee), market));
                 }
             }
             return result;
@@ -6276,7 +6276,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
@@ -6433,7 +6433,7 @@ final Object finalMarket = market;
      * @param {object} entry a single entry from a position/list response
      * @param {object} breakBySymbolSide the result of indexPositionBreakList()
      */
-    public Object mergePositionBreakInfo(Object entry, Object breakBySymbolSide)
+    public Object mergePositionBreakInfo(Map<String, Object> entry, Map<String, Object> breakBySymbolSide)
     {
         String marketId = this.safeString(entry, "symbol");
         Object key = Helpers.add(Helpers.add(marketId, "_"), this.safeString(entry, "positionSide"));
@@ -6542,7 +6542,7 @@ final Object finalMarket = market;
                 String positionSize = this.safeString(entry, "positionSize");
                 if (!java.util.Objects.equals(positionSize, "0"))
                 {
-                    Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                    Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
                     return this.parsePosition(merged, marketInner);
                 }
             }
@@ -6639,7 +6639,7 @@ final Object finalMarket = market;
                 Object entry = Helpers.GetValue(positions, i);
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
-                Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
                 ((List<Object>)result).add(this.parsePosition(merged, marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);

@@ -1198,7 +1198,7 @@ public class Coinone extends CoinoneApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "live", "open" );

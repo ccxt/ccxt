@@ -2455,7 +2455,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }};
         }
         String rawStatus = this.safeString(order, "X");
-        String status = this.parseOrderStatus(rawStatus);
+        String status = this.parseOrderStatus((String) (rawStatus));
         String clientOrderId = this.safeString2(order, "C", "caid");
         if ((java.util.Objects.equals(clientOrderId, null)) || ((clientOrderId.length() == 0)))
         {

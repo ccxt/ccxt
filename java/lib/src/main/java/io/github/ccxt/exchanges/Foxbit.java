@@ -793,7 +793,7 @@ public class Foxbit extends FoxbitApi
                 String marketId = this.safeString(entry, "market_symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(entry, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1094,7 +1094,7 @@ public class Foxbit extends FoxbitApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2154,7 +2154,7 @@ public class Foxbit extends FoxbitApi
         }});
     }
 
-    public Object parseTradingFee(Object entry, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> entry, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -2239,7 +2239,7 @@ public class Foxbit extends FoxbitApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PARTIALLY_CANCELED", "open" );
@@ -2341,7 +2341,7 @@ public class Foxbit extends FoxbitApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUBMITTING", "pending" );

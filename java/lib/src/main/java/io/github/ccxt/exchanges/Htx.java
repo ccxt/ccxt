@@ -2319,7 +2319,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -2383,7 +2383,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(first, market);
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2414,7 +2414,7 @@ public class Htx extends HtxApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
+                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
         });
@@ -2430,7 +2430,7 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the limits object of a market structure
      */
-    public CompletableFuture<Object> fetchTradingLimitsById(Object id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchTradingLimitsById(String id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2531,10 +2531,10 @@ public class Htx extends HtxApi
                 {
                     if (java.util.Objects.equals(key, "spot"))
                     {
-                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("spot", null, parameters));
+                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("spot", (String) (null), parameters));
                     } else if (java.util.Objects.equals(key, "linear"))
                     {
-                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType(null, "linear", parameters));
+                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType((String) (null), "linear", parameters));
                     } else if (java.util.Objects.equals(key, "inverse"))
                     {
                         ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("swap", "inverse", parameters));
@@ -2566,7 +2566,7 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarketsByTypeAndSubType(Object type2, Object subType2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarketsByTypeAndSubType(String type2, String subType2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object subType3 = subType2;
@@ -6115,7 +6115,7 @@ public class Htx extends HtxApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "partial-filled", "open" );
@@ -6556,7 +6556,7 @@ public class Htx extends HtxApi
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public CompletableFuture<Object> createSpotOrderRequest(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createSpotOrderRequest(String symbol, String type2, String side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -6699,7 +6699,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object createContractOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createContractOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -7022,11 +7022,11 @@ public class Htx extends HtxApi
                 {
                     throw new NotSupported((this.id + " createOrder() does not support trailing orders for spot markets")) ;
                 }
-                Object spotRequest = (this.createSpotOrderRequest(symbol, type, side, amount, price, parameters)).join();
+                Object spotRequest = (this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
                 response = (this.spotPrivatePostV1OrderOrdersPlace(spotRequest)).join();
             } else
             {
-                Object contractRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
+                Object contractRequest = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
                     if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
@@ -8505,7 +8505,7 @@ public class Htx extends HtxApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "unknown", "failed" );

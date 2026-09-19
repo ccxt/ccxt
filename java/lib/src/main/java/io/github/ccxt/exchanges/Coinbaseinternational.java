@@ -1028,7 +1028,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "FAILED", "failed" );
@@ -1604,7 +1604,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PROCESSED", "ok" );
@@ -2412,7 +2412,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "WORKING", "open" );
@@ -2430,7 +2430,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         if (java.util.Objects.equals(type, "UNKNOWN_ORDER_TYPE"))
         {

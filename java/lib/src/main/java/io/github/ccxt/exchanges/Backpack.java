@@ -2071,7 +2071,7 @@ public class Backpack extends BackpackApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "cancelled", "cancelled" );
@@ -2188,7 +2188,7 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -2234,7 +2234,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2683,7 +2683,7 @@ public class Backpack extends BackpackApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "New", "open" );
@@ -2697,7 +2697,7 @@ public class Backpack extends BackpackApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderSide(Object side)
+    public String parseOrderSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "Bid", "buy" );

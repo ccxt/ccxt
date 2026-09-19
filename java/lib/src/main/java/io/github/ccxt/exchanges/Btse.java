@@ -2777,7 +2777,7 @@ public class Btse extends BtseApi
 
     }
 
-    public String encodeTriggerPriceType(Object priceType)
+    public String encodeTriggerPriceType(String priceType)
     {
         Map<String, Object> priceTypes = new HashMap<String, Object>() {{
             put( "last", "LAST_PRICE" );
@@ -3283,7 +3283,7 @@ public class Btse extends BtseApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "2", "open" );
@@ -3309,7 +3309,7 @@ public class Btse extends BtseApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "76", "limit" );
@@ -3319,7 +3319,7 @@ public class Btse extends BtseApi
         return this.safeString(types, type, type);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> values = new HashMap<String, Object>() {{
             put( "GTC", "GTC" );
@@ -3651,7 +3651,7 @@ public class Btse extends BtseApi
         }};
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Deposit", "deposit" );
@@ -3662,7 +3662,7 @@ public class Btse extends BtseApi
         return this.safeString(types, type, type);
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         // the full enum from the wallet documentation, PROCESSING is also live-verified
         Map<String, Object> statuses = new HashMap<String, Object>() {{
@@ -3784,7 +3784,7 @@ public class Btse extends BtseApi
         }};
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Deposit", "transaction" );
@@ -3816,7 +3816,7 @@ public class Btse extends BtseApi
         return this.safeString(types, type, type);
     }
 
-    public String parseLedgerEntryDirection(Object type)
+    public String parseLedgerEntryDirection(String type)
     {
         Map<String, Object> directions = new HashMap<String, Object>() {{
             put( "Deposit", "in" );
@@ -4051,7 +4051,7 @@ public class Btse extends BtseApi
         }});
     }
 
-    public String parseMarginModeType(Object marginMode)
+    public String parseMarginModeType(String marginMode)
     {
         Map<String, Object> marginModes = new HashMap<String, Object>() {{
             put( "91", "cross" );
@@ -4062,7 +4062,7 @@ public class Btse extends BtseApi
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public Object parsePositionSide(Object side)
+    public Object parsePositionSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "buy", "long" );

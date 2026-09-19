@@ -2215,7 +2215,7 @@ public class Coinsph extends CoinsphApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -2280,7 +2280,7 @@ public class Coinsph extends CoinsphApi
             //     ]
             //
             Map<String, Object> tradingFee = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(tradingFee, market);
+            return this.parseTradingFee((Map<String, Object>) (tradingFee), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2322,7 +2322,7 @@ public class Coinsph extends CoinsphApi
             List<Object> fees = this.toArray(response);
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2334,7 +2334,7 @@ public class Coinsph extends CoinsphApi
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -2673,7 +2673,7 @@ public class Coinsph extends CoinsphApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );

@@ -1589,7 +1589,7 @@ public class Bitteam extends BitteamApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "accepted", "open" );
@@ -2723,7 +2723,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "approving", "pending" );

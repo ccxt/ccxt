@@ -4268,13 +4268,13 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseBalanceHelper(Object entry)
+    public Object parseBalanceHelper(Map<String, Object> entry)
     {
         Object account = this.account();
         ((Map<String, Object>)account).put("used", this.safeString2(entry, "freeze", "locked"));
         ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
         ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
-        if (((Map<?, ?>)entry).containsKey("borrowed"))
+        if (entry.containsKey("borrowed"))
         {
             ((Map<String, Object>)account).put("debt", this.safeString(entry, "borrowed"));
         }
@@ -4593,12 +4593,12 @@ public class Gate extends GateApi
                     Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quote", new HashMap<String, Object>() {{}});
                     Object baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
                     Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                    result = this.mergeBalanceAccount(result, ((String)baseCode), this.parseBalanceHelper(base));
-                    result = this.mergeBalanceAccount(result, ((String)quoteCode), this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result, ((String)baseCode), this.parseBalanceHelper((Map<String, Object>) (base)));
+                    result = this.mergeBalanceAccount(result, ((String)quoteCode), this.parseBalanceHelper((Map<String, Object>) (quote)));
                 } else
                 {
                     Object code = this.safeCurrencyCode(this.safeString(entry, "currency"));
-                    ((Map<String, Object>)result).put((String)((String)code), this.parseBalanceHelper(entry));
+                    ((Map<String, Object>)result).put((String)((String)code), this.parseBalanceHelper((Map<String, Object>) (entry)));
                 }
             }
             return this.safeBalance(result);
@@ -5597,7 +5597,7 @@ final Object finalPointFee = pointFee;
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PEND", "pending" );
@@ -5805,7 +5805,7 @@ final Object finalPointFee = pointFee;
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitPrice, null);
             Boolean isTpsl = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
             Boolean nonTriggerOrder = !Boolean.TRUE.equals(isTpsl) && (java.util.Objects.equals(trigger, null));
-            Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object response = null;
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("margin"), true)))
             {
@@ -5987,7 +5987,7 @@ final Object finalPointFee = pointFee;
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -6343,7 +6343,7 @@ final Object finalPointFee = pointFee;
 
     }
 
-    public Object editOrderRequest(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public Object editOrderRequest(Object id, String symbol, Object type, Object side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -6433,7 +6433,7 @@ final Object finalPointFee = pointFee;
             }
             (this.loadUnifiedStatus()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Object extendedRequest = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -6478,7 +6478,7 @@ final Object finalPointFee = pointFee;
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "open", "open" );
@@ -8602,7 +8602,7 @@ final Object finalRebate = rebate;
 
     }
 
-    public Object parseEmulatedLeverageTiers(Object info, Object... optionalArgs)
+    public Object parseEmulatedLeverageTiers(Map<String, Object> info, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "name");
@@ -8654,7 +8654,7 @@ final Object finalFloor = floor;
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (!(info instanceof List))
         {
-            return this.parseEmulatedLeverageTiers(info, market);
+            return this.parseEmulatedLeverageTiers((Map<String, Object>) (info), market);
         }
         Object minNotional = 0;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());

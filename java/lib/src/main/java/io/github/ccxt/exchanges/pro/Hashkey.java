@@ -76,7 +76,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }});
     }
 
-    public CompletableFuture<Object> wathPublic(Object market, Object topic, Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> wathPublic(Map<String, Object> market, Object topic, Object messageHash, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -141,7 +141,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
-            Object ohlcv = (this.wathPublic(market, topic, messageHash, parameters)).join();
+            Object ohlcv = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -248,7 +248,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             symbol = ((Map<String, Object>)market).get("symbol");
             Object topic = "realtimes";
             String messageHash = ("ticker:" + symbol);
-            return (this.wathPublic(market, topic, messageHash, parameters)).join();
+            return (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -319,7 +319,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             symbol = ((Map<String, Object>)market).get("symbol");
             Object topic = "trade";
             String messageHash = ("trades:" + symbol);
-            Object trades = (this.wathPublic(market, topic, messageHash, parameters)).join();
+            Object trades = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -404,7 +404,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             symbol = ((Map<String, Object>)market).get("symbol");
             Object topic = "depth";
             String messageHash = ("orderbook:" + symbol);
-            Object orderbook = (this.wathPublic(market, topic, messageHash, parameters)).join();
+            Object orderbook = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 

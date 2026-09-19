@@ -482,8 +482,8 @@ public class Nado extends NadoApi
             Long productId = this.parseToInt(((Map<String, Object>)market).get("id"));
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
-            String priceX18 = this.convertToX18(priceString);
-            String amountX18 = this.convertToX18(amountString);
+            String priceX18 = this.convertToX18((String) (priceString));
+            String amountX18 = this.convertToX18((String) (amountString));
             if (java.util.Objects.equals(side, "sell"))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -503,7 +503,7 @@ public class Nado extends NadoApi
             String nonce = this.createOrderNonce(recvWindow);
             Long requestId = this.safeInteger(parameters, "id");
             Object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
-            Object sender = this.createSubaccount(this.walletAddress, subaccount);
+            Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             final Object finalAmountX18 = amountX18;
             final Object finalExpiration = expiration;
             Map<String, Object> order = new HashMap<String, Object>() {{
@@ -690,8 +690,8 @@ public class Nado extends NadoApi
             Long productId = this.parseToInt(((Map<String, Object>)market).get("id"));
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
-            String priceX18 = this.convertToX18(priceString);
-            String amountX18 = this.convertToX18(amountString);
+            String priceX18 = this.convertToX18((String) (priceString));
+            String amountX18 = this.convertToX18((String) (amountString));
             if (java.util.Objects.equals(side, "sell"))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -720,7 +720,7 @@ public class Nado extends NadoApi
             Object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
             Object placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
-            Object sender = this.createSubaccount(this.walletAddress, subaccount);
+            Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Map<String, Object> cancelTx = new HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "productIds", new ArrayList<Object>(Arrays.asList(productId)) );
@@ -877,7 +877,7 @@ public class Nado extends NadoApi
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
-            Object sender = this.createSubaccount(this.walletAddress, subaccount);
+            Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Object recvWindow = null;
             List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
             recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
@@ -990,7 +990,7 @@ public class Nado extends NadoApi
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
-            Object sender = this.createSubaccount(this.walletAddress, subaccount);
+            Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
@@ -1130,7 +1130,7 @@ public class Nado extends NadoApi
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
-            Object sender = this.createSubaccount(this.walletAddress, subaccount);
+            Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(trigger, true))
@@ -1229,7 +1229,7 @@ public class Nado extends NadoApi
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
-            Object sender = this.createSubaccount(this.walletAddress, subaccount);
+            Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             if (java.util.Objects.equals(trigger, true))
             {
@@ -1322,7 +1322,7 @@ public class Nado extends NadoApi
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
-            Object sender = this.createSubaccount(this.walletAddress, subaccount);
+            Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             if (java.util.Objects.equals(trigger, true))
             {
@@ -1373,7 +1373,7 @@ public class Nado extends NadoApi
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
-                if (Helpers.isTrue(this.isArchiveOrderClosed(order)))
+                if (Helpers.isTrue(this.isArchiveOrderClosed((Map<String, Object>) (order))))
                 {
                     ((List<Object>)closedOrders).add(this.extend(new HashMap<String, Object>() {{
                         put( "status", "closed" );
@@ -1479,7 +1479,7 @@ public class Nado extends NadoApi
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
             Object matchesRequest = new HashMap<String, Object>() {{
-                put( "subaccounts", new ArrayList<Object>(Arrays.asList(Nado.this.createSubaccount(Nado.this.walletAddress, finalSubaccount))) );
+                put( "subaccounts", new ArrayList<Object>(Arrays.asList(Nado.this.createSubaccount((String) (Nado.this.walletAddress), finalSubaccount))) );
             }};
             if (!java.util.Objects.equals(market, null))
             {
@@ -1568,7 +1568,7 @@ public class Nado extends NadoApi
             final Object finalSubaccount = subaccount;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subaccount_info" );
-                put( "subaccount", Nado.this.createSubaccount(Nado.this.walletAddress, finalSubaccount) );
+                put( "subaccount", Nado.this.createSubaccount((String) (Nado.this.walletAddress), finalSubaccount) );
             }};
             Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             //
@@ -1676,7 +1676,7 @@ public class Nado extends NadoApi
             final Object finalSubaccount = subaccount;
             final Object finalLimit = limit;
             Object eventsRequest = new HashMap<String, Object>() {{
-                put( "subaccounts", new ArrayList<Object>(Arrays.asList(Nado.this.createSubaccount(Nado.this.walletAddress, finalSubaccount))) );
+                put( "subaccounts", new ArrayList<Object>(Arrays.asList(Nado.this.createSubaccount((String) (Nado.this.walletAddress), finalSubaccount))) );
                 put( "event_types", new ArrayList<Object>(Arrays.asList(eventType)) );
                 put( "limit", new HashMap<String, Object>() {{
                     put( "raw", (((java.util.Objects.equals(finalLimit, null)))) ? 100 : Helpers.mathMin(finalLimit, 500) );
@@ -1784,7 +1784,7 @@ public class Nado extends NadoApi
             final Object finalSubaccount = subaccount;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subaccount_info" );
-                put( "subaccount", Nado.this.createSubaccount(Nado.this.walletAddress, finalSubaccount) );
+                put( "subaccount", Nado.this.createSubaccount((String) (Nado.this.walletAddress), finalSubaccount) );
             }};
             Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             //
@@ -2302,7 +2302,7 @@ public class Nado extends NadoApi
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "interest_and_funding", new HashMap<String, Object>() {{
-                    put( "subaccount", Nado.this.createSubaccount(Nado.this.walletAddress, finalSubaccount) );
+                    put( "subaccount", Nado.this.createSubaccount((String) (Nado.this.walletAddress), finalSubaccount) );
                     put( "product_ids", new ArrayList<Object>(Arrays.asList(Nado.this.parseToInt(((Map<String, Object>)market).get("id")))) );
                     put( "limit", (((java.util.Objects.equals(finalLimit, null)))) ? 100 : Helpers.mathMin(finalLimit, 100) );
                 }} );
@@ -2329,7 +2329,7 @@ public class Nado extends NadoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fundingPayments).size(); i++)
             {
-                ((List<Object>)result).add(this.parseFundingHistory(Helpers.GetValue(fundingPayments, i), market));
+                ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) (Helpers.GetValue(fundingPayments, i)), market));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
@@ -2867,7 +2867,7 @@ public class Nado extends NadoApi
         }};
     }
 
-    public Object parseFundingHistory(Object funding, Object... optionalArgs)
+    public Object parseFundingHistory(Map<String, Object> funding, Object... optionalArgs)
     {
         //
         //     {
@@ -3200,7 +3200,7 @@ public class Nado extends NadoApi
         }});
     }
 
-    public Object isArchiveOrderClosed(Object order)
+    public Object isArchiveOrderClosed(Map<String, Object> order)
     {
         String amount = this.safeString(order, "amount");
         String filled = this.safeString(order, "base_filled");
@@ -3325,7 +3325,7 @@ public class Nado extends NadoApi
             status = this.safeString(order, "status");
             if (java.util.Objects.equals(status, null))
             {
-                if (Helpers.isTrue(this.isArchiveOrderClosed(order)))
+                if (Helpers.isTrue(this.isArchiveOrderClosed((Map<String, Object>) (order))))
                 {
                     status = "closed";
                 }
@@ -3446,7 +3446,7 @@ public class Nado extends NadoApi
         }}, market);
     }
 
-    public String parseOrderTimeInForce(Object timeInForce)
+    public String parseOrderTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "default", "GTC" );
@@ -3457,7 +3457,7 @@ public class Nado extends NadoApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public String convertToX18(Object value)
+    public String convertToX18(String value)
     {
         if (java.util.Objects.equals(value, null))
         {
@@ -3533,7 +3533,7 @@ public class Nado extends NadoApi
         return appendix;
     }
 
-    public Object createSubaccount(Object walletAddress, Object... optionalArgs)
+    public Object createSubaccount(String walletAddress, Object... optionalArgs)
     {
         Object subaccount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "default";
         if (java.util.Objects.equals(walletAddress, null))
@@ -3632,7 +3632,7 @@ public class Nado extends NadoApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(hash, (String) (this.privateKey));
     }
 
     public Object signCancellation(Object cancellation, Object chainId, Object endpointAddress)
@@ -3660,7 +3660,7 @@ public class Nado extends NadoApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(hash, (String) (this.privateKey));
     }
 
     public Object signCancellationProducts(Object cancellation, Object chainId, Object endpointAddress)
@@ -3685,7 +3685,7 @@ public class Nado extends NadoApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(hash, (String) (this.privateKey));
     }
 
     public Object signFetchTriggerOrders(Object tx, Object chainId, Object endpointAddress)
@@ -3707,10 +3707,10 @@ public class Nado extends NadoApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
         String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public Object signHash(Object hash, String privateKey)
     {
         if (java.util.Objects.equals(privateKey, null))
         {

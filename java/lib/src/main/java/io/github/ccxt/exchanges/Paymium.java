@@ -799,7 +799,7 @@ public class Paymium extends PaymiumApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "executed", "ok" );

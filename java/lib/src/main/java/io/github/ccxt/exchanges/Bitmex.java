@@ -890,7 +890,7 @@ public class Bitmex extends BitmexApi
         return this.parseNumber(finalAmount);
     }
 
-    public Object convertToRealAmount(Object code, Object amount)
+    public Object convertToRealAmount(String code, String amount)
     {
         if (java.util.Objects.equals(code, null))
         {
@@ -932,7 +932,7 @@ public class Bitmex extends BitmexApi
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
-            return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
+            return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), (String) (rawQuantity)));
         }
         return this.parseNumber(rawQuantity);
     }
@@ -1865,7 +1865,7 @@ public class Bitmex extends BitmexApi
         Object feeCost = this.safeString(item, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            feeCost = this.convertToRealAmount(code, feeCost);
+            feeCost = this.convertToRealAmount(code, (String) (feeCost));
             final Object finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Bitmex.this.parseNumber(finalFeeCost) );
@@ -1875,7 +1875,7 @@ public class Bitmex extends BitmexApi
         Object after = this.safeString(item, "walletBalance");
         if (!java.util.Objects.equals(after, null))
         {
-            after = this.convertToRealAmount(code, after);
+            after = this.convertToRealAmount(code, (String) (after));
         }
         Object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         String direction = null;
@@ -2027,7 +2027,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Confirmed", "pending" );
@@ -2083,9 +2083,9 @@ public class Bitmex extends BitmexApi
         }
         String amountString = this.safeString(transaction, "amount");
         String amountStringAbs = Precise.stringAbs(amountString);
-        Object amount = this.convertToRealAmount(((Map<String, Object>)currency).get("code"), amountStringAbs);
+        Object amount = this.convertToRealAmount((String) (((Map<String, Object>)currency).get("code")), amountStringAbs);
         String feeCostString = this.safeString(transaction, "fee");
-        Object feeCost = this.convertToRealAmount(((Map<String, Object>)currency).get("code"), feeCostString);
+        Object feeCost = this.convertToRealAmount((String) (((Map<String, Object>)currency).get("code")), feeCostString);
         String status = this.safeString(transaction, "transactStatus");
         if (!java.util.Objects.equals(status, null))
         {
@@ -2478,7 +2478,7 @@ public class Bitmex extends BitmexApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "New", "open" );
@@ -2497,7 +2497,7 @@ public class Bitmex extends BitmexApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "Day", "Day" );

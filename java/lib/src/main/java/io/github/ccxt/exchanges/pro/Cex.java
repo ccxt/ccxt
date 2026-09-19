@@ -452,7 +452,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsTicker(data);
+        Object ticker = this.parseWsTicker((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -469,7 +469,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //  public

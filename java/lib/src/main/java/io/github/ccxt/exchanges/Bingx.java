@@ -3749,7 +3749,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -3785,7 +3785,7 @@ public class Bingx extends BingxApi
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = ((List<Object>) marketTypeparametersVariable).get(0);
         parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-        type = ((String)type).toUpperCase();
+        type = (String) (((String)type).toUpperCase());
         final Object finalType = type;
         final Object finalSide = side;
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4111,7 +4111,7 @@ public class Bingx extends BingxApi
                 throw new NotSupported((this.id + " createOrder() only supports test orders for linear swap markets")) ;
             }
             parameters = this.omit(parameters, "test");
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -4376,7 +4376,7 @@ public class Bingx extends BingxApi
         return this.safeString(sides, side, side);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "trigger_market", "market" );
@@ -4771,7 +4771,7 @@ public class Bingx extends BingxApi
             put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "lastUpdateTimestamp", Bingx.this.safeInteger(finalOrder, "updateTime") );
-            put( "type", Bingx.this.parseOrderType(rawType) );
+            put( "type", Bingx.this.parseOrderType((String) (rawType)) );
             put( "timeInForce", Bingx.this.safeString(finalOrder, "timeInForce") );
             put( "postOnly", null );
             put( "side", Bingx.this.parseOrderSide(finalSide) );
@@ -4794,7 +4794,7 @@ public class Bingx extends BingxApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -5959,7 +5959,7 @@ public class Bingx extends BingxApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CONFIRMED", "ok" );
@@ -6342,7 +6342,7 @@ public class Bingx extends BingxApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
@@ -7372,7 +7372,7 @@ public class Bingx extends BingxApi
             {
                 throw new NotSupported((this.id + " editOrder() is not supported for inverse swap markets")) ;
             }
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Helpers.addElementToObject(request, "cancelOrderId", id);
             Helpers.addElementToObject(request, "cancelReplaceMode", "STOP_ON_FAILURE");
             Object response = null;
@@ -7523,12 +7523,12 @@ public class Bingx extends BingxApi
                     commission = this.safeDict(data, "commission", new HashMap<String, Object>() {{}});
                 }
             }
-            return this.parseTradingFee(commission, market);
+            return this.parseTradingFee((Map<String, Object>) (commission), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {

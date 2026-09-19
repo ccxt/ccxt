@@ -730,14 +730,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String marketId = this.safeString(subscription, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId);
-        Object parsed = this.parseWsTicker(ticker, market);
+        Object parsed = this.parseWsTicker((Map<String, Object>) (ticker), market);
         String channel = "ticker";
         Object messageHash = Helpers.add((channel + ":"), marketId);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         client.resolve(parsed, messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     [

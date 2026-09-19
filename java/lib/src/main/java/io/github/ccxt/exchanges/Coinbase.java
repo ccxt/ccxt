@@ -1313,7 +1313,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "created", "pending" );
@@ -4096,7 +4096,7 @@ public class Coinbase extends CoinbaseApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -4109,7 +4109,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         if (java.util.Objects.equals(type, "UNKNOWN_ORDER_TYPE"))
         {
@@ -4124,7 +4124,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_UNTIL_CANCELLED", "GTC" );
@@ -6271,13 +6271,13 @@ public class Coinbase extends CoinbaseApi
                 put( "portfolio_uuid", portfolioUuid );
             }};
             Map<String, Object> response = (this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters))).join();
-            Object result = this.parsePortfolioDetails(response);
+            Object result = this.parsePortfolioDetails((Map<String, Object>) (response));
             return result;
         });
 
     }
 
-    public Object parsePortfolioDetails(Object portfolioData)
+    public Object parsePortfolioDetails(Map<String, Object> portfolioData)
     {
         Object breakdown = ((Map<String, Object>)portfolioData).get("breakdown");
         Map<String, Object> portfolioInfo = (Map<String, Object>) this.safeDict(breakdown, "portfolio", new HashMap<String, Object>() {{}});

@@ -596,7 +596,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 {
                     continue;
                 }
-                Object result = this.parseWsTicker(ticker);
+                Object result = this.parseWsTicker((Map<String, Object>) (ticker));
                 Helpers.addElementToObject(result, "timestamp", timestamp);
                 Helpers.addElementToObject(result, "datetime", datetime);
                 Object symbol = ((Map<String, Object>)result).get("symbol");
@@ -612,7 +612,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {

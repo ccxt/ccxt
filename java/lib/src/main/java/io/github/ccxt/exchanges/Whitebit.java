@@ -3287,7 +3287,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "limit", "limit" );
@@ -3425,7 +3425,7 @@ public class Whitebit extends WhitebitApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CANCELED", "canceled" );
@@ -4097,7 +4097,7 @@ public class Whitebit extends WhitebitApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "1", "pending" );

@@ -797,7 +797,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
-            Object parsed = this.parseWsTicker(ticker, market);
+            Object parsed = this.parseWsTicker((Map<String, Object>) (ticker), market);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -807,7 +807,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1440,7 +1440,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 (this.loadMarkets()).join();
             }
-            parameters = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            parameters = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             final Object finalParameters = parameters;
             Object request = new HashMap<String, Object>() {{
                 put( "method", "private/create-order" );
@@ -1479,7 +1479,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 (this.loadMarkets()).join();
             }
-            parameters = this.editOrderRequest(id, symbol, amount, price, parameters);
+            parameters = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
             final Object finalParameters = parameters;
             Object request = new HashMap<String, Object>() {{
                 put( "method", "private/amend-order" );

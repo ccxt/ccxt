@@ -1434,7 +1434,7 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -1560,7 +1560,7 @@ public class Onetrading extends OnetradingApi
         }}, market);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TILL_CANCELLED", "GTC" );

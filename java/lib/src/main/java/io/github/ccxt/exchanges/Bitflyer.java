@@ -937,7 +937,7 @@ public class Bitflyer extends BitflyerApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ACTIVE", "open" );

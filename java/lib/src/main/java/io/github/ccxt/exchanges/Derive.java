@@ -1713,7 +1713,7 @@ public class Derive extends DeriveApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
@@ -1742,7 +1742,7 @@ public class Derive extends DeriveApi
             Object amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(((String)this.amountToPrecision(symbol, amountString)))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
-            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", parameters);
+            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", (Map<String, Object>) (parameters));
             deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
             Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
@@ -1916,7 +1916,7 @@ public class Derive extends DeriveApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
@@ -1936,7 +1936,7 @@ public class Derive extends DeriveApi
             Object amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(((String)this.amountToPrecision(symbol, amountString)))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
-            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", parameters);
+            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (parameters));
             deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
             Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
@@ -2090,7 +2090,7 @@ public class Derive extends DeriveApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
@@ -2204,7 +2204,7 @@ public class Derive extends DeriveApi
                 market = this.market(symbol);
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2279,7 +2279,7 @@ public class Derive extends DeriveApi
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrders", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrders", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2465,7 +2465,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "ioc", "IOC" );
@@ -2476,7 +2476,7 @@ public class Derive extends DeriveApi
         return this.safeString(timeInForces, ((String)timeInForce));
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         if (!java.util.Objects.equals(status, null))
         {
@@ -2659,7 +2659,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2760,7 +2760,7 @@ public class Derive extends DeriveApi
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2857,7 +2857,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchPositions", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchPositions", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3029,7 +3029,7 @@ public class Derive extends DeriveApi
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3146,7 +3146,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object deriveWalletAddress = null;
-            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", parameters);
+            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", (Map<String, Object>) (parameters));
             deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
             final Object finalDeriveWalletAddress = deriveWalletAddress;
@@ -3266,7 +3266,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchDeposits", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchDeposits", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3330,7 +3330,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", parameters);
+            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3414,7 +3414,7 @@ public class Derive extends DeriveApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "settled", "ok" );
@@ -3423,12 +3423,12 @@ public class Derive extends DeriveApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object handleDeriveSubaccountId(Object methodName, Object parameters)
+    public Object handleDeriveSubaccountId(Object methodName, Map<String, Object> parameters)
     {
         Object derivesubAccountId = null;
         List<Object> derivesubAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id");
         derivesubAccountId = ((List<Object>) derivesubAccountIdparametersVariable).get(0);
-        parameters = ((List<Object>) derivesubAccountIdparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) derivesubAccountIdparametersVariable).get(1);
         if ((!java.util.Objects.equals(derivesubAccountId, null)) && (!java.util.Objects.equals(derivesubAccountId, "")))
         {
             Helpers.addElementToObject(this.options, "subaccount_id", derivesubAccountId); // saving in options
@@ -3442,12 +3442,12 @@ public class Derive extends DeriveApi
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
-    public Object handleDeriveWalletAddress(Object methodName, Object parameters)
+    public Object handleDeriveWalletAddress(Object methodName, Map<String, Object> parameters)
     {
         Object deriveWalletAddress = null;
         List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");
         deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
-        parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) deriveWalletAddressparametersVariable).get(1);
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))
         {
             Helpers.addElementToObject(this.options, "deriveWalletAddress", deriveWalletAddress); // saving in options

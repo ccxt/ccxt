@@ -1664,7 +1664,7 @@ public class Blofin extends BlofinApi
         return this.safeBalance(result);
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -1718,7 +1718,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1811,7 +1811,7 @@ public class Blofin extends BlofinApi
         return this.extend(request, parameters);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "canceled", "canceled" );
@@ -2021,15 +2021,15 @@ public class Blofin extends BlofinApi
             }
             if (Boolean.TRUE.equals(isCombinedSlTp))
             {
-                Object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
+                Object tpslRequest = this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 response = (this.privatePostTradeOrderTpsl(tpslRequest)).join();
             } else if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isSlOrTp))
             {
-                Object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                Object triggerRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 response = (this.privatePostTradeOrderAlgo(triggerRequest)).join();
             } else
             {
-                Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 response = (this.privatePostTradeOrder(request)).join();
             }
             if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
@@ -2047,7 +2047,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object createTpslOrderRequest(Object symbol, Object type, Object side, Object... optionalArgs)
+    public Object createTpslOrderRequest(String symbol, String type, String side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -2532,7 +2532,7 @@ public class Blofin extends BlofinApi
         return networkCode;
     }
 
-    public Object chainIdToNetworkCode(Object chainId)
+    public Object chainIdToNetworkCode(String chainId)
     {
         // live history rows and the currencies registry carry display-name
         // chain ids like Tron with a parenthesized TRC20 suffix (verified
@@ -2820,7 +2820,7 @@ public class Blofin extends BlofinApi
         }};
     }
 
-    public String parseTransactionWithdrawalStatus(Object status)
+    public String parseTransactionWithdrawalStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
@@ -2833,7 +2833,7 @@ public class Blofin extends BlofinApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTransactionDepositStatus(Object status)
+    public String parseTransactionDepositStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );

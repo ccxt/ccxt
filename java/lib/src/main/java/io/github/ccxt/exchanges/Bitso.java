@@ -1574,7 +1574,7 @@ public class Bitso extends BitsoApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "partial-fill", "open" );
@@ -2355,7 +2355,7 @@ public class Bitso extends BitsoApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "pending" );

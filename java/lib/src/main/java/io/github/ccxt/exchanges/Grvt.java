@@ -2832,7 +2832,7 @@ public class Grvt extends GrvtApi
         Map<String, Object> returnValue = new HashMap<String, Object>() {{
             put( "subAccountID", Helpers.GetValue(order, "sub_account_id") );
             put( "isMarket", Helpers.GetValue(order, "is_market") );
-            put( "timeInForce", Grvt.this.timeInForceToInt(Helpers.GetValue(order, "time_in_force")) );
+            put( "timeInForce", Grvt.this.timeInForceToInt((String) (Helpers.GetValue(order, "time_in_force"))) );
             put( "postOnly", Helpers.GetValue(order, "post_only") );
             put( "reduceOnly", Helpers.GetValue(order, "reduce_only") );
             put( "legs", legs );
@@ -3790,7 +3790,7 @@ public class Grvt extends GrvtApi
         }}, market);
     }
 
-    public String parseTimeInForce(Object type)
+    public String parseTimeInForce(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "GOOD_TILL_TIME", "GTC" );
@@ -3802,7 +3802,7 @@ public class Grvt extends GrvtApi
         return this.safeStringUpper(types, type, type);
     }
 
-    public Object timeInForceToInt(Object timeInForce)
+    public Object timeInForceToInt(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TILL_TIME", 1 );
@@ -3814,7 +3814,7 @@ public class Grvt extends GrvtApi
         return this.safeInteger(timeInForces, timeInForce, 0);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING", "pending" );

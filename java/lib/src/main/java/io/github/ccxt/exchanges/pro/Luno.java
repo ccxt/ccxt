@@ -265,7 +265,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object asks = this.safeValue(message, "asks");
         if (!java.util.Objects.equals(asks, null))
         {
-            Object snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
+            Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
@@ -280,7 +280,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         client.resolve(orderbook, messageHash);
     }
 
-    public Object customParseOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
+    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Object... optionalArgs)
     {
         Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object bidsKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids";

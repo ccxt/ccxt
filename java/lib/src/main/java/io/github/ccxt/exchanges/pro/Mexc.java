@@ -220,7 +220,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Object ticker = null;
         if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
-            ticker = this.parseWsTicker(rawTicker, market);
+            ticker = this.parseWsTicker((Map<String, Object>) (rawTicker), market);
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
         } else if (!java.util.Objects.equals(rawTicker, null))
@@ -370,7 +370,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object ticker = null;
             if (java.util.Objects.equals(isSpot, true))
             {
-                ticker = this.parseWsTicker(entry, market);
+                ticker = this.parseWsTicker((Map<String, Object>) (entry), market);
             } else
             {
                 ticker = this.parseTicker(entry);
@@ -387,7 +387,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         client.resolve(result, topic);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
@@ -527,7 +527,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //        "t": 1678643605721
         //    }
         //
-        Object parsedTicker = this.parseWsBidAsk(message);
+        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (message));
         String symbol = this.safeString(parsedTicker, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -538,7 +538,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(ticker, "d");

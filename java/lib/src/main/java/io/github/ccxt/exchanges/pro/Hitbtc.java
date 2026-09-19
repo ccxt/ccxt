@@ -522,7 +522,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object marketId = Helpers.GetValue(marketIds, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object ticker = this.parseWsTicker(Helpers.GetValue(data, marketId), market);
+            Object ticker = this.parseWsTicker((Map<String, Object>) (Helpers.GetValue(data, marketId)), market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((List<Object>)result).add(ticker);
             String messageHash = ((topic + "::") + symbol);
@@ -531,7 +531,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         client.resolve(result, topic);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -1227,10 +1227,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String parsedStatus = null;
         if (java.util.Objects.equals(report_type, "canceled"))
         {
-            parsedStatus = this.parseOrderStatus(report_type);
+            parsedStatus = this.parseOrderStatus((String) (report_type));
         } else
         {
-            parsedStatus = this.parseOrderStatus(rawStatus);
+            parsedStatus = this.parseOrderStatus((String) (rawStatus));
         }
         final Object finalMarket = market;
         final Object finalParsedStatus = parsedStatus;
@@ -1343,7 +1343,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            var requestparametersVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
+            var requestparametersVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, type, side, amount, price, marginMode, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             request = this.extend(request, parameters);

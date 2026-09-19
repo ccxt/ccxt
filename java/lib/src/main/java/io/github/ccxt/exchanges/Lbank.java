@@ -1865,7 +1865,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //      {
@@ -1935,7 +1935,7 @@ public class Lbank extends LbankApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
@@ -2108,7 +2108,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "-1", "canceled" );
@@ -2963,7 +2963,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public String parseTransactionStatus(Object status, Object type)
+    public String parseTransactionStatus(String status, Object type)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "deposit", new HashMap<String, Object>() {{

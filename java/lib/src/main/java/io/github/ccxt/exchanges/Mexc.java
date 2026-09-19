@@ -4408,7 +4408,7 @@ public class Mexc extends MexcApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -4668,11 +4668,11 @@ public class Mexc extends MexcApi
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (!java.util.Objects.equals(baseCode, null))
                 {
-                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper((Map<String, Object>) (base)));
                 }
                 if (!java.util.Objects.equals(quoteCode, null))
                 {
-                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper((Map<String, Object>) (quote)));
                 }
             }
             return this.safeBalance(result);
@@ -4711,7 +4711,7 @@ public class Mexc extends MexcApi
         }
     }
 
-    public Object parseBalanceHelper(Object entry)
+    public Object parseBalanceHelper(Map<String, Object> entry)
     {
         Object account = this.account();
         ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
@@ -6692,7 +6692,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
@@ -6917,7 +6917,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String code = this.safeString(currency, "code");
             if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
             {
-                ((Map<String, Object>)withdrawFees).put((String)code, this.parseTransactionFee(entry, currency));
+                ((Map<String, Object>)withdrawFees).put((String)code, this.parseTransactionFee((Map<String, Object>) (entry), currency));
             }
         }
         return new HashMap<String, Object>() {{
@@ -6927,7 +6927,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         }};
     }
 
-    public Object parseTransactionFee(Object transaction, Object... optionalArgs)
+    public Object parseTransactionFee(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //    {

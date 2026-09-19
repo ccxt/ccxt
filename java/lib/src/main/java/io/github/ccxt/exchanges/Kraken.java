@@ -2092,7 +2092,7 @@ public class Kraken extends KrakenApi
                 put( "ordertype", type );
                 put( "volume", Kraken.this.amountToPrecision(symbol, amount) );
             }};
-            Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
+            Object orderRequest = this.orderRequest("createOrder", (String) (symbol), (String) (type), (Map<String, Object>) (request), amount, price, parameters);
             String flags = this.safeString((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), "oflags", "");
             Boolean isUsingCost = Helpers.isGreaterThan(((String)flags).indexOf("viqc"), -1);
             Map<String, Object> response = (this.privatePostAddOrder(this.extend((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), (orderRequest == null || 1 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(1))))).join();
@@ -2165,7 +2165,7 @@ public class Kraken extends KrakenApi
                     put( "ordertype", type );
                     put( "volume", parsedAmount );
                 }};
-                Object orderRequest = this.orderRequest("createOrders", marketId, type, req, amount, price, orderParams);
+                Object orderRequest = this.orderRequest("createOrders", marketId, type, (Map<String, Object>) (req), amount, price, orderParams);
                 ((List<Object>)ordersRequests).add((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)));
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -2259,7 +2259,7 @@ public class Kraken extends KrakenApi
         return market;
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "open" );
@@ -2597,7 +2597,7 @@ final Object finalId = id;
         }}, market);
     }
 
-    public Object orderRequest(Object method, Object symbol, Object type, Object request, Object amount, Object... optionalArgs)
+    public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2746,7 +2746,7 @@ final Object finalId = id;
             Object extendedPostFlags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",post") : "post";
             ((Map<String, Object>)request).put("oflags", extendedPostFlags);
         }
-        if ((!java.util.Objects.equals(flags, null)) && !(((Map<?, ?>)request).containsKey("oflags")))
+        if ((!java.util.Objects.equals(flags, null)) && !(request.containsKey("oflags")))
         {
             ((Map<String, Object>)request).put("oflags", flags);
         }
@@ -3557,7 +3557,7 @@ final Object finalId = id;
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         // IFEX transaction states
         Map<String, Object> statuses = new HashMap<String, Object>() {{

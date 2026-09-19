@@ -1044,12 +1044,12 @@ public class Cex extends CexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(data, "tradingFee", new HashMap<String, Object>() {{}});
-            return this.parseTradingFees(fees, true);
+            return this.parseTradingFees((Map<String, Object>) (fees), true);
         }).thenApply(TradingFees::new);
 
     }
 
-    public Object parseTradingFees(Object response, Object... optionalArgs)
+    public Object parseTradingFees(Map<String, Object> response, Object... optionalArgs)
     {
         Object useKeyAsId = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1062,7 +1062,7 @@ public class Cex extends CexApi
             {
                 market = this.safeMarket(key);
             }
-            Object parsed = this.parseTradingFee(Helpers.GetValue(response, key), market);
+            Object parsed = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, key)), market);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
                 ((Map<String, Object>)result).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
@@ -1075,13 +1075,13 @@ public class Cex extends CexApi
             if (!(result.containsKey(symbol)))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(response, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), market));
             }
         }
         return result;
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -1447,7 +1447,7 @@ public class Cex extends CexApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING_NEW", "open" );
@@ -1983,7 +1983,7 @@ public class Cex extends CexApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "rejected", "rejected" );

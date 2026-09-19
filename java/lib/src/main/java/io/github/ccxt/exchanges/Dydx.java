@@ -1047,16 +1047,16 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object handlePublicAddress(Object methodName, Object parameters)
+    public Object handlePublicAddress(String methodName, Map<String, Object> parameters)
     {
         Object userAux = null;
         List<Object> userAuxparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "user");
         userAux = ((List<Object>) userAuxparametersVariable).get(0);
-        parameters = ((List<Object>) userAuxparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
         List<Object> userparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "address", userAux);
         user = ((List<Object>) userparametersVariable).get(0);
-        parameters = ((List<Object>) userparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) userparametersVariable).get(1);
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
         {
             return new ArrayList<Object>(Arrays.asList(user, parameters));
@@ -1133,7 +1133,7 @@ public class Dydx extends DydxApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "UNTRIGGERED", "open" );
@@ -1145,7 +1145,7 @@ public class Dydx extends DydxApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "LIMIT" );
@@ -1213,7 +1213,7 @@ public class Dydx extends DydxApi
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object userAddress = null;
             Object subAccountNumber = null;
-            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrders", parameters);
+            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
@@ -1437,7 +1437,7 @@ public class Dydx extends DydxApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object userAddress = null;
             Object subAccountNumber = null;
-            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchPositions", parameters);
+            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
@@ -1532,7 +1532,7 @@ public class Dydx extends DydxApi
         return signature;
     }
 
-    public Object signDydxTx(Object privateKey, Object message, Object memo, Object chainId, Object account, Object authenticators, Object... optionalArgs)
+    public Object signDydxTx(String privateKey, Object message, String memo, String chainId, Object account, Object authenticators, Object... optionalArgs)
     {
         Object fee = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
@@ -1609,7 +1609,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public String pow(Object n, Object m)
+    public String pow(Object n, String m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -1621,7 +1621,7 @@ public class Dydx extends DydxApi
         return r;
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1879,11 +1879,11 @@ public class Dydx extends DydxApi
             Map<String, Object> newParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "latestBlockHeight", lastBlockHeight );
             }});
-            Object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
+            Object orderRequestRes = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, newParams);
             Object orderId = (orderRequestRes == null || 0 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(0));
             Object orderRequest = (orderRequestRes == null || 1 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(1));
             Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx(Helpers.GetValue(credentials, "privateKey"), orderRequest, "", chainName, account, null);
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), orderRequest, "", (String) (chainName), account, null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2017,7 +2017,7 @@ public class Dydx extends DydxApi
                 put( "value", cancelPayload );
             }};
             Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx(Helpers.GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", (String) (chainName), account, null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2105,7 +2105,7 @@ public class Dydx extends DydxApi
                 put( "value", cancelPayload );
             }};
             Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx(Helpers.GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", (String) (chainName), account, null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2291,7 +2291,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public CompletableFuture<Object> estimateTxFee(Object message, Object memo, Object account)
+    public CompletableFuture<Object> estimateTxFee(Object message, String memo, Object account)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2454,7 +2454,7 @@ public class Dydx extends DydxApi
             }
             Object txFee = (this.estimateTxFee(signingPayload, "", account)).join();
             Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx(Helpers.GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", (String) (chainName), account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2671,9 +2671,9 @@ public class Dydx extends DydxApi
                 put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
                 put( "value", payload );
             }};
-            Object txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
+            Object txFee = (this.estimateTxFee(signingPayload, (String) (tag), account)).join();
             Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx(Helpers.GetValue(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, (String) (tag), (String) (chainName), account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2833,7 +2833,7 @@ public class Dydx extends DydxApi
             parameters = this.omit(parameters, "methodName");
             Object userAddress = null;
             Object subAccountNumber = null;
-            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress(methodName, parameters);
+            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress(methodName, (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subAccountNumber", "0");
@@ -2890,7 +2890,7 @@ public class Dydx extends DydxApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object userAddress = null;
-            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchAccounts", parameters);
+            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchAccounts", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -2980,7 +2980,7 @@ public class Dydx extends DydxApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchBalance", parameters);
+            List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             Object subaccountNumber = null;
