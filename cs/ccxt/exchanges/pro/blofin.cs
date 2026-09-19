@@ -787,7 +787,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(first));
-        string? symbol = ((string)getValue(fundingRate, "symbol"));
+        string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         string messageHash = ("fundingRate:" + symbol);
         (client as WebSocketClient).resolve(fundingRate, messageHash);

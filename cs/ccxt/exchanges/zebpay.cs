@@ -687,7 +687,7 @@ public partial class zebpay : Exchange
         for (int i = 0; i < fees.Count; i++)
         {
             IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(fees[i]));
-            string? symbol = ((string)getValue(fee, "symbol"));
+            string? symbol = ((string)(fee != null && ((IDictionary<string, object>)fee).ContainsKey("symbol") ? ((IDictionary<string, object>)fee)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;

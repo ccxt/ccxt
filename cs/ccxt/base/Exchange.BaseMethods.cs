@@ -6127,9 +6127,9 @@ public partial class BaseExchange
         {
             object entry = getValue(response, i);
             IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseFundingRate(entry));
-            if (!isEqual(getValue(parsed, "symbol"), null))
+            if (!isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null), null))
             {
-                ((IDictionary<string,object>)fundingRates)[(string)getValue(parsed, "symbol")] = parsed;
+                ((IDictionary<string,object>)fundingRates)[(string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null)] = parsed;
             }
         }
         return this.filterByArray(fundingRates, "symbol", symbols);
@@ -6363,9 +6363,9 @@ public partial class BaseExchange
         {
             object entry = getValue(response, i);
             IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseOpenInterest(entry));
-            if (!isEqual(getValue(parsed, "symbol"), null))
+            if (!isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null), null))
             {
-                ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+                ((IDictionary<string,object>)result)[(string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null)] = parsed;
             }
         }
         return this.filterByArray(result, "symbol", symbols);

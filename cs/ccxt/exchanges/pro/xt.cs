@@ -833,7 +833,7 @@ public partial class xt : ccxt.xt
             Int64? timestamp = this.safeInteger(data, "t");
             ((IDictionary<string,object>)fundingRate)["timestamp"] = timestamp;
             ((IDictionary<string,object>)fundingRate)["datetime"] = this.iso8601(timestamp);
-            string? symbol = ((string)getValue(fundingRate, "symbol"));
+            string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
             ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
             object eventVar = this.safeString(message, "event");
             object messageHash = add(eventVar, "::contract");

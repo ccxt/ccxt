@@ -486,12 +486,12 @@ public partial class okx : ccxt.okx
         {
             object rawfr = data[i];
             IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(rawfr));
-            string? symbol = ((string)getValue(fundingRate, "symbol"));
+            string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
             }
-            (client as WebSocketClient).resolve(fundingRate, (("funding-rate" + ":") + (getValue(fundingRate, "symbol"))));
+            (client as WebSocketClient).resolve(fundingRate, (("funding-rate" + ":") + ((fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null))));
         }
     }
 

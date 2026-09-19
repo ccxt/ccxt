@@ -929,7 +929,7 @@ public partial class lighter : Exchange
          * @param {int} [params.orderExpiry] orderExpiry
          * @returns {any[]} request to be sent to the exchange
          */
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument")) ;
         }
@@ -1645,7 +1645,7 @@ public partial class lighter : Exchange
             { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "limit", 100 },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -1935,13 +1935,13 @@ public partial class lighter : Exchange
         Int64 now = this.milliseconds();
         object startTs = null;
         object endTs = null;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             startTs = since;
             if (!isEqual(until, null))
             {
                 endTs = until;
-            } else if (!isEqual(limit, null))
+            } else if ((limit != null))
             {
                 int duration = this.parseTimeframe(timeframeVar);
                 endTs = this.sum(since, multiply(multiply(duration, limit), 1000));
@@ -1953,7 +1953,7 @@ public partial class lighter : Exchange
         {
             endTs = ((bool) (!isEqual(until, null))) ? until : now;
             int defaultLimit = 100;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 startTs = subtract(endTs, multiply(multiply(this.parseTimeframe(timeframeVar), 1000), limit));
             } else
@@ -2585,7 +2585,7 @@ public partial class lighter : Exchange
             { "account_index", accountIndex },
             { "limit", 100 },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -2880,24 +2880,24 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (((getValue(currency, "code") as string) == "USDC"))
+        if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "USDC"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(((string)code), amountVar)));
-        } else if (((getValue(currency, "code") as string) == "ETH"))
+        } else if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "ETH"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(((string)code), amountVar)));
         } else
         {
             throw new ExchangeError ((string)(this.id + " transfer() only supports USDC and ETH transfers")) ;
         }
-        int fromRouteType = ((bool) (isEqual(fromAccount, "perp"))) ? 0 : 1; // 0: perp, 1: spot
-        int toRouteType = ((bool) (isEqual(toAccount, "perp"))) ? 0 : 1;
+        int fromRouteType = ((bool) ((fromAccount == "perp"))) ? 0 : 1; // 0: perp, 1: spot
+        int toRouteType = ((bool) ((toAccount == "perp"))) ? 0 : 1;
         string? memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
         parameters = this.omit(parameters, new List<object>() {"memo"});
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "to_account_index", toAccountIndex },
-            { "asset_index", this.parseToInt(getValue(currency, "id")) },
+            { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
             { "from_route_type", fromRouteType },
             { "to_route_type", toRouteType },
             { "amount", amountVar },
@@ -3092,7 +3092,7 @@ public partial class lighter : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetDepositHistory(this.extend(request, parameters));
         //
@@ -3167,7 +3167,7 @@ public partial class lighter : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetWithdrawHistory(this.extend(request, parameters));
         //
@@ -3299,10 +3299,10 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (((getValue(currency, "code") as string) == "USDC"))
+        if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "USDC"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(((string)code), amountVar)));
-        } else if (((getValue(currency, "code") as string) == "ETH"))
+        } else if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "ETH"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(((string)code), amountVar)));
         } else
@@ -3313,7 +3313,7 @@ public partial class lighter : Exchange
         parameters = this.omit(parameters, "routeType");
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "asset_index", this.parseToInt(getValue(currency, "id")) },
+            { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
             { "route_type", routeType },
             { "amount", amountVar },
             { "nonce", nonce },
@@ -3376,7 +3376,7 @@ public partial class lighter : Exchange
             { "limit", 100 },
             { "account_index", accountIndex },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -3924,7 +3924,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "public"));
         } else
         {
-            url = ((((this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/api/") + (this.version)) + "/") + (path));
+            url = ((((this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/api/") + this.version) + "/") + (path));
         }
         if (isEqual(api, "private"))
         {

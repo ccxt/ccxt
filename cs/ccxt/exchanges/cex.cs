@@ -973,9 +973,9 @@ public partial class cex : Exchange
                 market = this.safeMarket(key);
             }
             IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseTradingFee(getValue(response, key), market));
-            if (!isEqual(getValue(parsed, "symbol"), null))
+            if (!isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null), null))
             {
-                ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+                ((IDictionary<string,object>)result)[(string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null)] = parsed;
             }
         }
         List<object> symbols = this.symbols;

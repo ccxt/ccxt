@@ -1831,7 +1831,7 @@ public partial class mexc : ccxt.mexc
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(data));
-        string? symbol = ((string)getValue(fundingRate, "symbol"));
+        string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;

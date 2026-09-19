@@ -566,7 +566,7 @@ public partial class onetrading : ccxt.onetrading
         IDictionary<string, object> order = ((IDictionary<string, object>)this.parseTradingOrder(message));
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {order});
-        (client as WebSocketClient).resolve(this.orders, ("orders:" + (getValue(order, "symbol"))));
+        (client as WebSocketClient).resolve(this.orders, ("orders:" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null))));
         (client as WebSocketClient).resolve(this.orders, "orders");
     }
 

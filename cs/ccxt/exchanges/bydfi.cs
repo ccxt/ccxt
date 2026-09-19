@@ -1006,7 +1006,7 @@ public partial class bydfi : Exchange
             { "interval", interval },
         };
         object startTime = since;
-        object numberOfCandles = ((bool) ((limit != null) && (limit != null) && !isEqual(limit, 0))) ? limit : maxLimit;
+        object numberOfCandles = ((bool) ((limit != null) && (limit != null) && (limit != 0))) ? limit : maxLimit;
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
         until = ((IList<object>)untilparametersVariable)[0];
@@ -3027,7 +3027,7 @@ public partial class bydfi : Exchange
         //         "success": true
         //     }
         //
-        object transfer = this.parseTransfer(response, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
@@ -3401,7 +3401,7 @@ public partial class bydfi : Exchange
             string timestamp = ((object)this.milliseconds()).ToString();
             if (isEqual(method, "GET"))
             {
-                object payload = add(add(this.apiKey, timestamp), query);
+                string payload = ((this.apiKey + timestamp) + query);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "X-API-KEY", this.apiKey },
@@ -3411,7 +3411,7 @@ public partial class bydfi : Exchange
             } else
             {
                 body = this.json(sortedParams);
-                object payload = add(add(this.apiKey, timestamp), body);
+                string payload = ((this.apiKey + timestamp) + (body));
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },

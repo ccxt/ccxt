@@ -1493,7 +1493,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((limit != null)) && (!isEqual(limit, 0)))
+        if (((limit != null)) && ((limit != 0)))
         {
             ((IDictionary<string,object>)request)["depth"] = mathMin(limit, 50); // max 50
         }
@@ -3594,7 +3594,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = ((List<object>)this.parseSettlements(data, market));
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }

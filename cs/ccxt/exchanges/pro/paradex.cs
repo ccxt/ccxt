@@ -597,7 +597,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRateWs(data));
-        string? symbol = ((string)getValue(fundingRate, "symbol"));
+        string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         object channel = this.safeString(parameters, "channel");
         object messageHash = add(add(channel, "."), symbol);

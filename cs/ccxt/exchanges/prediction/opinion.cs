@@ -1131,9 +1131,9 @@ public partial class opinion : PredictionExchange
         this.checkRequiredCredentials();
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
-        bool isMarket = (isEqual(type, "market"));
+        bool isMarket = ((type == "market"));
         string sideStr = ((string)((string)side)).ToUpper();
-        if (isEqual(price, null))
+        if ((price == null))
         {
             if (!isMarket)
             {

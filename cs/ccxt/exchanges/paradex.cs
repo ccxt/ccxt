@@ -1070,7 +1070,7 @@ public partial class paradex : Exchange
         for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
             IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(fees[i]));
-            string? symbol = ((string)getValue(fee, "symbol"));
+            string? symbol = ((string)(fee != null && ((IDictionary<string, object>)fee).ContainsKey("symbol") ? ((IDictionary<string, object>)fee)["symbol"] : null));
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);

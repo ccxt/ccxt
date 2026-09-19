@@ -696,7 +696,7 @@ public partial class kucoin : ccxt.kucoin
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             IDictionary<string, object> rawTicker = this.safeDict(data, "data", data);
             IDictionary<string, object> ticker = ((IDictionary<string, object>)this.parseSpotOrUtaTicker(rawTicker, market));
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
             string messageHash = ("ticker:" + symbol);
             (client as WebSocketClient).resolve(ticker, messageHash);

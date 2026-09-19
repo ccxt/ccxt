@@ -1101,10 +1101,10 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? network = this.safeStringUpper(parameters, "network");
-        if (((network != null)) && (isEqual(code, "USDT")))
+        if (((network != null)) && ((code == "USDT")))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks");
             string? parsedNetwork = this.safeString(networks, network);
@@ -1140,10 +1140,10 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? network = this.safeStringUpper(parameters, "network");
-        if (((network != null)) && (isEqual(code, "USDT")))
+        if (((network != null)) && ((code == "USDT")))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks");
             string? parsedNetwork = this.safeString(networks, network);
@@ -1387,11 +1387,11 @@ public partial class hitbtc : Exchange
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
@@ -1445,11 +1445,11 @@ public partial class hitbtc : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
@@ -1606,7 +1606,7 @@ public partial class hitbtc : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currencies"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currencies"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -1831,7 +1831,7 @@ public partial class hitbtc : Exchange
             IList<object> marketIdsInner = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIdsInner).ToArray());
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1870,7 +1870,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1985,8 +1985,8 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object fee = this.parseTradingFee(getValue(response, i));
-            object symbol = getValue(fee, "symbol");
+            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(getValue(response, i)));
+            string? symbol = ((string)(fee != null && ((IDictionary<string, object>)fee).ContainsKey("symbol") ? ((IDictionary<string, object>)fee)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;
@@ -2034,14 +2034,14 @@ public partial class hitbtc : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
@@ -2149,11 +2149,11 @@ public partial class hitbtc : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2645,9 +2645,9 @@ public partial class hitbtc : Exchange
             { "client_order_id", id },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
-        if ((isEqual(type, "limit")) || (isEqual(type, "stopLimit")))
+        if (((type == "limit")) || ((type == "stopLimit")))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ExchangeError ((string)(this.id + " editOrder() limit order requires price")) ;
             }
@@ -2778,7 +2778,7 @@ public partial class hitbtc : Exchange
         }
         if (isLimit || (isEqual(type, "stopLimit")) || (isEqual(type, "takeProfitLimit")))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ExchangeError ((string)(this.id + " createOrder() requires a price argument for limit orders")) ;
             }
@@ -3043,7 +3043,7 @@ public partial class hitbtc : Exchange
             throw new BadRequest ((string)(this.id + " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", requestAmount },
             { "source", fromId },
             { "destination", toId },
@@ -3085,7 +3085,7 @@ public partial class hitbtc : Exchange
         {
             await this.loadMarkets();
         }
-        if (!isEqual(code, "USDT"))
+        if ((code != "USDT"))
         {
             throw new ExchangeError ((string)(this.id + " convertCurrencyNetwork() only supports USDT currently")) ;
         }
@@ -3141,7 +3141,7 @@ public partial class hitbtc : Exchange
         this.checkAddress(address);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "address", address },
         };
@@ -3151,7 +3151,7 @@ public partial class hitbtc : Exchange
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(parameters, "network");
-        if (((network != null)) && (isEqual(code, "USDT")))
+        if (((network != null)) && ((code == "USDT")))
         {
             string? parsedNetwork = this.safeString(networks, network);
             if ((parsedNetwork != null))
@@ -3238,7 +3238,7 @@ public partial class hitbtc : Exchange
             object rawFundingRate = this.safeValue(response, marketId);
             Dictionary<string, object> marketInner = this.market(marketId);
             string? symbol = ((string)(marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("symbol") ? ((IDictionary<string, object>)marketInner)["symbol"] : null));
-            object fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
+            IDictionary<string, object> fundingRate = ((IDictionary<string, object>)this.parseFundingRate(rawFundingRate, marketInner));
             ((IDictionary<string,object>)fundingRates)[(string)symbol] = fundingRate;
         }
         return ccxt.BaseExchange.ToFundingRates(this.filterByArray(fundingRates, "symbol", symbols));
@@ -3284,11 +3284,11 @@ public partial class hitbtc : Exchange
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4356,7 +4356,7 @@ public partial class hitbtc : Exchange
             ((IList<object>)payload).Add(timestamp);
             string payloadString = String.Join("", ((IList<object>)payload).ToArray());
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
-            object secondPayload = add(add(add(add(this.apiKey, ":"), signature), ":"), timestamp);
+            string secondPayload = ((((this.apiKey + ":") + signature) + ":") + timestamp);
             string encoded = this.stringToBase64(secondPayload);
             ((IDictionary<string,object>)headers)["Authorization"] = ("HS256 " + encoded);
         }

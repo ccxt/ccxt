@@ -4616,7 +4616,7 @@ public partial class hashkey : Exchange
         {
             IDictionary<string, object> fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             IDictionary<string, object> parsedFee = ((IDictionary<string, object>)this.parseTradingFee(fee));
-            ((IDictionary<string,object>)result)[(string)((string)getValue(parsedFee, "symbol"))] = parsedFee;
+            ((IDictionary<string,object>)result)[(string)((string)(parsedFee != null && ((IDictionary<string, object>)parsedFee).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedFee)["symbol"] : null))] = parsedFee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
     }

@@ -2946,7 +2946,7 @@ public partial class coinbase : Exchange
         string? cursor = this.safeString(pagination, "next_starting_after");
         if (((cursor != null)) && ((cursor != "")))
         {
-            ((IDictionary<string,object>)getValue(last, "info"))["next_starting_after"] = cursor;
+            ((IDictionary<string,object>)(last != null && ((IDictionary<string, object>)last).ContainsKey("info") ? ((IDictionary<string, object>)last)["info"] : null))["next_starting_after"] = cursor;
             ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
         }
         return ccxt.BaseExchange.ToLedgerEntryList(ledger);
@@ -3322,7 +3322,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3349,7 +3349,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3442,13 +3442,13 @@ public partial class coinbase : Exchange
         bool? postOnly = ((bool) ((timeInForce == "PO"))) ? true : this.safeBool2(parameters, "postOnly", "post_only", false);
         string? endTime = this.safeString(parameters, "end_time");
         string? stopDirection = this.safeString(parameters, "stop_direction");
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             if (isStop)
             {
                 if ((stopDirection == null))
                 {
-                    stopDirection = ((bool) (isEqual(side, "buy"))) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
+                    stopDirection = ((bool) ((side == "buy"))) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
                 }
                 if (((timeInForce == "GTD")) || ((endTime != null)))
                 {
@@ -3483,14 +3483,14 @@ public partial class coinbase : Exchange
                 {
                     if ((stopDirection == null))
                     {
-                        stopDirection = ((bool) (isEqual(side, "buy"))) ? "STOP_DIRECTION_STOP_UP" : "STOP_DIRECTION_STOP_DOWN";
+                        stopDirection = ((bool) ((side == "buy"))) ? "STOP_DIRECTION_STOP_UP" : "STOP_DIRECTION_STOP_DOWN";
                     }
                     tpslPrice = this.priceToPrecision(symbol, stopLossPrice);
                 } else
                 {
                     if ((stopDirection == null))
                     {
-                        stopDirection = ((bool) (isEqual(side, "buy"))) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
+                        stopDirection = ((bool) ((side == "buy"))) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
                     }
                     tpslPrice = this.priceToPrecision(symbol, takeProfitPrice);
                 }
@@ -3551,7 +3551,7 @@ public partial class coinbase : Exchange
             {
                 throw new NotSupported ((string)(this.id + " createOrder() only stop limit orders are supported")) ;
             }
-            if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (isEqual(side, "buy")))
+            if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((side == "buy")))
             {
                 string? total = null;
                 bool createMarketBuyOrderRequiresPrice = true;
@@ -3565,7 +3565,7 @@ public partial class coinbase : Exchange
                     total = this.costToPrecision(symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice)
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -3661,8 +3661,8 @@ public partial class coinbase : Exchange
             string? errorMessage = this.safeString(errorResponse, "message");
             if ((errorResponse != null))
             {
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorTitle, errorMessage);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorTitle, errorMessage);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorTitle, errorMessage);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorTitle, errorMessage);
                 throw new ExchangeError ((string)((string)errorMessage)) ;
             }
         }
@@ -3951,11 +3951,11 @@ public partial class coinbase : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -4094,7 +4094,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
@@ -4178,12 +4178,12 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100;
         }
         ((IDictionary<string,object>)request)["limit"] = limitVar;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
@@ -4353,7 +4353,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         object maxLimit = 300;
-        limitVar = ((bool) (isEqual(limitVar, null))) ? maxLimit : mathMin(limitVar, maxLimit);
+        limitVar = ((bool) ((limitVar == null))) ? maxLimit : mathMin(limitVar, maxLimit);
         bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
@@ -4372,7 +4372,7 @@ public partial class coinbase : Exchange
         int duration = this.parseTimeframe(timeframeVar);
         object requestedDuration = multiply(limitVar, duration);
         string? sinceString = null;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             sinceString = this.numberToString(this.parseToInt(divide(since, 1000)));
         } else
@@ -4460,11 +4460,11 @@ public partial class coinbase : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.numberToString(this.parseToInt(divide(since, 1000)));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
@@ -4475,7 +4475,7 @@ public partial class coinbase : Exchange
         if (!isEqual(until, null))
         {
             ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
-        } else if (!isEqual(since, null))
+        } else if ((since != null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
         }
@@ -4549,11 +4549,11 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_sequence_timestamp"] = this.iso8601(since);
         }
@@ -4621,7 +4621,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4743,7 +4743,7 @@ public partial class coinbase : Exchange
             { "type", "send" },
             { "to", address },
             { "amount", this.numberToString(amount) },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         object accountId = this.safeString2(parameters, "account_id", "accountId");
         parameters = this.omit(parameters, new List<object>() {"account_id", "accountId"});
@@ -4842,7 +4842,7 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         object request = null;
-        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(((string)getValue(currency, "code")), null, parameters);
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(((string)(currency.ContainsKey("code") ? currency["code"] : null)), null, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         Dictionary<string, object> response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
@@ -5392,7 +5392,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "funds", new Dictionary<string, object>() {
                 { "value", this.currencyToPrecision(((string)code), amount) },
-                { "currency", getValue(currency, "id") },
+                { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             } },
             { "source_portfolio_uuid", fromAccount },
             { "target_portfolio_uuid", toAccount },
@@ -5404,7 +5404,7 @@ public partial class coinbase : Exchange
         //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
         //     }
         //
-        object transfer = this.parseTransfer(response, currency);
+        IDictionary<string, object> transfer = ((IDictionary<string, object>)this.parseTransfer(response, currency));
         ((IDictionary<string,object>)transfer)["amount"] = amount;
         ((IDictionary<string,object>)transfer)["status"] = "ok";
         return ccxt.BaseExchange.ToTransferEntry(transfer);
@@ -5937,7 +5937,7 @@ public partial class coinbase : Exchange
                 fullPath = fullPath + ("?" + this.urlencodeWithArrayRepeat(query));
             }
         }
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), fullPath);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), fullPath);
         if (signed)
         {
             string? authorization = this.safeString(this.headers, "Authorization");
@@ -6086,16 +6086,16 @@ public partial class coinbase : Exchange
         if ((errorCode != null))
         {
             string? errorMessage = this.safeString2(response, "error_description", "error");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         IDictionary<string, object> errorResponse = this.safeDict(response, "error_response");
         if ((errorResponse != null))
         {
             string? errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessageInner, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessageInner, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessageInner, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessageInner, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         List<object> errors = this.safeList(response, "errors");
@@ -6110,8 +6110,8 @@ public partial class coinbase : Exchange
                     string? errorMessage = this.safeString(getValue(errors, 0), "message");
                     if ((errorCode != null))
                     {
-                        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-                        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+                        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
                         throw new ExchangeError ((string)feedback) ;
                     }
                 }
