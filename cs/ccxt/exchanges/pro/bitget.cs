@@ -2905,7 +2905,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, subscriptionHash);
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuthenticate(WebSocketClient client, object message)
     {
         //
         //  { event: "login", code: 0 }
@@ -2915,7 +2915,7 @@ public partial class bitget : ccxt.bitget
         (future as Future).resolve(true);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
@@ -3105,13 +3105,13 @@ public partial class bitget : ccxt.bitget
         return "ping";
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handlePong(WebSocketClient client, object message)
     {
         client.lastPong = this.milliseconds();
         return message;
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //    {
@@ -3122,7 +3122,7 @@ public partial class bitget : ccxt.bitget
         return message;
     }
 
-    public virtual void handleOrderBookUnSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderBookUnSubscription(WebSocketClient client, object message)
     {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
@@ -3159,7 +3159,7 @@ public partial class bitget : ccxt.bitget
         (client as WebSocketClient).resolve(true, messageHash);
     }
 
-    public virtual void handleTradesUnSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTradesUnSubscription(WebSocketClient client, object message)
     {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
@@ -3192,7 +3192,7 @@ public partial class bitget : ccxt.bitget
         (client as WebSocketClient).resolve(true, messageHash);
     }
 
-    public virtual void handleTickerUnSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTickerUnSubscription(WebSocketClient client, object message)
     {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
@@ -3225,7 +3225,7 @@ public partial class bitget : ccxt.bitget
         (client as WebSocketClient).resolve(true, messageHash);
     }
 
-    public virtual void handleOHLCVUnSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOHLCVUnSubscription(WebSocketClient client, object message)
     {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
@@ -3274,7 +3274,7 @@ public partial class bitget : ccxt.bitget
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
     }
 
-    public virtual object handleUnSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleUnSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //  {

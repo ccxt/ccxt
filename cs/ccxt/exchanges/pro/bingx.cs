@@ -490,7 +490,7 @@ public partial class bingx : ccxt.bingx
         return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters);
     }
 
-    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
         // spot: first snapshot
@@ -1597,7 +1597,7 @@ public partial class bingx : ccxt.bingx
         (client as WebSocketClient).resolve(newPositions, "swap:positions");
     }
 
-    public virtual bool handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
@@ -1845,7 +1845,7 @@ public partial class bingx : ccxt.bingx
         (client as WebSocketClient).resolve(stored, ((messageHash + ":") + symbol));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleMyTrades(WebSocketClient client, object message)
     {
         //
         //
@@ -1903,7 +1903,7 @@ public partial class bingx : ccxt.bingx
         //        }
         //    }
         //
-        bool isSpot = (message.ContainsKey("dataType"));
+        bool isSpot = ((message != null && ((IDictionary<string, object>)message).ContainsKey("dataType")));
         IDictionary<string, object> result = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         object cachedTrades = this.myTrades;
         if ((cachedTrades == null))
@@ -2067,7 +2067,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -2088,7 +2088,7 @@ public partial class bingx : ccxt.bingx
         return message;
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});

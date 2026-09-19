@@ -813,7 +813,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         //
         //     {
@@ -2029,7 +2029,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
