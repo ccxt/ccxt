@@ -887,7 +887,7 @@ public class Luno extends LunoApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING", "open" );
@@ -1013,7 +1013,7 @@ public class Luno extends LunoApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByState(Object state2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByState(String state2, Object... optionalArgs)
     {
         final Object state3 = state2;
         return BaseExchange.supplyAsync(() -> {
@@ -1064,7 +1064,7 @@ public class Luno extends LunoApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            return (this.fetchOrdersByState(null, symbol, since, limit, parameters)).join();
+            return (this.fetchOrdersByState((String) (null), symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

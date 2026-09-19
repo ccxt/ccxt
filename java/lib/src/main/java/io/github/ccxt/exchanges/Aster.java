@@ -2752,7 +2752,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
@@ -2806,12 +2806,12 @@ public class Aster extends AsterApi
             //         "takerCommissionRate": "0.0004"
             //     }
             //
-            return this.parseTradingFee(response, market);
+            return this.parseTradingFee((Map<String, Object>) (response), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -2824,7 +2824,7 @@ public class Aster extends AsterApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -3299,7 +3299,7 @@ public class Aster extends AsterApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -3424,7 +3424,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -5285,7 +5285,7 @@ public class Aster extends AsterApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
@@ -5397,11 +5397,11 @@ public class Aster extends AsterApi
 }})) );
                 }};
                 ((Map<String,Object>)finalParams).remove("signer"); // signer is not needed for approveBuilder endpoint
-                paramString = this.encodeValuesWithJson(finalParams);
-                paramsToEncode = this.capitalizeKeys(finalParams);
+                paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
+                paramsToEncode = this.capitalizeKeys((Map<String, Object>) (finalParams));
             } else
             {
-                paramString = this.encodeValuesWithJson(finalParams);
+                paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
                 final Object finalParamString = paramString;
                 paramsToEncode = new HashMap<String, Object>() {{
                     put( "msg", finalParamString );
@@ -5432,7 +5432,7 @@ public class Aster extends AsterApi
         }};
     }
 
-    public String encodeValuesWithJson(Object values)
+    public String encodeValuesWithJson(Map<String, Object> values)
     {
         Object encodedString = "";
         Object keys = new ArrayList<Object>(((Map<String, Object>)values).keySet());
@@ -5448,7 +5448,7 @@ public class Aster extends AsterApi
         return (encodedString == null ? null : ((String)encodedString).substring(0, Math.max(((String)encodedString).length() - 1, 0)));
     }
 
-    public Object capitalizeKeys(Object dict)
+    public Object capitalizeKeys(Map<String, Object> dict)
     {
         Map<String, Object> capitalized = new HashMap<String, Object>() {{}};
         Object keys = new ArrayList<Object>(((Map<String, Object>)dict).keySet());

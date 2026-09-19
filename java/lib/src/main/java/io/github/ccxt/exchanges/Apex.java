@@ -1466,7 +1466,7 @@ public class Apex extends ApexApi
         }}, market);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TIL_CANCEL", "GOOD_TIL_CANCEL" );
@@ -1477,7 +1477,7 @@ public class Apex extends ApexApi
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         if (!java.util.Objects.equals(status, null))
         {
@@ -1494,7 +1494,7 @@ public class Apex extends ApexApi
         return null;
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -1543,7 +1543,7 @@ public class Apex extends ApexApi
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
 
-    public Object generateRandomClientIdOmni(Object _accountId)
+    public Object generateRandomClientIdOmni(String _accountId)
     {
         Boolean hasAccountId = (!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, ""));
         Object accountId = ((Boolean.TRUE.equals(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
@@ -1676,7 +1676,7 @@ public class Apex extends ApexApi
             Object accountId = (this.getAccountId()).join();
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                clientOrderId = this.generateRandomClientIdOmni(accountId);
+                clientOrderId = this.generateRandomClientIdOmni((String) (accountId));
             }
             Object finalClientOrderId = clientOrderId; // java req
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));

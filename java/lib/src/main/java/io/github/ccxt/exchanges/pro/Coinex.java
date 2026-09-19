@@ -187,7 +187,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             String marketId = this.safeString(entry, "market");
             String symbol = this.safeSymbol(marketId, null, null, defaultType);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
-            Object parsedTicker = this.parseWSTicker(entry, market);
+            Object parsedTicker = this.parseWSTicker((Map<String, Object>) (entry), market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
             ((Map<String, Object>)newTickers).put((String)symbol, parsedTicker);
         }
@@ -209,7 +209,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         client.resolve(newTickers, "tickers");
     }
 
-    public Object parseWSTicker(Object ticker, Object... optionalArgs)
+    public Object parseWSTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //  spot
@@ -408,7 +408,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
             Object entry = Helpers.GetValue(rawBalances, i);
-            this.parseWsBalance(entry, account);
+            this.parseWsBalance((Map<String, Object>) (entry), account);
         }
         String messageHash = null;
         if (!java.util.Objects.equals(account, null))
@@ -424,7 +424,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
     }
 
-    public void parseWsBalance(Object balance, Object... optionalArgs)
+    public void parseWsBalance(Map<String, Object> balance, Object... optionalArgs)
     {
         //
         // spot
@@ -1551,14 +1551,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object parsedTicker = this.parseWsBidAsk(data);
+        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), parsedTicker);
         String messageHash = Helpers.add("bidsasks:", symbol);
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {

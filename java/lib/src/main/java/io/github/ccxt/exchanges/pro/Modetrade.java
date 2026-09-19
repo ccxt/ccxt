@@ -231,7 +231,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -294,7 +294,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
         ((Map<String, Object>)data).put("date", timestamp);
-        Object ticker = this.parseWsTicker(data, market);
+        Object ticker = this.parseWsTicker((Map<String, Object>) (data), market);
         Helpers.addElementToObject(ticker, "symbol", ((Map<String, Object>)market).get("symbol"));
         Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
         client.resolve(ticker, topic);
@@ -364,9 +364,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object ticker = this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Object ticker = this.parseWsTicker((Map<String, Object>) (this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
                 put( "date", timestamp );
-            }}), market);
+            }})), market);
             Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
             ((List<Object>)result).add(ticker);
         }
@@ -1014,7 +1014,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
         String rawStatus = this.safeString(order, "status");
-        String status = this.parseOrderStatus(rawStatus);
+        String status = this.parseOrderStatus((String) (rawStatus));
         Object trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");

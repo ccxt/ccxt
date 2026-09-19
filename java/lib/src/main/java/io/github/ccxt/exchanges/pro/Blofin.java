@@ -400,7 +400,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.parseWsTicker(Helpers.GetValue(data, i));
+            Object ticker = this.parseWsTicker((Map<String, Object>) (Helpers.GetValue(data, i)));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Object messageHash = Helpers.add(Helpers.add(channelName, ":"), symbol);
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -408,7 +408,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return this.parseTicker(ticker, market);

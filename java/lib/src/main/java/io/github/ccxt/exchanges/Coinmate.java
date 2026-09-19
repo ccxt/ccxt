@@ -864,7 +864,7 @@ public class Coinmate extends CoinmateApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "COMPLETED", "ok" );
@@ -1353,7 +1353,7 @@ public class Coinmate extends CoinmateApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "FILLED", "closed" );
@@ -1364,7 +1364,7 @@ public class Coinmate extends CoinmateApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );

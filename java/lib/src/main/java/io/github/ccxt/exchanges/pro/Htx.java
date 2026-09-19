@@ -235,7 +235,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object subMessageHash = this.implodeParams(channel, new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
             }});
-            return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
     }
@@ -363,7 +363,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object subMessageHash = this.implodeParams(channel, new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
             }});
-            return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
     }
@@ -488,7 +488,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String subMessageHash = ((Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
             Object topic = "ohlcv";
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
-            return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
     }
@@ -638,7 +638,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 ((Map<String, Object>)parameters).put("data_type", "incremental");
             }
-            return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
     }
@@ -3338,7 +3338,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     }
 
-    public CompletableFuture<Object> unsubscribePublic(Object market2, Object subMessageHash, Object topic2, Object... optionalArgs)
+    public CompletableFuture<Object> unsubscribePublic(Map<String, Object> market2, Object subMessageHash, Object topic2, Object... optionalArgs)
     {
         final Object market3 = market2;
         final Object topic3 = topic2;

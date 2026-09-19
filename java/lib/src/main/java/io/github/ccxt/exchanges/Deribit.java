@@ -2430,7 +2430,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "open", "open" );
@@ -2442,7 +2442,7 @@ public class Deribit extends DeribitApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "good_til_cancelled", "GTC" );
@@ -3374,7 +3374,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "completed", "ok" );
@@ -3692,12 +3692,12 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            return this.parseVolatilityHistory(response);
+            return this.parseVolatilityHistory((Map<String, Object>) (response));
         });
 
     }
 
-    public Object parseVolatilityHistory(Object volatility)
+    public Object parseVolatilityHistory(Map<String, Object> volatility)
     {
         //
         //     {
@@ -3908,7 +3908,7 @@ public class Deribit extends DeribitApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "prepared", "pending" );

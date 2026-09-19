@@ -1356,7 +1356,7 @@ public class Latoken extends LatokenApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ORDER_STATUS_PLACED", "open" );
@@ -1375,7 +1375,7 @@ public class Latoken extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "ORDER_CONDITION_GOOD_TILL_CANCELLED", "GTC" );
@@ -2046,7 +2046,7 @@ public class Latoken extends LatokenApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "TRANSACTION_STATUS_CONFIRMED", "ok" );
@@ -2240,7 +2240,7 @@ public class Latoken extends LatokenApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "TRANSFER_STATUS_COMPLETED", "ok" );

@@ -502,7 +502,7 @@ public class Btcmarkets extends BtcmarketsApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Accepted", "pending" );
@@ -1418,7 +1418,7 @@ public class Btcmarkets extends BtcmarketsApi
         }};
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Accepted", "open" );

@@ -123,7 +123,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }});
     }
 
-    public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Object market2, Object methodName, Object... optionalArgs)
+    public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Map<String, Object> market2, Object methodName, Object... optionalArgs)
     {
         final Object market3 = market2;
         return BaseExchange.supplyAsync(() -> {
@@ -260,7 +260,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             Object topic = "ticker";
             Object methodName = "unWatchTicker";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -542,7 +542,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             Object topic = "trades";
             Object methodName = "unWatchTrades";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -767,7 +767,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             Object topic = "orderbook";
             Object methodName = "unWatchOrderBook";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -1155,7 +1155,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object methodName = "unWatchOHLCV";
             List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe))));
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", symbolsAndTimeframes);
-            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -2233,12 +2233,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {
-            this.handleUnSubscription(client, subscription);
+            this.handleUnSubscription(client, (Map<String, Object>) (subscription));
         }
         return message;
     }
 
-    public void handleUnSubscription(Client client, Object subscription)
+    public void handleUnSubscription(Client client, Map<String, Object> subscription)
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));

@@ -138,7 +138,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }});
     }
 
-    public Object orderRequestWs(Object method, String symbol, Object type, Object request, Object amount, Object... optionalArgs)
+    public Object orderRequestWs(Object method, String symbol, Object type, Map<String, Object> request, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -149,7 +149,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 throw new ArgumentsRequired((this.id + " limit orders require a price argument")) ;
             }
-            Helpers.addElementToObject(Helpers.GetValue(request, "params"), "limit_price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
+            Helpers.addElementToObject(request.get("params"), "limit_price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
         }
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
         Boolean postOnly = null;
@@ -158,17 +158,17 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
         if (java.util.Objects.equals(postOnly, true))
         {
-            Helpers.addElementToObject(Helpers.GetValue(request, "params"), "post_only", true);
+            Helpers.addElementToObject(request.get("params"), "post_only", true);
         }
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(request, "params"), "cl_ord_id", clientOrderId);
+            Helpers.addElementToObject(request.get("params"), "cl_ord_id", clientOrderId);
         }
         String cost = this.safeString(parameters, "cost");
         if (!java.util.Objects.equals(cost, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_qty", this.parseToNumeric(this.costToPrecision(symbol, cost)));
+            Helpers.addElementToObject(request.get("params"), "order_qty", this.parseToNumeric(this.costToPrecision(symbol, cost)));
         }
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
@@ -201,87 +201,87 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
             if (java.util.Objects.equals(reduceOnly, true))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "params"), "reduce_only", true);
+                Helpers.addElementToObject(request.get("params"), "reduce_only", true);
             }
             String timeInForce = this.safeStringLower(parameters, "timeInForce");
             if (!java.util.Objects.equals(timeInForce, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "params"), "time_in_force", timeInForce);
+                Helpers.addElementToObject(request.get("params"), "time_in_force", timeInForce);
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "timeInForce")));
             if (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder) || Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "params"), "triggers", new HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(request.get("params"), "triggers", new HashMap<String, Object>() {{}});
             }
             if (Boolean.TRUE.equals(isPresetStopLoss) || Boolean.TRUE.equals(isPresetTakeProfit))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "params"), "conditional", new HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(request.get("params"), "conditional", new HashMap<String, Object>() {{}});
                 if (Boolean.TRUE.equals(isPresetStopLoss))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "order_type", "stop-loss");
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss)));
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "order_type", "stop-loss");
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss)));
                 } else if (Boolean.TRUE.equals(isPresetTakeProfit))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "order_type", "take-profit");
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit)));
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "order_type", "take-profit");
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit)));
                 }
                 if (!java.util.Objects.equals(presetStopLossLimit, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "order_type", "stop-loss-limit");
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "limit_price", this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit)));
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "order_type", "stop-loss-limit");
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "limit_price", this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit)));
                 } else if (!java.util.Objects.equals(presetTakeProfitLimit, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "order_type", "take-profit-limit");
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "limit_price", this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit)));
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "order_type", "take-profit-limit");
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "conditional"), "limit_price", this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit)));
                 }
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
             } else if (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder))
             {
                 if (Boolean.TRUE.equals(isStopLossPriceOrder))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
                     if (Helpers.isTrue(isLimitOrder))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "stop-loss-limit");
+                        Helpers.addElementToObject(request.get("params"), "order_type", "stop-loss-limit");
                     } else
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "stop-loss");
+                        Helpers.addElementToObject(request.get("params"), "order_type", "stop-loss");
                     }
                 } else
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
+                    Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
                     if (Helpers.isTrue(isLimitOrder))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "take-profit-limit");
+                        Helpers.addElementToObject(request.get("params"), "order_type", "take-profit-limit");
                     } else
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "take-profit");
+                        Helpers.addElementToObject(request.get("params"), "order_type", "take-profit");
                     }
                 }
             } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price_type", priceType);
+                Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price_type", priceType);
                 if (!Helpers.isTrue(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "trailing-stop");
+                    Helpers.addElementToObject(request.get("params"), "order_type", "trailing-stop");
                     if (Boolean.TRUE.equals(isTrailingAmountOrder))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(trailingAmountString));
+                        Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(trailingAmountString));
                     } else
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(trailingPercentString));
+                        Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(trailingPercentString));
                     }
                 } else
                 {
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    Helpers.addElementToObject(Helpers.GetValue(request, "params"), "limit_price_type", priceType);
-                    Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "trailing-stop-limit");
+                    Helpers.addElementToObject(request.get("params"), "limit_price_type", priceType);
+                    Helpers.addElementToObject(request.get("params"), "order_type", "trailing-stop-limit");
                     if (Boolean.TRUE.equals(isTrailingLimitAmountOrder))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(trailingLimitAmountString));
+                        Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(trailingLimitAmountString));
                     } else
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(trailingLimitPercentString));
+                        Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(trailingLimitPercentString));
                     }
                 }
             }
@@ -295,32 +295,32 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 if (Boolean.TRUE.equals(isStopLossPriceOrder))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
+                    Helpers.addElementToObject(request.get("params"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
                 } else
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
+                    Helpers.addElementToObject(request.get("params"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
                 }
             } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price_type", priceType);
+                Helpers.addElementToObject(request.get("params"), "trigger_price_type", priceType);
                 if (!Helpers.isTrue(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
                 {
                     if (Boolean.TRUE.equals(isTrailingAmountOrder))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(trailingAmountString));
+                        Helpers.addElementToObject(request.get("params"), "trigger_price", this.parseToNumeric(trailingAmountString));
                     } else
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(trailingPercentString));
+                        Helpers.addElementToObject(request.get("params"), "trigger_price", this.parseToNumeric(trailingPercentString));
                     }
                 } else
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(request, "params"), "limit_price_type", priceType);
+                    Helpers.addElementToObject(request.get("params"), "limit_price_type", priceType);
                     if (Boolean.TRUE.equals(isTrailingLimitAmountOrder))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(trailingLimitAmountString));
+                        Helpers.addElementToObject(request.get("params"), "trigger_price", this.parseToNumeric(trailingLimitAmountString));
                     } else
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(trailingLimitPercentString));
+                        Helpers.addElementToObject(request.get("params"), "trigger_price", this.parseToNumeric(trailingLimitPercentString));
                     }
                 }
             }
@@ -366,7 +366,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 }} );
                 put( "req_id", requestId );
             }};
-            var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, request, amount, price, parameters);
+            var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, (Map<String, Object>) (request), amount, price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
@@ -444,7 +444,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 }} );
                 put( "req_id", requestId );
             }};
-            var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, request, amount, price, parameters);
+            var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, (Map<String, Object>) (request), amount, price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();

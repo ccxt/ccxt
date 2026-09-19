@@ -833,7 +833,7 @@ public class Independentreserve extends IndependentreserveApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Open", "open" );
@@ -848,7 +848,7 @@ public class Independentreserve extends IndependentreserveApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "Gtc", "GTC" );

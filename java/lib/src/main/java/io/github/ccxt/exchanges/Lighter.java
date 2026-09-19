@@ -987,7 +987,7 @@ public class Lighter extends LighterApi
         Helpers.addElementToObject(this.options, "chainId", ((Helpers.isTrue(enable))) ? 300 : 304);
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1171,7 +1171,7 @@ public class Lighter extends LighterApi
             // amount should be 0 for child orders
             if (!java.util.Objects.equals(stopLoss, null))
             {
-                Object orderObj = Helpers.GetValue(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(parameters, new HashMap<String, Object>() {{
+                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(parameters, new HashMap<String, Object>() {{
     put( "stopLossPrice", stopLossOrderTriggerPrice );
     put( "reduceOnly", true );
 }})), 0);
@@ -1180,7 +1180,7 @@ public class Lighter extends LighterApi
             }
             if (!java.util.Objects.equals(takeProfit, null))
             {
-                Object orderObj = Helpers.GetValue(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(parameters, new HashMap<String, Object>() {{
+                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(parameters, new HashMap<String, Object>() {{
     put( "takeProfitPrice", takeProfitOrderTriggerPrice );
     put( "reduceOnly", true );
 }})), 0);
@@ -1232,7 +1232,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public CompletableFuture<Object> signAndCreateOrder(Object method, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> signAndCreateOrder(Object method, String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1253,7 +1253,7 @@ public class Lighter extends LighterApi
             List<Object> groupingTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "groupingType", 3);
             groupingType = ((List<Object>) groupingTypeparametersVariable).get(0);
             parameters = ((List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-            Object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object totalOrderRequests = ((List<?>)orderRequests).size();
             Object apiKeyIndex = null;
             Object order = null;
@@ -1332,7 +1332,7 @@ public class Lighter extends LighterApi
 
             Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrder", symbol, type, side, amount, price, parameters)).join();
+            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrder", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoordermarketVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoordermarketVariable).get(1);
             var order = ((List<Object>) txTypetxInfoordermarketVariable).get(2);
@@ -3012,7 +3012,7 @@ public class Lighter extends LighterApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "in-progress", "open" );
@@ -3548,7 +3548,7 @@ public class Lighter extends LighterApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "failed", "failed" );

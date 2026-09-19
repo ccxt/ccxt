@@ -949,7 +949,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
 
     }
 
-    public Object handleFundingRate(Client client, Object message)
+    public Object handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1087,7 +1087,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         client.resolve(new ArrayList<Object>(Arrays.asList(position)), "position::contract");
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1169,7 +1169,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleTickers(Client client, Object message)
+    public Object handleTickers(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1274,7 +1274,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleOHLCV(Client client, Object message)
+    public Object handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1338,7 +1338,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleTrade(Client client, Object message)
+    public Object handleTrade(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1394,7 +1394,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1663,7 +1663,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }}, market);
     }
 
-    public Object handleOrder(Client client, Object message)
+    public Object handleOrder(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1727,7 +1727,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1779,7 +1779,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         client.resolve(this.balance, Helpers.add("balance::", tradeType));
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1911,13 +1911,13 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             if (java.util.Objects.equals(unsubscribe, true))
             {
-                this.handleUnSubscription(client, subscription);
+                this.handleUnSubscription(client, (Map<String, Object>) (subscription));
             }
         }
         return message;
     }
 
-    public void handleUnSubscription(Client client, Object subscription)
+    public void handleUnSubscription(Client client, Map<String, Object> subscription)
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
@@ -1930,7 +1930,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         this.cleanCache(subscription);
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

@@ -1145,7 +1145,7 @@ public class Btcturk extends BtcturkApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Untouched", "open" );

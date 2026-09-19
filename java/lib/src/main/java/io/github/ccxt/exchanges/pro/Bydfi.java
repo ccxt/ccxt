@@ -927,9 +927,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "datetime", null );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", null );
-            put( "status", Bydfi.this.parseOrderStatus(rawStatus) );
+            put( "status", Bydfi.this.parseOrderStatus((String) (rawStatus)) );
             put( "symbol", ((Map<String, Object>)finalMarket_2).get("symbol") );
-            put( "type", Bydfi.this.parseOrderType(rawType) );
+            put( "type", Bydfi.this.parseOrderType((String) (rawType)) );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "reduceOnly", Bydfi.this.safeBool(order, "ro") );
@@ -1100,7 +1100,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "collateral", null );
             put( "unrealizedPnl", null );
             put( "realizedPnl", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "rp")) );
-            put( "side", Bydfi.this.parseWsPositionSide(rawPositionSide) );
+            put( "side", Bydfi.this.parseWsPositionSide((String) (rawPositionSide)) );
             put( "contracts", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "v")) );
             put( "contractSize", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "uq")) );
             put( "timestamp", null );
@@ -1119,7 +1119,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }});
     }
 
-    public String parseWsPositionSide(Object rawPositionSide)
+    public String parseWsPositionSide(String rawPositionSide)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "1", "long" );
@@ -1282,12 +1282,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {
-            this.handleUnSubscription(client, subscription);
+            this.handleUnSubscription(client, (Map<String, Object>) (subscription));
         }
         return message;
     }
 
-    public void handleUnSubscription(Client client, Object subscription)
+    public void handleUnSubscription(Client client, Map<String, Object> subscription)
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);

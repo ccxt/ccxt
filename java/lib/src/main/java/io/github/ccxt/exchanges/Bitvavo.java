@@ -1212,12 +1212,12 @@ final Object finalBase = base;
             //         "maker": "0.0015"
             //     }
             //
-            return this.parseTradingFee(response, market);
+            return this.parseTradingFee((Map<String, Object>) (response), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -1299,7 +1299,7 @@ final Object finalBase = base;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
-    public Object fetchOHLCVRequest(Object symbol, Object... optionalArgs)
+    public Object fetchOHLCVRequest(String symbol, Object... optionalArgs)
     {
         Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -1370,7 +1370,7 @@ final Object finalBase = base;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1440)).join();
             }
-            Object request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
+            Object request = this.fetchOHLCVRequest((String) (symbol), timeframe, since, limit, parameters);
             List<Object> response = (this.publicGetMarketCandles(request)).join();
             //
             //     [
@@ -1693,7 +1693,7 @@ final Object finalBase = base;
 
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "completed", "ok" );
@@ -1786,7 +1786,7 @@ final Object finalBase = base;
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1936,7 +1936,7 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostOrder(request)).join();
             //
             //      {
@@ -1983,7 +1983,7 @@ final Object finalBase = base;
 
     }
 
-    public Object editOrderRequest(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public Object editOrderRequest(Object id, String symbol, Object type, Object side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -2061,14 +2061,14 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Object request = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
             Map<String, Object> response = (this.privatePutOrder(request)).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
 
-    public Object cancelOrderRequest(Object id, Object... optionalArgs)
+    public Object cancelOrderRequest(String id, Object... optionalArgs)
     {
         Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2121,7 +2121,7 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.cancelOrderRequest(id, symbol, parameters);
+            Object request = this.cancelOrderRequest((String) (id), symbol, parameters);
             Map<String, Object> response = (this.privateDeleteOrder(request)).join();
             //
             //     {
@@ -2486,7 +2486,7 @@ final Object finalBase = base;
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "new", "open" );
@@ -2776,7 +2776,7 @@ final Object finalBase = base;
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "buy", "trade" );
@@ -2886,7 +2886,7 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object request = this.withdrawRequest(code, amount, address, tag, parameters);
+            Object request = this.withdrawRequest((String) (code), amount, address, tag, parameters);
             Map<String, Object> response = (this.privatePostWithdrawal(request)).join();
             //
             //     {
@@ -3050,7 +3050,7 @@ final Object finalBase = base;
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "awaiting_processing", "pending" );

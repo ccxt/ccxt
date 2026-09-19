@@ -2305,7 +2305,7 @@ public class Woofipro extends WoofiproApi
             put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", Woofipro.this.parseOrderStatus(finalStatus) );
+            put( "status", Woofipro.this.parseOrderStatus((String) (finalStatus)) );
             put( "symbol", symbol );
             put( "type", Woofipro.this.parseOrderType(orderType) );
             put( "timeInForce", Woofipro.this.parseTimeInForce(orderType) );
@@ -2330,7 +2330,7 @@ public class Woofipro extends WoofiproApi
         }}, market);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "ioc", "IOC" );
@@ -2340,7 +2340,7 @@ public class Woofipro extends WoofiproApi
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         if (!java.util.Objects.equals(status, null))
         {
@@ -2360,7 +2360,7 @@ public class Woofipro extends WoofiproApi
         return null;
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -2370,7 +2370,7 @@ public class Woofipro extends WoofiproApi
         return this.safeStringLower(types, type, type);
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2534,7 +2534,7 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
@@ -3619,7 +3619,7 @@ public class Woofipro extends WoofiproApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "pending" );

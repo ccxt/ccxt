@@ -488,7 +488,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object subscriptionArgs = new HashMap<String, Object>() {{
                 put( "symbols", finalSymbols );
             }};
-            return (this.unWatchChannels("trades", channels, subMessageHashes, subscriptionArgs, parameters)).join();
+            return (this.unWatchChannels("trades", channels, subMessageHashes, (Map<String, Object>) (subscriptionArgs), parameters)).join();
         });
 
     }
@@ -755,7 +755,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object subscriptionArgs = new HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
-            return (this.unWatchChannels("ohlcv", channels, subMessageHashes, subscriptionArgs, parameters)).join();
+            return (this.unWatchChannels("ohlcv", channels, subMessageHashes, (Map<String, Object>) (subscriptionArgs), parameters)).join();
         });
 
     }
@@ -924,7 +924,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object subscriptionArgs = new HashMap<String, Object>() {{
                 put( "symbols", finalSymbols );
             }};
-            return (this.unWatchChannels("orderbook", channels, subMessageHashes, subscriptionArgs, parameters)).join();
+            return (this.unWatchChannels("orderbook", channels, subMessageHashes, (Map<String, Object>) (subscriptionArgs), parameters)).join();
         });
 
     }
@@ -1143,7 +1143,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public CompletableFuture<Object> unWatchChannels(Object topic, Object channels, Object subMessageHashes, Object subscriptionArgs, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchChannels(Object topic, Object channels, Object subMessageHashes, Map<String, Object> subscriptionArgs, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1346,7 +1346,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             return (this.watchRequest("privateCreateOrder", request)).join();
         }).thenApply(Order::new);
 
@@ -1379,7 +1379,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Object request = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
             return (this.watchRequest("privateUpdateOrder", request)).join();
         }).thenApply(Order::new);
 
@@ -1407,7 +1407,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object request = this.cancelOrderRequest(id, symbol, parameters);
+            Object request = this.cancelOrderRequest((String) (id), symbol, parameters);
             return (this.watchRequest("privateCancelOrder", request)).join();
         }).thenApply(Order::new);
 
@@ -1706,7 +1706,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object request = this.withdrawRequest(code, amount, address, tag, parameters);
+            Object request = this.withdrawRequest((String) (code), amount, address, tag, parameters);
             return (this.watchRequest("privateWithdrawAssets", request)).join();
         }).thenApply(Transaction::new);
 
@@ -1816,7 +1816,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets()).join();
             }
-            Object request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
+            Object request = this.fetchOHLCVRequest((String) (symbol), timeframe, since, limit, parameters);
             Object action = "getCandles";
             Object ohlcv = (this.watchRequest(action, request)).join();
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);

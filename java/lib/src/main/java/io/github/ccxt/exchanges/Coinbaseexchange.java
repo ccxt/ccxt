@@ -1682,7 +1682,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "open" );

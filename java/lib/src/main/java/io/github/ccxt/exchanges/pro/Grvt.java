@@ -139,7 +139,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Object request, Object rawHashes, Object... optionalArgs)
+    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -244,7 +244,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", finalChannel );
                 put( "selectors", rawHashes );
             }};
-            Object ticker = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
+            Object ticker = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(parameters, request)), rawHashes)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -416,7 +416,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.trade" );
                 put( "selectors", rawHashes );
             }};
-            Object trades = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
+            Object trades = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(parameters, request)), rawHashes)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -549,7 +549,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.candle" );
                 put( "selectors", rawHashes );
             }};
-            var symboltimeframestoredVariable = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
+            var symboltimeframestoredVariable = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(parameters, request)), rawHashes)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
@@ -702,7 +702,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", finalChannel );
                 put( "selectors", rawHashes );
             }};
-            Object orderbook = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes)).join();
+            Object orderbook = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -860,7 +860,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.fill" );
                 put( "selectors", rawHashes );
             }};
-            Object trades = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false)).join();
+            Object trades = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), messageHashes, false)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -972,7 +972,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.position" );
                 put( "selectors", rawHashes );
             }};
-            Object newPositions = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false)).join();
+            Object newPositions = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1075,7 +1075,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.order" );
                 put( "selectors", rawHashes );
             }};
-            Object orders = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false)).join();
+            Object orders = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});

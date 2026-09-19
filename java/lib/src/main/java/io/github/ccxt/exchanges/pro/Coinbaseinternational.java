@@ -398,13 +398,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //        "channel":"INSTRUMENTS",
         //        "type":"SNAPSHOT"
         //    }
-        Object ticker = this.parseWsInstrument(message);
+        Object ticker = this.parseWsInstrument((Map<String, Object>) (message));
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
         client.resolve(ticker, Helpers.add(Helpers.add(channel, "::"), ((Map<String, Object>)ticker).get("symbol")));
     }
 
-    public Object parseWsInstrument(Object ticker, Object... optionalArgs)
+    public Object parseWsInstrument(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //    {

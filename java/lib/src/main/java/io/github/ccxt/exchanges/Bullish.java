@@ -2517,7 +2517,7 @@ public class Bullish extends BullishApi
             put( "lastTradeTimestamp", null );
             put( "status", finalStatus );
             put( "symbol", symbol );
-            put( "type", Bullish.this.parseOrderType(finalType) );
+            put( "type", Bullish.this.parseOrderType((String) (finalType)) );
             put( "timeInForce", timeInForce );
             put( "postOnly", java.util.Objects.equals(finalType, "POST_ONLY") );
             put( "side", side );
@@ -2534,7 +2534,7 @@ public class Bullish extends BullishApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -2545,7 +2545,7 @@ public class Bullish extends BullishApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LMT", "limit" );
@@ -2783,7 +2783,7 @@ public class Bullish extends BullishApi
         return this.safeString(types, type, type);
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );
@@ -3222,7 +3222,7 @@ public class Bullish extends BullishApi
         }});
     }
 
-    public Object parsePositionSide(Object side)
+    public Object parsePositionSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "BUY", "long" );
@@ -3400,12 +3400,12 @@ public class Bullish extends BullishApi
             put( "amount", Bullish.this.safeNumber(transfer, "quantity") );
             put( "fromAccount", Bullish.this.safeString(transfer, "fromTradingAccountId") );
             put( "toAccount", Bullish.this.safeString(transfer, "toTradingAccountId") );
-            put( "status", Bullish.this.parseTransferStatus(finalStatus) );
+            put( "status", Bullish.this.parseTransferStatus((String) (finalStatus)) );
             put( "info", transfer );
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CLOSED", "ok" );

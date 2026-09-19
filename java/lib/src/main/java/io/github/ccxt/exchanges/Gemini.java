@@ -2471,7 +2471,7 @@ public class Gemini extends GeminiApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Advanced", "ok" );

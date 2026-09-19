@@ -567,7 +567,7 @@ public class Bithumb extends BithumbApi
         return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), DECIMAL_PLACES);
     }
 
-    public Object getGen2MarketId(Object market)
+    public Object getGen2MarketId(Map<String, Object> market)
     {
         String marketId = this.safeString(market, "id");
         if ((!java.util.Objects.equals(marketId, null)) && (((String)marketId).indexOf("-") >= 0))
@@ -927,7 +927,7 @@ public class Bithumb extends BithumbApi
             Object timestamp = null;
             if (Helpers.isEqual(generation, 2))
             {
-                ((Map<String, Object>)request).put("markets", this.getGen2MarketId(market));
+                ((Map<String, Object>)request).put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
                 response = (this.publicGetV1Orderbook(this.extend(request, parameters))).join();
                 //
                 //     [
@@ -1191,7 +1191,7 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; Helpers.isLessThan(i, symbolsForMarketIdsLength); i++)
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbolsForMarketIds, i));
-                    ((List<Object>)marketIds).add(this.getGen2MarketId(market));
+                    ((List<Object>)marketIds).add(this.getGen2MarketId((Map<String, Object>) (market)));
                 }
                 Object marketIdsLength = ((List<?>)marketIds).size();
                 if (java.util.Objects.equals(marketIdsLength, 0))
@@ -1403,7 +1403,7 @@ public class Bithumb extends BithumbApi
             Object data = new HashMap<String, Object>() {{}};
             if (Helpers.isEqual(generation, 2))
             {
-                ((Map<String, Object>)request).put("markets", this.getGen2MarketId(market));
+                ((Map<String, Object>)request).put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
                 response = (this.publicGetV1Ticker(this.extend(request, parameters))).join();
                 //
                 //     [
@@ -1551,7 +1551,7 @@ public class Bithumb extends BithumbApi
             Object data = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isEqual(generation, 2))
             {
-                ((Map<String, Object>)request).put("market", this.getGen2MarketId(market));
+                ((Map<String, Object>)request).put("market", this.getGen2MarketId((Map<String, Object>) (market)));
                 if (!java.util.Objects.equals(limit, null))
                 {
                     ((Map<String, Object>)request).put("count", limit);
@@ -1822,7 +1822,7 @@ public class Bithumb extends BithumbApi
             Object data = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isEqual(generation, 2))
             {
-                ((Map<String, Object>)request).put("market", this.getGen2MarketId(market));
+                ((Map<String, Object>)request).put("market", this.getGen2MarketId((Map<String, Object>) (market)));
                 response = (this.publicGetV1TradesTicks(this.extend(request, parameters))).join();
                 //
                 //     [
@@ -1975,7 +1975,7 @@ public class Bithumb extends BithumbApi
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "market", Bithumb.this.getGen2MarketId(market) );
+            put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
         }};
         String sideRequest = null;
         if (java.util.Objects.equals(side, "buy"))
@@ -2228,7 +2228,7 @@ public class Bithumb extends BithumbApi
             Object durationString = this.numberToString(duration);
             String durationSeconds = Precise.stringDiv(durationString, "1000");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Bithumb.this.getGen2MarketId(market) );
+                put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
                 put( "duration", durationSeconds );
             }};
             if (!java.util.Objects.equals(amount, null))
@@ -2302,7 +2302,7 @@ public class Bithumb extends BithumbApi
                 {
                     if (!java.util.Objects.equals(market, null))
                     {
-                        ((Map<String, Object>)request).put("market", this.getGen2MarketId(market));
+                        ((Map<String, Object>)request).put("market", this.getGen2MarketId((Map<String, Object>) (market)));
                     }
                     ((Map<String, Object>)request).put("uuids", new ArrayList<Object>(Arrays.asList(id)));
                     response = (this.privateGetV1Twap(this.extend(request, parameters))).join();
@@ -2423,7 +2423,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Pending", "open" );
@@ -2820,7 +2820,7 @@ public class Bithumb extends BithumbApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("market", this.getGen2MarketId(market));
+                ((Map<String, Object>)request).put("market", this.getGen2MarketId((Map<String, Object>) (market)));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3336,7 +3336,7 @@ public class Bithumb extends BithumbApi
         }};
     }
 
-    public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
+    public Object parseTransactionStatusByType(String status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(type, null))
@@ -3906,7 +3906,7 @@ public class Bithumb extends BithumbApi
         return this.milliseconds();
     }
 
-    public Object urlencodeWithArrayBrackets(Object query)
+    public Object urlencodeWithArrayBrackets(Map<String, Object> query)
     {
         Object keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
         Object result = "";
@@ -3990,11 +3990,11 @@ public class Bithumb extends BithumbApi
                     if (Boolean.TRUE.equals(hasQuery))
                     {
                         body = this.json(query);
-                        auth = this.urlencodeWithArrayBrackets(query);
+                        auth = this.urlencodeWithArrayBrackets((Map<String, Object>) (query));
                     }
                 } else if (Boolean.TRUE.equals(hasQuery))
                 {
-                    auth = this.urlencodeWithArrayBrackets(query);
+                    auth = this.urlencodeWithArrayBrackets((Map<String, Object>) (query));
                     url = (url + ("?" + auth));
                 }
                 if (Boolean.TRUE.equals(hasQuery))

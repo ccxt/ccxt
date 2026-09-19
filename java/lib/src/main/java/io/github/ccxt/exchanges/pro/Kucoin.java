@@ -815,7 +815,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(data, "data", data);
-            Object ticker = this.parseSpotOrUtaTicker(rawTicker, market);
+            Object ticker = this.parseSpotOrUtaTicker((Map<String, Object>) (rawTicker), market);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             String messageHash = Helpers.add("ticker:", symbol);
@@ -2638,10 +2638,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Kucoin.this.safeIntegerProduct(order, "U", 0.000001) );
-            put( "status", Kucoin.this.parseOrderStatus(rawStatus) );
+            put( "status", Kucoin.this.parseOrderStatus((String) (rawStatus)) );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "type", Kucoin.this.safeStringLower(order, "oT") );
-            put( "timeInForce", Kucoin.this.parseOrderTimeInForce(rawTimeInForce) );
+            put( "timeInForce", Kucoin.this.parseOrderTimeInForce((String) (rawTimeInForce)) );
             put( "side", Kucoin.this.safeStringLower(order, "S") );
             put( "price", Kucoin.this.safeString(order, "p") );
             put( "average", Kucoin.this.safeString(order, "aP") );

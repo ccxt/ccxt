@@ -1677,7 +1677,7 @@ public class Bigone extends BigoneApi
 
     }
 
-    public String parseType(Object type)
+    public String parseType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "STOP_LIMIT", "limit" );
@@ -2223,7 +2223,7 @@ public class Bigone extends BigoneApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING", "open" );
@@ -2415,7 +2415,7 @@ public class Bigone extends BigoneApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "WITHHOLD", "ok" );
@@ -2722,7 +2722,7 @@ public class Bigone extends BigoneApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "ok" );

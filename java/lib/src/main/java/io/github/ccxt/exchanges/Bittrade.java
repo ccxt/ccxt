@@ -699,14 +699,14 @@ public class Bittrade extends BittradeApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
+                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
         });
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimitsById(Object id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchTradingLimitsById(String id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1942,7 +1942,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "partial-filled", "open" );
@@ -2632,7 +2632,7 @@ public class Bittrade extends BittradeApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "unknown", "failed" );

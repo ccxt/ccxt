@@ -912,7 +912,7 @@ public class Phemex extends PhemexApi
         return this.safeNumber(parts, 0);
     }
 
-    public Object parseSwapMarket(Object market)
+    public Object parseSwapMarket(Map<String, Object> market)
     {
         //
         //     {
@@ -977,7 +977,7 @@ public class Phemex extends PhemexApi
         {
             inverse = true;
             // some unhandled cases
-            if (!(((Map<?, ?>)market).containsKey("baseCurrency")) && java.util.Objects.equals(base, quote))
+            if (!(market.containsKey("baseCurrency")) && java.util.Objects.equals(base, quote))
             {
                 base = settle;
             }
@@ -1069,7 +1069,7 @@ public class Phemex extends PhemexApi
         }});
     }
 
-    public Object parseSpotMarket(Object market)
+    public Object parseSpotMarket(Map<String, Object> market)
     {
         //
         //     {
@@ -1401,7 +1401,7 @@ public class Phemex extends PhemexApi
                     market = this.extend(market, riskLimitValues);
                     Map<String, Object> v1ProductsValues = (Map<String, Object>) this.safeDict(v1ProductsById, id, new HashMap<String, Object>() {{}});
                     market = this.extend(market, v1ProductsValues);
-                    market = this.parseSwapMarket(market);
+                    market = this.parseSwapMarket((Map<String, Object>) (market));
                 } else
                 {
                     String baseCurrency = this.safeString(market, "baseCurrency");
@@ -1410,7 +1410,7 @@ public class Phemex extends PhemexApi
                     market = this.extend(market, new HashMap<String, Object>() {{
                         put( "valueScale", valueScale );
                     }});
-                    market = this.parseSpotMarket(market);
+                    market = this.parseSpotMarket((Map<String, Object>) (market));
                 }
                 ((List<Object>)result).add(market);
             }
@@ -2778,7 +2778,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Created", "open" );
@@ -2803,7 +2803,7 @@ public class Phemex extends PhemexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "market" );
@@ -2822,7 +2822,7 @@ public class Phemex extends PhemexApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GoodTillCancel", "GTC" );
@@ -2833,7 +2833,7 @@ public class Phemex extends PhemexApi
         return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
-    public Object parseSpotOrder(Object order, Object... optionalArgs)
+    public Object parseSpotOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // spot
@@ -3170,7 +3170,7 @@ public class Phemex extends PhemexApi
         {
             return this.parseSwapOrder(order, market);
         }
-        return this.parseSpotOrder(order, market);
+        return this.parseSpotOrder((Map<String, Object>) (order), market);
     }
 
     /**
@@ -4443,7 +4443,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Success", "ok" );
@@ -5970,7 +5970,7 @@ final Object finalI = i;
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "3", "rejected" );
