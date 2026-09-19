@@ -6363,7 +6363,7 @@ export default class bingx extends Exchange {
      * @param {string} [symbol] unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve (max 100)
-     * @param {object} [params] exchange specific parameters for the bingx api endpoint
+     * @param {object} [params] exchange specific parameters for the bingx api endpoint; params.subType and params.defaultSubType are ignored when symbol is supplied
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
@@ -6379,6 +6379,7 @@ export default class bingx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
         }
         if (since !== undefined) {
             request['startTime'] = since;
