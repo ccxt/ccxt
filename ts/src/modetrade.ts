@@ -2678,6 +2678,7 @@ export default class modetrade extends Exchange {
         //         "success":true
         //     }
         //
+        params = this.omit (params, 'side'); // request-side filter, not a unified transaction field
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
