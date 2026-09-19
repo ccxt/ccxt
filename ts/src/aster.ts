@@ -3610,7 +3610,7 @@ export default class aster extends Exchange {
         }
         const entryPriceString = this.safeString (position, 'entryPrice');
         const entryPrice = this.parseNumber (entryPriceString);
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         // as oppose to notionalValue
         const linear = ('notional' in position);
@@ -3924,7 +3924,7 @@ export default class aster extends Exchange {
         let percentage: Num = undefined;
         let liquidationPriceStringRaw: Str = undefined;
         let liquidationPrice: Num = undefined;
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         if (Precise.stringEquals (notionalString, '0')) {
             entryPrice = undefined;
@@ -4120,7 +4120,7 @@ export default class aster extends Exchange {
                 { 'name': 'aster chain', 'type': 'string' },
             ],
         };
-        const request = {
+        const request: Dict = {
             'type': 'Withdraw',
             'destination': this.safeString (withdrawPayload, 'receiver'),
             'destination Chain': network,
@@ -4325,7 +4325,7 @@ export default class aster extends Exchange {
             if (signerAddress === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires signerAddress in options when use v3 api');
             }
-            const domain = {
+            const domain: Dict = {
                 'name': 'AsterSignTransaction',
                 'version': '1',
                 'chainId': v3ChainId,

@@ -449,7 +449,7 @@ export default class nado extends Exchange {
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
             priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18;
-            const trigger = {
+            const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
                 },
@@ -466,7 +466,7 @@ export default class nado extends Exchange {
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
             priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
-            const trigger = {
+            const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
                 },
@@ -975,7 +975,7 @@ export default class nado extends Exchange {
         }
         let recvWindow: Int = undefined;
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'recvWindow', 5000);
-        const tx = {
+        const tx: Dict = {
             'sender': sender,
             'recvTime': this.numberToString (this.milliseconds () + recvWindow),
         };
@@ -1061,7 +1061,7 @@ export default class nado extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'sender': sender,
             'type': 'subaccount_orders',
             'product_id': this.parseToInt (market['id']),
@@ -1146,7 +1146,7 @@ export default class nado extends Exchange {
         if (limit !== undefined) {
             ordersRequest['limit'] = Math.min (limit, 500);
         }
-        const request = {
+        const request: Dict = {
             'orders': ordersRequest,
         };
         const response = await this.archivePost (this.deepExtend (request, params));
