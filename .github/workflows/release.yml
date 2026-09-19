@@ -101,7 +101,7 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
           fi
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      # - name: Transpile Rust
+      - name: Transpile Rust
         run: npm run transpileRust
       - name: Build Rust
         run: npm run buildRust
