@@ -1848,7 +1848,7 @@ public class Bitstamp extends BitstampApi
             if (!java.util.Objects.equals(amountString, null))
             {
                 Object isAmountNeg = Precise.stringLt(amountString, "0");
-                if (Helpers.isTrue(isAmountNeg))
+                if (Boolean.TRUE.equals(isAmountNeg))
                 {
                     side = "sell";
                     amountString = Precise.stringNeg(amountString);

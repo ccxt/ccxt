@@ -1868,7 +1868,7 @@ final Object finalBase = base;
         {
             ((Map<String, Object>)request).put("timeInForce", timeInForce);
         }
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)request).put("postOnly", true);
         }

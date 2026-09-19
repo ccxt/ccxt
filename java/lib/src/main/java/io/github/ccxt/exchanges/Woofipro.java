@@ -2424,7 +2424,7 @@ public class Woofipro extends WoofiproApi
         ((Map<String, Object>)request).put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Boolean.TRUE.equals(isConditional))
         {
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("order_type", "POST_ONLY");
             } else if (java.util.Objects.equals(timeInForce, "fok"))
@@ -2691,7 +2691,7 @@ public class Woofipro extends WoofiproApi
                 String timeInForce = this.safeStringLower(parameters, "timeInForce");
                 Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
-                if (Helpers.isTrue(postOnly))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     ((Map<String, Object>)request).put("order_type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))

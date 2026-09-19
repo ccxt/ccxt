@@ -10557,7 +10557,7 @@ public class Kucoin extends KucoinApi
             }
             Object hfOrMining = this.isHfOrMining((String) (fromId), (String) (toId));
             Object response = null;
-            if (Helpers.isTrue(hfOrMining))
+            if (Boolean.TRUE.equals(hfOrMining))
             {
                 // new endpoint does not support hf and mining transfers
                 // use old endpoint for hf and mining transfers

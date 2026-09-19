@@ -1662,7 +1662,7 @@ public class Apex extends ApexApi
             }
             if (!Boolean.TRUE.equals(isMarket))
             {
-                if (Helpers.isTrue(postOnly))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     timeInForce = "POST_ONLY";
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))

@@ -4460,8 +4460,8 @@ public class Bitget extends BitgetApi
             network = ((String)network).toUpperCase();
             Object withdrawable = (java.util.Objects.equals(this.safeString(chain, "withdrawable"), "true"));
             Object rechargeable = (java.util.Objects.equals(this.safeString(chain, "rechargeable"), "true"));
-            withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Helpers.isTrue(withdraw) || Boolean.TRUE.equals(withdrawable));
-            deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Helpers.isTrue(deposit) || Boolean.TRUE.equals(rechargeable));
+            withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable));
+            deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable));
             final Object finalNetwork = network;
             ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
@@ -6129,7 +6129,7 @@ final Object finalMinNotional = minNotional;
             }};
             String feeCostString = this.safeString2(feeStructure, "totalFee", "fee");
             Object deduction = ((java.util.Objects.equals(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
-            if (Helpers.isTrue(deduction))
+            if (Boolean.TRUE.equals(deduction))
             {
                 ((Map<String, Object>)fee).put("cost", feeCostString);
             } else

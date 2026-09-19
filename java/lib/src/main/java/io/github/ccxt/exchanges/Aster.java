@@ -3507,7 +3507,7 @@ public class Aster extends AsterApi
             }
         }
         Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)request).put("timeInForce", "GTX");
         }
@@ -4538,7 +4538,7 @@ public class Aster extends AsterApi
             Object leverage = Helpers.parseInt(leverageString);
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-            if (!Helpers.isTrue(rational))
+            if (!Boolean.TRUE.equals(rational))
             {
                 initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
             }
@@ -4772,7 +4772,7 @@ public class Aster extends AsterApi
                 throw new ExchangeError((this.id + " parseAccountPosition() missing leverage")) ;
             }
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
-            if (!Helpers.isTrue(rational))
+            if (!Boolean.TRUE.equals(rational))
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
             }

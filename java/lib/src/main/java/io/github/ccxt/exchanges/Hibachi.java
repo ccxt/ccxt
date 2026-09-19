@@ -1111,7 +1111,7 @@ public class Hibachi extends HibachiApi
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)request).put("orderFlags", "POST_ONLY");
         } else if (java.util.Objects.equals(timeInForce, "ioc"))

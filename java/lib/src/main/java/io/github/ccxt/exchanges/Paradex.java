@@ -2235,7 +2235,7 @@ public class Paradex extends ParadexApi
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!Boolean.TRUE.equals(isMarket))
         {
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("instruction", "POST_ONLY");
             } else if (java.util.Objects.equals(timeInForce, "IOC"))

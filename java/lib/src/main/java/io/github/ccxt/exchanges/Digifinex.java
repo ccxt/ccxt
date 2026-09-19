@@ -2398,7 +2398,7 @@ public class Digifinex extends DigifinexApi
             }
             ((Map<String, Object>)request).put("amount", quantity);
         }
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             if ((!java.util.Objects.equals(postOnlyParsed, null)) && (!Helpers.isEqual(postOnlyParsed, 0)))
             {

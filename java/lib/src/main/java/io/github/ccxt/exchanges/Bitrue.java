@@ -2323,7 +2323,7 @@ public class Bitrue extends BitrueApi
                 Boolean isMarket = java.util.Objects.equals(uppercaseType, "MARKET");
                 String timeInForce = this.safeStringLower(parameters, "timeInForce");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
-                if (Helpers.isTrue(postOnly))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     ((Map<String, Object>)request).put("type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))

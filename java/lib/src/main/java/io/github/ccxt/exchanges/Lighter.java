@@ -1078,7 +1078,7 @@ public class Lighter extends LighterApi
         {
             ((Map<String, Object>)request).put("is_ask", 1);
         }
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             timeInForceNum = 2;
             orderExpiry = -1;

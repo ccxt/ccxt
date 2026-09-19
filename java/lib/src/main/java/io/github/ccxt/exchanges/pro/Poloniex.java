@@ -283,7 +283,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             Object uppercaseSide = ((String)side).toUpperCase();
             Object isPostOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(uppercaseType, "LIMIT_MAKER"), parameters);
-            if (Helpers.isTrue(isPostOnly))
+            if (Boolean.TRUE.equals(isPostOnly))
             {
                 uppercaseType = "LIMIT_MAKER";
             }

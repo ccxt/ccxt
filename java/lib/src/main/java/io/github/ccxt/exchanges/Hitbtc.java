@@ -3024,7 +3024,7 @@ public class Hitbtc extends HitbtcApi
         {
             ((Map<String, Object>)request).put("reduce_only", reduceOnly);
         }
-        if (Helpers.isTrue(isPostOnly))
+        if (Boolean.TRUE.equals(isPostOnly))
         {
             ((Map<String, Object>)request).put("post_only", true);
         }
