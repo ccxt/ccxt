@@ -601,7 +601,7 @@ public partial class polymarket : PredictionExchange
             {
                 ((IList<object>)flatMarkets).Add(ccxtMarkets[mi]);
             }
-            IDictionary<string, object> parsedEvent = ((IDictionary<string, object>)this.parseEvent(rawEvent));
+            object parsedEvent = this.parseEvent(rawEvent);
             string? eventSlug = this.safeString(rawEvent, "slug");
             if (((eventSlug != null)) && ((eventSlug != "")))
             {
@@ -3056,7 +3056,7 @@ public partial class polymarket : PredictionExchange
                 }
                 ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
             }
-            IDictionary<string, object> parsedEvent = ((IDictionary<string, object>)this.parseEvent(eventForParsing));
+            object parsedEvent = this.parseEvent(eventForParsing);
             ((IList<object>)result).Add(parsedEvent);
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -3107,7 +3107,7 @@ public partial class polymarket : PredictionExchange
         {
             eventForParsing = new Dictionary<string, object>() {};
         }
-        IDictionary<string, object> eventVar = ((IDictionary<string, object>)this.parseEvent(eventForParsing));
+        object eventVar = this.parseEvent(eventForParsing);
         this.indexEventOutcomes(eventVar);
         return ccxt.BaseExchange.ToPredictionEvent(eventVar);
     }
