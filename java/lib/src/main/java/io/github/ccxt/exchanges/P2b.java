@@ -1461,7 +1461,7 @@ public class P2b extends P2bApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orders = new ArrayList<Object>(Arrays.asList());
-            Object keys = new ArrayList<Object>(((Map<String, Object>)result).keySet());
+            List<Object> keys = new ArrayList<Object>(result.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);

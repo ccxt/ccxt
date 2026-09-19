@@ -4518,7 +4518,7 @@ public class Aster extends AsterApi
         Object collateral = this.parseNumber(collateralString);
         Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
-        if (Helpers.isEqual(timestamp, 0))
+        if ((timestamp != null && timestamp == 0))
         {
             timestamp = null;
         }
@@ -4812,7 +4812,7 @@ public class Aster extends AsterApi
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
         Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Long timestamp = this.safeInteger(position, "updateTime");
-        if (Helpers.isEqual(timestamp, 0))
+        if ((timestamp != null && timestamp == 0))
         {
             timestamp = null;
         }
@@ -5435,7 +5435,7 @@ public class Aster extends AsterApi
     public String encodeValuesWithJson(Map<String, Object> values)
     {
         Object encodedString = "";
-        Object keys = new ArrayList<Object>(((Map<String, Object>)values).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)values).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5451,7 +5451,7 @@ public class Aster extends AsterApi
     public Object capitalizeKeys(Map<String, Object> dict)
     {
         Map<String, Object> capitalized = new HashMap<String, Object>() {{}};
-        Object keys = new ArrayList<Object>(((Map<String, Object>)dict).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)dict).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5562,7 +5562,7 @@ public class Aster extends AsterApi
                     // {"code": 200,"msg": "success"}
                     //
                     Long codeRes = this.safeInteger(authResponse, "code");
-                    if (!Helpers.isEqual(codeRes, 200))
+                    if ((codeRes == null || codeRes != 200))
                     {
                         throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
                     }

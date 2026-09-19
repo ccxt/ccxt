@@ -938,7 +938,7 @@ public class Paradex extends ParadexApi
         String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settlement_currency");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((base + "/") + quote) + ":") + settle);
+        Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
@@ -947,14 +947,14 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(isOption))
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
-            Object deliveryValue = (((Helpers.isEqual(expiry, 0)))) ? "" : (this.yymmdd(expiry) + "-");
-            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            Object deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
+            symbol = Helpers.add((Helpers.add(((symbol + "-") + deliveryValue), strikePrice) + "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {
             expiry = null;
         }
-        String expireDatetime = (((Helpers.isEqual(expiry, 0)))) ? null : this.iso8601(expiry);
+        String expireDatetime = ((((expiry != null && expiry == 0)))) ? null : this.iso8601(expiry);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -1148,7 +1148,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
+                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
@@ -1481,7 +1481,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object rates = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
-            Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, ((Map<String, Object>)market).get("symbol"));
+            Object rate = this.safeDict(rates, ((Map<String, Object>)market).get("symbol"));
             if (java.util.Objects.equals(rate, null))
             {
                 throw new BadSymbol(((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
@@ -2596,7 +2596,7 @@ public class Paradex extends ParadexApi
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
-                Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
+                Object error = Helpers.GetValue(errors, i);
                 ((List<Object>)parsedOrders).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
@@ -2720,7 +2720,7 @@ public class Paradex extends ParadexApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object result = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
+                Object result = Helpers.GetValue(results, i);
                 String marketId = this.safeString(result, "market");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 String status = this.safeString(result, "status");
@@ -3476,7 +3476,7 @@ public class Paradex extends ParadexApi
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                Object row = Helpers.GetValue(rows, i);
                 if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "DEPOSIT"))
                 {
                     ((List<Object>)deposits).add(row);
@@ -3560,7 +3560,7 @@ public class Paradex extends ParadexApi
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                Object row = Helpers.GetValue(rows, i);
                 if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "WITHDRAWAL"))
                 {
                     ((List<Object>)deposits).add(row);
@@ -4350,7 +4350,7 @@ public class Paradex extends ParadexApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object rate = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
+                Object rate = Helpers.GetValue(results, i);
                 Long timestamp = this.safeInteger(rate, "created_at");
                 String datetime = this.iso8601(timestamp);
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
@@ -4375,7 +4375,7 @@ public class Paradex extends ParadexApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = this.version;
-        if (Helpers.isEqual(Helpers.getIndexOf(path, "v2/"), 0))
+        if ((Helpers.getIndexOf(path, "v2/") == 0))
         {
             version = "v2";
             path = Helpers.replace(((String)path), "v2/", "");

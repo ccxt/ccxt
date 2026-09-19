@@ -792,7 +792,7 @@ public class Deepcoin extends DeepcoinApi
     {
         Object currencies = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object result = super.setMarkets(markets, currencies);
-        Object symbols = new ArrayList<Object>(((Map<String, Object>)result).keySet());
+        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)result).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);

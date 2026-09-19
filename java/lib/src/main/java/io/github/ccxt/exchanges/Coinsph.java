@@ -2759,7 +2759,7 @@ public class Coinsph extends CoinsphApi
     {
         Object query = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Object encodedArrayParams = "";
-        Object keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -2827,7 +2827,7 @@ public class Coinsph extends CoinsphApi
         } else
         {
             query = this.urlEncodeQuery(query);
-            if (!Helpers.isEqual(Helpers.getArrayLength(query), 0))
+            if ((Helpers.getArrayLength(query) != 0))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }

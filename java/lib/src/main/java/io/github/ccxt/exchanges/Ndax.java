@@ -989,7 +989,7 @@ public class Ndax extends NdaxApi
             }
             List<Object> bidask = (List<Object>) this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Long levelSide = this.safeInteger(level, 9);
-            Object side = (((!java.util.Objects.equals(levelSide, null) && !Helpers.isEqual(levelSide, 0)))) ? asksKey : bidsKey;
+            Object side = (((!java.util.Objects.equals(levelSide, null) && (levelSide == null || levelSide != 0)))) ? asksKey : bidsKey;
             ((List<Object>)Helpers.GetValue(result, side)).add(bidask);
         }
         ((Map<String, Object>)result).put("bids", this.sortBy(((Map<String, Object>)result).get("bids"), 0, true));
@@ -1468,10 +1468,10 @@ public class Ndax extends NdaxApi
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
             Long takerSide = this.safeInteger(trade, 8);
-            if (Helpers.isEqual(takerSide, 0))
+            if ((takerSide != null && takerSide == 0))
             {
                 side = "buy";
-            } else if (Helpers.isEqual(takerSide, 1))
+            } else if ((takerSide != null && takerSide == 1))
             {
                 side = "sell";
             }

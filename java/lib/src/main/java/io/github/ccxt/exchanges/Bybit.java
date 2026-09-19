@@ -3726,7 +3726,7 @@ public class Bybit extends BybitApi
                     Object symbol = Helpers.GetValue(symbols, i);
                     // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                     // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                    Boolean isExchangeSpecificSymbol = (Helpers.isEqual(((String)symbol).indexOf("/"), -1));
+                    Boolean isExchangeSpecificSymbol = ((((String)symbol).indexOf("/") == -1));
                     if (Boolean.TRUE.equals(isExchangeSpecificSymbol))
                     {
                         market = this.safeMarket(symbol, null, null, defaultType);
@@ -4470,7 +4470,7 @@ public class Bybit extends BybitApi
             Long isBuyer = this.safeInteger(trade, "isBuyer");
             if (!java.util.Objects.equals(isBuyer, null))
             {
-                side = (((!Helpers.isEqual(isBuyer, 0)))) ? "buy" : "sell";
+                side = ((((isBuyer == null || isBuyer != 0)))) ? "buy" : "sell";
             }
         }
         Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
@@ -5298,7 +5298,7 @@ public class Bybit extends BybitApi
         String status = this.parseOrderStatus(rawStatus);
         Object fee = null;
         Map<String, Object> cumFeeDetail = (Map<String, Object>) this.safeDict(order, "cumFeeDetail", new HashMap<String, Object>() {{}});
-        Object feeCoins = new ArrayList<Object>(((Map<String, Object>)cumFeeDetail).keySet());
+        List<Object> feeCoins = new ArrayList<Object>(cumFeeDetail.keySet());
         String feeCoinId = this.safeString(feeCoins, 0);
         if (!java.util.Objects.equals(feeCoinId, null))
         {
@@ -5969,7 +5969,7 @@ public class Bybit extends BybitApi
             {
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Long retCode = this.safeInteger(code, "code");
-                if (!Helpers.isEqual(retCode, 0))
+                if ((retCode == null || retCode != 0))
                 {
                     Helpers.addElementToObject(data, i, this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), code));
                 }
@@ -6227,7 +6227,7 @@ public class Bybit extends BybitApi
             {
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Long retCode = this.safeInteger(code, "code");
-                if (!Helpers.isEqual(retCode, 0))
+                if ((retCode == null || retCode != 0))
                 {
                     Helpers.addElementToObject(data, i, this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), code));
                 }
@@ -11164,7 +11164,7 @@ public class Bybit extends BybitApi
         Object idKey = (((java.util.Objects.equals(marketIdKey, null)))) ? "symbol" : marketIdKey;
         Object filteredResults = this.filterByArray(response, idKey, marketIds, false);
         Map<String, Object> grouped = this.groupBy(filteredResults, idKey);
-        Object keys = new ArrayList<Object>(((Map<String, Object>)grouped).keySet());
+        List<Object> keys = new ArrayList<Object>(grouped.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);

@@ -674,7 +674,7 @@ public class Apex extends ApexApi
                 }
             }
         }
-        Object networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
+        List<Object> networkKeys = new ArrayList<Object>(networks.keySet());
         Object networksLength = ((List<?>)networkKeys).size();
         Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
@@ -2490,7 +2490,7 @@ public class Apex extends ApexApi
             return null;
         }
         Long errorCode = this.safeInteger(response, "code");
-        if (!java.util.Objects.equals(errorCode, null) && !Helpers.isEqual(errorCode, 0))
+        if (!java.util.Objects.equals(errorCode, null) && (errorCode == null || errorCode != 0))
         {
             String feedback = ((this.id + " ") + body);
             String message = this.safeString2(response, "key", "msg");

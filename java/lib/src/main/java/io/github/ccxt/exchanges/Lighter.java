@@ -817,7 +817,7 @@ public class Lighter extends LighterApi
         {
             throw new BadRequest((this.id + " pow() requires m > 0.")) ;
         }
-        if (Helpers.isEqual(c, 0))
+        if ((c != null && c == 0))
         {
             return "1";
         }
@@ -1612,7 +1612,7 @@ public class Lighter extends LighterApi
                 String type = this.safeString(market, "market_type");
                 type = (((java.util.Objects.equals(type, "perp")))) ? "swap" : type;
                 Object baseId = this.safeString(market, "symbol");
-                if (!java.util.Objects.equals(baseId, null) && !Helpers.isEqual(((String)baseId).indexOf("/"), -1))
+                if (!java.util.Objects.equals(baseId, null) && (((String)baseId).indexOf("/") != -1))
                 {
                     baseId = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)baseId).split(java.util.regex.Pattern.quote("/")))), 0);
                 }
@@ -2530,13 +2530,13 @@ public class Lighter extends LighterApi
         String side = null;
         if (!java.util.Objects.equals(sign, null))
         {
-            side = (((Helpers.isEqual(sign, 1)))) ? "long" : "short";
+            side = ((((sign != null && sign == 1)))) ? "long" : "short";
         }
         Long marginModeId = this.safeInteger(position, "margin_mode");
         String marginMode = null;
         if (!java.util.Objects.equals(marginModeId, null))
         {
-            marginMode = (((Helpers.isEqual(marginModeId, 0)))) ? "cross" : "isolated";
+            marginMode = ((((marginModeId != null && marginModeId == 0)))) ? "cross" : "isolated";
         }
         String imfStr = this.safeString(position, "initial_margin_fraction");
         Object leverage = null;
@@ -2928,7 +2928,7 @@ public class Lighter extends LighterApi
             Long isAskAsInteger = this.safeInteger(order, "is_ask");
             if (!java.util.Objects.equals(isAskAsInteger, null))
             {
-                isAsk = Helpers.isEqual(isAskAsInteger, 1);
+                isAsk = (isAskAsInteger != null && isAskAsInteger == 1);
             }
         }
         String side = null;
@@ -2972,7 +2972,7 @@ public class Lighter extends LighterApi
             Long reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
             if (!java.util.Objects.equals(reduceOnlyAsInteger, null))
             {
-                reduceOnly = Helpers.isEqual(reduceOnlyAsInteger, 1);
+                reduceOnly = (reduceOnlyAsInteger != null && reduceOnlyAsInteger == 1);
             }
         }
         String status = this.safeString(order, "status");

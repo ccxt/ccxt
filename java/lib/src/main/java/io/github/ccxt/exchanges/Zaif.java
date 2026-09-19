@@ -432,7 +432,7 @@ public class Zaif extends ZaifApi
             put( "datetime", null );
         }};
         Map<String, Object> funds = (Map<String, Object>) this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
-        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)funds).keySet());
+        List<Object> currencyIds = new ArrayList<Object>(funds.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -680,7 +680,7 @@ public class Zaif extends ZaifApi
             if (java.util.Objects.equals(numTrades, 1))
             {
                 Map<String, Object> firstTrade = (Map<String, Object>) this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
-                if ((((List<?>)new ArrayList<Object>(((Map<String, Object>)firstTrade).keySet())).size() == 0))
+                if ((((List<?>)new ArrayList<Object>(firstTrade.keySet())).size() == 0))
                 {
                     trades = new ArrayList<Object>(Arrays.asList());
                 }

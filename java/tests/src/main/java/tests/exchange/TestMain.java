@@ -409,7 +409,7 @@ public class TestMain extends BaseTest
             put( "depositWithdraw", new ArrayList<Object>(Arrays.asList("fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals")) );
             put( "depositWithdrawFee", new ArrayList<Object>(Arrays.asList("fetchDepositWithdrawFee", "fetchDepositWithdrawFees")) );
         }};
-        List<Object> objectNames = Helpers.objectKeys(objectSkips);
+        List<Object> objectNames = new ArrayList<Object>(objectSkips.keySet());
         for (var i = 0; i < ((List<?>)objectNames).size(); i++)
         {
             Object objectName = Helpers.GetValue(objectNames, i);
@@ -900,9 +900,9 @@ public class TestMain extends BaseTest
                     // exchanges keep returning tickers for delisted markets, and those
                     // never push a websocket update at all, so skip inactive markets
                     Object isActive = exchange.safeBool(market, "active", true);
-                    Boolean sameType = Helpers.isEqual(exchange.safeString(market, "type"), marketType);
-                    Boolean sameQuote = Helpers.isEqual(exchange.safeString(market, "quote"), quote);
-                    Boolean sameSettle = Helpers.isEqual(exchange.safeString(market, "settle"), settle);
+                    Boolean sameType = java.util.Objects.equals(exchange.safeString(market, "type"), marketType);
+                    Boolean sameQuote = java.util.Objects.equals(exchange.safeString(market, "quote"), quote);
+                    Boolean sameSettle = java.util.Objects.equals(exchange.safeString(market, "settle"), settle);
                     if ((java.util.Objects.equals(isActive, true)) && Boolean.TRUE.equals(sameType) && Boolean.TRUE.equals(sameQuote) && Boolean.TRUE.equals(sameSettle))
                     {
                         Object ticker = exchange.safeDict(tickers, tickerSymbol, new HashMap<String, Object>() {{}});
@@ -1073,7 +1073,7 @@ public class TestMain extends BaseTest
                     Object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < Helpers.getArrayLength(pinnedOutcomes); j++)
                     {
-                        if (Helpers.isEqual(exchange.safeString(Helpers.GetValue(pinnedOutcomes, j), "outcome"), outcomeSymbol))
+                        if (java.util.Objects.equals(exchange.safeString(Helpers.GetValue(pinnedOutcomes, j), "outcome"), outcomeSymbol))
                         {
                             pinFound = true;
                             break;
@@ -1413,7 +1413,7 @@ public class TestMain extends BaseTest
                 placedId = exchange.safeString(order, "id");
                 Assert(!java.util.Objects.equals(placedId, null), Helpers.add("createOrder returned no order id for ", exchange.id));
                 String returnedOutcome = exchange.safeString(order, "outcome");
-                Assert((java.util.Objects.equals(returnedOutcome, null)) || (Helpers.isEqual(returnedOutcome, outcome)), Helpers.add((Helpers.add((Helpers.add("createOrder outcome \"", exchange.json(returnedOutcome)) + "\" should match requested \""), outcome) + "\" for "), exchange.id));
+                Assert((java.util.Objects.equals(returnedOutcome, null)) || (java.util.Objects.equals(returnedOutcome, outcome)), Helpers.add((Helpers.add((Helpers.add("createOrder outcome \"", exchange.json(returnedOutcome)) + "\" should match requested \""), outcome) + "\" for "), exchange.id));
             } catch(Exception e)
             {
                 failure = exceptionMessage(e);
@@ -2289,7 +2289,7 @@ public class TestMain extends BaseTest
                         Object headerKey = Helpers.GetValue(storedHeaderKeys, i);
                         Object storedHeaderValue = Helpers.GetValue(storedHeaders, headerKey);
                         String sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
-                        this.AssertStaticError(Helpers.isEqual(sentHeaderValue, storedHeaderValue), ("header mismatch for " + headerKey), storedHeaderValue, sentHeaderValue);
+                        this.AssertStaticError(java.util.Objects.equals(sentHeaderValue, storedHeaderValue), ("header mismatch for " + headerKey), storedHeaderValue, sentHeaderValue);
                     }
                 }
             } catch(Exception e)

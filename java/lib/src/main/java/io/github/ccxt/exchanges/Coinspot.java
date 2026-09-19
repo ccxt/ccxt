@@ -849,7 +849,7 @@ public class Coinspot extends CoinspotApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
-            Object ids = new ArrayList<Object>(((Map<String, Object>)prices).keySet());
+            List<Object> ids = new ArrayList<Object>(prices.keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);

@@ -42,7 +42,7 @@ public class TestFetchMarkets extends BaseTest {
         {
             Object market = Helpers.GetValue(marketValues, i);
             Object symbol = Helpers.GetValue(market, "symbol");
-            if (!(Helpers.inOp(ids, symbol)))
+            if (!((symbol != null && ids.containsKey(symbol))))
             {
                 Helpers.addElementToObject(ids, symbol, Helpers.GetValue(market, "id"));
             } else

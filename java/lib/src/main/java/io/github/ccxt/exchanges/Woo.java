@@ -1581,7 +1581,7 @@ public class Woo extends WooApi
             List<Object> tokenNetworkRows = (List<Object>) this.safeList(tokenNetworkResponse, "rows", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> networksById = this.groupBy(tokenNetworkRows, "token");
             Map<String, Object> tokensById = this.groupBy(tokenRows, "balance_token");
-            Object currencyIds = new ArrayList<Object>(((Map<String, Object>)tokensById).keySet());
+            List<Object> currencyIds = new ArrayList<Object>(tokensById.keySet());
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object id = Helpers.GetValue(currencyIds, i);
@@ -1608,7 +1608,7 @@ public class Woo extends WooApi
         String code = this.safeCurrencyCode(currencyId);
         Map<String, Object> tokensByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_tokens_by_id"), "network");
         Map<String, Object> chainsByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_networks_by_id"), "network");
-        Object keys = new ArrayList<Object>(((Map<String, Object>)chainsByNetworkId).keySet());
+        List<Object> keys = new ArrayList<Object>(chainsByNetworkId.keySet());
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
@@ -4807,7 +4807,7 @@ public class Woo extends WooApi
         market = this.safeMarket(marketId, market);
         String marginMode = this.safeStringLower(leverage, "marginMode");
         Long spotLeverage = this.safeInteger(leverage, "leverage");
-        if (Helpers.isEqual(spotLeverage, 0))
+        if ((spotLeverage != null && spotLeverage == 0))
         {
             spotLeverage = null;
         }
@@ -5681,7 +5681,7 @@ public class Woo extends WooApi
     {
         Map<String, Object> currencyItem = (Map<String, Object>) this.currency(code);
         Object networks = ((Map<String, Object>)currencyItem).get("networks");
-        Object networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
+        List<Object> networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
         {
             Object network = Helpers.GetValue(networkKeys, i);

@@ -4379,7 +4379,7 @@ public class Pacifica extends PacificaApi
         Long inCode = this.safeInteger(response, "code"); // actually if all ok -> code = undefined or code = 200
         String message = this.safeString(response, "error");
         Object error = null;
-        if (java.util.Objects.equals(inCode, null) || Helpers.isEqual(inCode, 200))
+        if (java.util.Objects.equals(inCode, null) || (inCode != null && inCode == 200))
         {
             error = false;
         } else

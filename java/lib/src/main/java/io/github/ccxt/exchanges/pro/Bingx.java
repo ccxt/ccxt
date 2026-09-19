@@ -331,7 +331,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         String inverseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "inverse");
-        Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && (Helpers.isEqual(((String)client.url).indexOf(((String)inverseUrl)), 0));
+        Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && ((((String)client.url).indexOf(((String)inverseUrl)) == 0));
         Object ticker = this.parseWsTicker(data, market, isInverse);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, this.getMessageHash("ticker", symbol));
@@ -1414,7 +1414,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     public void setBalanceCache(Client client, Object type, Object subType, Object subscriptionHash, Object parameters)
     {
-        if (Helpers.inOp(client.subscriptions, subscriptionHash))
+        if ((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
         {
             return;
         }
@@ -1450,7 +1450,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }}))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1587,7 +1587,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -2117,7 +2117,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         List<Object> data = (List<Object>) this.safeList(a, "B", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = (Long) this.safeInteger2(message, "T", "E");
         String spotUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
-        Boolean isSpot = (!java.util.Objects.equals(spotUrl, null)) && (Helpers.isEqual(((String)client.url).indexOf(((String)spotUrl)), 0));
+        Boolean isSpot = (!java.util.Objects.equals(spotUrl, null)) && ((((String)client.url).indexOf(((String)spotUrl)) == 0));
         String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         if (!(Helpers.inOp(this.balance, type)))
         {

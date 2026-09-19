@@ -181,7 +181,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
     public void authenticate(Object url)
     {
         this.checkRequiredCredentials();
-        if ((!java.util.Objects.equals(this.clients, null)) && (Helpers.inOp(this.clients, url)))
+        if ((!java.util.Objects.equals(this.clients, null)) && ((url != null && ((Map<?, ?>)this.clients).containsKey(url))))
         {
             return;
         }
@@ -1508,7 +1508,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         String messageHash = "myTrades";
-        Object symbolKeys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> symbolKeys = new ArrayList<Object>(symbols.keySet());
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
@@ -1760,7 +1760,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
         }
         String messageHash = "orders";
-        Object symbolKeys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> symbolKeys = new ArrayList<Object>(symbols.keySet());
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
@@ -1988,7 +1988,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     public void setBalanceCache(Client client, Object type)
     {
-        if ((Helpers.inOp(client.subscriptions, type)) && (Helpers.inOp(this.balance, type)))
+        if (((type != null && ((Map<?, ?>)client.subscriptions).containsKey(type))) && (Helpers.inOp(this.balance, type)))
         {
             return;
         }
@@ -2022,7 +2022,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object response = (this.fetchBalance((Object)(parameters))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();

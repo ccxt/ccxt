@@ -4492,7 +4492,7 @@ public Object describe()
         {
             timeframes = this.timeframes;
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)timeframes).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)timeframes).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -4721,7 +4721,7 @@ public Object describe()
             if (Helpers.isGreaterThan(arrayLength, 0))
             {
                 Boolean ascending = true;
-                if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), key)))
+                if (((key != null && ((Map<?, ?>)(array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0))).containsKey(key))))
                 {
                     Object first = Helpers.GetValue((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), key);
                     Object last = Helpers.GetValue(Helpers.GetValue(array, Helpers.subtract(arrayLength, 1)), key);
@@ -5708,7 +5708,7 @@ public Object describe()
     {
         Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(obj, key, defaultValue);
-        if (java.util.Objects.equals(timestamp, null) || Helpers.isEqual(timestamp, 0))
+        if (java.util.Objects.equals(timestamp, null) || (timestamp != null && timestamp == 0))
         {
             return null;
         }
@@ -6107,7 +6107,7 @@ public Object describe()
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        List<Object> keys = Helpers.objectKeys(networks);
+        List<Object> keys = new ArrayList<Object>(networks.keySet());
         Object length = ((List<?>)keys).size();
         if (!java.util.Objects.equals(length, 0))
         {
@@ -6367,8 +6367,8 @@ public Object describe()
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
         Map<String, Object> marketsSortedBySymbol = this.keysort(this.markets);
         Map<String, Object> marketsSortedById = this.keysort(this.markets_by_id);
-        this.symbols = new ArrayList<Object>(((Map<String, Object>)marketsSortedBySymbol).keySet());
-        this.ids = new ArrayList<Object>(((Map<String, Object>)marketsSortedById).keySet());
+        this.symbols = new ArrayList<Object>(marketsSortedBySymbol.keySet());
+        this.ids = new ArrayList<Object>(marketsSortedById.keySet());
         Object numCurrencies = 0;
         if (!java.util.Objects.equals(currencies, null))
         {
@@ -6415,7 +6415,7 @@ public Object describe()
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             List<Object> allCurrencies = (List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
             Map<String, Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            Object codes = new ArrayList<Object>(((Map<String, Object>)groupedCurrencies).keySet());
+            List<Object> codes = new ArrayList<Object>(groupedCurrencies.keySet());
             List<Object> resultingCurrencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
@@ -6440,7 +6440,7 @@ public Object describe()
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Map<String, Object> currenciesSortedByCode = this.keysort(this.currencies);
-        this.codes = new ArrayList<Object>(((Map<String, Object>)currenciesSortedByCode).keySet());
+        this.codes = new ArrayList<Object>(currenciesSortedByCode.keySet());
         if (java.util.Objects.equals(this.markets, null))
         {
             throw new ExchangeError((this.id + " setMarkets() markets not set")) ;
@@ -6529,7 +6529,7 @@ public Object describe()
                 ((Map<String, Object>)debtBalance).put((String)code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
             }
         }
-        Object debtBalanceArray = new ArrayList<Object>(((Map<String, Object>)debtBalance).keySet());
+        List<Object> debtBalanceArray = new ArrayList<Object>(debtBalance.keySet());
         Object length = ((List<?>)debtBalanceArray).size();
         if ((!java.util.Objects.equals(length, null)) && (!java.util.Objects.equals(length, 0)))
         {
@@ -6934,7 +6934,7 @@ public Object describe()
             }
         } else
         {
-            Object ids = new ArrayList<Object>(((Map<String, Object>)orders).keySet());
+            List<Object> ids = new ArrayList<Object>(((Map<String, Object>)orders).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -8023,7 +8023,7 @@ public Object describe()
             return null;
         }
         Map<String, Object> replacements = (Map<String, Object>) this.safeDict(this.options, "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{}});
-        List<Object> keys = Helpers.objectKeys(replacements);
+        List<Object> keys = new ArrayList<Object>(replacements.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object baseCoin = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -9401,7 +9401,7 @@ public Object describe()
     public Object getSupportedMapping(Object key, Object... optionalArgs)
     {
         Object mapping = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        if (Helpers.inOp(mapping, key))
+        if ((key != null && ((Map<?, ?>)mapping).containsKey(key)))
         {
             return Helpers.GetValue(mapping, key);
         } else
@@ -10237,7 +10237,7 @@ public Object describe()
                     return this.safeDict(addressStructures, network);
                 } else
                 {
-                    Object keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
+                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
                     Object key = (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0));
                     return this.safeDict(addressStructures, key);
                 }
@@ -10396,7 +10396,7 @@ public Object describe()
                 {
                     // check if base currency is inside dict
                     Object baseCurrencyCode = Helpers.replace(((String)currencyCode), leverageSuffix, "");
-                    if ((!java.util.Objects.equals(existingCurrencies, null)) && (Helpers.inOp(existingCurrencies, baseCurrencyCode)))
+                    if ((!java.util.Objects.equals(existingCurrencies, null)) && ((baseCurrencyCode != null && ((Map<?, ?>)existingCurrencies).containsKey(baseCurrencyCode))))
                     {
                         return true;
                     }
@@ -11390,13 +11390,13 @@ public Object describe()
          */
         Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
         Object lowercaseAccount = ((String)account).toLowerCase();
-        if (Helpers.inOp(accountsByType, lowercaseAccount))
+        if ((lowercaseAccount != null && accountsByType.containsKey(lowercaseAccount)))
         {
             return Helpers.GetValue(accountsByType, lowercaseAccount);
         }
         Object markets = this.markets;
         Map<String, Object> marketsById = this.markets_by_id;
-        if (((!java.util.Objects.equals(markets, null)) && (Helpers.inOp(markets, account))) || ((!java.util.Objects.equals(marketsById, null)) && (Helpers.inOp(marketsById, account))))
+        if (((!java.util.Objects.equals(markets, null)) && ((account != null && ((Map<?, ?>)markets).containsKey(account)))) || ((!java.util.Objects.equals(marketsById, null)) && ((account != null && marketsById.containsKey(account)))))
         {
             Map<String, Object> market = (Map<String, Object>) this.market(account);
             return ((Map<String, Object>)market).get("id");
@@ -12234,7 +12234,7 @@ public Object describe()
 
     public Object removeKeysFromDict(Object dict, Object removeKeys)
     {
-        Object keys = new ArrayList<Object>(((Map<String, Object>)dict).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)dict).keySet());
         Map<String, Object> newDict = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
@@ -12806,25 +12806,25 @@ public Object describe()
                 Object symbol = Helpers.GetValue(symbols, i);
                 if (java.util.Objects.equals(topic, "trades"))
                 {
-                    if (Helpers.inOp(this.trades, symbol))
+                    if ((symbol != null && ((Map<?, ?>)this.trades).containsKey(symbol)))
                     {
                         ((Map<String,Object>)this.trades).remove((String)symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "orderbook"))
                 {
-                    if (Helpers.inOp(this.orderbooks, symbol))
+                    if ((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol)))
                     {
                         ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "ticker"))
                 {
-                    if (Helpers.inOp(this.tickers, symbol))
+                    if ((symbol != null && ((Map<?, ?>)this.tickers).containsKey(symbol)))
                     {
                         ((Map<String,Object>)this.tickers).remove((String)symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "bidsasks"))
                 {
-                    if (Helpers.inOp(this.bidsasks, symbol))
+                    if ((symbol != null && ((Map<?, ?>)this.bidsasks).containsKey(symbol)))
                     {
                         ((Map<String,Object>)this.bidsasks).remove((String)symbol);
                     }

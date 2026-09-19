@@ -1121,7 +1121,7 @@ public class Weex extends WeexApi
 }});
             }
         }
-        Object networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
+        List<Object> networkKeys = new ArrayList<Object>(networks.keySet());
         Object networksLength = ((List<?>)networkKeys).size();
         Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
@@ -5460,7 +5460,7 @@ public class Weex extends WeexApi
         if ((java.util.Objects.equals(api, "private")) || (java.util.Objects.equals(api, "contractPrivate")))
         {
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            if ((java.util.Objects.equals(sandboxMode, true)) && (!Helpers.isEqual(Helpers.getIndexOf(path, "capi/v3/sim/"), 0)))
+            if ((java.util.Objects.equals(sandboxMode, true)) && ((Helpers.getIndexOf(path, "capi/v3/sim/") != 0)))
             {
                 throw new NotSupported((Helpers.add((this.id + " "), path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }

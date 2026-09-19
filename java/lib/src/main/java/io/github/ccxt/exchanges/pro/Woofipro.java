@@ -1291,7 +1291,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -1499,7 +1499,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
-        Object keys = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
+        List<Object> keys = new ArrayList<Object>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);

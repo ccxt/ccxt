@@ -995,7 +995,7 @@ public class Phemex extends PhemexApi
         if (java.util.Objects.equals(settle, "USDT"))
         {
             contractSize = this.parseNumber("1");
-        } else if (!Helpers.isEqual(((String)contractSizeString).indexOf(" "), -1))
+        } else if ((((String)contractSizeString).indexOf(" ") != -1))
         {
             // "1 USD"
             // "0.005 ETH"
@@ -3092,7 +3092,7 @@ public class Phemex extends PhemexApi
         }
         Double cost = this.safeNumber2(order, "cumValue", "cumValueRv");
         Long lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
-        if (Helpers.isEqual(lastTradeTimestamp, 0))
+        if ((lastTradeTimestamp != null && lastTradeTimestamp == 0))
         {
             lastTradeTimestamp = null;
         }
@@ -5945,11 +5945,11 @@ final Object finalI = i;
         Long side = this.safeInteger(transfer, "side");
         String fromId = null;
         String toId = null;
-        if (Helpers.isEqual(side, 1))
+        if ((side != null && side == 1))
         {
             fromId = "swap";
             toId = "spot";
-        } else if (Helpers.isEqual(side, 2))
+        } else if ((side != null && side == 2))
         {
             fromId = "spot";
             toId = "swap";

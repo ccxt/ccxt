@@ -1121,7 +1121,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
+        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object market = Helpers.GetValue(keys, i);
@@ -1409,7 +1409,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Helpers.addElementToObject(marketIds, symbol, true);
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
+        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = (("orders" + ":") + Helpers.GetValue(keys, i));
@@ -1565,7 +1565,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Long timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
         String cost = this.safeString(order, "cumValueRv", this.fromEv(this.safeString(order, "cumValueEv"), market));
         Long lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
-        if (Helpers.isEqual(lastTradeTimestamp, 0))
+        if ((lastTradeTimestamp != null && lastTradeTimestamp == 0))
         {
             lastTradeTimestamp = null;
         }

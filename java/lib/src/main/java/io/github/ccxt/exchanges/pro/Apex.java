@@ -911,7 +911,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -967,7 +967,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        Object symbolsArray = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
         {
             String currentMessageHash = ("orders:" + Helpers.GetValue(symbolsArray, i));
@@ -1012,7 +1012,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -1267,7 +1267,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
+        List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1376,7 +1376,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Boolean success = (Boolean) this.safeBool(message, "success");
         Long code = this.safeInteger(message, "retCode");
         String messageHash = "authenticated";
-        if ((java.util.Objects.equals(success, true)) || (Helpers.isEqual(code, 0)))
+        if ((java.util.Objects.equals(success, true)) || ((code != null && code == 0)))
         {
             Object future = this.safeValue(client.futures, messageHash);
             ((io.github.ccxt.ws.Future)future).resolve(true);

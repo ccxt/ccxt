@@ -1020,7 +1020,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);

@@ -2822,7 +2822,7 @@ public class Cryptocom extends CryptocomApi
             {
                 return Helpers.GetValue(depositAddresses, network);
             }
-            Object keys = new ArrayList<Object>(((Map<String, Object>)depositAddresses).keySet());
+            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)depositAddresses).keySet());
             return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
         }).thenApply(DepositAddress::new);
 
@@ -3199,7 +3199,7 @@ public class Cryptocom extends CryptocomApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long code = this.safeInteger(order, "code");
-        if ((!java.util.Objects.equals(code, null)) && (!Helpers.isEqual(code, 0)))
+        if ((!java.util.Objects.equals(code, null)) && ((code == null || code != 0)))
         {
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Cryptocom.this.safeString(order, "order_id") );
@@ -4528,7 +4528,7 @@ public class Cryptocom extends CryptocomApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
-            List<Object> paramsKeys = Helpers.objectKeys(requestParams);
+            List<Object> paramsKeys = new ArrayList<Object>(requestParams.keySet());
             Object strSortKey = this.paramsToString(requestParams, 0);
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey), nonce);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());

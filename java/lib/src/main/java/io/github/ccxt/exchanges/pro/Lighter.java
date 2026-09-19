@@ -375,7 +375,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, "market_stats:all"))
         {
-            Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
+            List<Object> marketIds = new ArrayList<Object>(data.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -855,13 +855,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String takerOrMaker = null;
         if (!java.util.Objects.equals(accountIndex, null))
         {
-            if (Helpers.isEqual(bidAccountId, accountIndex))
+            if ((bidAccountId != null && accountIndex != null && bidAccountId == accountIndex))
             {
                 // Own trades should use the account's order side
                 side = "buy";
                 order = this.safeString(trade, "bid_id");
                 takerOrMaker = (((java.util.Objects.equals(isMakerAsk, true)))) ? "taker" : "maker";
-            } else if (Helpers.isEqual(askAccountId, accountIndex))
+            } else if ((askAccountId != null && accountIndex != null && askAccountId == accountIndex))
             {
                 side = "sell";
                 order = this.safeString(trade, "ask_id");
@@ -946,7 +946,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String accountIndex = (String) Helpers.GetValue(parts, 1);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "trades", new HashMap<String, Object>() {{}});
-        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
+        List<Object> marketIds = new ArrayList<Object>(data.keySet());
         Object idsLength = ((List<?>)marketIds).size();
         if (java.util.Objects.equals(idsLength, 0))
         {
@@ -1331,7 +1331,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         if (java.util.Objects.equals(type, "spot"))
         {
             Map<String, Object> assets = (Map<String, Object>) this.safeDict(message, "assets", new HashMap<String, Object>() {{}});
-            Object assetIds = new ArrayList<Object>(((Map<String, Object>)assets).keySet());
+            List<Object> assetIds = new ArrayList<Object>(assets.keySet());
             for (var i = 0; i < ((List<?>)assetIds).size(); i++)
             {
                 Object assetId = Helpers.GetValue(assetIds, i);
@@ -1635,7 +1635,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "orders", new HashMap<String, Object>() {{}});
-        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
+        List<Object> marketIds = new ArrayList<Object>(data.keySet());
         Object idsLength = ((List<?>)marketIds).size();
         if (java.util.Objects.equals(idsLength, 0))
         {

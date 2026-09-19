@@ -682,7 +682,7 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
-            Object keys = new ArrayList<Object>(((Map<String, Object>)fees).keySet());
+            List<Object> keys = new ArrayList<Object>(fees.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -929,10 +929,10 @@ public class Bit2c extends Bit2cApi
         if (Boolean.TRUE.equals(isNewOrder))
         {
             Long tempStatus = this.safeInteger(orderUnified, "status_type");
-            if (Helpers.isEqual(tempStatus, 0) || Helpers.isEqual(tempStatus, 1))
+            if ((tempStatus != null && tempStatus == 0) || (tempStatus != null && tempStatus == 1))
             {
                 status = "open";
-            } else if (Helpers.isEqual(tempStatus, 5))
+            } else if ((tempStatus != null && tempStatus == 5))
             {
                 status = "closed";
             }
@@ -1169,7 +1169,7 @@ public class Bit2c extends Bit2cApi
             makerOrTaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
             orderId = (((java.util.Objects.equals(isMaker, true)))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
             Long action = this.safeInteger(trade, "action");
-            if (Helpers.isEqual(action, 0))
+            if ((action != null && action == 0))
             {
                 side = "buy";
             } else
@@ -1321,7 +1321,7 @@ public class Bit2c extends Bit2cApi
             Object auth = this.urlencode(query);
             if (java.util.Objects.equals(method, "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
                 {
                     url = (url + ("?" + auth));
                 }

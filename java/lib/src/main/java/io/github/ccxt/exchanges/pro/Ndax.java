@@ -238,7 +238,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 ((Map<String, Object>)updates).put((String)symbol, true);
             }
         }
-        Object symbols = new ArrayList<Object>(((Map<String, Object>)updates).keySet());
+        List<Object> symbols = new ArrayList<Object>(updates.keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -405,7 +405,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
         }
         String name = "SubscribeTicker";
-        Object marketIds = new ArrayList<Object>(((Map<String, Object>)updates).keySet());
+        List<Object> marketIds = new ArrayList<Object>(updates.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -551,15 +551,15 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Double amount = this.safeFloat(bidask, 8);
             Long side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            Object orderbookSide = (((Helpers.isEqual(side, 0)))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
+            Object orderbookSide = ((((side != null && side == 0)))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
             // 0 new, 1 update, 2 remove
-            if (Helpers.isEqual(type, 0))
+            if ((type != null && type == 0))
             {
                 Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
-            } else if (Helpers.isEqual(type, 1))
+            } else if ((type != null && type == 1))
             {
                 Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
-            } else if (Helpers.isEqual(type, 2))
+            } else if ((type != null && type == 2))
             {
                 Helpers.callDynamically(orderbookSide, "store", new Object[]{price, 0});
             }

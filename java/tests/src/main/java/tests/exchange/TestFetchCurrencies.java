@@ -84,7 +84,7 @@ public class TestFetchCurrencies extends BaseTest {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object currency = Helpers.GetValue(currencyValues, key);
             Object code = Helpers.GetValue(currency, "code");
-            if (!(Helpers.inOp(ids, code)))
+            if (!((code != null && ids.containsKey(code))))
             {
                 Helpers.addElementToObject(ids, code, Helpers.GetValue(currency, "id"));
             } else

@@ -789,7 +789,7 @@ public class Bitrue extends BitrueApi
             //
             //     {}
             //
-            Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> keys = new ArrayList<Object>(response.keySet());
             Object keysLength = ((List<?>)keys).size();
             String formattedStatus = (((Helpers.isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
             return new HashMap<String, Object>() {{
@@ -1088,8 +1088,8 @@ public class Bitrue extends BitrueApi
         } else
         {
             type = "swap";
-            isLinear = (Helpers.isEqual(side, 1));
-            isInverse = (Helpers.isEqual(side, 0));
+            isLinear = ((side != null && side == 1));
+            isInverse = ((side != null && side == 0));
         }
         Boolean isContract = (!java.util.Objects.equals(type, "spot"));
         String baseId = this.safeString(market, "baseAsset");

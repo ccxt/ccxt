@@ -2223,7 +2223,7 @@ public class Htx extends HtxApi
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long marketStatus = this.safeInteger(data, "marketStatus");
-                status = (((Helpers.isEqual(marketStatus, 1)))) ? "ok" : "maintenance";
+                status = ((((marketStatus != null && marketStatus == 1)))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, "haltEndTime");
             } else
             {
@@ -2261,7 +2261,7 @@ public class Htx extends HtxApi
                     etaKey = "swap_estimated_recovery_time";
                 }
                 Long heartbeat = this.safeInteger(data, heartbeatKey);
-                status = (((Helpers.isEqual(heartbeat, 1)))) ? "ok" : "maintenance";
+                status = ((((heartbeat != null && heartbeat == 1)))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, etaKey);
             }
             final Object finalStatus = status;
@@ -2523,7 +2523,7 @@ public class Htx extends HtxApi
             parameters = ((List<Object>) typesparametersVariable).get(1);
             Object allMarkets = new ArrayList<Object>(Arrays.asList());
             Object promises = new ArrayList<Object>(Arrays.asList());
-            Object keys = new ArrayList<Object>(((Map<String, Object>)types).keySet());
+            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)types).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -2822,7 +2822,7 @@ public class Htx extends HtxApi
                     maker = this.parseNumber("0.0002");
                     taker = this.parseNumber("0.0005");
                     Long contractStatus = this.safeInteger(market, "contract_status");
-                    active = (Helpers.isEqual(contractStatus, 1));
+                    active = ((contractStatus != null && contractStatus == 1));
                 }
                 String leverageRatio = this.safeString(market, "leverage-ratio", "1");
                 String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
@@ -4888,7 +4888,7 @@ public class Htx extends HtxApi
                                 ((Map<String, Object>)subResult).put((String)code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
-                        Object subCodes = new ArrayList<Object>(((Map<String, Object>)subResult).keySet());
+                        List<Object> subCodes = new ArrayList<Object>(subResult.keySet());
                         for (var j = 0; j < ((List<?>)subCodes).size(); j++)
                         {
                             Object subCode = Helpers.GetValue(subCodes, j);
@@ -6433,7 +6433,7 @@ public class Htx extends HtxApi
             Long reduceOnlyInteger = this.safeInteger(order, "reduce_only");
             if (!java.util.Objects.equals(reduceOnlyInteger, null))
             {
-                reduceOnly = (((Helpers.isEqual(reduceOnlyInteger, 0)))) ? false : true;
+                reduceOnly = ((((reduceOnlyInteger != null && reduceOnlyInteger == 0)))) ? false : true;
             }
         }
         final Object finalMarket = market;
@@ -9571,7 +9571,7 @@ public class Htx extends HtxApi
                     String id = this.safeString(options, "id", "AA03022abc");
                     if (!Boolean.TRUE.equals(isArrayParams))
                     {
-                        if ((Helpers.isEqual(((String)pathString).indexOf("cancel"), -1)) && Helpers.isTrue(((String)pathString).endsWith("order")))
+                        if (((((String)pathString).indexOf("cancel") == -1)) && Helpers.isTrue(((String)pathString).endsWith("order")))
                         {
                             // swap order placement
                             String channelCode = this.safeString(parameters, "channel_code");

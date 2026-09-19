@@ -2390,7 +2390,7 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "filled", OrderNotFound.class );
             put( "notFound", OrderNotFound.class );
         }};
-        if ((Helpers.inOp(errors, status)) && !this.inArray(status, omit))
+        if (((status != null && errors.containsKey(status))) && !this.inArray(status, omit))
         {
             Helpers.throwDynamicException(Helpers.GetValue(errors, status), Helpers.add((Helpers.add((this.id + ": "), method) + " failed due to "), status));
         }
@@ -3560,7 +3560,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isCash = (java.util.Objects.equals(accountType, "cashAccount"));
         Object balances = this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
+        List<Object> currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -4105,10 +4105,10 @@ final Object finalI = i;
             put( "multiCollateral", "flex" );
             put( "multiCollateralMargin", "flex" );
         }};
-        if (Helpers.inOp(accountByType, account))
+        if ((account != null && accountByType.containsKey(account)))
         {
             return Helpers.GetValue(accountByType, account);
-        } else if ((!java.util.Objects.equals(this.markets, null)) && (Helpers.inOp(this.markets, account)))
+        } else if ((!java.util.Objects.equals(this.markets, null)) && ((account != null && ((Map<?, ?>)this.markets).containsKey(account))))
         {
             Map<String, Object> market = (Map<String, Object>) this.market(account);
             Object marketId = ((Map<String, Object>)market).get("id");

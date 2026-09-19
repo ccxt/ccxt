@@ -188,7 +188,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             //
             Long code = this.safeInteger(response, "code");
             Boolean success = false;
-            if (Helpers.isEqual(code, 200))
+            if ((code != null && code == 200))
             {
                 success = true;
             }
@@ -268,7 +268,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             // }
             Long code = this.safeInteger(response, "code");
             Boolean success = false;
-            if (Helpers.isEqual(code, 200))
+            if ((code != null && code == 200))
             {
                 success = true;
             }
@@ -445,7 +445,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             //
             Long code = this.safeInteger(response, "code");
             Boolean success = false;
-            if (Helpers.isEqual(code, 200))
+            if ((code != null && code == 200))
             {
                 success = true;
             }
@@ -663,7 +663,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Long timestamp = this.safeInteger(entry, "t");
         Object snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
         Long nonce = this.safeInteger(entry, "li");
-        if ((!java.util.Objects.equals(nonce, null)) && (!Helpers.isEqual(nonce, 0)))
+        if ((!java.util.Objects.equals(nonce, null)) && ((nonce == null || nonce != 0)))
         {
             ((Map<String, Object>)snapshot).put("nonce", nonce);
         }
@@ -977,7 +977,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             }
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -1507,7 +1507,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 ((Map<String, Object>)marketSymbols).put((String)symbol, true);
             }
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketSymbols).keySet());
+        List<Object> keys = new ArrayList<Object>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1719,7 +1719,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             this.handleWsPost(client, message);
             return;
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
+        List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

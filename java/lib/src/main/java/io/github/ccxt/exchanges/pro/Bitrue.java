@@ -209,8 +209,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String used = this.safeString(balance, "L");
             Long balanceUpdateTime = this.safeInteger(balance, "T", 0);
             Long lockBalanceUpdateTime = this.safeInteger(balance, "t", 0);
-            Boolean updateFree = !Helpers.isEqual(balanceUpdateTime, 0);
-            Boolean updateUsed = !Helpers.isEqual(lockBalanceUpdateTime, 0);
+            Boolean updateFree = (balanceUpdateTime == null || balanceUpdateTime != 0);
+            Boolean updateUsed = (lockBalanceUpdateTime == null || lockBalanceUpdateTime != 0);
             if (Boolean.TRUE.equals(updateFree) || Boolean.TRUE.equals(updateUsed))
             {
                 if (Boolean.TRUE.equals(updateFree))
@@ -347,7 +347,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Long sideId = this.safeInteger(order, "S");
         // 1: buy
         // 2: sell
-        String side = (((Helpers.isEqual(sideId, 1)))) ? "buy" : "sell";
+        String side = ((((sideId != null && sideId == 1)))) ? "buy" : "sell";
         String statusId = this.safeString(order, "X");
         String feeCurrencyId = this.safeString(order, "N");
         return this.safeOrder(new HashMap<String, Object>() {{
@@ -486,7 +486,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 put( "buys", Bitrue.this.parseContractBidsAsks(rawBuys, finalSymbol) );
             }};
         }
-        if (!(Helpers.inOp(this.orderbooks, symbol)))
+        if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
@@ -504,7 +504,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        Object symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
+        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, Helpers.GetValue(symbols, i));
@@ -783,7 +783,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         Object parsed = this.parseWsOHLCV(tick, market);
-        if (!(Helpers.inOp(this.ohlcvs, symbol)))
+        if (!((symbol != null && ((Map<?, ?>)this.ohlcvs).containsKey(symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }

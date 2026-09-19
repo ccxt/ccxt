@@ -1183,7 +1183,7 @@ public class Luno extends LunoApi
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             List<Object> rawTickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> tickers = this.indexBy(rawTickers, "pair");
-            Object ids = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
+            List<Object> ids = new ArrayList<Object>(tickers.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {

@@ -6179,7 +6179,7 @@ final Object finalClientOrderId = clientOrderId;
         {
             Object type = Helpers.GetValue(parameters, "type");
             Object byType = Helpers.GetValue(config, "byType");
-            if (Helpers.inOp(byType, type))
+            if ((type != null && ((Map<?, ?>)byType).containsKey(type)))
             {
                 return Helpers.GetValue(byType, type);
             }

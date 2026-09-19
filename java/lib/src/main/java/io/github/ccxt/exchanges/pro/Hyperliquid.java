@@ -717,7 +717,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> mids = (Map<String, Object>) this.safeDict(data, "mids", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(mids, null))
         {
-            Object keys = new ArrayList<Object>(((Map<String, Object>)mids).keySet());
+            List<Object> keys = new ArrayList<Object>(mids.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object name = Helpers.GetValue(keys, i);
@@ -836,7 +836,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -1786,7 +1786,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String symbol = this.safeString(order, "symbol");
             ((Map<String, Object>)marketSymbols).put((String)symbol, true);
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketSymbols).keySet());
+        List<Object> keys = new ArrayList<Object>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -2135,7 +2135,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
+        List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

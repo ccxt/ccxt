@@ -3281,7 +3281,7 @@ public class Kucoin extends KucoinApi
         String type = this.safeString(accountsByType, requestedType);
         if (java.util.Objects.equals(type, null))
         {
-            Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
+            Object keys = new ArrayList<Object>(accountsByType.keySet());
             throw new ExchangeError(((this.id + " isFuturesMethod() type must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
         parameters = this.omit(parameters, "type");
@@ -4669,7 +4669,7 @@ public class Kucoin extends KucoinApi
                 response = (this.utaPrivateGetMarketOrderbook(this.extend(request, parameters))).join();
             } else if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "margin")))
             {
-                if (!Helpers.isEqual(level, 2) && !java.util.Objects.equals(level, null))
+                if ((level == null || level != 2) && !java.util.Objects.equals(level, null))
                 {
                     throw new BadRequest((this.id + " fetchOrderBook() can only return level 2")) ;
                 }
@@ -4709,7 +4709,7 @@ public class Kucoin extends KucoinApi
                 }
             } else if (!isAuthenticated || !java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isEqual(level, 2))
+                if ((level != null && level == 2))
                 {
                     ((Map<String, Object>)request).put("level", level);
                     if (!java.util.Objects.equals(limit, null))
@@ -6794,7 +6794,7 @@ public class Kucoin extends KucoinApi
                 {
                     ((Map<String, Object>)request).put("pageSize", limit);
                 }
-                if ((!java.util.Objects.equals(until, null)) && (!Helpers.isEqual(until, 0)))
+                if ((!java.util.Objects.equals(until, null)) && ((until == null || until != 0)))
                 {
                     ((Map<String, Object>)request).put("endAt", until);
                 }
@@ -11596,7 +11596,7 @@ public class Kucoin extends KucoinApi
                 ((List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
             }
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)borrowRateHistories).keySet());
+        List<Object> keys = new ArrayList<Object>(borrowRateHistories.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = Helpers.GetValue(keys, i);

@@ -2275,7 +2275,7 @@ public class Gate extends GateApi
                 Boolean margin = !java.util.Objects.equals(leverage, null);
                 Object buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
                 Object createdTs = (((!Helpers.isEqual(buyStart, 0)))) ? buyStart : null;
-                Boolean active = (java.util.Objects.equals(tradeStatus, "tradable")) || (Boolean.TRUE.equals(margin) && (Helpers.isEqual(marginStatus, 1)));
+                Boolean active = (java.util.Objects.equals(tradeStatus, "tradable")) || (Boolean.TRUE.equals(margin) && ((marginStatus != null && marginStatus == 1)));
     final Object finalBase = base;
                 final Object finalMargin = margin;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -3324,7 +3324,7 @@ public class Gate extends GateApi
                 //    }
                 //
                 Long obtainFailed = this.safeInteger(entry, "obtain_failed");
-                if ((!java.util.Objects.equals(obtainFailed, null)) && (!Helpers.isEqual(obtainFailed, 0)))
+                if ((!java.util.Objects.equals(obtainFailed, null)) && ((obtainFailed == null || obtainFailed != 0)))
                 {
                     continue;
                 }
@@ -3620,7 +3620,7 @@ public class Gate extends GateApi
                     withdrawFees = this.safeNumber(entry, "withdraw_fix");
                 } else
                 {
-                    Object networkIds = new ArrayList<Object>(((Map<String, Object>)withdrawFixOnChains).keySet());
+                    List<Object> networkIds = new ArrayList<Object>(withdrawFixOnChains.keySet());
                     for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                     {
                         Object networkId = Helpers.GetValue(networkIds, j);
@@ -3723,7 +3723,7 @@ public class Gate extends GateApi
         }};
         if (!java.util.Objects.equals(withdrawFixOnChains, null))
         {
-            Object chainKeys = new ArrayList<Object>(((Map<String, Object>)withdrawFixOnChains).keySet());
+            List<Object> chainKeys = new ArrayList<Object>(withdrawFixOnChains.keySet());
             for (var i = 0; i < ((List<?>)chainKeys).size(); i++)
             {
                 Object chainKey = Helpers.GetValue(chainKeys, i);
@@ -6730,7 +6730,7 @@ final Object finalPointFee = pointFee;
         String cost = this.safeString(order, "filled_total");
         Double triggerPrice = this.safeNumber(trigger, "price");
         Object average = this.safeNumber2(order, "avg_deal_price", "fill_price");
-        if ((!java.util.Objects.equals(triggerPrice, null)) && (!Helpers.isEqual(triggerPrice, 0)))
+        if ((!java.util.Objects.equals(triggerPrice, null)) && ((triggerPrice == null || triggerPrice != 0)))
         {
             remainingString = amount;
             cost = "0";
@@ -9126,7 +9126,7 @@ final Object finalI = i;
             } else
             {
                 Map<String, Object> urlQueryParams = (Map<String, Object>) this.safeDict(query, "query", new HashMap<String, Object>() {{}});
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)urlQueryParams).keySet())).size() > 0)
+                if (((List<?>)new ArrayList<Object>(urlQueryParams.keySet())).size() > 0)
                 {
                     queryString = this.urlencode(urlQueryParams);
                     url = Helpers.add(url, ("?" + queryString));

@@ -2055,7 +2055,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             ((List<Object>)Helpers.GetValue(positionsByMarginMode, marginMode)).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
-        Object marginModes = new ArrayList<Object>(((Map<String, Object>)positionsByMarginMode).keySet());
+        List<Object> marginModes = new ArrayList<Object>(positionsByMarginMode.keySet());
         for (var i = 0; i < ((List<?>)marginModes).size(); i++)
         {
             Object marginMode = Helpers.GetValue(marginModes, i);
