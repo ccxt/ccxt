@@ -77,10 +77,10 @@ jobs:
       #   run: pip install -r build/ci-requirements.txt
       # - name: Install Python build tools
       #   run: pip install build twine
-      # - name: export exchanges (remove later)
-      #   run: npm run export-exchanges
-      # - name: Pre-transpile
-      #   run: npm run pre-transpile
+      - name: export exchanges (remove later)
+        run: npm run export-exchanges
+      - name: Pre-transpile
+        run: npm run pre-transpile
       # - name: Transpile Go
       #   run: npm run force-transpileGO
       # - name: Build Go
