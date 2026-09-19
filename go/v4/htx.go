@@ -2452,7 +2452,7 @@ func (this *Htx) fetchTradingLimitsByIdBody(ch chan any, id any, optionalArgs ..
 	ch <- this.ParseTradingLimits(this.SafeDict(response, "data", map[string]any{}))
 	return nil
 }
-func (this *Htx) ParseTradingLimits(limits any, optionalArgs ...any) any {
+func (this *Htx) ParseTradingLimits(limits any, optionalArgs ...any) map[string]any {
 	//
 	//   {                                "symbol": "aidocbtc",
 	//                  "buy-limit-must-less-than":  1.1,
@@ -7814,7 +7814,7 @@ func (this *Htx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	ch <- this.ParseCancelOrders(data)
 	return nil
 }
-func (this *Htx) ParseCancelOrders(orders any) any {
+func (this *Htx) ParseCancelOrders(orders any) []any {
 	//
 	//    {
 	//        "success": [
@@ -9226,7 +9226,7 @@ func (this *Htx) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Htx) ParseFundingInterval(interval *string) any {
+func (this *Htx) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -11394,14 +11394,14 @@ func (this *Htx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 	//
 	if GetValue(market, "linear") == true {
 		var dataLinear any = this.SafeList(response, "data", []any{})
-		var settlementsLinear any = this.ParseSettlements(dataLinear, market)
+		var settlementsLinear []any = this.ParseSettlements(dataLinear, market)
 
 		ch <- this.SortBy(settlementsLinear, "timestamp")
 		return nil
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var settlementRecord any = this.SafeValue(data, "settlement_record")
-	var settlements any = this.ParseSettlements(settlementRecord, market)
+	var settlements []any = this.ParseSettlements(settlementRecord, market)
 
 	ch <- this.SortBy(settlements, "timestamp")
 	return nil
@@ -11552,7 +11552,7 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Htx) ParseSettlements(settlements any, market any) any {
+func (this *Htx) ParseSettlements(settlements any, market any) []any {
 	//
 	// coin-m swap, fetchSettlementHistory
 	//
@@ -11606,7 +11606,7 @@ func (this *Htx) ParseSettlements(settlements any, market any) any {
 		var settlement any = GetValue(settlements, i)
 		var list any = this.SafeList(settlement, "list")
 		if GetValue(market, "linear") == true {
-			var parsedSettlement any = this.ParseSettlement(settlement, market)
+			var parsedSettlement map[string]any = this.ParseSettlement(settlement, market)
 			result = append(result, parsedSettlement)
 		} else if !IsEqual(list, nil) {
 			var timestamp *int64 = this.SafeInteger(settlement, "settlement_time")
@@ -11616,7 +11616,7 @@ func (this *Htx) ParseSettlements(settlements any, market any) any {
 			}
 			for j := 0; j < GetArrayLength(list); j++ {
 				var item any = GetValue(list, j)
-				var parsedSettlement any = this.ParseSettlement(item, market)
+				var parsedSettlement map[string]any = this.ParseSettlement(item, market)
 				result = append(result, this.Extend(parsedSettlement, timestampDetails))
 			}
 		} else {
@@ -11625,7 +11625,7 @@ func (this *Htx) ParseSettlements(settlements any, market any) any {
 	}
 	return result
 }
-func (this *Htx) ParseSettlement(settlement any, market any) any {
+func (this *Htx) ParseSettlement(settlement any, market any) map[string]any {
 	//
 	// coin-m swap, fetchSettlementHistory
 	//

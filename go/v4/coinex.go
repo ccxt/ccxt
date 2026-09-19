@@ -5129,7 +5129,7 @@ func (this *Coinex) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Coinex) ParseFundingInterval(interval *string) any {
+func (this *Coinex) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",

@@ -663,7 +663,7 @@ func (this *Blockchaincom) fetchTickersBody(ch chan any, optionalArgs ...any) an
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
 }
-func (this *Blockchaincom) ParseOrderState(state *string) any {
+func (this *Blockchaincom) ParseOrderState(state *string) *string {
 	var states map[string]any = map[string]any{
 		"OPEN":        "open",
 		"REJECTED":    "rejected",
@@ -698,7 +698,7 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString(order, "clOrdId")
 	var typeVar *string = this.SafeStringLower(order, "ordType")
 	var statusId *string = this.SafeString(order, "ordStatus")
-	var state any = this.ParseOrderState(statusId)
+	var state *string = this.ParseOrderState(statusId)
 	var side *string = this.SafeStringLower(order, "side")
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
@@ -1244,7 +1244,7 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 	}
 	return nil
 }
-func (this *Blockchaincom) ParseTransactionState(state *string) any {
+func (this *Blockchaincom) ParseTransactionState(state *string) *string {
 	var states map[string]any = map[string]any{
 		"COMPLETED": "ok",
 		"REJECTED":  "failed",

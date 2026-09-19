@@ -1680,7 +1680,7 @@ func (this *Derive) SignHash(hash any, privateKey any) any {
 func (this *Derive) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
-func (this *Derive) ParseUnits(num any, optionalArgs ...any) any {
+func (this *Derive) ParseUnits(num any, optionalArgs ...any) *string {
 	dec := GetArg(optionalArgs, 0, "1000000000000000000")
 	_ = dec
 	return Precise.StringMul(num, dec)

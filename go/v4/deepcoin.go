@@ -1211,7 +1211,7 @@ func (this *Deepcoin) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Deepcoin) ParseTakerOrMaker(execType *string) any {
+func (this *Deepcoin) ParseTakerOrMaker(execType *string) *string {
 	var types map[string]any = map[string]any{
 		"T": "taker",
 		"M": "maker",

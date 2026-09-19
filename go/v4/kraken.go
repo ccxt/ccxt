@@ -3675,7 +3675,7 @@ func (this *Kraken) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kraken) ParseNetwork(network *string) any {
+func (this *Kraken) ParseNetwork(network *string) *string {
 	var withdrawMethods map[string]any = SafeMapTyped(this.Options, "withdrawMethods")
 	return this.SafeString(withdrawMethods, network, network)
 }

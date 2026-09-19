@@ -2182,7 +2182,7 @@ func (this *Bitstamp) ParseTradingFee(fee any, optionalArgs ...any) any {
 		"tierBased":  nil,
 	}
 }
-func (this *Bitstamp) ParseTradingFees(fees any) any {
+func (this *Bitstamp) ParseTradingFees(fees any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": fees,
 	}
@@ -2285,7 +2285,7 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 	ch <- this.ParseTransactionFees(response)
 	return nil
 }
-func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) map[string]any {
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
 	var result map[string]any = map[string]any{}

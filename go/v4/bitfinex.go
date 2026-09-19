@@ -1167,7 +1167,7 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseCurrenciesCustom(ids, indexed, indexedNetworks)
 	return nil
 }
-func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed any, indexedNetworks any) any {
+func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed any, indexedNetworks any) map[string]any {
 	var allowedIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)

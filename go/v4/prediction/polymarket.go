@@ -619,7 +619,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		for mi := 0; mi < ccxt.GetArrayLength(ccxtMarkets); mi++ {
 			flatMarkets = append(flatMarkets, ccxt.GetValue(ccxtMarkets, mi))
 		}
-		var parsedEvent any = this.ParseEvent(rawEvent)
+		var parsedEvent map[string]any = this.ParseEvent(rawEvent)
 		var eventSlug *string = this.SafeString(rawEvent, "slug")
 		if (eventSlug != nil) && (eventSlug == nil || *eventSlug != "") {
 			var eventKey any = this.ShortenSlug(eventSlug)
@@ -3513,7 +3513,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			}
 			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
 		}
-		var parsedEvent any = this.ParseEvent(eventForParsing)
+		var parsedEvent map[string]any = this.ParseEvent(eventForParsing)
 		result = append(result, parsedEvent)
 	}
 	// populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -3573,13 +3573,13 @@ func (this *Polymarket) fetchEventBody(ch chan any, id any, optionalArgs ...any)
 	if ccxt.IsEqual(eventForParsing, nil) {
 		eventForParsing = map[string]any{}
 	}
-	var event any = this.ParseEvent(eventForParsing)
+	var event map[string]any = this.ParseEvent(eventForParsing)
 	this.IndexEventOutcomes(event)
 
 	ch <- event
 	return nil
 }
-func (this *Polymarket) ParseEvent(rawEvent any) any {
+func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 	// {
 	//     "id": "73113",
 	//     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",

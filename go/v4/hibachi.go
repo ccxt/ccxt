@@ -2772,7 +2772,7 @@ func (this *Hibachi) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.FilterBySinceLimit(withdrawals, since, limit, "timestamp")
 	return nil
 }
-func (this *Hibachi) ParseSettlement(settlement any, optionalArgs ...any) any {
+func (this *Hibachi) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "direction": "Long",

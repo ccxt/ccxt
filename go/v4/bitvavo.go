@@ -1167,7 +1167,7 @@ func (this *Bitvavo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseTradingFees(response)
 	return nil
 }
-func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "fees": {

@@ -1353,7 +1353,7 @@ func (this *Woofipro) ParseFundingRate(fundingRate any, optionalArgs ...any) any
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Woofipro) ParseFundingInterval(interval *string) any {
+func (this *Woofipro) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",

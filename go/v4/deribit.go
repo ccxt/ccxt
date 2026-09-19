@@ -3805,7 +3805,7 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan any, code any, optionalA
 	ch <- this.ParseVolatilityHistory(response)
 	return nil
 }
-func (this *Deribit) ParseVolatilityHistory(volatility any) any {
+func (this *Deribit) ParseVolatilityHistory(volatility any) []any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

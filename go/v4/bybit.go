@@ -10782,7 +10782,7 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
-	var settlements any = this.ParseSettlements(data, market)
+	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
@@ -10869,13 +10869,13 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
-	var settlements any = this.ParseSettlements(data, market)
+	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
-func (this *Bybit) ParseSettlement(settlement any, market any) any {
+func (this *Bybit) ParseSettlement(settlement any, market any) map[string]any {
 	//
 	// fetchSettlementHistory
 	//
@@ -10908,7 +10908,7 @@ func (this *Bybit) ParseSettlement(settlement any, market any) any {
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Bybit) ParseSettlements(settlements any, market any) any {
+func (this *Bybit) ParseSettlements(settlements any, market any) []any {
 	//
 	// fetchSettlementHistory
 	//
@@ -10994,7 +10994,7 @@ func (this *Bybit) fetchVolatilityHistoryBody(ch chan any, code any, optionalArg
 	ch <- this.ParseVolatilityHistory(volatility)
 	return nil
 }
-func (this *Bybit) ParseVolatilityHistory(volatility any) any {
+func (this *Bybit) ParseVolatilityHistory(volatility any) []any {
 	//
 	//     {
 	//         "period": 7,

@@ -1310,7 +1310,7 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan any, optionalArgs ...any) 
 	}
 	return nil
 }
-func (this *Pacifica) ParseAccountSettings(settings any) any {
+func (this *Pacifica) ParseAccountSettings(settings any) map[string]any {
 	var settingsLen int = GetArrayLength(settings)
 	if settingsLen == 0 {
 		return map[string]any{}

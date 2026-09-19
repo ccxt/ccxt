@@ -4300,7 +4300,7 @@ func (this *Digifinex) ParseBorrowRate(info any, optionalArgs ...any) any {
 		"info":      info,
 	}
 }
-func (this *Digifinex) ParseBorrowRates(info any, codeKey any) any {
+func (this *Digifinex) ParseBorrowRates(info any, codeKey any) map[string]any {
 	//
 	//     {
 	//         "valuation_rate": 1,
@@ -4438,7 +4438,7 @@ func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Digifinex) ParseFundingInterval(interval *string) any {
+func (this *Digifinex) ParseFundingInterval(interval *string) *string {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",

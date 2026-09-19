@@ -1395,7 +1395,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	takerFee = Precise.StringDiv(takerFee, "100")
 	var feeTiers any = this.SafeList(data, "tariff_steps", []any{})
 	var result map[string]any = map[string]any{}
-	var tiers any = this.ParseFeeTiers(feeTiers)
+	var tiers map[string]any = this.ParseFeeTiers(feeTiers)
 	var symbols any = this.Symbols
 	if IsEqual(symbols, nil) {
 
@@ -1418,7 +1418,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	ch <- result
 	return nil
 }
-func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
+func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}

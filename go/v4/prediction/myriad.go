@@ -990,7 +990,7 @@ func (this *Myriad) fetchTradeQuoteBody(ch chan any, outcome any, side any, amou
  * @param {object} [market] the outcome the quote belongs to
  * @returns {object} a quote object
  */
-func (this *Myriad) ParseTradeQuote(quote any, optionalArgs ...any) any {
+func (this *Myriad) ParseTradeQuote(quote any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "value": 10,

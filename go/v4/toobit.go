@@ -1849,14 +1849,14 @@ func (this *Toobit) ParseBidsAsksCustom(tickers any, optionalArgs ...any) any {
 	_ = params
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(tickers); i++ {
-		var parsedTicker any = this.ParseBidAskCustom(GetValue(tickers, i))
+		var parsedTicker map[string]any = this.ParseBidAskCustom(GetValue(tickers, i))
 		var ticker map[string]any = this.Extend(parsedTicker, params)
 		results = append(results, ticker)
 	}
 	symbols = this.MarketSymbols(symbols)
 	return this.FilterByArray(results, "symbol", symbols)
 }
-func (this *Toobit) ParseBidAskCustom(ticker any) any {
+func (this *Toobit) ParseBidAskCustom(ticker any) map[string]any {
 	// 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
 	// reads through safeMarket and safeInteger. The caller filters on a unified symbol.
 	var marketId *string = this.SafeString(ticker, "s")
