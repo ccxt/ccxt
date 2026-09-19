@@ -403,7 +403,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(result);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(result);
         String messageHash = this.safeString2(message, "reqid", "req_id");
         client.resolve(order, messageHash);
     }
@@ -1642,7 +1642,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(allOrders, i, new HashMap<String, Object>() {{}});
                 String id = this.safeString(order, "order_id");
-                Object parsed = this.parseWsOrder(order);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order);
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)stored).hashmap, symbol);
                 Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrders, id);

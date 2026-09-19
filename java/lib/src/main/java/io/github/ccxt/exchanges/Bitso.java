@@ -1566,7 +1566,7 @@ public class Bitso extends BitsoApi
             List<Object> canceledOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)payload).size(); i++)
             {
-                Object order = this.parseOrder(Helpers.GetValue(payload, i));
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(Helpers.GetValue(payload, i));
                 ((List<Object>)canceledOrders).add(order);
             }
             return canceledOrders;

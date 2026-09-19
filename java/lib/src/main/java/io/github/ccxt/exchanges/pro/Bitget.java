@@ -344,7 +344,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //     }
         //
         this.handleBidAsk(client, message);
-        Object ticker = this.parseWsTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(message);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1172,7 +1172,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     bidsKey = "b";
                 }
             }
-            Object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
+            Map<String, Object> parsedOrderbook = (Map<String, Object>) this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsedOrderbook});
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         }
@@ -1194,7 +1194,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
         ((List<Object>)bidAsk).add(delta);
@@ -1723,7 +1723,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             String marketId = this.safeString2(rawPosition, "instId", "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
-            Object position = this.parseWsPosition(rawPosition, market);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
@@ -2125,7 +2125,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object order = Helpers.GetValue(data, i);
             String marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-            Object parsed = this.parseWsOrder(order, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))

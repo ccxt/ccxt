@@ -381,7 +381,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         "o": 0.04657
         //     }
         //
-        Object ticker = this.parseTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         String messageHash = Helpers.add("ticker::", symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -741,7 +741,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
         Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -868,7 +868,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object order = this.parseWsOrder(rawOrder, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(rawOrder, market);
         Long lastUpdateTimestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp);
         Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -1051,7 +1051,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object parsedPosition = this.parseWsPosition(rawPosition, market);
+        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
         Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));

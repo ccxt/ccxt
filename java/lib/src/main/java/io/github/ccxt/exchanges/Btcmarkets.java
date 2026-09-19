@@ -927,7 +927,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     }
             //
             Long timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
-            Object orderbook = this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "snapshotId"));
             return orderbook;
         }).thenApply(OrderBook::new);

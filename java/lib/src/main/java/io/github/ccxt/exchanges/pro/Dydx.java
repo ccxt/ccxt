@@ -327,7 +327,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
         } else
         {
-            Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "size");
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "size");
             Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
         }
     }
@@ -476,7 +476,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         List<Object> candles = (List<Object>) this.safeList(content, "candles");
         String messageHash = ("ohlcv:" + symbol);
         Object ohlcv = this.safeDict(candles, 0, content);
-        Object parsed = this.parseOHLCV(ohlcv, market);
+        List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))

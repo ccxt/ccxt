@@ -238,7 +238,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), marketId);
-            Object ticker = this.parseTicker(data, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
@@ -363,7 +363,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String name = "trades";
         Object messageHash = Helpers.add((name + "@"), marketId);
-        Object trade = this.parseTrade(message, market);
+        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, market);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -599,7 +599,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
             Object candle = Helpers.GetValue(candles, i);
-            Object parsed = this.parseOHLCV(candle, market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(candle, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, messageHash);
@@ -1084,7 +1084,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             // the market was unsubscribed while this snapshot request was in flight
             return;
         }
-        Object snapshot = this.parseOrderBook(response, symbol);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(response, symbol);
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(response, "nonce"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         // unroll the accumulated deltas
@@ -1728,7 +1728,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         String messageHash = this.safeString(message, "requestId");
         Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", new HashMap<String, Object>() {{}});
-        Object withdraw = this.parseTransaction(response);
+        Map<String, Object> withdraw = (Map<String, Object>) this.parseTransaction(response);
         client.resolve(withdraw, messageHash);
     }
 
@@ -2035,7 +2035,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String messageHash = this.safeString(message, "requestId");
         List<Object> response = (List<Object>) this.safeList(message, "response", new ArrayList<Object>(Arrays.asList()));
-        Object balance = this.parseBalance(response);
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(response);
         client.resolve(balance, messageHash);
     }
 
@@ -2070,7 +2070,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", new HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(response);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(response);
         String messageHash = this.safeString(message, "requestId");
         client.resolve(order, messageHash);
     }
@@ -2166,7 +2166,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("order:" + symbol);
-        Object order = this.parseOrder(message, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(message, market);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2198,7 +2198,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("myTrades:" + symbol);
-        Object trade = this.parseTrade(message, market);
+        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, market);
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

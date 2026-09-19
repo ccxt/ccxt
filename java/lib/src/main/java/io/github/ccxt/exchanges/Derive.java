@@ -1427,7 +1427,7 @@ public class Derive extends DeriveApi
             {
                 continue;
             }
-            Object parsed = this.parseTrade(rawTrade, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade, market);
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)result).add(trade);
         }
@@ -1880,7 +1880,7 @@ public class Derive extends DeriveApi
             {
                 rawOrder = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
             }
-            Object order = this.parseOrder(rawOrder, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);
@@ -2054,7 +2054,7 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            Object order = this.parseOrder(rawOrder, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         }).thenApply(Order::new);
 

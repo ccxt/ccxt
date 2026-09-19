@@ -385,7 +385,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
-        Object parsed = this.parseOHLCV(data, market);
+        List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (!java.util.Objects.equals(symbol, null))
@@ -438,7 +438,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         for (var i = 0; i < ((List<?>)(List<Object>)(trades)).size(); i++)
         {
             Object item = Helpers.GetValue((List<Object>)(trades), i);
-            Object trade = this.parseTrade(item, market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(item, market);
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
         String messageHash = Helpers.add("deals::", symbol);

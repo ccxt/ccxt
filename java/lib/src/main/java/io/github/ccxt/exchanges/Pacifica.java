@@ -2759,7 +2759,7 @@ public class Pacifica extends PacificaApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object info = Helpers.GetValue(data, i);
-                Object ticker = this.parseTicker(info);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info);
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

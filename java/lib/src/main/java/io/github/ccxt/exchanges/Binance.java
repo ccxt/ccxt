@@ -4787,7 +4787,7 @@ public class Binance extends BinanceApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < Helpers.getArrayLength(responseCurrencies); i++)
         {
-            Object parsed = this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
             if (java.util.Objects.equals(parsed, null))
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -6194,7 +6194,7 @@ public class Binance extends BinanceApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "T");
-            Object orderbook = this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger2(response, "lastUpdateId", "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -6788,7 +6788,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
-            Object parsedTicker = this.parseTicker(Helpers.GetValue(response, i));
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(response, i));
             Helpers.addElementToObject(parsedTicker, "symbol", ((Map<String, Object>)tickerMarket).get("symbol"));
             ((List<Object>)results).add(parsedTicker);
         }
@@ -7683,7 +7683,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((Helpers.add((this.id + " editSpotOrder() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
-            Object payload = this.editSpotOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Object payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
             Map<String, Object> response = (this.privatePostOrderCancelReplace(payload)).join();
             //
             // spot
@@ -7730,7 +7730,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object editSpotOrderRequest(String id, String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object editSpotOrderRequest(String id, String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -7903,7 +7903,7 @@ public class Binance extends BinanceApi
         return this.extend(request, parameters);
     }
 
-    public Object editContractOrderRequest(String id, String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object editContractOrderRequest(String id, String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -7982,7 +7982,7 @@ public class Binance extends BinanceApi
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object request = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Object request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
@@ -8184,7 +8184,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -8206,7 +8206,7 @@ public class Binance extends BinanceApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderTypeByMarket(String type, String marketType)
+    public String parseOrderTypeByMarket(Object type, Object marketType)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{}};
         if ((!java.util.Objects.equals(marketType, null)) && java.util.Objects.equals(marketType, "spot"))
@@ -8910,7 +8910,7 @@ public class Binance extends BinanceApi
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
             put( "symbol", symbol );
-            put( "type", Binance.this.parseOrderTypeByMarket((String) (finalType), marketType) );
+            put( "type", Binance.this.parseOrderTypeByMarket(finalType, marketType) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", postOnly );
             put( "reduceOnly", Binance.this.safeBool(order, "reduceOnly") );
@@ -9099,7 +9099,7 @@ public class Binance extends BinanceApi
             // if (isPortfolioMargin) {
             //     params['portfolioMargin'] = isPortfolioMargin;
             // }
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
@@ -9201,7 +9201,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} request to be sent to the exchange
      */
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -9648,7 +9648,7 @@ public class Binance extends BinanceApi
             if (java.util.Objects.equals(reduceOnly, true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
-                side = (String) ((((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy");
+                side = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
             }
             ((Map<String, Object>)request).put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "LONG" : "SHORT");
         }
@@ -12282,7 +12282,7 @@ public class Binance extends BinanceApi
         }};
     }
 
-    public String parseTransferStatus(String status)
+    public String parseTransferStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CONFIRMED", "ok" );
@@ -13079,7 +13079,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Object parseTradingFee(Object fee, Object... optionalArgs)
     {
         //
         // spot
@@ -13202,7 +13202,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseTradingFee() returned empty response")) ;
             }
-            return this.parseTradingFee((Map<String, Object>) (data), market);
+            return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -13323,7 +13323,7 @@ public class Binance extends BinanceApi
                 List<Object> fees = this.toArray(response);
                 for (var i = 0; i < ((List<?>)fees).size(); i++)
                 {
-                    Object fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
+                    Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
                     Object symbol = ((Map<String, Object>)fee).get("symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
@@ -14636,7 +14636,7 @@ final Object finalMarket = market;
             //         }
             //     ]
             //
-            return this.parseOptionPosition((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
+            return this.parseOptionPosition(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
         }).thenApply(Position::new);
 
     }
@@ -14710,14 +14710,14 @@ final Object finalMarket = market;
             List<Object> positions = this.toArray(response);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                ((List<Object>)result).add(this.parseOptionPosition((Map<String, Object>) (Helpers.GetValue(positions, i)), market));
+                ((List<Object>)result).add(this.parseOptionPosition(Helpers.GetValue(positions, i), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         });
 
     }
 
-    public Object parseOptionPosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parseOptionPosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -16089,7 +16089,7 @@ final Object finalMarket = market;
         return this.safeString(ledgerType, ((String)type), type);
     }
 
-    public Object getNetworkCodeByNetworkUrl(String currencyCode, Object... optionalArgs)
+    public Object getNetworkCodeByNetworkUrl(Object currencyCode, Object... optionalArgs)
     {
         // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
         Object depositUrl = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -16116,7 +16116,7 @@ final Object finalMarket = market;
         return networkCode;
     }
 
-    public Object getBaseDomainFromUrl(String url)
+    public Object getBaseDomainFromUrl(Object url)
     {
         if (java.util.Objects.equals(url, null))
         {
@@ -16326,7 +16326,7 @@ final Object finalMarket = market;
         }};
     }
 
-    public Object getExceptionsByUrl(String url, Object exactOrBroad)
+    public Object getExceptionsByUrl(Object url, Object exactOrBroad)
     {
         if (java.util.Objects.equals(url, null))
         {
@@ -16411,9 +16411,9 @@ final Object finalMarket = market;
         String message = this.safeString(response, "msg");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), message, ((this.id + " ") + message));
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(this.getExceptionsByUrl((String) (url), "broad"), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException(this.getExceptionsByUrl(url, "broad"), message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, ((this.id + " ") + message));
         }
         // checks against error codes
@@ -16438,7 +16438,7 @@ final Object finalMarket = market;
             {
                 throw new MarginModeAlreadySet(feedback) ;
             }
-            this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), error, feedback);
+            this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), error, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
@@ -16456,7 +16456,7 @@ final Object finalMarket = market;
                 String errorCode = this.safeString(element, "code");
                 if (!java.util.Objects.equals(errorCode, null))
                 {
-                    this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), errorCode, ((this.id + " ") + body));
+                    this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), errorCode, ((this.id + " ") + body));
                     this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, ((this.id + " ") + body));
                 }
             }

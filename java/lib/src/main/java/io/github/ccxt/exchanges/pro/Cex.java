@@ -452,7 +452,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsTicker((Map<String, Object>) (data));
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -469,7 +469,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
     }
 
-    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseWsTicker(Object ticker, Object... optionalArgs)
     {
         //
         //  public
@@ -1115,7 +1115,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             Object rawOrder = Helpers.GetValue(rawOrders, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
-            Object order = this.parseOrder(rawOrder, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "status", "open");
             Helpers.callDynamically(myOrders, "append", new Object[]{order});
         }
@@ -1202,7 +1202,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long timestamp = (Long) this.safeInteger2(data, "timestamp_ms", "timestamp");
         Long incrementalId = this.safeInteger(data, "id");
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-        Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", incrementalId);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Helpers.addElementToObject(Helpers.GetValue(this.options, "orderbook"), symbol, new HashMap<String, Object>() {{
@@ -1264,7 +1264,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

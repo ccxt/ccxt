@@ -596,7 +596,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 {
                     continue;
                 }
-                Object result = this.parseWsTicker((Map<String, Object>) (ticker));
+                Map<String, Object> result = (Map<String, Object>) this.parseWsTicker(ticker);
                 Helpers.addElementToObject(result, "timestamp", timestamp);
                 Helpers.addElementToObject(result, "datetime", datetime);
                 Object symbol = ((Map<String, Object>)result).get("symbol");
@@ -612,7 +612,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseWsTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1041,7 +1041,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             for (var j = 0; j < ((List<?>)responseOrders).size(); j++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, j);
-                Object parsed = this.parseWsOrder(responseOrder);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(responseOrder);
                 Object cachedOrders = this.orders;
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))

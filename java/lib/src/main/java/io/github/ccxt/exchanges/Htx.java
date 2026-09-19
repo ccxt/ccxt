@@ -3176,7 +3176,7 @@ public class Htx extends HtxApi
             //     }
             //
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(tick, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -3499,7 +3499,7 @@ public class Htx extends HtxApi
                 }
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-                Object result = this.parseOrderBook(tick, symbol, timestamp);
+                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
                 ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
@@ -4078,7 +4078,7 @@ public class Htx extends HtxApi
                 List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(data, i), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
-                    Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
+                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(trades, j), market);
                     ((List<Object>)result).add(trade);
                 }
             }
@@ -10145,7 +10145,7 @@ public class Htx extends HtxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object position = Helpers.GetValue(data, i);
-                Object parsed = this.parsePosition(position);
+                Map<String, Object> parsed = (Map<String, Object>) this.parsePosition(position);
                 ((List<Object>)result).add(this.extend(parsed, new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
@@ -10248,7 +10248,7 @@ public class Htx extends HtxApi
                 position = this.safeDict(positions, 0);
             }
             Long timestamp = this.safeInteger(response, "ts");
-            Object parsed = this.parsePosition(this.extend(position, omitted), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePosition(this.extend(position, omitted), market);
             Helpers.addElementToObject(parsed, "timestamp", timestamp);
             Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
             return parsed;
@@ -10919,7 +10919,7 @@ public class Htx extends HtxApi
             //         "data": 1000
             //     }
             //
-            Object transaction = this.parseMarginLoan(response, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(response, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -10963,7 +10963,7 @@ public class Htx extends HtxApi
             //         "data": null
             //     }
             //
-            Object transaction = this.parseMarginLoan(response, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(response, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -11013,7 +11013,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             Object loan = this.safeValue(data, 0);
-            Object transaction = this.parseMarginLoan(loan, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -11063,7 +11063,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             Object loan = this.safeValue(data, 0);
-            Object transaction = this.parseMarginLoan(loan, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});

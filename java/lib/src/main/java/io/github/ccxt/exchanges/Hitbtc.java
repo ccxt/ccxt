@@ -1777,7 +1777,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public String parseTransactionStatus(String status)
+    public String parseTransactionStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CREATED", "pending" );
@@ -2050,7 +2050,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Object parseTradingFee(Object fee, Object... optionalArgs)
     {
         //
         //     {
@@ -2115,7 +2115,7 @@ public class Hitbtc extends HitbtcApi
             //         "make_rate":"0.0009"
             //     }
             //
-            return this.parseTradingFee((Map<String, Object>) (response), market);
+            return this.parseTradingFee(response, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2165,7 +2165,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, i)));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(response, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2977,7 +2977,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            var requestparametersVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, type, side, amount, price, marginMode, parameters);
+            var requestparametersVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -2996,7 +2996,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object createOrderRequest(Map<String, Object> market, Object marketType, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(Object market, Object marketType, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object marginMode = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -3075,7 +3075,7 @@ public class Hitbtc extends HitbtcApi
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "new", "open" );
@@ -3531,7 +3531,7 @@ public class Hitbtc extends HitbtcApi
                 Object rawFundingRate = this.safeValue(response, marketId);
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(marketId);
                 Object symbol = ((Map<String, Object>)marketInner).get("symbol");
-                Object fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
+                Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(rawFundingRate, marketInner);
                 ((Map<String, Object>)fundingRates).put((String)symbol, fundingRate);
             }
             return this.filterByArray(fundingRates, "symbol", symbols);

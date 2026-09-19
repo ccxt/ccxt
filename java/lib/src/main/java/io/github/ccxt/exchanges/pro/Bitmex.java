@@ -402,7 +402,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new HashMap<String, Object>() {{}}));
             }
-            Object updatedTicker = this.parseTicker(update);
+            Map<String, Object> updatedTicker = (Map<String, Object>) this.parseTicker(update);
             Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
             ((Map<String, Object>)tickers).put((String)symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
@@ -676,7 +676,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         List<Object> data = (List<Object>) this.safeList(message, "data");
-        Object balance = this.parseBalance(data);
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
         this.balance = this.extend(this.balance, balance);
         String messageHash = this.safeString(message, "table");
         client.resolve(this.balance, messageHash);
@@ -1049,7 +1049,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             Object side = this.safeString(position, "side");
             if (java.util.Objects.equals(side, null))
             {
@@ -1312,7 +1312,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 {
                     rawOrder = this.extend(((Map<String, Object>)previousOrder).get("info"), currentOrder);
                 }
-                Object order = this.parseOrder(rawOrder);
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = ((Map<String, Object>)order).get("symbol");
                 ((Map<String, Object>)symbols).put((String)((String)symbol), true);

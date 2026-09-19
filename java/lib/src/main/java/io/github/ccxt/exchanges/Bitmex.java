@@ -2187,7 +2187,7 @@ public class Bitmex extends BitmexApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(rawTickers, i));
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

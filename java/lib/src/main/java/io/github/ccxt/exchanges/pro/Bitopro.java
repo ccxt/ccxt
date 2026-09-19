@@ -158,7 +158,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, messageHash);
     }
@@ -473,7 +473,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
-        Object result = this.parseTicker(message, market);
+        Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
         Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(result, "timestamp", timestamp);

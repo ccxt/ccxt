@@ -340,7 +340,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String marketId = this.safeString(parts, 0);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object ticker = this.parseWsTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, ("ticker::" + symbol));
     }
@@ -754,7 +754,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Boolean isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
         if (Boolean.TRUE.equals(isSnapshotChannel) || Boolean.TRUE.equals(isSnapshotMessage))
         {
-            Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
@@ -1017,7 +1017,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed");
-        Object position = this.parseWsPosition(data);
+        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(data);
         String symbol = this.safeString(position, "symbol");
         Helpers.callDynamically(this.positions, "append", new Object[]{position});
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
@@ -1157,7 +1157,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object order = this.parseWsOrder(data);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(data);
         Helpers.callDynamically(this.orders, "append", new Object[]{order});
         client.resolve(this.orders, "orders");
         client.resolve(this.orders, Helpers.add("order::", ((Map<String, Object>)order).get("symbol")));

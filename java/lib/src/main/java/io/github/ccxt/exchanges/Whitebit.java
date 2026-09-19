@@ -2106,7 +2106,7 @@ public class Whitebit extends WhitebitApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), ticker);
             }
@@ -3274,7 +3274,7 @@ public class Whitebit extends WhitebitApi
                 List<Object> orders = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)orders).size(); j++)
                 {
-                    Object order = this.parseOrder(Helpers.GetValue(orders, j), marketNew);
+                    Map<String, Object> order = (Map<String, Object>) this.parseOrder(Helpers.GetValue(orders, j), marketNew);
                     ((List<Object>)results).add(this.extend(order, new HashMap<String, Object>() {{
                         put( "status", "closed" );
                     }}));

@@ -431,7 +431,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; Helpers.isLessThan(i, changesLength); i++)
         {
             Object index = Helpers.subtract(Helpers.subtract(changesLength, i), 1);
-            Object parsed = this.parseOHLCV(Helpers.GetValue(changes, index), market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(Helpers.GetValue(changes, index), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
@@ -887,7 +887,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Object orders = this.orders;
         for (var i = 0; i < Helpers.getArrayLength(message); i++)
         {
-            Object order = this.parseWsOrder(Helpers.GetValue(message, i));
+            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(Helpers.GetValue(message, i));
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
         client.resolve(this.orders, messageHash);

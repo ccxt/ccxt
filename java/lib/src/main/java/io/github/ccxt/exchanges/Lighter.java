@@ -1841,7 +1841,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object result = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "remaining_base_amount");
+            Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "remaining_base_amount");
             return result;
         }).thenApply(OrderBook::new);
 

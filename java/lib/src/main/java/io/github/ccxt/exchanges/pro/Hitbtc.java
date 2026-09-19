@@ -349,7 +349,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Long nonce = this.safeInteger(item, "s");
             if (java.util.Objects.equals(type, "snapshot"))
             {
-                Object parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
+                Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(item, symbol, timestamp, "b", "a");
                 Helpers.callDynamically(orderbook, "reset", new Object[]{parsedSnapshot});
             } else
             {
@@ -522,7 +522,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object marketId = Helpers.GetValue(marketIds, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object ticker = this.parseWsTicker((Map<String, Object>) (Helpers.GetValue(data, marketId)), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(Helpers.GetValue(data, marketId), market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((List<Object>)result).add(ticker);
             String messageHash = ((topic + "::") + symbol);
@@ -531,7 +531,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         client.resolve(result, topic);
     }
 
-    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseWsTicker(Object ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -1125,7 +1125,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("_order"))));
         String messageHash = this.safeString(splitMethod, 0);
         String symbol = this.safeSymbol(marketId);
-        Object parsed = this.parseOrder(order);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order);
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
         client.resolve(orders, messageHash);
         client.resolve(orders, Helpers.add(Helpers.add(messageHash, "::"), symbol));
@@ -1227,10 +1227,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String parsedStatus = null;
         if (java.util.Objects.equals(report_type, "canceled"))
         {
-            parsedStatus = this.parseOrderStatus((String) (report_type));
+            parsedStatus = this.parseOrderStatus(report_type);
         } else
         {
-            parsedStatus = this.parseOrderStatus((String) (rawStatus));
+            parsedStatus = this.parseOrderStatus(rawStatus);
         }
         final Object finalMarket = market;
         final Object finalParsedStatus = parsedStatus;
@@ -1343,7 +1343,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            var requestparametersVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, type, side, amount, price, marginMode, parameters);
+            var requestparametersVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             request = this.extend(request, parameters);
@@ -1542,7 +1542,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //
         String messageHash = this.safeString(message, "method");
         Object parameters = this.safeValue(message, "params");
-        Object balance = this.parseBalance(parameters);
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(parameters);
         this.balance = this.deepExtend(this.balance, balance);
         client.resolve(this.balance, messageHash);
     }
@@ -1591,13 +1591,13 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object parsedOrder = this.parseWsOrder(Helpers.GetValue(result, i));
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(Helpers.GetValue(result, i));
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
         } else
         {
-            Object parsedOrder = this.parseWsOrder(result);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(result);
             client.resolve(parsedOrder, messageHash);
         }
         return message;

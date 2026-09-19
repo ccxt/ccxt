@@ -481,7 +481,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parseWsPosition((Map<String, Object>) (rawPosition));
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
             Long timestamp = this.safeInteger(message, "timestamp");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
@@ -504,7 +504,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         client.resolve(newPositions, "positions");
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parseWsPosition(Object position, Object... optionalArgs)
     {
         //
         //        {
@@ -980,7 +980,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String reason = this.safeString(message, "reason");
             if ((java.util.Objects.equals(previousOrder, null)) || (java.util.Objects.equals(reason, "edited_by_user")))
             {
-                Object parsed = this.parseWsOrder(order);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order);
                 Helpers.callDynamically(orders, "append", new Object[]{parsed});
                 client.resolve(orders, messageHash);
                 client.resolve(orders, ((messageHash + ":") + symbol));
@@ -1142,7 +1142,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object order = Helpers.GetValue(orders, i);
-            Object parsed = this.parseWsOrder(order);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1288,7 +1288,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object ticker = this.parseWsTicker((Map<String, Object>) (message));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(message);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1320,7 +1320,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object ticker = this.parseWsTicker((Map<String, Object>) (message));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(message);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1331,7 +1331,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
     }
 
-    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseWsTicker(Object ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -1795,7 +1795,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = Helpers.GetValue(trades, i);
-            Object parsedTrade = this.parseWsMyTrade((Map<String, Object>) (trade));
+            Object parsedTrade = this.parseWsMyTrade(trade);
             if (!java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("symbol"), null))
             {
                 ((Map<String, Object>)tradeSymbols).put((String)((Map<String, Object>)parsedTrade).get("symbol"), true);
@@ -1812,7 +1812,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         client.resolve(stored, "myTrades");
     }
 
-    public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsMyTrade(Object trade, Object... optionalArgs)
     {
         //
         //    {

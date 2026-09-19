@@ -1276,7 +1276,7 @@ final Object finalBase = base;
             //         ]
             //     }
             //
-            Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "nonce"));
             return orderbook;
         }).thenApply(OrderBook::new);

@@ -332,7 +332,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         // ticker even when the market id could not be resolved
         String inverseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "inverse");
         Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && (Helpers.isEqual(((String)client.url).indexOf(((String)inverseUrl)), 0));
-        Object ticker = this.parseWsTicker(data, market, isInverse);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market, isInverse);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, this.getMessageHash("ticker", symbol));
         if (java.util.Objects.equals(this.safeString(message, "dataType"), "all@ticker"))
@@ -1701,7 +1701,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parseWsPosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
             String symbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1985,7 +1985,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object parsedOrder = this.parseOrder(data);
+        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data);
         Helpers.callDynamically(stored, "append", new Object[]{parsedOrder});
         Object symbol = ((Map<String, Object>)parsedOrder).get("symbol");
         String spotHash = "spot:order";
@@ -2065,7 +2065,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         String marketId = this.safeString(result, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-", type);
-        Object parsed = this.parseTrade(result, market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(result, market);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
         String spotHash = "spot:mytrades";
         String swapHash = "swap:mytrades";

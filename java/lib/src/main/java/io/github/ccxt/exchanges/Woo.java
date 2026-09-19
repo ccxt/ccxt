@@ -1590,7 +1590,7 @@ public class Woo extends WooApi
                     put( "_tokens_by_id", Helpers.GetValue(tokensById, id) );
                     put( "_networks_by_id", Helpers.GetValue(networksById, id) );
                 }};
-                Object parsed = this.parseCurrency(customCurrency);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(customCurrency);
                 String code = this.safeString(parsed, "code");
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -4150,7 +4150,7 @@ public class Woo extends WooApi
             //         "success": true,
             //     }
             //
-            Object transaction = this.parseMarginLoan(response, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(response, currency);
             final Object finalSymbol = symbol;
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );

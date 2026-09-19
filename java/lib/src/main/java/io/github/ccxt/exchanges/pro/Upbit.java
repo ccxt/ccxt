@@ -317,7 +317,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "acc_trade_price_24h": 2.5955306323568927,
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
-        Object ticker = this.parseTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -401,7 +401,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "change_price": 27000,
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
-        Object trade = this.parseTrade(message);
+        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message);
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -438,7 +438,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String marketId = this.safeString(message, "code");
         String symbol = this.safeSymbol(marketId);
         String messageHash = ("candle.1s:" + symbol);
-        Object ohlcv = this.parseOHLCV(message);
+        List<Object> ohlcv = (List<Object>) this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
     }
 

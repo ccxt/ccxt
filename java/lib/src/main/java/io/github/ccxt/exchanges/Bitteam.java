@@ -978,7 +978,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Object orderbook = this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1686,7 +1686,7 @@ public class Bitteam extends BitteamApi
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
                 Object rawTicker = Helpers.GetValue(rawTickers, i);
-                Object ticker = this.parseTicker(rawTicker);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
                 ((List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);

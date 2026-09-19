@@ -1840,7 +1840,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> editStatus = (Map<String, Object>) this.safeDict(response, "editStatus", new HashMap<String, Object>() {{}});
             String status = this.safeString(editStatus, "status");
             this.verifyOrderActionSuccess(status, "editOrder", new ArrayList<Object>(Arrays.asList("filled")));
-            Object order = this.parseOrder(editStatus);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(editStatus);
             Helpers.addElementToObject(order, "info", response);
             return order;
         }).thenApply(Order::new);
@@ -3482,7 +3482,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 symbol = (((java.util.Objects.equals(symbol, null)))) ? "" : symbol;
                 throw new BadRequest(((this.id + " fetchBalance has no account for ") + type)) ;
             }
-            Object balance = this.parseBalance(account);
+            Map<String, Object> balance = (Map<String, Object>) this.parseBalance(account);
             ((Map<String, Object>)balance).put("info", response);
             ((Map<String, Object>)balance).put("timestamp", this.parse8601(datetime));
             ((Map<String, Object>)balance).put("datetime", datetime);
@@ -3635,7 +3635,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     }
                 }
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(entry_symbol);
-                Object parsed = this.parseFundingRate(entry, market);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, market);
                 ((List<Object>)fundingRates).add(parsed);
             }
             return this.indexBy(fundingRates, "symbol");
@@ -3850,7 +3850,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            Object position = this.parsePosition(Helpers.GetValue(positions, i));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(Helpers.GetValue(positions, i));
             ((List<Object>)result).add(position);
         }
         return result;
