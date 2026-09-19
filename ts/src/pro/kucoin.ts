@@ -95,7 +95,7 @@ export default class kucoin extends kucoinRest {
         });
     }
 
-    async negotiate (privateChannel: any, isFuturesMethod = false, params = {}) {
+    async negotiate (privateChannel: any, isFuturesMethod: boolean = false, params: Dict = {}): Promise<any> {
         let connectId = (privateChannel === true) ? 'private' : 'public';
         if (isFuturesMethod) {
             connectId += 'Futures';
@@ -114,7 +114,7 @@ export default class kucoin extends kucoinRest {
         return await future;
     }
 
-    async negotiateHelper (privateChannel: any, connectId: any, params = {}) {
+    async negotiateHelper (privateChannel: any, connectId: string, params: Dict = {}): Promise<Str> {
         let response: Dict;
         try {
             if (connectId === 'private') {
@@ -165,7 +165,7 @@ export default class kucoin extends kucoinRest {
         return undefined;
     }
 
-    requestId () {
+    requestId (): number {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -173,7 +173,7 @@ export default class kucoin extends kucoinRest {
         return requestId;
     }
 
-    async subscribe (url: any, messageHash: any, subscriptionHash: any, params = {}, subscription: Dict | undefined = undefined) {
+    async subscribe (url: string, messageHash: string, subscriptionHash: string, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         const requestId = this.requestId ().toString ();
         const request: Dict = {
             'id': requestId,
@@ -189,7 +189,7 @@ export default class kucoin extends kucoinRest {
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async subscribePublicUta (messageHash: any, channel: any, symbol: any, params = {}, subscription: NullableDict = undefined) {
+    async subscribePublicUta (messageHash: string, channel: string, symbol: string, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         const requestId = this.requestId ().toString ();
         const market = this.market (symbol);
         const urlType = (market['contract'] === true) ? 'futures' : 'spot';
@@ -215,7 +215,7 @@ export default class kucoin extends kucoinRest {
         return await this.watch ((url as string), messageHash, message, messageHash, subscription);
     }
 
-    async subscribePrivateUta (messageHashes: any, subscribeHash: any, channel: any, symbol: Str = undefined, params = {}, subscription: NullableDict = undefined) {
+    async subscribePrivateUta (messageHashes: string[], subscribeHash: string, channel: string, symbol: Str = undefined, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         this.checkRequiredCredentials ();
         const requestId = this.requestId ().toString ();
         let action = 'subscribe';
@@ -241,12 +241,12 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, [ subscribeHash ], subscription);
     }
 
-    async getUtaUrl () {
+    async getUtaUrl (): Promise<string> {
         const utaToken = await this.authenticateUta ();
         return this.urls['api']['ws']['private'] + '?token=' + utaToken;
     }
 
-    async authenticateUta () {
+    async authenticateUta (): Promise<Str> {
         this.checkRequiredCredentials ();
         const utaToken = this.safeString (this.options, 'utaToken');
         const lastUpdate = this.safeInteger (this.options, 'utaTokenLastUpdate', 0);
@@ -280,11 +280,11 @@ export default class kucoin extends kucoinRest {
         return this.safeString (this.options, 'utaToken');
     }
 
-    unSubscribe (url: any, messageHash: any, topic: any, subscriptionHash: any, params = {}, subscription: NullableDict = undefined): Promise<any> {
+    unSubscribe (url: string, messageHash: string, topic: string, subscriptionHash: string, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         return this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
     }
 
-    async subscribeMultiple (url: any, messageHashes: any, topic: any, subscriptionHashes: any, params = {}, subscription: NullableDict = undefined) {
+    async subscribeMultiple (url: string, messageHashes: string[], topic: string, subscriptionHashes: string[], params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         const requestId = this.requestId ().toString ();
         const request: Dict = {
             'id': requestId,
@@ -303,7 +303,7 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscription);
     }
 
-    async unSubscribeMultiple (url: any, messageHashes: any, topic: any, subscriptionHashes: any, params = {}, subscription: NullableDict = undefined) {
+    async unSubscribeMultiple (url: string, messageHashes: string[], topic: string, subscriptionHashes: string[], params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         const requestId = this.requestId ().toString ();
         const request: Dict = {
             'id': requestId,
@@ -337,7 +337,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -375,7 +375,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -429,7 +429,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -481,7 +481,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async subscribePublicMultipleUta (messageHashes: any, channel: any, symbols: any, params = {}, subscription: Dict | undefined = undefined) {
+    async subscribePublicMultipleUta (messageHashes: string[], channel: string, symbols: any[], params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
         const isContract = ((market as Dict)['contract'] === true);
@@ -509,7 +509,7 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple ((url as string), messageHashes, message, messageHashes, subscription);
     }
 
-    async watchUtaTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async watchUtaTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -529,7 +529,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         // market/snapshot
         //
@@ -633,7 +633,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleContractTicker (client: Client, message: any) {
+    handleContractTicker (client: Client, message: Dict): void {
         //
         // ticker (v1)
         //
@@ -664,7 +664,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (ticker, messageHash);
     }
 
-    handleUtaTicker (client: Client, message: any) {
+    handleUtaTicker (client: Client, message: Dict): void {
         //
         // watchTicker
         //     {
@@ -706,7 +706,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsUtaTicker (ticker: any, market: Market = undefined) {
+    parseWsUtaTicker (ticker: Dict, market: Market = undefined): Ticker {
         const symbol = this.safeString (market, 'symbol');
         market = this.safeMarket (symbol, market);
         let timestamp = this.safeInteger (ticker, 'ts');
@@ -749,7 +749,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -769,7 +769,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiHelper (methodName: any, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params = {}) {
+    async watchMultiHelper (methodName: string, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -798,7 +798,7 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict): void {
         //
         // arrives one symbol dict
         //
@@ -834,7 +834,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const topic = this.safeString (ticker, 'topic');
         if ((topic as string).indexOf ('contractMarket') < 0) {
             const parts = (topic as string).split (':');
@@ -890,7 +890,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -938,7 +938,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -982,7 +982,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -1055,7 +1055,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (stored, messageHash);
     }
 
-    handleUtaOHLCV (client: Client, message: any) {
+    handleUtaOHLCV (client: Client, message: Dict): void {
         //
         //     {
         //         "T": "kline.SPOT",
@@ -1115,7 +1115,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchTrades', 'uta', uta);
         if (uta) {
@@ -1147,7 +1147,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -1192,7 +1192,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1240,7 +1240,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchTrades', 'uta', uta);
         if (uta) {
@@ -1262,7 +1262,7 @@ export default class kucoin extends kucoinRest {
         return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -1298,7 +1298,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (cache, messageHash);
     }
 
-    handleUtaTrade (client: Client, message: any) {
+    handleUtaTrade (client: Client, message: Dict): void {
         //
         //     {
         //         "T": "trade.SPOT",
@@ -1330,7 +1330,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (cache, messageHash);
     }
 
-    parseWsUtaTrade (trade: any, market: Market = undefined) {
+    parseWsUtaTrade (trade: Dict, market: Market = undefined): Trade {
         // trades
         //     {
         //         "E": "20745928670070784",
@@ -1403,7 +1403,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         //
         // https://docs.kucoin.com/#level-2-market-data
         // cache the ws level2 stream, fetch the REST snapshot, then replay only the cached deltas whose
@@ -1453,7 +1453,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'unWatchOrderBook', 'uta', uta);
         if (uta) {
@@ -1496,7 +1496,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -1561,7 +1561,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         const limit = this.safeInteger (params, 'limit');
         params = this.omit (params, 'limit');
         if (this.markets === undefined) {
@@ -1606,7 +1606,7 @@ export default class kucoin extends kucoinRest {
         return await this.unSubscribeMultiple (url, messageHashes, topic, messageHashes, params, subscription);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -1697,7 +1697,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    handleUtaOrderBook (client: Client, message: any) {
+    handleUtaOrderBook (client: Client, message: Dict): void {
         //
         // snapshot
         //     {
@@ -1756,7 +1756,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    override getCacheIndex (orderbook: any, cache: any) {
+    override getCacheIndex (orderbook: any, cache: any): number {
         const firstDelta = this.safeDict (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN (firstDelta, [ 'sequenceStart', 'sequence', 'O' ]);
@@ -1780,7 +1780,7 @@ export default class kucoin extends kucoinRest {
         return cache.length;
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleDelta (orderbook: any, delta: NullableDict): void {
         let timestamp = this.safeIntegerProduct (delta, 'M', 0.000001);
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (delta, 'time', 'timestamp');
@@ -1818,14 +1818,14 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any) {
+    handleBidAsks (bookSide: any, bidAsks: any[]): void {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
 
-    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict): void {
         const limit = this.safeInteger (subscription, 'limit');
         const symbols = this.safeList (subscription, 'symbols');
         if (symbols === undefined) {
@@ -1843,7 +1843,7 @@ export default class kucoin extends kucoinRest {
         // but not before, because otherwise we cannot synchronize the feed
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): void {
         //
         // classic
         //     {
@@ -1893,7 +1893,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleSystemStatus (client: Client, message: any) {
+    handleSystemStatus (client: Client, message: Dict): Dict {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -1936,7 +1936,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot' if symbol is not provided)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1986,7 +1986,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    getOrdersMessageHashSuffix (topic: any) {
+    getOrdersMessageHashSuffix (topic: Str): string {
         let suffix = '-spot';
         if (topic === '/spotMarket/advancedOrders') {
             suffix += '-trigger';
@@ -1998,7 +1998,7 @@ export default class kucoin extends kucoinRest {
         return suffix;
     }
 
-    parseWsOrderStatus (status: any) {
+    parseWsOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
@@ -2011,7 +2011,7 @@ export default class kucoin extends kucoinRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: NullableDict, market: Market = undefined): Order {
         //
         // /spotMarket/tradeOrders
         //
@@ -2115,7 +2115,7 @@ export default class kucoin extends kucoinRest {
         }, market);
     }
 
-    parseWsUtaOrder (order: any, market: Market = undefined) {
+    parseWsUtaOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "tT": "FUTURES",
@@ -2200,7 +2200,7 @@ export default class kucoin extends kucoinRest {
         }, market);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict): void {
         //
         // Trigger Orders
         //
@@ -2282,7 +2282,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    handleUtaOrder (client: Client, message: any) {
+    handleUtaOrder (client: Client, message: Dict): void {
         //
         //     {
         //         "T": "orderAll.UNIFIED",
@@ -2359,7 +2359,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] *classic (non-uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2403,7 +2403,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    getMyTradesMessageHashSuffix (topic: any) {
+    getMyTradesMessageHashSuffix (topic: any): string {
         let suffix = '-spot';
         if (topic.indexOf ('contractMarket') >= 0) {
             suffix = '-contract';
@@ -2411,7 +2411,7 @@ export default class kucoin extends kucoinRest {
         return suffix;
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "message",
@@ -2457,7 +2457,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.myTrades, symbolSpecificMessageHash);
     }
 
-    handleUtaMyTrade (client: Client, message: any) {
+    handleUtaMyTrade (client: Client, message: Dict): void {
         //
         //     {
         //         "T": "execution.lite.UNIFIED",
@@ -2492,7 +2492,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (cache, symbolMessageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: NullableDict, market: Market = undefined): Trade {
         //
         // /spotMarket/tradeOrders
         //
@@ -2584,7 +2584,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.type] *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2640,7 +2640,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    setBalanceCache (client: Client, type: any) {
+    setBalanceCache (client: Client, type: string): void {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
@@ -2657,7 +2657,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: any, type: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
         const uta = (type === 'unified');
         const params: Dict = {
             'type': type,
@@ -2673,7 +2673,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         // {
         //     "id":"6217a451294b030001e3a26a",
@@ -2780,7 +2780,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.balance[uniformType], messageHash);
     }
 
-    handleUtaBalance (client: Client, message: any) {
+    handleUtaBalance (client: Client, message: Dict): void {
         //
         //     {
         //         "T": "balance.UNIFIED",
@@ -2828,7 +2828,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
+    override async watchPosition (symbol: Str = undefined, params: Dict = {}): Promise<Position> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchPosition() requires a symbol argument');
         }
@@ -2866,7 +2866,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2905,7 +2905,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    getCurrentPosition (symbol: any) {
+    getCurrentPosition (symbol: string): NullableDict {
         if (this.positions === undefined) {
             return undefined;
         }
@@ -2915,7 +2915,7 @@ export default class kucoin extends kucoinRest {
         return this.safeDict (values, 0);
     }
 
-    setPositionsCache (client: Client, uta: any) {
+    setPositionsCache (client: Client, uta: boolean): void {
         if (!(this.isEmpty (this.positions))) {
             return;
         }
@@ -2931,7 +2931,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any, uta: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, uta: boolean): Promise<void> {
         const positions = await this.fetchPositions (undefined, { 'uta': uta });
         this.positions = new ArrayCacheBySymbolById ();
         const cache = this.positions;
@@ -2950,7 +2950,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    setPositionCache (client: Client, symbol: string) {
+    setPositionCache (client: Client, symbol: string): void {
         const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', false);
         if (fetchPositionSnapshot === true) {
             const messageHash = 'fetchPositionSnapshot:' + symbol;
@@ -2961,7 +2961,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    async loadPositionSnapshot (client: Client, messageHash: any, symbol: any) {
+    async loadPositionSnapshot (client: Client, messageHash: string, symbol: string): Promise<void> {
         const position = await this.fetchPosition (symbol);
         this.positions = new ArrayCacheBySymbolById ();
         const cache = this.positions;
@@ -2974,7 +2974,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handlePosition (client: Client, message: any) {
+    handlePosition (client: Client, message: Dict): void {
         //
         // Position Changes Caused Operations
         //    {
@@ -3088,7 +3088,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (position, messageHash);
     }
 
-    handleUtaPosition (client: Client, message: any) {
+    handleUtaPosition (client: Client, message: Dict): void {
         //
         //     {
         //         "T": "positionAll.UNIFIED",
@@ -3138,7 +3138,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.positions, symbolMessageHash);
     }
 
-    parseWsUtaPosition (position: any, market: Market = undefined) {
+    parseWsUtaPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "pi": "30000000000084845",
@@ -3207,7 +3207,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3226,7 +3226,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3244,7 +3244,7 @@ export default class kucoin extends kucoinRest {
         return await this.subscribePublicUta (unSubMessageHash, channel, symbol, params, subscription);
     }
 
-    handleUtaFundingRate (client: Client, message: any) {
+    handleUtaFundingRate (client: Client, message: Dict): void {
         //
         //     {
         //         "T": "funding-fee",
@@ -3270,7 +3270,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (data: any, market: Market = undefined): FundingRate {
+    parseWsFundingRate (data: Dict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "s": "ETHUSDTM",
@@ -3317,7 +3317,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3336,7 +3336,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3354,7 +3354,7 @@ export default class kucoin extends kucoinRest {
         return await this.subscribePublicUta (unSubMessageHash, channel, symbol, params, subscription);
     }
 
-    handleSubject (client: Client, message: any) {
+    handleSubject (client: Client, message: Dict): void {
         //
         //     {
         //         "type":"message",
@@ -3444,7 +3444,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
@@ -3455,12 +3455,12 @@ export default class kucoin extends kucoinRest {
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): void {
         client.lastPong = this.milliseconds ();
         // https://docs.kucoin.com/#ping
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "id": "1",
@@ -3492,7 +3492,7 @@ export default class kucoin extends kucoinRest {
         return false;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         const type = this.safeString2 (message, 'type', 'message');
         const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,
@@ -3516,7 +3516,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    getMessageHash (elementName: string, symbol: Str = undefined) {
+    getMessageHash (elementName: string, symbol: Str = undefined): string {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if (symbol !== undefined) {
