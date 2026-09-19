@@ -3322,7 +3322,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	// this method required login, password and twofa key
 	var sessionToken *string = this.SafeString(this.Options, "sessionToken")
 	if sessionToken == nil {

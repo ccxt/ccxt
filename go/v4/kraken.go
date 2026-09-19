@@ -1461,7 +1461,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes122119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
@@ -2769,7 +2769,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = SafeMapTyped(postOnlyparamsVariable, 1)
 	if postOnly == true {
 		var extendedPostFlags any = func() any {
 			if flags != nil {
@@ -2845,7 +2845,7 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = SafeMapTyped(postOnlyparamsVariable, 1)
 	if postOnly == true {
 		AddElementToObject(request, "post_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
@@ -3580,23 +3580,23 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		retRes288612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes288612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
+		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
 	if userref != nil {
-		AddElementToObject(request, "userref", userref)
+		request["userref"] = userref
 		params = this.Omit(params, "userref")
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		AddElementToObject(request, "cl_ord_id", clientOrderId)
+		request["cl_ord_id"] = clientOrderId
 		params = this.Omit(params, "clientOrderId")
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivatePostClosedOrders(this.Extend(request, params)))
 	PanicOnError(response)
@@ -3949,7 +3949,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 		AddElementToObject(params, "cursor", true)
 
@@ -4258,7 +4258,7 @@ func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	if InOp(params, "key") {
 
 		retRes343712 := (<-this.LoadMarketsAsync())

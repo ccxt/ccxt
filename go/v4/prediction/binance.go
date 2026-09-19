@@ -1134,7 +1134,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "type", "SPOT")
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 
 	response := (<-this.SapiPrivateGetBalancePaymentOptions(params))
 	ccxt.PanicOnError(response)
@@ -1299,11 +1299,11 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
-	params = ccxt.GetValue(paginateparamsVariable, 1)
+	params = ccxt.SafeMapTyped(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
+	params = ccxt.SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
 	if ccxt.EvalTruthy(paginate) {
 
@@ -1413,11 +1413,11 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
-	params = ccxt.GetValue(paginateparamsVariable, 1)
+	params = ccxt.SafeMapTyped(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
+	params = ccxt.SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
 	if ccxt.EvalTruthy(paginate) {
 
@@ -1755,11 +1755,11 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
-	params = ccxt.GetValue(paginateparamsVariable, 1)
+	params = ccxt.SafeMapTyped(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
+	params = ccxt.SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
 	if ccxt.EvalTruthy(paginate) {
 
@@ -1958,7 +1958,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
 	var walletAddress any = nil
 	var walletAddressparamsVariable []any = this.HandleOptionAndParams(params, methodName, "walletAddress", this.WalletAddress)
 	walletAddress = ccxt.GetValue(walletAddressparamsVariable, 0)
-	params = ccxt.GetValue(walletAddressparamsVariable, 1)
+	params = ccxt.SafeMapTyped(walletAddressparamsVariable, 1)
 
 	response := (<-this.SapiPrivateGetWalletList())
 	ccxt.PanicOnError(response)

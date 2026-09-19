@@ -1735,7 +1735,7 @@ func (this *Foxbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
-	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
+	paramsOmited := SafeMapTyped(networkCodeparamsOmitedVariable, 1)
 	if !IsEqual(networkCode, nil) {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -2121,7 +2121,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes160412 := (<-this.LoadMarketsAsync())
@@ -2139,7 +2139,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}

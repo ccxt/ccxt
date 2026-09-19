@@ -969,7 +969,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
@@ -994,7 +994,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		if !IsEqual(since, nil) {
 			// check if the requested time range is too large for one request
@@ -1153,7 +1153,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var period any = nil
 	var periodparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "period")
 	period = GetValue(periodparamsVariable, 0)
-	params = GetValue(periodparamsVariable, 1)
+	params = SafeMapTyped(periodparamsVariable, 1)
 	if IsEqual(period, nil) {
 		period = "7D"
 		if !IsEqual(since, nil) {
@@ -1173,7 +1173,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 
 	response := (<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, params)))
 	PanicOnError(response)
@@ -1256,7 +1256,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = "spot"
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, typeVar)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
 
@@ -1285,7 +1285,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var wallet any = nil
 		var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "wallet", "CROSS@")
 		wallet = GetValue(walletparamsVariable, 0)
-		params = GetValue(walletparamsVariable, 1)
+		params = SafeMapTyped(walletparamsVariable, 1)
 		var request map[string]any = map[string]any{
 			"wallet": wallet,
 		}
@@ -1938,7 +1938,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 
 	response := (<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2035,12 +2035,12 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "count", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 		if symbol == nil {
@@ -2413,7 +2413,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	// exchange-specific postOnly is the same as the unified one
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, postOnly, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1) // this will remove PO from params.timeInForce if present
+	params = SafeMapTyped(postOnlyparamsVariable, 1) // this will remove PO from params.timeInForce if present
 	if EvalTruthy(postOnly) {
 		request["postOnly"] = true
 	}
@@ -2442,7 +2442,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *string = this.SafeString(params, "cost")
 		params = this.Omit(params, "cost")
 		if cost != nil {
@@ -2639,11 +2639,11 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 		var hedged any = false
 		var hedgedparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "hedged", hedged)
 		hedged = GetValue(hedgedparamsVariable, 0)
-		params = GetValue(hedgedparamsVariable, 1)
+		params = SafeMapTyped(hedgedparamsVariable, 1)
 		var marginMode any = "cross"
 		var marginModeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "marginMode", marginMode)
 		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
+		params = SafeMapTyped(marginModeparamsVariable, 1)
 		if IsEqual(marginMode, "isolated") {
 			if EvalTruthy(hedged) {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
@@ -2659,7 +2659,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	// exchange-specific postOnly is the same as the unified one
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, postOnly, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1) // this will remove PO from params.timeInForce if present
+	params = SafeMapTyped(postOnlyparamsVariable, 1) // this will remove PO from params.timeInForce if present
 	if EvalTruthy(postOnly) {
 		request["postOnly"] = true
 	}
@@ -2863,7 +2863,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 
@@ -3088,7 +3088,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsEqual(marketType, "spot") {
@@ -3148,7 +3148,7 @@ func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArg
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
 		request["timeout"] = timeout
 
@@ -3206,7 +3206,7 @@ func (this *Btse) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 		if !IsEqual(market, nil) {
@@ -3415,7 +3415,7 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateGetSpotApiV4TradeFees(params))
@@ -3508,7 +3508,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -3809,7 +3809,7 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -4437,7 +4437,7 @@ func (this *Btse) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 	var typeVar any = "market"
 	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "closePosition", "type", typeVar)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	typeVar = ToUpper(typeVar)
 	request["orderType"] = typeVar
 	if IsEqual(typeVar, "LIMIT") {
@@ -4580,7 +4580,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if !IsEqual(marginMode, nil) {
 		request["marginMode"] = ToUpper(marginMode)
 	}

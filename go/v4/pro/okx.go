@@ -289,7 +289,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTrades", "channel", "trades")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -357,7 +357,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTrades", "channel", "trades")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -615,7 +615,7 @@ func (this *Okx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "channel", "tickers")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 	ccxt.AddElementToObject(params, "channel", channel)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -685,7 +685,7 @@ func (this *Okx) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "tickers")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 
 	newTickers := (<-this.SubscribeMultipleAsync("public", channel, symbols, params))
 	ccxt.PanicOnError(newTickers)
@@ -722,7 +722,7 @@ func (this *Okx) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchMarkPrice", "channel", "mark-price")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 	ccxt.AddElementToObject(params, "channel", channel)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -765,7 +765,7 @@ func (this *Okx) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchMarkPrices", "channel", "mark-price")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 
 	newTickers := (<-this.SubscribeMultipleAsync("public", channel, symbols, params))
 	ccxt.PanicOnError(newTickers)
@@ -810,7 +810,7 @@ func (this *Okx) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "tickers")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -909,7 +909,7 @@ func (this *Okx) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchBidsAsks", "channel", "bbo-tbt")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 	var url any = this.GetUrl(channel, "public")
 	var messageHashes []any = []any{}
 	var args []any = []any{}
@@ -1074,7 +1074,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	var channel string = "liquidation-orders"
 	if ccxt.IsEqual(typeVar, "spot") {
 		typeVar = "SWAP"
@@ -1683,7 +1683,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 	var depth any = nil
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.GetValue(depthparamsVariable, 1)
+	params = ccxt.SafeMapTyped(depthparamsVariable, 1)
 	if !ccxt.IsEqual(limit, nil) {
 		if ccxt.IsEqual(limit, 1) {
 			depth = "bbo-tbt"
@@ -1760,7 +1760,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var depth any = nil
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.GetValue(depthparamsVariable, 1)
+	params = ccxt.SafeMapTyped(depthparamsVariable, 1)
 	var limit *int64 = this.SafeInteger(params, "limit")
 	if limit != nil {
 		if limit != nil && *limit == 1 {
@@ -2292,7 +2292,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "type", "ANY")
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"trigger", "stop"})
 	if this.Markets == nil {
@@ -2335,7 +2335,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchMyTrades", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	params = ccxt.SafeMapTyped(marginModeparamsVariable, 1)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {
 			uppercaseType = "MARGIN"
@@ -2561,7 +2561,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// By default, receive order updates from any instrument type
 	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "type", "ANY")
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	params = this.Omit(params, []any{"stop", "trigger"})
 	if this.Markets == nil {
@@ -2596,7 +2596,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	params = ccxt.SafeMapTyped(marginModeparamsVariable, 1)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {
 			uppercaseType = "MARGIN"
@@ -2850,7 +2850,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	var op any = nil
 	var opparamsVariable []any = this.HandleOptionAndParams(params, "createOrderWs", "op", "batch-orders")
 	op = ccxt.GetValue(opparamsVariable, 0)
-	params = ccxt.GetValue(opparamsVariable, 1)
+	params = ccxt.SafeMapTyped(opparamsVariable, 1)
 	var args any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
@@ -2952,7 +2952,7 @@ func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 	var op any = nil
 	var opparamsVariable []any = this.HandleOptionAndParams(params, "editOrderWs", "op", "amend-order")
 	op = ccxt.GetValue(opparamsVariable, 0)
-	params = ccxt.GetValue(opparamsVariable, 1)
+	params = ccxt.SafeMapTyped(opparamsVariable, 1)
 	var args any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")

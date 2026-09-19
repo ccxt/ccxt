@@ -1068,11 +1068,11 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	var paginationCalls any = 10
 	var paginationCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginationCalls", 10)
 	paginationCalls = GetValue(paginationCallsparamsVariable, 0)
-	params = GetValue(paginationCallsparamsVariable, 1)
+	params = SafeMapTyped(paginationCallsparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"symbols": marketId,
 		"loc":     loc,
@@ -1549,7 +1549,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var defaultTIF any = nil
 	var defaultTIFparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce")
 	defaultTIF = GetValue(defaultTIFparamsVariable, 0)
-	params = GetValue(defaultTIFparamsVariable, 1)
+	params = SafeMapTyped(defaultTIFparamsVariable, 1)
 	if defaultTIF != nil {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
 		defaultTIF = ToLower(defaultTIF)
@@ -1964,7 +1964,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var timeInForce any = nil
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
-	params = GetValue(timeInForceparamsVariable, 1)
+	params = SafeMapTyped(timeInForceparamsVariable, 1)
 	if timeInForce != nil {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
 		request["time_in_force"] = ToLower(timeInForce)
@@ -2133,7 +2133,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes162912)
 	}
 	var market any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"activity_type": "FILL",
 	}
 	if symbol != nil {
@@ -2142,17 +2142,17 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
 		params = this.Omit(params, "until")
-		AddElementToObject(request, "until", this.Iso8601(until))
+		request["until"] = this.Iso8601(until)
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "after", this.Iso8601(since))
+		request["after"] = this.Iso8601(since)
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "page_size", limit)
+		request["page_size"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2333,7 +2333,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 

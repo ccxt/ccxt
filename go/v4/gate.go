@@ -2834,7 +2834,7 @@ func (this *Gate) SpotOrderPrepareRequest(optionalArgs ...any) any {
 	_ = params
 	marginModequeryVariable := this.GetMarginMode(trigger, params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if !EvalTruthy(trigger) {
 		if market == nil {
@@ -2864,7 +2864,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) any {
 	_ = params
 	marginModequeryVariable := this.GetMarginMode(trigger, params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{
 		"account": marginMode,
 	}
@@ -2910,7 +2910,7 @@ func (this *Gate) GetMarginMode(trigger any, params any) any {
 	var isUnifiedAccount any = false
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "getMarginMode", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-	params = GetValue(isUnifiedAccountparamsVariable, 1)
+	params = SafeMapTyped(isUnifiedAccountparamsVariable, 1)
 	if EvalTruthy(isUnifiedAccount) {
 		marginMode = "unified"
 	}
@@ -3082,7 +3082,7 @@ func (this *Gate) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	}
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 
 	response := (<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query)))
 	PanicOnError(response)
@@ -3169,7 +3169,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestqueryVariable := this.PrepareRequest(market, "swap", params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 
 	response := (<-this.PublicFuturesGetSettleContracts(this.Extend(request, query)))
 	PanicOnError(response)
@@ -3431,7 +3431,7 @@ func (this *Gate) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 
 	chainsIndexedByIdRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, params))
 	PanicOnError(chainsIndexedByIdRaw)
@@ -3853,10 +3853,10 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := this.PrepareRequest(market, typeVar, query)
 	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	requestParams := SafeMapTyped(requestrequestParamsVariable, 1)
 	AddElementToObject(request, "type", "fund") // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
 	if !IsEqual(since, nil) {
 		// from should be integer
@@ -3970,7 +3970,7 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	requestqueryVariable := this.PrepareRequest(market, GetValue(market, "type"), params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 	if !IsEqual(limit, nil) {
 		if GetValue(market, "spot") == true {
 			limit = mathMin(limit, 1000)
@@ -4121,7 +4121,7 @@ func (this *Gate) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var market any = this.Market(symbol)
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 	var response any = nil
 	if (GetValue(market, "spot") == true) || (GetValue(market, "margin") == true) {
 
@@ -4323,10 +4323,10 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
 	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	requestParams := SafeMapTyped(requestrequestParamsVariable, 1)
 	var response any = nil
 	AddElementToObject(request, "timezone", "utc0") // default to utc
 	if (typeVar == "spot") || (typeVar == "margin") {
@@ -4408,16 +4408,16 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isUnifiedAccount any = false
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-	params = GetValue(isUnifiedAccountparamsVariable, 1)
+	params = SafeMapTyped(isUnifiedAccountparamsVariable, 1)
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
 	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	requestParams := SafeMapTyped(requestrequestParamsVariable, 1)
 	marginModerequestQueryVariable := this.GetMarginMode(false, requestParams)
 	marginMode := GetValue(marginModerequestQueryVariable, 0)
-	requestQuery := GetValue(marginModerequestQueryVariable, 1)
+	requestQuery := SafeMapTyped(marginModerequestQueryVariable, 1)
 	if symbol != nil {
 		var market map[string]any = MapTyped(this.Market(symbol))
 		AddElementToObject(request, "currency_pair", market["id"])
@@ -4739,7 +4739,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes348219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
@@ -4758,7 +4758,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var request any = map[string]any{}
 	requestparamsVariable := this.PrepareRequest(market, nil, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 	var maxLimit int = func() int {
 		if GetValue(market, "contract") == true {
@@ -4847,7 +4847,7 @@ func (this *Gate) fetchOptionOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var request any = map[string]any{}
 	requestparamsVariable := this.PrepareRequest(market, nil, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 
 	response := (<-this.PublicOptionsGetCandlesticks(this.Extend(request, params)))
@@ -4897,7 +4897,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes357119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
@@ -4912,7 +4912,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var request any = map[string]any{}
 	requestparamsVariable := this.PrepareRequest(market, nil, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -5023,7 +5023,7 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes368319 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
@@ -5055,7 +5055,7 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 	var until *int64 = this.SafeInteger2(params, "to", "until")
 	if until != nil {
 		params = this.Omit(params, []any{"until"})
@@ -5252,7 +5252,7 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes385219 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
@@ -5273,12 +5273,12 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"until"})
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var contract bool = (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) || (IsEqual(typeVar, "option"))
 	if contract {
 		requestparamsVariable := this.PrepareRequest(market, typeVar, params)
 		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
+		params = SafeMapTyped(requestparamsVariable, 1)
 		if IsEqual(typeVar, "option") {
 			params = this.Omit(params, "order_id")
 		}
@@ -5288,7 +5288,7 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		marginModeparamsVariable := this.GetMarginMode(false, params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
+		params = SafeMapTyped(marginModeparamsVariable, 1)
 		AddElementToObject(request, "account", marginMode)
 	}
 	if !IsEqual(limit, nil) {
@@ -5604,7 +5604,7 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes414919 := (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
@@ -5612,23 +5612,23 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes414919
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
+		request["currency"] = GetValue(currency, "id") // todo: currencies have network-junctions
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
-		AddElementToObject(request, "from", start)
-		AddElementToObject(request, "to", this.Sum(start, (30*24)*60*60))
+		request["from"] = start
+		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
 	requestparamsVariable := this.HandleUntilOption("to", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateWalletGetDeposits(this.Extend(request, params)))
 	PanicOnError(response)
@@ -5674,7 +5674,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes419019 := (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
@@ -5682,23 +5682,23 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes419019
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
+		request["currency"] = GetValue(currency, "id") // todo: currencies have network-junctions
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
-		AddElementToObject(request, "from", start)
-		AddElementToObject(request, "to", this.Sum(start, (30*24)*60*60))
+		request["from"] = start
+		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
 	requestparamsVariable := this.HandleUntilOption("to", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateWalletGetWithdrawals(this.Extend(request, params)))
 	PanicOnError(response)
@@ -5733,7 +5733,7 @@ func (this *Gate) withdrawBody(ch chan any, code any, amount any, address any, o
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -5752,7 +5752,7 @@ func (this *Gate) withdrawBody(ch chan any, code any, amount any, address any, o
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -6198,7 +6198,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), (exchangeSpecificTimeInForce != nil && *exchangeSpecificTimeInForce == "poc"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = SafeMapTyped(postOnlyparamsVariable, 1)
 	var timeInForce any = this.HandleTimeInForce(params)
 	if postOnly == true {
 		timeInForce = "poc"
@@ -6273,7 +6273,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			var marginMode any = nil
 			marginModeparamsVariable := this.GetMarginMode(false, params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
-			params = GetValue(marginModeparamsVariable, 1)
+			params = SafeMapTyped(marginModeparamsVariable, 1)
 			// spot order
 			request = map[string]any{
 				"currency_pair": GetValue(market, "id"),
@@ -6286,7 +6286,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				var createMarketBuyOrderRequiresPrice any = true
 				var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 				createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-				params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+				params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 				var cost *float64 = this.SafeNumber(params, "cost")
 				params = this.Omit(params, "cost")
 				if cost != nil {
@@ -6405,7 +6405,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			var marginMode any = nil
 			marginModeparamsVariable := this.GetMarginMode(true, params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
-			params = GetValue(marginModeparamsVariable, 1)
+			params = SafeMapTyped(marginModeparamsVariable, 1)
 			if timeInForce == nil {
 				timeInForce = "gtc"
 			}
@@ -6511,12 +6511,12 @@ func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, op
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("editOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var account any = this.ConvertTypeToAccount(marketType)
 	var isUnifiedAccount any = false
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-	params = GetValue(isUnifiedAccountparamsVariable, 1)
+	params = SafeMapTyped(isUnifiedAccountparamsVariable, 1)
 	if EvalTruthy(isUnifiedAccount) {
 		account = "unified"
 	}
@@ -7063,7 +7063,7 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) any {
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	var contract bool = (typeVar == "swap") || (typeVar == "future") || (typeVar == "option")
 	requestrequestParamsVariable := func() any {
 		if contract {
@@ -7262,7 +7262,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes549019 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
@@ -7282,7 +7282,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var useHistorical any = false
 	var useHistoricalparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "historical", false)
 	useHistorical = GetValue(useHistoricalparamsVariable, 0)
-	params = GetValue(useHistoricalparamsVariable, 1)
+	params = SafeMapTyped(useHistoricalparamsVariable, 1)
 	if !EvalTruthy(useHistorical) && ((IsEqual(since, nil) && (until == nil)) || (typeVar == nil || *typeVar != "swap")) {
 
 		retRes550319 := (<-this.FetchOrdersByStatusAsync("finished", symbol, since, limit, params))
@@ -7294,7 +7294,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{}
 	requestparamsVariable := this.PrepareRequest(market, typeVar, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
@@ -7329,11 +7329,11 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	var trigger any = nil
 	triggerparamsVariable := this.HandleParamBool2(params, "trigger", "stop")
 	trigger = GetValue(triggerparamsVariable, 0)
-	params = GetValue(triggerparamsVariable, 1)
+	params = SafeMapTyped(triggerparamsVariable, 1)
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var spot bool = (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin"))
 	var request any = map[string]any{}
 	requestparamsVariable := func() any {
@@ -7366,7 +7366,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	}
 	var lastIdfinalParamsVariable []any = this.HandleParamString2(params, "lastId", "last_id")
 	lastId := GetValue(lastIdfinalParamsVariable, 0)
-	finalParams := GetValue(lastIdfinalParamsVariable, 1)
+	finalParams := SafeMapTyped(lastIdfinalParamsVariable, 1)
 	if !IsEqual(lastId, nil) {
 		AddElementToObject(request, "last_id", lastId)
 	}
@@ -7665,7 +7665,7 @@ func (this *Gate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	params = this.Omit(params, []any{"is_stop_order", "stop", "trigger"})
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := func() any {
 		if (typeVar == "spot") || (typeVar == "margin") {
 			return this.SpotOrderPrepareRequest(market, trigger, query)
@@ -7845,7 +7845,7 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var settle *string = this.SafeStringLower(params, "settle", defaultSettle)
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
 	if isSpot && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrders requires a symbol argument for spot markets"))
@@ -7987,7 +7987,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := func() any {
 		if typeVar == "spot" {
 			return this.MultiOrderSpotPrepareRequest(market, trigger, query)
@@ -8209,7 +8209,7 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var crossLeverageLimit *string = this.SafeString(query, "cross_leverage_limit")
 	var marginMode any = this.SafeString(query, "marginMode", defaultMarginMode)
@@ -8447,7 +8447,7 @@ func (this *Gate) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 	var request any = map[string]any{}
 	requestparamsVariable := this.PrepareRequest(market, GetValue(market, "type"), params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var extendedRequest map[string]any = this.Extend(request, params)
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -8569,7 +8569,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if (typeVar == nil) || (IsEqual(typeVar, "spot")) {
 		typeVar = "swap" // default to swap
 	}
@@ -8582,7 +8582,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		requestparamsVariable := this.PrepareRequest(nil, typeVar, params)
 		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
+		params = SafeMapTyped(requestparamsVariable, 1)
 	}
 	var response any = nil
 	if IsEqual(typeVar, "swap") {
@@ -8696,10 +8696,10 @@ func (this *Gate) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchLeverageTiers", nil, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
 	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	requestParams := SafeMapTyped(requestrequestParamsVariable, 1)
 	if (typeVar != "future") && (typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchLeverageTiers only supports swap and future"))
 	}
@@ -8840,10 +8840,10 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchMarketLeverageTiers", market, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
-	query := GetValue(typeVarqueryVariable, 1)
+	query := SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := this.PrepareRequest(market, typeVar, query)
 	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	requestParams := SafeMapTyped(requestrequestParamsVariable, 1)
 	if (typeVar != "future") && (typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers only supports swap and future"))
 	}
@@ -9026,7 +9026,7 @@ func (this *Gate) repayCrossMarginBody(ch chan any, code any, amount any, option
 	var isUnifiedAccount any = false
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "repayCrossMargin", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-	params = GetValue(isUnifiedAccountparamsVariable, 1)
+	params = SafeMapTyped(isUnifiedAccountparamsVariable, 1)
 	var response any = nil
 	if EvalTruthy(isUnifiedAccount) {
 		request["type"] = "repay"
@@ -9145,7 +9145,7 @@ func (this *Gate) borrowCrossMarginBody(ch chan any, code any, amount any, optio
 	var isUnifiedAccount any = false
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "borrowCrossMargin", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-	params = GetValue(isUnifiedAccountparamsVariable, 1)
+	params = SafeMapTyped(isUnifiedAccountparamsVariable, 1)
 	var response any = nil
 	if EvalTruthy(isUnifiedAccount) {
 		request["type"] = "borrow"
@@ -9263,38 +9263,38 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 	var isUnifiedAccount any = false
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchBorrowInterest", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-	params = GetValue(isUnifiedAccountparamsVariable, 1)
-	var request any = map[string]any{}
+	params = SafeMapTyped(isUnifiedAccountparamsVariable, 1)
+	var request map[string]any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("to", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		AddElementToObject(request, "currency", GetValue(currency, "id"))
+		request["currency"] = GetValue(currency, "id")
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var response any = nil
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if EvalTruthy(isUnifiedAccount) {
 
 		response = (<-this.PrivateUnifiedGetInterestRecords(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if IsEqual(marginMode, "isolated") {
 		if !IsEqual(market, nil) {
-			AddElementToObject(request, "currency_pair", GetValue(market, "id"))
+			request["currency_pair"] = GetValue(market, "id")
 		}
 
 		response = (<-this.PrivateMarginGetUniInterestRecords(this.Extend(request, params)))
@@ -9483,7 +9483,7 @@ func (this *Gate) modifyMarginHelperBody(ch chan any, symbol any, amount any, op
 	var market any = this.Market(symbol)
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 	AddElementToObject(request, "change", this.NumberToString(amount))
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -9641,7 +9641,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes734619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
@@ -9763,7 +9763,7 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) a
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "option") {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() supports option markets only"))
 	}
@@ -9841,7 +9841,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var isOption bool = (IsEqual(typeVar, "option"))
 	var isFuture bool = (IsEqual(typeVar, "future"))
 	if !isOption && !isFuture {
@@ -9849,7 +9849,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	}
 	requestqueryVariable := this.PrepareRequest(market, typeVar, params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -10043,7 +10043,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes767219 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))
@@ -10054,14 +10054,14 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var currency any = nil
 	var response any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
 		if code != nil {
 			currency = this.Currency(code)
-			AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
+			request["currency"] = GetValue(currency, "id") // todo: currencies have network-junctions
 		}
 	}
 	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
@@ -10073,17 +10073,17 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var settle *string = this.SafeStringLower(params, "settle", defaultSettle)
 		params = this.Omit(params, "settle")
-		AddElementToObject(request, "settle", settle)
+		request["settle"] = settle
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("to", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
 
 		response = (<-this.PrivateSpotGetAccountBook(this.Extend(request, params)))
@@ -10322,7 +10322,7 @@ func (this *Gate) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	}()
 	requestqueryVariable := this.PrepareRequest(market, "swap", params)
 	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	query := SafeMapTyped(requestqueryVariable, 1)
 	AddElementToObject(request, "dual_mode", hedged)
 
 	retRes790815 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query)))
@@ -10358,7 +10358,7 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) an
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	if (marketType == nil) || (IsEqual(marketType, "spot")) {
 		marketType = "option"
 	}
@@ -10425,19 +10425,19 @@ func (this *Gate) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ..
 	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " fetchLiquidations() supports swap markets only"))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"settle":   GetValue(market, "settleId"),
 		"contract": GetValue(market, "id"),
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("to", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PublicFuturesGetSettleLiqOrders(this.Extend(request, params)))
 	PanicOnError(response)
@@ -11193,13 +11193,13 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositionsHistory", market, params, "swap")
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
 	var request any = map[string]any{}
 	requestparamsVariable := this.PrepareRequest(market, marketType, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}

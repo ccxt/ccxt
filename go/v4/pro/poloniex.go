@@ -309,7 +309,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = ccxt.SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
 		if cost != nil {
@@ -723,7 +723,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var name any = ccxt.DerefScalar(this.SafeString(watchOrderBookOptions, "name", "book_lv2"))
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
-	params = ccxt.GetValue(nameparamsVariable, 1)
+	params = ccxt.SafeMapTyped(nameparamsVariable, 1)
 
 	orderbook := (<-this.SubscribeAsync(name, name, false, []any{symbol}, params))
 	ccxt.PanicOnError(orderbook)

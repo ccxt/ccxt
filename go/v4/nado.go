@@ -477,15 +477,15 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var expiration any = nil
 	var expirationparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "expiration", "4294967295")
 	expiration = GetValue(expirationparamsVariable, 0)
-	params = GetValue(expirationparamsVariable, 1)
+	params = SafeMapTyped(expirationparamsVariable, 1)
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = GetValue(recvWindowparamsVariable, 1)
+	params = SafeMapTyped(recvWindowparamsVariable, 1)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var requestId *int64 = this.SafeInteger(params, "id")
 	var spotLeverage *bool = this.SafeBool2(params, "spotLeverage", "spot_leverage")
@@ -518,7 +518,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		var triggerDirection any = nil
 		triggerDirectionparamsVariable := this.HandleTriggerDirectionAndParams(params)
 		triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
-		params = GetValue(triggerDirectionparamsVariable, 1)
+		params = SafeMapTyped(triggerDirectionparamsVariable, 1)
 		var directionSuffix string = func() string {
 			if IsEqual(triggerDirection, "ascending") {
 				return "above"
@@ -710,15 +710,15 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var expiration any = nil
 	var expirationparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "expiration", "4294967295")
 	expiration = GetValue(expirationparamsVariable, 0)
-	params = GetValue(expirationparamsVariable, 1)
+	params = SafeMapTyped(expirationparamsVariable, 1)
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = GetValue(recvWindowparamsVariable, 1)
+	params = SafeMapTyped(recvWindowparamsVariable, 1)
 	var cancelNonce any = this.CreateOrderNonce(recvWindow)
 	var orderNonce *string = Precise.StringAdd(cancelNonce, "1")
 	var appendix any = DerefScalar(this.SafeString(params, "appendix"))
@@ -901,12 +901,12 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = GetValue(recvWindowparamsVariable, 1)
+	params = SafeMapTyped(recvWindowparamsVariable, 1)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
@@ -1028,7 +1028,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var productIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
@@ -1037,7 +1037,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = GetValue(recvWindowparamsVariable, 1)
+	params = SafeMapTyped(recvWindowparamsVariable, 1)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
@@ -1181,7 +1181,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -1191,7 +1191,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = GetValue(recvWindowparamsVariable, 1)
+	params = SafeMapTyped(recvWindowparamsVariable, 1)
 	var tx map[string]any = map[string]any{
 		"sender":   sender,
 		"recvTime": this.NumberToString(Add(this.Milliseconds(), recvWindow)),
@@ -1289,7 +1289,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
@@ -1393,7 +1393,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
@@ -1405,17 +1405,17 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes113019
 		return nil
 	}
-	var ordersRequest any = map[string]any{
+	var ordersRequest map[string]any = map[string]any{
 		"subaccounts": []any{sender},
 	}
 	if !IsEqual(market, nil) {
-		AddElementToObject(ordersRequest, "product_ids", []any{this.ParseToInt(GetValue(market, "id"))})
+		ordersRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
 	ordersRequestparamsVariable := this.HandleUntilOption("max_time", ordersRequest, params, 0.001)
-	ordersRequest = GetValue(ordersRequestparamsVariable, 0)
-	params = GetValue(ordersRequestparamsVariable, 1)
+	ordersRequest = SafeMapTyped(ordersRequestparamsVariable, 0)
+	params = SafeMapTyped(ordersRequestparamsVariable, 1)
 	if !IsEqual(limit, nil) {
-		AddElementToObject(ordersRequest, "limit", mathMin(limit, 500))
+		ordersRequest["limit"] = mathMin(limit, 500)
 	}
 	var request map[string]any = map[string]any{
 		"orders": ordersRequest,
@@ -1573,18 +1573,18 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
-	var matchesRequest any = map[string]any{
+	params = SafeMapTyped(subaccountparamsVariable, 1)
+	var matchesRequest map[string]any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 	}
 	if !IsEqual(market, nil) {
-		AddElementToObject(matchesRequest, "product_ids", []any{this.ParseToInt(GetValue(market, "id"))})
+		matchesRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
 	matchesRequestparamsVariable := this.HandleUntilOption("max_time", matchesRequest, params, 0.001)
-	matchesRequest = GetValue(matchesRequestparamsVariable, 0)
-	params = GetValue(matchesRequestparamsVariable, 1)
+	matchesRequest = SafeMapTyped(matchesRequestparamsVariable, 0)
+	params = SafeMapTyped(matchesRequestparamsVariable, 1)
 	if !IsEqual(limit, nil) {
-		AddElementToObject(matchesRequest, "limit", mathMin(limit, 500))
+		matchesRequest["limit"] = mathMin(limit, 500)
 	}
 	var request map[string]any = map[string]any{
 		"matches": matchesRequest,
@@ -1663,7 +1663,7 @@ func (this *Nado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"type":       "subaccount_info",
 		"subaccount": this.CreateSubaccount(this.WalletAddress, subaccount),
@@ -1796,8 +1796,8 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
-	var eventsRequest any = map[string]any{
+	params = SafeMapTyped(subaccountparamsVariable, 1)
+	var eventsRequest map[string]any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 		"event_types": []any{eventType},
 		"limit": map[string]any{
@@ -1810,11 +1810,11 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		},
 	}
 	if !IsEqual(currency, nil) {
-		AddElementToObject(eventsRequest, "product_ids", []any{this.ParseToInt(GetValue(currency, "id"))})
+		eventsRequest["product_ids"] = []any{this.ParseToInt(GetValue(currency, "id"))}
 	}
 	eventsRequestparamsVariable := this.HandleUntilOption("max_time", eventsRequest, params, 0.001)
-	eventsRequest = GetValue(eventsRequestparamsVariable, 0)
-	params = GetValue(eventsRequestparamsVariable, 1)
+	eventsRequest = SafeMapTyped(eventsRequestparamsVariable, 0)
+	params = SafeMapTyped(eventsRequestparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"events": eventsRequest,
 	}
@@ -1910,7 +1910,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"type":       "subaccount_info",
 		"subaccount": this.CreateSubaccount(this.WalletAddress, subaccount),
@@ -2489,7 +2489,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = GetValue(subaccountparamsVariable, 1)
+	params = SafeMapTyped(subaccountparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"interest_and_funding": map[string]any{
 			"subaccount":  this.CreateSubaccount(this.WalletAddress, subaccount),

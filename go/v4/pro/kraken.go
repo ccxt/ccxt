@@ -138,7 +138,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
-	params = ccxt.GetValue(postOnlyparamsVariable, 1)
+	params = ccxt.SafeMapTyped(postOnlyparamsVariable, 1)
 	if postOnly == true {
 		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "post_only", true)
 	}

@@ -348,8 +348,8 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var usePerpetualApi bool = (this.SafeString(params, "settle") != nil && *this.SafeString(params, "settle") == "USDT")
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	var usePerpetualApi bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
 	var messageHash any = ":balance"
 	messageHash = func() any {
 		if usePerpetualApi {
@@ -992,7 +992,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	if symbol == nil {
 		var settle *string = this.SafeString(params, "settle")
 		messageHash = func() any {
@@ -1193,8 +1193,8 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var isUSDTSettled bool = (this.SafeString(params, "settle") != nil && *this.SafeString(params, "settle") == "USDT")
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
+	var isUSDTSettled bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
 	if symbol == nil {
 		messageHash = func() any {
 			if isUSDTSettled {
@@ -1797,7 +1797,7 @@ func (this *Phemex) subscribePrivateBody(ch chan any, typeVar any, messageHash a
 	ccxt.PanicOnError(retRes15728)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId int64 = this.Seconds()
-	var settleIsUSDT bool = (this.SafeString(params, "settle", "") != nil && *this.SafeString(params, "settle", "") == "USDT")
+	var settleIsUSDT bool = (ccxt.IsEqual(this.SafeString(params, "settle", ""), "USDT"))
 	params = this.Omit(params, "settle")
 	var channel string = "aop.subscribe"
 	if ccxt.IsEqual(typeVar, "spot") {

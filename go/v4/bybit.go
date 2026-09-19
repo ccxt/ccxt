@@ -2541,11 +2541,11 @@ func (this *Bybit) GetBybitType(method any, market any, optionalArgs ...any) any
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams(method, market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = SafeMapTyped(subTypeparamsVariable, 1)
 	if (IsEqual(typeVar, "option")) || (IsEqual(typeVar, "spot")) {
 		return []any{typeVar, params}
 	}
@@ -3592,7 +3592,7 @@ func (this *Bybit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("fetchTicker", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	request["category"] = category
 
 	response := (<-this.PublicGetV5MarketTickers(this.Extend(request, params)))
@@ -3711,7 +3711,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("fetchTickers", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	request["category"] = category
 	if IsEqual(category, "option") {
 		request["category"] = "option"
@@ -3865,7 +3865,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes282819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
@@ -3874,7 +3874,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsEqual(limit, nil) {
@@ -3889,23 +3889,23 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		// candles from the first bucket at or after `since`
 		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 		var rounded any = Multiply(this.ParseToInt(Divide(since, duration)), duration)
-		AddElementToObject(request, "start", func() any {
+		request["start"] = func() any {
 			if IsEqual(rounded, since) {
 				return since
 			}
 			return this.Sum(rounded, duration)
-		}())
+		}()
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit) // max 1000, default 1000
+		request["limit"] = limit // max 1000, default 1000
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
-	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
+	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		AddElementToObject(request, "category", "spot")
+		request["category"] = "spot"
 
 		response = (<-this.PublicGetV5MarketKline(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3913,9 +3913,9 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		var price *string = this.SafeString(params, "price")
 		params = this.Omit(params, "price")
 		if GetValue(market, "linear") == true {
-			AddElementToObject(request, "category", "linear")
+			request["category"] = "linear"
 		} else if GetValue(market, "inverse") == true {
-			AddElementToObject(request, "category", "inverse")
+			request["category"] = "inverse"
 		} else {
 			panic(NotSupported(this.Id + " fetchOHLCV() is not supported for option markets"))
 		}
@@ -4088,14 +4088,14 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "swap") {
 		panic(NotSupported(Add(Add(this.Id+" fetchFundingRates() does not support ", typeVar), " markets")))
 	} else {
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingRates", market, params, "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
-		params = GetValue(subTypeparamsVariable, 1)
+		params = SafeMapTyped(subTypeparamsVariable, 1)
 		request["category"] = subType
 	}
 
@@ -4188,7 +4188,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes308719 := (<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, params, 200))
@@ -4209,7 +4209,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchFundingRateHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "option")) {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() only support linear and inverse market"))
 	}
@@ -4588,7 +4588,7 @@ func (this *Bybit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchTrades", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	request["category"] = typeVar
 
 	response := (<-this.PublicGetV5MarketRecentTrade(this.Extend(request, params)))
@@ -4920,11 +4920,11 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	// don't use getBybitType here
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchBalance", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = SafeMapTyped(subTypeparamsVariable, 1)
 	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
 		typeVar = subType
 	}
@@ -4960,7 +4960,7 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	var response any = nil
 	if isSpot && (marginMode != nil) {
 
@@ -5512,7 +5512,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "method", defaultMethod)
 	method = GetValue(methodparamsVariable, 0)
-	params = GetValue(methodparamsVariable, 1)
+	params = SafeMapTyped(methodparamsVariable, 1)
 	var response any = nil
 	if IsEqual(method, "privatePostV5PositionTradingStop") {
 
@@ -5587,7 +5587,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "method", defaultMethod)
 	method = GetValue(methodparamsVariable, 0)
-	params = GetValue(methodparamsVariable, 1)
+	params = SafeMapTyped(methodparamsVariable, 1)
 	var endpointIsTradingStop bool = (IsEqual(method, "privatePostV5PositionTradingStop"))
 	if (IsEqual(price, nil)) && (lowerCaseType == "limit") && !endpointIsTradingStop {
 		panic(ArgumentsRequired(this.Id + " createOrder requires a price argument for limit orders"))
@@ -5668,7 +5668,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var postOnly any = nil
 		postOnlyparamsVariable := this.HandlePostOnly(isMarket, (timeInForce != nil && *timeInForce == "postonly"), params)
 		postOnly = GetValue(postOnlyparamsVariable, 0)
-		params = GetValue(postOnlyparamsVariable, 1)
+		params = SafeMapTyped(postOnlyparamsVariable, 1)
 		if postOnly == true {
 			request["timeInForce"] = "PostOnly"
 		} else if timeInForce != nil && *timeInForce == "gtc" {
@@ -5700,7 +5700,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("createOrderRequest", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	request["category"] = category
 	var cost *string = this.SafeString(params, "cost")
 	params = this.Omit(params, "cost")
@@ -5729,7 +5729,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice")
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 			if (IsEqual(price, nil)) && (cost == nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -5917,7 +5917,7 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("createOrders", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	if (IsEqual(category, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 		panic(NotSupported(this.Id + " createOrders does not allow inverse orders for non UTA2.0 account"))
 	}
@@ -6007,7 +6007,7 @@ func (this *Bybit) EditOrderRequest(id any, symbol any, typeVar any, side any, o
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("editOrderRequest", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	request["category"] = category
 	if !IsEqual(amount, nil) {
 		request["qty"] = this.GetAmount(symbol, amount)
@@ -6195,7 +6195,7 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("editOrders", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	if (IsEqual(category, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 		panic(NotSupported(this.Id + " editOrders does not allow inverse orders for non UTA2.0 account"))
 	}
@@ -6283,7 +6283,7 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("cancelOrderRequest", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	request["category"] = category
 	return this.Extend(request, params)
 }
@@ -6386,7 +6386,7 @@ func (this *Bybit) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("cancelOrders", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	if IsEqual(category, "inverse") {
 		panic(NotSupported(this.Id + " cancelOrders does not allow inverse orders"))
 	}
@@ -6488,7 +6488,7 @@ func (this *Bybit) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalAr
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, "swap")
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var productMap map[string]any = map[string]any{
 		"spot":   "SPOT",
 		"swap":   "DERIVATIVES",
@@ -6550,7 +6550,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalA
 		var currentCategory any = nil
 		currentCategoryparamsVariable := this.GetBybitType("cancelOrders", market, params)
 		currentCategory = GetValue(currentCategoryparamsVariable, 0)
-		params = GetValue(currentCategoryparamsVariable, 1)
+		params = SafeMapTyped(currentCategoryparamsVariable, 1)
 		if IsEqual(currentCategory, "inverse") {
 			panic(NotSupported(this.Id + " cancelOrdersForSymbols does not allow inverse orders"))
 		}
@@ -6669,7 +6669,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("cancelAllOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	request["category"] = typeVar
 	if (IsEqual(typeVar, "option")) && !isUnifiedAccount {
 		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() Normal Account not support ", typeVar), " market")))
@@ -6832,7 +6832,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var acknowledge any = false
 	var acknowledgeparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrder", "acknowledged")
 	acknowledge = GetValue(acknowledgeparamsVariable, 0)
-	params = GetValue(acknowledgeparamsVariable, 1)
+	params = SafeMapTyped(acknowledgeparamsVariable, 1)
 	if !EvalTruthy(acknowledge) {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder"))
 	}
@@ -6840,7 +6840,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var marketType any = nil
 	marketTypeparamsVariable := this.GetBybitType("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"orderId":  id,
@@ -6849,7 +6849,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var isTrigger any = nil
 	isTriggerparamsVariable := this.HandleParamBool2(params, "trigger", "stop", false)
 	isTrigger = GetValue(isTriggerparamsVariable, 0)
-	params = GetValue(isTriggerparamsVariable, 1)
+	params = SafeMapTyped(isTriggerparamsVariable, 1)
 	if isTrigger == true {
 		request["orderFilter"] = "StopOrder"
 	}
@@ -6967,7 +6967,7 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan any, optionalArgs ...any) any 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrdersClassic", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes540319 := (<-this.FetchPaginatedCallCursorAsync("fetchOrdersClassic", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
@@ -6984,7 +6984,7 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan any, optionalArgs ...any) any 
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchOrdersClassic", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
 		panic(NotSupported(this.Id + " fetchOrdersClassic() is not supported for spot markets"))
 	}
@@ -7223,7 +7223,7 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes558619 := (<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
@@ -7240,7 +7240,7 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchCanceledAndClosedOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	request["category"] = typeVar
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"trigger", "stop"})
@@ -7473,7 +7473,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes576519 := (<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
@@ -7490,7 +7490,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchOpenOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if (IsEqual(typeVar, "linear")) || (IsEqual(typeVar, "inverse")) {
 		var baseCoin *string = this.SafeString(params, "baseCoin")
 		if (symbol == nil) && (baseCoin == nil) {
@@ -7662,7 +7662,7 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes590619 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
@@ -7670,28 +7670,28 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes590619
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"execType": "Trade",
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyTrades", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
-	AddElementToObject(request, "category", typeVar)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
+	request["category"] = typeVar
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateGetV5ExecutionList(this.Extend(request, params)))
 	PanicOnError(response)
@@ -7795,7 +7795,7 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		request["chainType"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -7860,7 +7860,7 @@ func (this *Bybit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
-	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
+	paramsOmited := SafeMapTyped(networkCodeparamsOmitedVariable, 1)
 
 	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
 	PanicOnError(indexedAddresses)
@@ -7909,7 +7909,7 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes608719 := (<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
@@ -7917,21 +7917,21 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes608719
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateGetV5AssetDepositQueryRecord(this.Extend(request, params)))
 	PanicOnError(response)
@@ -8005,7 +8005,7 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes615819 := (<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
@@ -8013,21 +8013,21 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes615819
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateGetV5AssetWithdrawQueryRecord(this.Extend(request, params)))
 	PanicOnError(response)
@@ -8219,7 +8219,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes634419 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
@@ -8253,7 +8253,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLedger", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = SafeMapTyped(subTypeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(GetValue(enableUnified, 1), true) {
 		var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 5) // 3/4 uta 1.0, 5/6 uta 2.0
@@ -8520,7 +8520,7 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	var accountType any = nil
 
 	accounts := (<-this.IsUnifiedEnabledAsync())
@@ -8528,7 +8528,7 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 	var isUta any = GetValue(accounts, 1)
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "withdraw", "accountType")
 	accountType = GetValue(accountTypeparamsVariable, 0)
-	params = GetValue(accountTypeparamsVariable, 1)
+	params = SafeMapTyped(accountTypeparamsVariable, 1)
 	if accountType == nil {
 		accountType = func() string {
 			if isUta == true {
@@ -8556,7 +8556,7 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 	}
 	networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := GetValue(networkCodequeryVariable, 1)
+	query := SafeMapTyped(networkCodequeryVariable, 1)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["chain"] = ToUpper(networkId)
@@ -8616,7 +8616,7 @@ func (this *Bybit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchPosition", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	request["category"] = typeVar
 
 	response = (<-this.PrivateGetV5PositionList(this.Extend(request, params)))
@@ -8707,7 +8707,7 @@ func (this *Bybit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes676319 := (<-this.FetchPaginatedCallCursorAsync("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))
@@ -8738,7 +8738,7 @@ func (this *Bybit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchPositions", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if (IsEqual(typeVar, "linear")) || (IsEqual(typeVar, "inverse")) {
 		var baseCoin *string = this.SafeString(params, "baseCoin")
 		if IsEqual(typeVar, "linear") {
@@ -9201,7 +9201,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 			var typeVar any = nil
 			typeVarparamsVariable := this.GetBybitType("setPositionMode", market, params)
 			typeVar = GetValue(typeVarparamsVariable, 0)
-			params = GetValue(typeVarparamsVariable, 1)
+			params = SafeMapTyped(typeVarparamsVariable, 1)
 			var tradeMode any = nil
 			if IsEqual(marginMode, "cross") {
 				tradeMode = 0
@@ -9365,7 +9365,7 @@ func (this *Bybit) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		var typeVar any = nil
 		typeVarparamsVariable := this.GetBybitType("setPositionMode", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
-		params = GetValue(typeVarparamsVariable, 1)
+		params = SafeMapTyped(typeVarparamsVariable, 1)
 		request["category"] = typeVar
 	}
 	params = this.Omit(params, "type")
@@ -10054,7 +10054,7 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes781319 := (<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
@@ -10063,20 +10063,20 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var currency any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if code != nil {
 		currency = this.SafeCurrency(code)
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateGetV5AssetTransferQueryInterTransferList(this.Extend(request, params)))
 	PanicOnError(response)
@@ -10441,7 +10441,7 @@ func (this *Bybit) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 	var category any = nil
 	categoryparamsVariable := this.GetBybitType("fetchTradingFee", market, params)
 	category = GetValue(categoryparamsVariable, 0)
-	params = GetValue(categoryparamsVariable, 1)
+	params = SafeMapTyped(categoryparamsVariable, 1)
 	request["category"] = category
 
 	response := (<-this.PrivateGetV5AccountFeeRate(this.Extend(request, params)))
@@ -10498,7 +10498,7 @@ func (this *Bybit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "fetchTradingFees", "type", "future")
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
 		panic(NotSupported(this.Id + " fetchTradingFees() is not supported for spot market"))
 	}
@@ -10710,7 +10710,7 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchSettlementHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() is not supported for spot market"))
 	}
@@ -10792,7 +10792,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMySettlementHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
 		panic(NotSupported(this.Id + " fetchMySettlementHistory() is not supported for spot market"))
 	}
@@ -11245,7 +11245,7 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes876019 := (<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
@@ -11253,28 +11253,28 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 		ch <- retRes876019
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"execType": "BustTrade",
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyLiquidations", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
-	AddElementToObject(request, "category", typeVar)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
+	request["category"] = typeVar
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateGetV5ExecutionList(this.Extend(request, params)))
 	PanicOnError(response)
@@ -11397,7 +11397,7 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "getLeverageTiersPaginated", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes888519 := (<-this.FetchPaginatedCallCursorAsync("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))
@@ -11408,7 +11408,7 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("getLeverageTiersPaginated", market, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = SafeMapTyped(subTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"category": subType,
 	}
@@ -11595,7 +11595,7 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes902519 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
@@ -11603,33 +11603,33 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		ch <- retRes902519
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"execType": "Funding",
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchFundingHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
-	AddElementToObject(request, "category", typeVar)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
+	request["category"] = typeVar
 	if symbol != nil {
-		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+		request["symbol"] = this.SafeString(market, "id")
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "size", limit)
+		request["size"] = limit
 	} else {
-		AddElementToObject(request, "size", 100)
+		request["size"] = 100
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateGetV5ExecutionList(this.Extend(request, params)))
 	PanicOnError(response)
@@ -11955,7 +11955,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	var until *int64 = this.SafeInteger(params, "until")
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositionsHistory", market, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = SafeMapTyped(subTypeparamsVariable, 1)
 	params = this.Omit(params, "until")
 	var request map[string]any = map[string]any{
 		"category": subType,
@@ -12057,7 +12057,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 	}()
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchConvertCurrencies", "accountType", accountTypeDefault)
 	accountType = GetValue(accountTypeparamsVariable, 0)
-	params = GetValue(accountTypeparamsVariable, 1)
+	params = SafeMapTyped(accountTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"accountType": accountType,
 	}
@@ -12185,7 +12185,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 	}()
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault)
 	accountType = GetValue(accountTypeparamsVariable, 0)
-	params = GetValue(accountTypeparamsVariable, 1)
+	params = SafeMapTyped(accountTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"fromCoin":      fromCode,
 		"toCoin":        toCode,
@@ -12320,7 +12320,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 	}()
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault)
 	accountType = GetValue(accountTypeparamsVariable, 0)
-	params = GetValue(accountTypeparamsVariable, 1)
+	params = SafeMapTyped(accountTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"quoteTxId":   id,
 		"accountType": accountType,
@@ -12547,7 +12547,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...a
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchLongShortRatioHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "option")) {
 		panic(NotSupported(this.Id + " fetchLongShortRatioHistory() only support linear and inverse markets"))
 	}
@@ -12652,7 +12652,7 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchPositionsADLRank", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	request["category"] = typeVar
 
 	response := (<-this.PrivateGetV5PositionList(this.Extend(request, params)))

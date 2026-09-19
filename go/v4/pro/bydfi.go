@@ -686,11 +686,11 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var depth any = "100"
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.GetValue(depthparamsVariable, 1)
+	params = ccxt.SafeMapTyped(depthparamsVariable, 1)
 	var frequency any = "100ms"
 	var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
-	params = ccxt.GetValue(frequencyparamsVariable, 1)
+	params = ccxt.SafeMapTyped(frequencyparamsVariable, 1)
 	var channelSuffix string = ""
 	if ccxt.IsEqual(frequency, "100ms") {
 		channelSuffix = "@100ms"
@@ -740,11 +740,11 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var depth any = "100"
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.GetValue(depthparamsVariable, 1)
+	params = ccxt.SafeMapTyped(depthparamsVariable, 1)
 	var frequency any = "100ms"
 	var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
-	params = ccxt.GetValue(frequencyparamsVariable, 1)
+	params = ccxt.SafeMapTyped(frequencyparamsVariable, 1)
 	var channelSuffix string = ""
 	if ccxt.IsEqual(frequency, "100ms") {
 		channelSuffix = "@100ms"

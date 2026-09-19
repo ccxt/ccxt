@@ -1725,7 +1725,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("createOrder", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var test *bool = this.SafeBool(params, "test", false)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -1748,7 +1748,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var maxFee any = nil
 	var maxFeeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "max_fee")
 	maxFee = GetValue(maxFeeparamsVariable, 0)
-	params = GetValue(maxFeeparamsVariable, 1)
+	params = SafeMapTyped(maxFeeparamsVariable, 1)
 	if IsEqual(maxFee, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a max_fee argument in params"))
 	}
@@ -1931,7 +1931,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var postOnly *bool = this.SafeBool(params, "postOnly")
@@ -2110,7 +2110,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
@@ -2228,7 +2228,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2301,7 +2301,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes178019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))
@@ -2314,7 +2314,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrders", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2710,7 +2710,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"order_id":      id,
 		"subaccount_id": subaccountId,
@@ -2809,7 +2809,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes216619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
@@ -2820,7 +2820,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchMyTrades", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2921,7 +2921,7 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3088,7 +3088,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes239419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
@@ -3099,7 +3099,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3340,7 +3340,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3412,7 +3412,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = SafeMapTyped(subaccountIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3501,7 +3501,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName any, params any) any {
 	var derivesubAccountId any = nil
 	var derivesubAccountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
 	derivesubAccountId = GetValue(derivesubAccountIdparamsVariable, 0)
-	params = GetValue(derivesubAccountIdparamsVariable, 1)
+	params = SafeMapTyped(derivesubAccountIdparamsVariable, 1)
 	if (derivesubAccountId != nil) && (!IsEqual(derivesubAccountId, "")) {
 		this.Options.Store("subaccount_id", derivesubAccountId) // saving in options
 		return []any{derivesubAccountId, params}
@@ -3516,7 +3516,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName any, params any) any {
 	var deriveWalletAddress any = nil
 	var deriveWalletAddressparamsVariable []any = this.HandleOptionAndParams(params, methodName, "deriveWalletAddress")
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
-	params = GetValue(deriveWalletAddressparamsVariable, 1)
+	params = SafeMapTyped(deriveWalletAddressparamsVariable, 1)
 	if (deriveWalletAddress != nil) && (!IsEqual(deriveWalletAddress, "")) {
 		this.Options.Store("deriveWalletAddress", deriveWalletAddress) // saving in options
 		return []any{deriveWalletAddress, params}
