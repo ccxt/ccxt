@@ -722,7 +722,7 @@ export default class pacifica extends pacificaRest {
         return true;
     }
 
-    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
@@ -1067,7 +1067,7 @@ export default class pacifica extends pacificaRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeValue (this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
         let ohlcv = this.safeValue (symbolOhlcvs, timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -1293,7 +1293,7 @@ export default class pacifica extends pacificaRest {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'orders',
         };
         this.cleanCache (topicStructure);
@@ -1303,7 +1303,7 @@ export default class pacifica extends pacificaRest {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'myTrades',
         };
         this.cleanCache (topicStructure);
