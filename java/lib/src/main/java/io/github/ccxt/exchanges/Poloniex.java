@@ -866,8 +866,8 @@ public class Poloniex extends PoloniexApi
         //           ],
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object ohlcvLength = ((List<?>)ohlcv).size();
-        Boolean isContract = java.util.Objects.equals(ohlcvLength, 9);
+        Object ohlcvLength = Helpers.getArrayLength(ohlcv);
+        Boolean isContract = Helpers.isEqual(ohlcvLength, 9);
         if (Boolean.TRUE.equals(isContract))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 7), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)));
@@ -3755,7 +3755,7 @@ public class Poloniex extends PoloniexApi
         Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
-        List<Object> responseKeys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+        List<Object> responseKeys = Helpers.objectKeys(response);
         for (var i = 0; i < ((List<?>)responseKeys).size(); i++)
         {
             Object currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));

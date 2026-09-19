@@ -16468,16 +16468,16 @@ final Object finalMarket = market;
     {
         // safeValue keeps runtime identical to the prior bare index (no empty-array default)
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        if ((((Map<?, ?>)config).containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
+        if ((Helpers.inOp(config, "noCoin")) && !(Helpers.inOp(parameters, "coin")))
         {
-            return ((Map<String, Object>)config).get("noCoin");
-        } else if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+            return Helpers.GetValue(config, "noCoin");
+        } else if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return ((Map<String, Object>)config).get("noSymbol");
-        } else if ((((Map<?, ?>)config).containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
+            return Helpers.GetValue(config, "noSymbol");
+        } else if ((Helpers.inOp(config, "noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
         {
-            return ((Map<String, Object>)config).get("noPoolId");
-        } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
+            return Helpers.GetValue(config, "noPoolId");
+        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             Object byLimit = this.safeValue(config, "byLimit");

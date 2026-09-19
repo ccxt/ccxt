@@ -849,13 +849,13 @@ public class Coinsph extends CoinsphApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+        if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return ((Map<String, Object>)config).get("noSymbol");
-        } else if ((((Map<?, ?>)config).containsKey("noSymbolAndNoSymbols")) && !(Helpers.inOp(parameters, "symbol")) && !(Helpers.inOp(parameters, "symbols")))
+            return Helpers.GetValue(config, "noSymbol");
+        } else if ((Helpers.inOp(config, "noSymbolAndNoSymbols")) && !(Helpers.inOp(parameters, "symbol")) && !(Helpers.inOp(parameters, "symbols")))
         {
-            return ((Map<String, Object>)config).get("noSymbolAndNoSymbols");
-        } else if ((((Map<?, ?>)config).containsKey("byNumberOfSymbols")) && (Helpers.inOp(parameters, "symbols")))
+            return Helpers.GetValue(config, "noSymbolAndNoSymbols");
+        } else if ((Helpers.inOp(config, "byNumberOfSymbols")) && (Helpers.inOp(parameters, "symbols")))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
             Object symbolsAmount = Helpers.getArrayLength(symbols);
@@ -868,7 +868,7 @@ public class Coinsph extends CoinsphApi
                     return Helpers.GetValue(entry, 1);
                 }
             }
-        } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
+        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

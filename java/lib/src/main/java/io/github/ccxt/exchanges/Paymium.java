@@ -244,7 +244,7 @@ public class Paymium extends PaymiumApi
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object currencyId = ((Map<String, Object>)currency).get("id");
             String free = ("balance_" + currencyId);
-            if (((Map<?, ?>)response).containsKey(free))
+            if (Helpers.inOp(response, free))
             {
                 Object account = this.account();
                 String used = ("locked_" + currencyId);

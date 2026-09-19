@@ -1214,7 +1214,7 @@ public class Cex extends CexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+        List<Object> keys = Helpers.objectKeys(response);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

@@ -11146,13 +11146,13 @@ public class Kucoin extends KucoinApi
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, method, new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, ((Map<String, Object>)this.options).get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
-        if (java.util.Objects.equals(version, "v3") && (((Map<?, ?>)config).containsKey("v3")))
+        if (java.util.Objects.equals(version, "v3") && (Helpers.inOp(config, "v3")))
         {
             return Helpers.GetValue(config, "v3");
-        } else if (java.util.Objects.equals(version, "v2") && (((Map<?, ?>)config).containsKey("v2")))
+        } else if (java.util.Objects.equals(version, "v2") && (Helpers.inOp(config, "v2")))
         {
             return Helpers.GetValue(config, "v2");
-        } else if (java.util.Objects.equals(version, "v1") && (((Map<?, ?>)config).containsKey("v1")))
+        } else if (java.util.Objects.equals(version, "v1") && (Helpers.inOp(config, "v1")))
         {
             return Helpers.GetValue(config, "v1");
         }

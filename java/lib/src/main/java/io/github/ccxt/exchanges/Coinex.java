@@ -6558,7 +6558,7 @@ final Object finalI = i;
                 this.checkRequiredCredentials();
                 query = this.keysort(query);
                 Object urlencoded = this.rawencode(query);
-                Object preparedString = Helpers.add((Helpers.add((method + "/"), version) + "/"), path);
+                Object preparedString = Helpers.add((Helpers.add(Helpers.add(method, "/"), version) + "/"), path);
                 if (java.util.Objects.equals(method, "POST"))
                 {
                     body = this.json(query);

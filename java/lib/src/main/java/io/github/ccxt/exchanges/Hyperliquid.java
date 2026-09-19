@@ -6175,7 +6175,7 @@ final Object finalClientOrderId = clientOrderId;
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        if ((((Map<?, ?>)config).containsKey("byType")) && (Helpers.inOp(parameters, "type")))
+        if ((Helpers.inOp(config, "byType")) && (Helpers.inOp(parameters, "type")))
         {
             Object type = Helpers.GetValue(parameters, "type");
             Object byType = Helpers.GetValue(config, "byType");

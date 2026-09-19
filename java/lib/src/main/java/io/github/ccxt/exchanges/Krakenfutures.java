@@ -4426,7 +4426,7 @@ final Object finalI = i;
             Object auth = (postData + "/api/");
             if (!java.util.Objects.equals(api, "private"))
             {
-                auth = Helpers.add(auth, Helpers.add(api, "/"));
+                auth = (auth + (api + "/"));
             }
             auth = Helpers.add(auth, endpoint); // 1
             Object hash = this.hash(this.encode(auth), sha256(), "binary"); // 2

@@ -3241,9 +3241,9 @@ public class Bydfi extends BydfiApi
             put( "timestamp", timestamp );
             put( "datetime", Bydfi.this.iso8601(timestamp) );
         }};
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+            Object balance = Helpers.GetValue(response, i);
             String symbol = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(symbol);
             Object account = this.account();

@@ -922,7 +922,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return message;
     }
 
-    public void handleFundingRate(Client client, Map<String, Object> message)
+    public void handleFundingRate(Client client, Object message)
     {
         //
         // snapshot

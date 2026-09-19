@@ -3036,7 +3036,7 @@ public class Tokocrypto extends TokocryptoApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         if (!(Helpers.inOp(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), api)))
         {
-            throw new NotSupported((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
+            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + api) + " endpoints")) ;
         }
         Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), api);
         url = Helpers.add(url, Helpers.add("/", path));
@@ -3213,18 +3213,18 @@ public class Tokocrypto extends TokocryptoApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        if ((((Map<?, ?>)config).containsKey("noCoin")) && !(((Map<?, ?>)parameters).containsKey("coin")))
+        if ((Helpers.inOp(config, "noCoin")) && !(Helpers.inOp(parameters, "coin")))
         {
-            return ((Map<String, Object>)config).get("noCoin");
-        } else if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(((Map<?, ?>)parameters).containsKey("symbol")))
+            return Helpers.GetValue(config, "noCoin");
+        } else if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return ((Map<String, Object>)config).get("noSymbol");
-        } else if ((((Map<?, ?>)config).containsKey("noPoolId")) && !(((Map<?, ?>)parameters).containsKey("poolId")))
+            return Helpers.GetValue(config, "noSymbol");
+        } else if ((Helpers.inOp(config, "noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
         {
-            return ((Map<String, Object>)config).get("noPoolId");
-        } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (((Map<?, ?>)parameters).containsKey("limit")))
+            return Helpers.GetValue(config, "noPoolId");
+        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
-            Object limit = ((Map<String, Object>)parameters).get("limit");
+            Object limit = Helpers.GetValue(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {

@@ -1492,7 +1492,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
                 Object parsed = this.parseWsTrade((Map<String, Object>) (trade));
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
-                Object symbol = ((String)Helpers.GetValue(parsed, "symbol"));
+                Object symbol = ((String)((Map<String, Object>)parsed).get("symbol"));
                 ((Map<String, Object>)symbols).put((String)symbol, true);
             }
             String name = "myTrades";

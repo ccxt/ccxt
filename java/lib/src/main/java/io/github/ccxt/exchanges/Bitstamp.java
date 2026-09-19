@@ -3704,9 +3704,9 @@ public class Bitstamp extends BitstampApi
             //    { status: 'ok' }
             //
             Object transfer = this.parseTransfer((Map<String, Object>) (response), currency);
-            ((Map<String, Object>)transfer).put("amount", amount);
-            ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
-            ((Map<String, Object>)transfer).put("toAccount", toAccount);
+            Helpers.addElementToObject(transfer, "amount", amount);
+            Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
+            Helpers.addElementToObject(transfer, "toAccount", toAccount);
             return transfer;
         }).thenApply(TransferEntry::new);
 

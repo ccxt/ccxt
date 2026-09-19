@@ -850,9 +850,9 @@ public class Cryptomus extends CryptomusApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
-        for (var i = 0; i < ((List<?>)balance).size(); i++)
+        for (var i = 0; i < Helpers.getArrayLength(balance); i++)
         {
-            Object balanceEntry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
+            Object balanceEntry = Helpers.GetValue(balance, i);
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

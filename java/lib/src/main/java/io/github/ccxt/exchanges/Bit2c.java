@@ -378,7 +378,7 @@ public class Bit2c extends Bit2cApi
             Object account = this.account();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
-            if (((Map<?, ?>)response).containsKey(uppercase))
+            if (Helpers.inOp(response, uppercase))
             {
                 ((Map<String, Object>)account).put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
                 ((Map<String, Object>)account).put("total", this.safeString(response, uppercase));

@@ -4726,9 +4726,9 @@ public class Bitget extends BitgetApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object minNotional = 0;
-        for (var i = 0; i < ((List<?>)info).size(); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
-            Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
+            Object item = Helpers.GetValue(info, i);
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
             if (!java.util.Objects.equals(minimumNotional, null))
             {
@@ -7187,9 +7187,9 @@ final Object finalMinNotional = minNotional;
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (var i = 0; i < ((List<?>)balance).size(); i++)
+        for (var i = 0; i < Helpers.getArrayLength(balance); i++)
         {
-            Object entry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
+            Object entry = Helpers.GetValue(balance, i);
             Object account = this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
             String code = this.safeCurrencyCode(currencyId);

@@ -582,9 +582,9 @@ public class Bitvavo extends BitvavoApi
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Object fees = this.fees;
-        for (var i = 0; i < ((List<?>)markets).size(); i++)
+        for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
+            Object market = Helpers.GetValue(markets, i);
             String id = this.safeString(market, "market");
             String baseId = this.safeString(market, "base");
             String quoteId = this.safeString(market, "quote");
@@ -3334,9 +3334,9 @@ final Object finalBase = base;
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        if ((((Map<?, ?>)config).containsKey("noMarket")) && !(Helpers.inOp(parameters, "market")))
+        if ((Helpers.inOp(config, "noMarket")) && !(Helpers.inOp(parameters, "market")))
         {
-            return ((Map<String, Object>)config).get("noMarket");
+            return Helpers.GetValue(config, "noMarket");
         }
         return this.safeNumber(config, "cost", 1);
     }

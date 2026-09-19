@@ -1582,9 +1582,9 @@ public class Bitbns extends BitbnsApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object urls = this.urls;
-        if (!((api != null && ((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(api))))
+        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(api)))
         {
-            throw new ExchangeError((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
+            throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + api) + " endpoints")) ;
         }
         if (!java.util.Objects.equals(api, "www"))
         {

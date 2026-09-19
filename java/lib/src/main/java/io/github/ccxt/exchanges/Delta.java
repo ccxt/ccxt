@@ -796,12 +796,12 @@ public class Delta extends DeltaApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object markets = (super.loadMarkets(reload, parameters)).join();
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId");
-            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(reload))
+            if (Helpers.isTrue((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(reload)))
             {
                 Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexByStringifiedNumericId(this.currencies));
             }
             Map<String, Object> marketsByNumericId = (Map<String, Object>) this.safeDict(this.options, "marketsByNumericId");
-            if ((java.util.Objects.equals(marketsByNumericId, null)) || Helpers.isTrue(reload))
+            if (Helpers.isTrue((java.util.Objects.equals(marketsByNumericId, null)) || Helpers.isTrue(reload)))
             {
                 Helpers.addElementToObject(this.options, "marketsByNumericId", this.indexByStringifiedNumericId(this.markets));
             }
