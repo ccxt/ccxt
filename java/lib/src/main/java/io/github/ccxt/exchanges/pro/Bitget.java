@@ -1185,7 +1185,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         return BaseExchange.supplyAsync(() -> {
 
             (this.unWatchOrderBook(symbol)).join();
-            var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
+            var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
             client.reject(error, messageHash);
             return null;
         });
@@ -1400,14 +1400,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
             Object rawTrade = Helpers.GetValue(data, index);
-            Object parsed = this.parseWsTrade(rawTrade, market);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -1526,7 +1526,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (!java.util.Objects.equals(first, null))
         {
             String feeCurrencyId = this.safeString(first, "feeCoin");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId));
             final Object finalFirst = first;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Precise.stringAbs(Bitget.this.safeString2(finalFirst, "totalFee", "fee")) );
@@ -1535,7 +1535,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Bitget.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "i", "execId"))) );
             put( "order", Bitget.this.safeString2(trade, "orderId", "L") );
@@ -1549,7 +1549,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             put( "amount", Bitget.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("size", "baseVolume", "execQty", "v"))) );
             put( "cost", Bitget.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "quoteVolume", "execValue"))) );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1818,7 +1818,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         final Object finalMarket = market;
         final Object finalContractSize = contractSize;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bitget.this.safeString(position, "posId") );
             put( "symbol", Bitget.this.safeSymbol(marketId, finalMarket, null, "contract") );
@@ -1842,7 +1842,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             put( "initialMarginPercentage", null );
             put( "leverage", Bitget.this.safeNumber(position, "leverage") );
             put( "marginRatio", Bitget.this.safeNumber(position, "marginRate") );
-        }});
+        }}));
     }
 
     /**
@@ -2125,7 +2125,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -2162,7 +2162,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // spot
@@ -2319,8 +2319,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Boolean isSpot = !(((Map<?, ?>)order).containsKey("posMode"));
-        Boolean isMargin = (((Map<?, ?>)order).containsKey("loanType"));
+        Boolean isSpot = !(order.containsKey("posMode"));
+        Boolean isMargin = (order.containsKey("loanType"));
         String category = this.safeStringLower(order, "category");
         if (java.util.Objects.equals(category, "spot"))
         {
@@ -2345,7 +2345,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             final Object finalFeeAmount = feeAmount;
             feeObject = new HashMap<String, Object>() {{
                 put( "cost", Bitget.this.parseNumber(Precise.stringAbs(finalFeeAmount)) );
-                put( "currency", Bitget.this.safeCurrencyCode(feeCurrency) );
+                put( "currency", Bitget.this.safeCurrencyCode((String) (feeCurrency)) );
             }};
         }
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
@@ -2421,7 +2421,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final Object finalFilledAmount = filledAmount;
         final Object finalRemaining = remaining;
         final Object finalFeeObject = feeObject;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", Bitget.this.safeString(order, "orderId") );
@@ -2443,7 +2443,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             put( "status", Bitget.this.parseWsOrderStatus((String) (rawStatus)) );
             put( "fee", finalFeeObject );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseWsOrderStatus(String status)
@@ -2681,7 +2681,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 String marketId = this.safeString2(trade, "instId", "symbol");
                 market = this.safeMarket(marketId, null, null, marketType);
             }
-            Object parsed = this.parseWsTrade(trade, market);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             String symbolSpecificMessageHash = ("myTrades:" + symbol);
@@ -2878,7 +2878,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     Object entry = (coins == null || j < 0 || j >= coins.size() ? null : coins.get(j));
                     String currencyId = this.safeString(entry, "coin");
-                    String code = this.safeCurrencyCode(currencyId);
+                    String code = this.safeCurrencyCode((String) (currencyId));
                     Object account = this.account();
                     if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                     {
@@ -2901,7 +2901,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             } else
             {
                 String currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode((String) (currencyId));
                 Object account = this.account();
                 if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                 {
@@ -3017,7 +3017,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "args", argsArray );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
         });
 
     }
@@ -3460,7 +3460,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
             }
         }
-        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        this.cleanUnsubscription(client, (String) (subMessageHash), messageHash);
     }
 
     public Map<String, Object> handleUnSubscriptionStatus(Client client, Map<String, Object> message)

@@ -854,7 +854,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (java.util.Objects.equals(checksum, true))
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
                 client.reject(error, messageHash);
             }
         }
@@ -1111,7 +1111,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object rawTicker = Helpers.GetValue(results, i);
             String marketId = this.safeString(rawTicker, "s");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_", marketType);
-            Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, market);
+            Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker((Map<String, Object>) (rawTicker), market);
             Object symbol = ((Map<String, Object>)parsedItem).get("symbol");
             if (Boolean.TRUE.equals(isTicker))
             {
@@ -1667,7 +1667,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object rawBalance = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
             Object account = this.account();
             String currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
@@ -1873,7 +1873,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             String symbol = this.safeString(position, "symbol");
             String side = this.safeString(position, "side");
             // Control when position is closed no side is returned
@@ -2312,7 +2312,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String left = this.safeString(liquidation, "left");
         String amount = Precise.stringAbs(Precise.stringSub(originalSize, left));
         final Object finalMarket = market;
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Gate.this.safeSymbol(marketId, finalMarket) );
             put( "contracts", Gate.this.parseNumber(amount) );
@@ -2322,7 +2322,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Gate.this.iso8601(timestamp) );
-        }});
+        }}));
     }
 
     public Boolean handleErrorMessage(Client client, Map<String, Object> message)
@@ -2506,7 +2506,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 {
                     Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                     Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                    this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash));
                 }
                 this.cleanCache(subscription);
             }
@@ -2788,7 +2788,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "payload", payload );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
         });
 
     }
@@ -2817,7 +2817,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "symbols", symbols );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, sub)).join();
+            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, sub)).join();
         });
 
     }

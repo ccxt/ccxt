@@ -137,7 +137,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "messageHashes", messageHashes );
                 put( "params", parameters );
             }};
-            return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
+            return (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
         });
 
     }
@@ -381,7 +381,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(data, marketId), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (Helpers.GetValue(data, marketId)), market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
                 client.resolve(ticker, this.getMessageHash("ticker", symbol));
                 client.resolve(ticker, this.getMessageHash("ticker"));
@@ -391,7 +391,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             String marketId = this.safeString(data, "market_id");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (data), market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             client.resolve(ticker, this.getMessageHash("ticker", symbol));
         }
@@ -624,7 +624,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -661,7 +661,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String amountString = this.safeString(trade, "size");
         Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask");
         String side = (((java.util.Objects.equals(isMakerAsk, true)))) ? "buy" : "sell";
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", tradeId );
             put( "order", null );
@@ -675,7 +675,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "amount", amountString );
             put( "cost", Lighter.this.safeString(trade, "usd_amount") );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -739,7 +739,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
             Object iReversed = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
-            Object trade = this.parseWsTrade(Helpers.GetValue(data, iReversed), market);
+            Object trade = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(data, iReversed)), market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         Object messageHash = this.getMessageHash("trade", symbol);
@@ -810,7 +810,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public Object parseWsOrderTrade(Object trade, Object... optionalArgs)
+    public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -889,7 +889,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", tradeId );
             put( "order", finalOrder );
@@ -903,7 +903,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "amount", amountString );
             put( "cost", costString );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     public Object handleMyTrades(Client client, Object message)
@@ -970,7 +970,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Object jReversed = Helpers.subtract(Helpers.subtract(tradesLength, 1), j);
                 Object tradeRaw = Helpers.GetValue(trades, jReversed);
                 Helpers.addElementToObject(tradeRaw, "accountIndex", accountIndex);
-                Object trade = this.parseWsOrderTrade(tradeRaw, market);
+                Object trade = this.parseWsOrderTrade((Map<String, Object>) (tradeRaw), market);
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
                 Object symbol = ((Map<String, Object>)trade).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -1113,7 +1113,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             return null;
         }
         final Object finalMarket = market;
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "contracts", contracts );
@@ -1124,7 +1124,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "quoteValue", quoteValue );
             put( "timestamp", timestamp );
             put( "datetime", Lighter.this.iso8601(timestamp) );
-        }});
+        }}));
     }
 
     public void handleLiquidation(Client client, Map<String, Object> message)
@@ -1337,7 +1337,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Object assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
                 Object asset = Helpers.GetValue(assets, assetId);
                 String codeId = this.safeString(asset, "symbol");
-                String code = this.safeCurrencyCode(codeId);
+                String code = this.safeCurrencyCode((String) (codeId));
                 Object account = this.account();
                 ((Map<String, Object>)account).put("used", this.safeString(asset, "locked_balance"));
                 ((Map<String, Object>)account).put("total", this.safeString(asset, "balance"));
@@ -1844,7 +1844,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("orderbook", symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
-        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        this.cleanUnsubscription(client, (String) (subMessageHash), messageHash);
         if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
         {
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -1896,7 +1896,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("ticker", symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
-        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        this.cleanUnsubscription(client, (String) (subMessageHash), messageHash);
         if (((Map<?, ?>)this.tickers).containsKey(symbol))
         {
             ((Map<String,Object>)this.tickers).remove((String)symbol);
@@ -1908,7 +1908,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("trade", symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
-        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        this.cleanUnsubscription(client, (String) (subMessageHash), messageHash);
         if (((Map<?, ?>)this.trades).containsKey(symbol))
         {
             ((Map<String,Object>)this.trades).remove((String)symbol);
@@ -1931,7 +1931,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("orders", symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
-        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        this.cleanUnsubscription(client, (String) (subMessageHash), messageHash);
     }
 
     public void handleAllOrdersUnSubscription(Client client)
@@ -1940,7 +1940,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         // belong to the account_orders/<marketId> channels and stay untouched here
         Object subMessageHash = this.getMessageHash("orders");
         String messageHash = ("unsubscribe:" + subMessageHash);
-        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        this.cleanUnsubscription(client, (String) (subMessageHash), messageHash);
         Map<String, Object> ordersStructure = new HashMap<String, Object>() {{
             put( "topic", "orders" );
         }};

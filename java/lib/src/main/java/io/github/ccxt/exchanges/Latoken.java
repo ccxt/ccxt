@@ -691,14 +691,14 @@ public class Latoken extends LatokenApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public Object parseCurrency(Map<String, Object> currency)
     {
         String id = this.safeString(currency, "id");
         String tag = this.safeString(currency, "tag");
         String code = this.safeCurrencyCode(tag);
         String currencyType = this.safeString(currency, "type");
         Boolean isCrypto = (java.util.Objects.equals(currencyType, "CURRENCY_TYPE_CRYPTO") || java.util.Objects.equals(currencyType, "CURRENCY_TYPE_IEO"));
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "info", currency );
@@ -720,7 +720,7 @@ public class Latoken extends LatokenApi
                 }} );
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
-        }});
+        }}));
     }
 
     /**
@@ -893,7 +893,7 @@ public class Latoken extends LatokenApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -988,7 +988,7 @@ public class Latoken extends LatokenApi
             //        "updateTimestamp": "1693965231406"
             //    }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1123,7 +1123,7 @@ public class Latoken extends LatokenApi
         final Object finalSymbol = symbol;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Latoken.this.iso8601(timestamp) );
@@ -1137,7 +1137,7 @@ public class Latoken extends LatokenApi
             put( "amount", amountString );
             put( "cost", costString );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1476,7 +1476,7 @@ public class Latoken extends LatokenApi
         final Object finalStatus = status;
         final Object finalSymbol = symbol;
         final Object finalSide = side;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "info", order );
@@ -1498,7 +1498,7 @@ public class Latoken extends LatokenApi
             put( "remaining", null );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1907,9 +1907,9 @@ public class Latoken extends LatokenApi
             //     }
             //
             final Object finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1971,7 +1971,7 @@ public class Latoken extends LatokenApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             List<Object> content = (List<Object>) this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(content, currency, since, limit);
@@ -1979,7 +1979,7 @@ public class Latoken extends LatokenApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -2092,7 +2092,7 @@ public class Latoken extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> response = (this.privateGetAuthTransfer(parameters)).join();
             //
             //     {
@@ -2155,11 +2155,11 @@ public class Latoken extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "recipient", toAccount );
-                put( "value", Latoken.this.currencyToPrecision(code, amount) );
+                put( "value", Latoken.this.currencyToPrecision((String) (code), amount) );
             }};
             Object response = null;
             if (((String)toAccount).indexOf("@") >= 0)
@@ -2194,12 +2194,12 @@ public class Latoken extends LatokenApi
             //         "fee": 0
             //     }
             //
-            return this.parseTransfer(response);
+            return this.parseTransfer((Map<String, Object>) (response));
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         //     {

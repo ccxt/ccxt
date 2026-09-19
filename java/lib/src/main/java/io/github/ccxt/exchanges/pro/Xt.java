@@ -1069,7 +1069,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
         Object cache = this.positions;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data);
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (data));
         Helpers.callDynamically(cache, "append", new Object[]{position});
         Object messageHashes = this.findMessageHashes(client, "position::contract");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1155,7 +1155,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             String cv = this.safeString(data, "cv");
             Boolean isSpot = !java.util.Objects.equals(cv, null);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (data));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1246,7 +1246,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object tickerData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (tickerData));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1522,7 +1522,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
     }
 
-    public Object parseWsOrderTrade(Object trade, Object... optionalArgs)
+    public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -1558,11 +1558,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "s");
-        String tradeType = (((((Map<?, ?>)trade).containsKey("symbol")))) ? "contract" : "spot";
+        String tradeType = (((trade.containsKey("symbol")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
         String timestamp = this.safeString(trade, "t");
         final Object finalMarket = market;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -1580,10 +1580,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 put( "cost", Xt.this.safeNumber(trade, "f") );
                 put( "rate", null );
             }} );
-        }}, market);
+        }}), market);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // spot
@@ -1629,11 +1629,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString2(order, "s", "symbol");
-        String tradeType = (((((Map<?, ?>)order).containsKey("symbol")))) ? "contract" : "spot";
+        String tradeType = (((order.containsKey("symbol")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
         Long timestamp = (Long) this.safeInteger2(order, "ct", "createTime");
         final Object finalMarket = market;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Xt.this.safeString2(order, "i", "orderId") );
             put( "clientOrderId", Xt.this.safeString2(order, "ci", "clientOrderId") );
@@ -1660,7 +1660,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 put( "cost", Xt.this.safeNumber(order, "f") );
             }} );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public Map<String, Object> handleOrder(Client client, Map<String, Object> message)
@@ -1720,7 +1720,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             String tradeType = (((order.containsKey("symbol")))) ? "contract" : "spot";
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             client.resolve(orders, ("order::" + tradeType));
         }
@@ -1765,7 +1765,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString2(data, "c", "coin");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode((String) (currencyId));
         Object account = this.account();
         ((Map<String, Object>)account).put("free", this.safeString(data, "availableBalance"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "f"));
@@ -1925,7 +1925,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
             Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-            this.cleanUnsubscription(client, subHash, unsubHash);
+            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash));
         }
         this.cleanCache(subscription);
     }

@@ -1102,10 +1102,10 @@ public class Woofipro extends WoofiproApi
             for (var i = 0; i < ((List<?>)tokenRows).size(); i++)
             {
                 Object token = (tokenRows == null || i < 0 || i >= tokenRows.size() ? null : tokenRows.get(i));
-                Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(new HashMap<String, Object>() {{
+                Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "_token", token );
                     put( "_indexedChains", indexedChains );
-                }});
+                }}));
                 if (java.util.Objects.equals(parsed, null))
                 {
                     throw new ExchangeError((this.id + " fetchCurrencies() could not resolve parsed")) ;
@@ -1117,7 +1117,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         Map<String, Object> token = (Map<String, Object>) this.safeDict(rawCurrency, "_token", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(token, "token");
@@ -1160,7 +1160,7 @@ public class Woofipro extends WoofiproApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
             put( "code", code );
@@ -1181,7 +1181,7 @@ public class Woofipro extends WoofiproApi
                 }} );
             }} );
             put( "info", token );
-        }});
+        }}));
     }
 
     public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKey, Object feeAmountKey)
@@ -1256,7 +1256,7 @@ public class Woofipro extends WoofiproApi
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
             put( "datetime", Woofipro.this.iso8601(timestamp) );
@@ -1270,7 +1270,7 @@ public class Woofipro extends WoofiproApi
             put( "type", null );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1495,7 +1495,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1594,7 +1594,7 @@ public class Woofipro extends WoofiproApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)data).put("timestamp", this.safeInteger(response, "timestamp"));
-            return this.parseTicker(data, market);
+            return this.parseTicker((Map<String, Object>) (data), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1660,7 +1660,7 @@ public class Woofipro extends WoofiproApi
                 Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                 }}, row);
-                ((List<Object>)result).add(this.parseTicker(ticker));
+                ((List<Object>)result).add(this.parseTicker((Map<String, Object>) (ticker)));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -2298,7 +2298,7 @@ public class Woofipro extends WoofiproApi
         final Object finalStatus = status;
         final Object finalTakeProfitPrice = takeProfitPrice;
         final Object finalStopLossPrice = stopLossPrice;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -2327,7 +2327,7 @@ public class Woofipro extends WoofiproApi
                 put( "currency", feeCurrency );
             }} );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2883,9 +2883,9 @@ public class Woofipro extends WoofiproApi
             // }
             //
             final Object finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2944,9 +2944,9 @@ public class Woofipro extends WoofiproApi
             // }
             //
             final Object finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3464,7 +3464,7 @@ public class Woofipro extends WoofiproApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("balance_token", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3513,7 +3513,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(item, "token");
@@ -3580,7 +3580,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         // example in fetchLedger
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3805,7 +3805,7 @@ public class Woofipro extends WoofiproApi
                     throw new NotSupported((this.id + " withdraw() only support USDC")) ;
                 }
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
             String chainId = this.safeString(parameters, "chainId");
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
@@ -3877,12 +3877,12 @@ public class Woofipro extends WoofiproApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(data, currency);
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
     {
         //
         //     {
@@ -4020,7 +4020,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         //     {
@@ -4082,7 +4082,7 @@ public class Woofipro extends WoofiproApi
             //     "timestamp": 1702989203989
             // }
             //
-            Object modification = this.parseMarginModification(response, market);
+            Object modification = this.parseMarginModification((Map<String, Object>) (response), market);
             ((Map<String, Object>)modification).put("type", (((java.util.Objects.equals(type, "ADD")))) ? "add" : "reduce");
             ((Map<String, Object>)modification).put("amount", this.parseNumber(this.numberToString(amount)));
             return modification;
@@ -4132,7 +4132,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long leverageValue = this.safeInteger(leverage, "max_leverage");
@@ -4194,7 +4194,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage(data, market);
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }
@@ -4233,7 +4233,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // {
@@ -4279,7 +4279,7 @@ public class Woofipro extends WoofiproApi
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Woofipro.this.safeString(finalMarket, "symbol") );
@@ -4308,7 +4308,7 @@ public class Woofipro extends WoofiproApi
             put( "hedged", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     /**
@@ -4362,7 +4362,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePosition(data, market);
+            return this.parsePosition((Map<String, Object>) (data), market);
         }).thenApply(Position::new);
 
     }

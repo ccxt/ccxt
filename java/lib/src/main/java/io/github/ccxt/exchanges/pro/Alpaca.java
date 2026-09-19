@@ -131,7 +131,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (message));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         String messageHash = ("ticker:" + symbol);
         if (!java.util.Objects.equals(symbol, null))
@@ -141,7 +141,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -718,7 +718,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             type = "limit";
         }
         final Object finalType = type;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Alpaca.this.safeString(trade, "i") );
             put( "info", trade );
             put( "timestamp", Alpaca.this.parse8601(datetime) );
@@ -732,7 +732,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             put( "amount", Alpaca.this.safeString(trade, "filled_qty") );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     public CompletableFuture<Object> authenticate(Object url2, Object... optionalArgs)

@@ -916,7 +916,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public Object parseCurrency(Map<String, Object> currency)
     {
         String id = this.safeString(currency, "_coin_id");
         String code = this.safeCurrencyCode(id);
@@ -948,7 +948,7 @@ public class Cryptocom extends CryptocomApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", currency );
             put( "id", id );
             put( "code", code );
@@ -966,7 +966,7 @@ public class Cryptocom extends CryptocomApi
             }} );
             put( "type", "crypto" );
             put( "networks", networks );
-        }});
+        }}));
     }
 
     /**
@@ -2319,9 +2319,9 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters))).join();
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2677,7 +2677,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code)); // for instance, USDC is not inferred from markets but it's still available
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -2714,7 +2714,7 @@ public class Cryptocom extends CryptocomApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            return this.parseTransaction(result, currency);
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2738,7 +2738,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2857,7 +2857,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.safeCurrency(code);
+                currency = this.safeCurrency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2934,7 +2934,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.safeCurrency(code);
+                currency = this.safeCurrency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2984,7 +2984,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -3091,7 +3091,7 @@ public class Cryptocom extends CryptocomApi
         String feeCurrency = this.safeString(trade, "fee_instrument_name");
         String feeCostString = this.safeString(trade, "fees");
         final Object finalMarket = market;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Cryptocom.this.safeString2(trade, "d", "trade_id") );
             put( "timestamp", timestamp );
@@ -3108,7 +3108,7 @@ public class Cryptocom extends CryptocomApi
                 put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency) );
                 put( "cost", Cryptocom.this.parseNumber(Precise.stringNeg(feeCostString)) );
             }} );
-        }}, market);
+        }}), market);
     }
 
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
@@ -3201,12 +3201,12 @@ public class Cryptocom extends CryptocomApi
         Long code = this.safeInteger(order, "code");
         if ((!java.util.Objects.equals(code, null)) && ((code == null || code != 0)))
         {
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", Cryptocom.this.safeString(order, "order_id") );
                 put( "clientOrderId", Cryptocom.this.safeString(order, "client_oid") );
                 put( "info", order );
                 put( "status", "rejected" );
-            }});
+            }}));
         }
         Long created = this.safeInteger(order, "create_time");
         String marketId = this.safeString(order, "instrument_name");
@@ -3228,7 +3228,7 @@ public class Cryptocom extends CryptocomApi
         }
         String feeCurrency = this.safeString(order, "fee_instrument_name");
         final Object finalPostOnly = postOnly;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Cryptocom.this.safeString(order, "order_id") );
             put( "clientOrderId", Cryptocom.this.safeString(order, "client_oid") );
@@ -3252,7 +3252,7 @@ public class Cryptocom extends CryptocomApi
                 put( "cost", Cryptocom.this.safeNumber(order, "cumulative_fee") );
             }} );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}, market);
+        }}), market);
     }
 
     public String parseDepositStatus(String status)
@@ -3280,7 +3280,7 @@ public class Cryptocom extends CryptocomApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -3329,7 +3329,7 @@ public class Cryptocom extends CryptocomApi
         String type = null;
         String rawStatus = this.safeString(transaction, "status");
         String status = null;
-        if (((Map<?, ?>)transaction).containsKey("client_wid"))
+        if (transaction.containsKey("client_wid"))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
@@ -3536,7 +3536,7 @@ public class Cryptocom extends CryptocomApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.safeCurrency(code);
+                currency = this.safeCurrency((String) (code));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3589,7 +3589,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -4126,7 +4126,7 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePosition(this.safeDict(data, 0), market);
+            return this.parsePosition((Map<String, Object>) (this.safeDict(data, 0)), market);
         }).thenApply(Position::new);
 
     }
@@ -4203,14 +4203,14 @@ public class Cryptocom extends CryptocomApi
                 Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "instrument_name");
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
-                ((List<Object>)result).add(this.parsePosition(entry, marketInner));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (entry), marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", null, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -4232,7 +4232,7 @@ public class Cryptocom extends CryptocomApi
         Long timestamp = this.safeInteger(position, "update_timestamp_ms");
         String amount = this.safeString(position, "quantity");
         final Object finalMarket = market;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -4258,7 +4258,7 @@ public class Cryptocom extends CryptocomApi
             put( "marginRatio", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     public Object nonce()

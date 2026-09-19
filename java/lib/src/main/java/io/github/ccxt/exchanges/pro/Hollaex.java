@@ -534,7 +534,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
             String currencyId = this.safeString(parts, 0);
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {

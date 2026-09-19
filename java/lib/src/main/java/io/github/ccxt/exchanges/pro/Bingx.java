@@ -1636,7 +1636,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         final Object finalMarginMode = marginMode;
         final Object finalPositionSide = positionSide;
         final Object finalHedged = hedged;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Bingx.this.safeSymbol(marketId, null, null, "swap") );
@@ -1660,7 +1660,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             put( "initialMarginPercentage", null );
             put( "leverage", null );
             put( "marginRatio", null );
-        }});
+        }}));
     }
 
     public void handlePositions(Client client, Map<String, Object> message)
@@ -2130,7 +2130,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("info", balance);
             ((Map<String, Object>)account).put("used", this.safeString(balance, "lk"));
@@ -2246,7 +2246,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-            this.cleanUnsubscription(client, subHash, unsubHash);
+            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash));
         }
         this.cleanCache(subscription);
     }

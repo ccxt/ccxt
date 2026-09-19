@@ -576,7 +576,7 @@ public class Btcturk extends BtcturkApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //   {
@@ -731,7 +731,7 @@ public class Btcturk extends BtcturkApi
             }};
         }
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", order );
@@ -745,7 +745,7 @@ public class Btcturk extends BtcturkApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1034,9 +1034,9 @@ public class Btcturk extends BtcturkApi
             //        "code": 0
             //    }
             //
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1205,7 +1205,7 @@ public class Btcturk extends BtcturkApi
         Long timestamp = (Long) this.safeInteger2(order, "updateTime", "datetime");
         String rawStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus(rawStatus);
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "price", price );
@@ -1222,7 +1222,7 @@ public class Btcturk extends BtcturkApi
             put( "datetime", Btcturk.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**

@@ -783,7 +783,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public Object parseCurrency(Map<String, Object> currency)
     {
         String asset = this.safeString(currency, "asset");
         String code = this.safeCurrencyCode(asset);
@@ -852,7 +852,7 @@ public class Bitmex extends BitmexApi
         Boolean isCrypto = java.util.Objects.equals(this.safeString(currency, "currencyType"), "Crypto");
         final Object finalDepositEnabled = depositEnabled;
         final Object finalWithdrawEnabled = withdrawEnabled;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "info", currency );
@@ -878,12 +878,12 @@ public class Bitmex extends BitmexApi
             }} );
             put( "networks", networks );
             put( "type", ((Boolean.TRUE.equals(isCrypto))) ? "crypto" : "other" );
-        }});
+        }}));
     }
 
     public Object convertFromRealAmount(String code, Object amount)
     {
-        Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+        Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
         String precision = this.safeString(currency, "precision");
         Object amountString = this.numberToString(amount);
         String finalAmount = Precise.stringDiv(amountString, precision);
@@ -899,7 +899,7 @@ public class Bitmex extends BitmexApi
         {
             return null;
         }
-        Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+        Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
         String precision = this.safeString(currency, "precision");
         return Precise.stringMul(amount, precision);
     }
@@ -1799,7 +1799,7 @@ public class Bitmex extends BitmexApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -1949,7 +1949,7 @@ public class Bitmex extends BitmexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> response = (this.privateGetUserWalletHistory(this.extend(request, parameters))).join();
@@ -2013,7 +2013,7 @@ public class Bitmex extends BitmexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2038,7 +2038,7 @@ public class Bitmex extends BitmexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //    {
@@ -2155,7 +2155,7 @@ public class Bitmex extends BitmexApi
             {
                 throw new BadSymbol((((this.id + " fetchTicker() symbol ") + symbol) + " not found")) ;
             }
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -2187,7 +2187,7 @@ public class Bitmex extends BitmexApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) ((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i))));
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2199,7 +2199,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -2461,7 +2461,7 @@ public class Bitmex extends BitmexApi
         String type = this.safeStringLower(trade, "ordType");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bitmex.this.iso8601(timestamp) );
@@ -2475,7 +2475,7 @@ public class Bitmex extends BitmexApi
             put( "cost", Precise.stringAbs(execCost) );
             put( "amount", amountString );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -2596,7 +2596,7 @@ public class Bitmex extends BitmexApi
         final Object finalAmount = amount;
         final Object finalCost = cost;
         final Object finalFilled = filled;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bitmex.this.safeString(order, "orderID") );
             put( "clientOrderId", Bitmex.this.safeString(order, "clOrdID") );
@@ -2619,7 +2619,7 @@ public class Bitmex extends BitmexApi
             put( "status", Bitmex.this.parseOrderStatus(Bitmex.this.safeString(order, "ordStatus")) );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -3153,7 +3153,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "symbol");
@@ -3290,7 +3290,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -3412,7 +3412,7 @@ public class Bitmex extends BitmexApi
             }
         }
         final Object finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bitmex.this.safeString(position, "account") );
             put( "symbol", symbol );
@@ -3440,7 +3440,7 @@ public class Bitmex extends BitmexApi
             put( "percentage", Bitmex.this.safeNumber(position, "unrealisedPnlPcnt") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     /**
@@ -3470,7 +3470,7 @@ public class Bitmex extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object qty = this.convertFromRealAmount((String) (code), amount);
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -3481,7 +3481,7 @@ public class Bitmex extends BitmexApi
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", qty );
                 put( "address", address );
-                put( "network", Bitmex.this.networkCodeToId(finalNetworkCode, ((Map<String, Object>)currency).get("code")) );
+                put( "network", Bitmex.this.networkCodeToId((String) (finalNetworkCode), ((Map<String, Object>)currency).get("code")) );
             }};
             if (!java.util.Objects.equals(this.twofa, null))
             {
@@ -3505,7 +3505,7 @@ public class Bitmex extends BitmexApi
             //         "timestamp": "2022-12-16T07:37:06.500Z",
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3618,7 +3618,7 @@ public class Bitmex extends BitmexApi
             }
             if (((Map<?, ?>)this.currencies).containsKey(symbol))
             {
-                Map<String, Object> code = (Map<String, Object>) this.currency(symbol);
+                Map<String, Object> code = (Map<String, Object>) this.currency((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)code).get("id"));
             } else if (!java.util.Objects.equals(symbol, null))
             {
@@ -3627,7 +3627,7 @@ public class Bitmex extends BitmexApi
                 List<Object> timeframes = new ArrayList<Object>(Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
                 if ((Helpers.isGreaterThan(splitSymbolLength, 1)) && this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes))
                 {
-                    Map<String, Object> code = (Map<String, Object>) this.currency(Helpers.GetValue(splitSymbol, 0));
+                    Map<String, Object> code = (Map<String, Object>) this.currency((String) (Helpers.GetValue(splitSymbol, 0)));
                     symbol = ((((Map<String, Object>)code).get("id") + ":") + Helpers.GetValue(splitSymbol, 1));
                     ((Map<String, Object>)request).put("symbol", symbol);
                 } else
@@ -3811,7 +3811,7 @@ public class Bitmex extends BitmexApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             parameters = this.omit(parameters, "network");
             Object parsedNetwork = this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4144,7 +4144,7 @@ public class Bitmex extends BitmexApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(liquidation, "symbol");
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Bitmex.this.safeSymbol(marketId, market) );
             put( "contracts", null );
@@ -4155,7 +4155,7 @@ public class Bitmex extends BitmexApi
             put( "quoteValue", null );
             put( "timestamp", null );
             put( "datetime", null );
-        }});
+        }}));
     }
 
     /**
@@ -4301,7 +4301,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseADLRank(Object info, Object... optionalArgs)
+    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // fetchPositionsADLRank

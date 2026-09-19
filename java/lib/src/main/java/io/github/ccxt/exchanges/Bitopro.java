@@ -433,7 +433,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
@@ -443,7 +443,7 @@ public class Bitopro extends BitoproApi
         boolean isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "info", rawCurrency );
@@ -465,7 +465,7 @@ public class Bitopro extends BitoproApi
                 }} );
             }} );
             put( "networks", null );
-        }});
+        }}));
     }
 
     /**
@@ -578,7 +578,7 @@ public class Bitopro extends BitoproApi
         }});
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -657,7 +657,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -848,7 +848,7 @@ public class Bitopro extends BitoproApi
         final Object finalSide = side;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "info", trade );
             put( "order", orderId );
@@ -862,7 +862,7 @@ public class Bitopro extends BitoproApi
             put( "amount", finalAmount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1302,7 +1302,7 @@ public class Bitopro extends BitoproApi
         final Object finalPostOnly = postOnly;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -1324,7 +1324,7 @@ public class Bitopro extends BitoproApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1463,11 +1463,11 @@ public class Bitopro extends BitoproApi
             for (var j = 0; j < Helpers.getArrayLength(orderIds); j++)
             {
 final Object finalJ = j;
-                                ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+                                ((List<Object>)orders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", Helpers.GetValue(orderIds, finalJ) );
                     put( "id", Helpers.GetValue(orderIds, finalJ) );
                     put( "symbol", Bitopro.this.safeSymbol(marketId) );
-                }}));
+                }})));
             }
         }
         return orders;
@@ -1845,7 +1845,7 @@ final Object finalJ = j;
         return this.safeString(states, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -1960,7 +1960,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2028,7 +2028,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2092,7 +2092,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "serial", id );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -2115,7 +2115,7 @@ final Object finalJ = j;
             //         }
             //     }
             //
-            return this.parseTransaction(result, currency);
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         });
 
     }
@@ -2147,7 +2147,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Bitopro.this.numberToString(amount) );
@@ -2184,7 +2184,7 @@ final Object finalJ = j;
             //         }
             //     }
             //
-            return this.parseTransaction(result, currency);
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }

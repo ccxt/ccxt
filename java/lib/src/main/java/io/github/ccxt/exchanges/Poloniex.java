@@ -1316,7 +1316,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //  spot:
@@ -1553,7 +1553,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public Object parseCurrency(Map<String, Object> currency)
     {
         Object entry = currency;
         String id = this.safeString(entry, "coin");
@@ -1592,7 +1592,7 @@ public class Poloniex extends PoloniexApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", Poloniex.this.safeString(entry, "name") );
             put( "code", code );
@@ -1606,7 +1606,7 @@ public class Poloniex extends PoloniexApi
             put( "fee", null );
             put( "limits", null );
             put( "margin", Poloniex.this.safeBool(entry, "supportBorrow") );
-        }});
+        }}));
     }
 
     /**
@@ -1658,7 +1658,7 @@ public class Poloniex extends PoloniexApi
             //         "markPrice" : "26444.11"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1785,7 +1785,7 @@ public class Poloniex extends PoloniexApi
             }};
         }
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1799,7 +1799,7 @@ public class Poloniex extends PoloniexApi
             put( "amount", amountString );
             put( "cost", costString );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2168,7 +2168,7 @@ public class Poloniex extends PoloniexApi
         final Object finalSide = side;
         final Object finalResultingTrades = resultingTrades;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2194,7 +2194,7 @@ public class Poloniex extends PoloniexApi
             put( "reduceOnly", reduceOnly );
             put( "leverage", leverage );
             put( "hedged", hedged );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderType(String status)
@@ -3330,7 +3330,7 @@ public class Poloniex extends PoloniexApi
         {
             throw new BadSymbol((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
-        Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+        Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
         Object networkCode = null;
         List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         networkCode = ((List<Object>) networkCodeparametersVariable).get(0);
@@ -3405,12 +3405,12 @@ public class Poloniex extends PoloniexApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, fromAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "amount", Poloniex.this.currencyToPrecision(code, amount) );
+                put( "amount", Poloniex.this.currencyToPrecision((String) (code), amount) );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "fromAccount", fromId );
                 put( "toAccount", toId );
@@ -3421,12 +3421,12 @@ public class Poloniex extends PoloniexApi
             //        "transferId" : "168041074"
             //    }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         //    {
@@ -3470,10 +3470,10 @@ public class Poloniex extends PoloniexApi
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Poloniex.this.currencyToPrecision(code, amount) );
+                put( "amount", Poloniex.this.currencyToPrecision((String) (code), amount) );
                 put( "address", address );
             }};
             String networkCode = null;
@@ -3497,7 +3497,7 @@ public class Poloniex extends PoloniexApi
             //         "withdrawalNumber": 13449869
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3622,7 +3622,7 @@ public class Poloniex extends PoloniexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
             List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
@@ -3658,7 +3658,7 @@ public class Poloniex extends PoloniexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
@@ -3759,7 +3759,7 @@ public class Poloniex extends PoloniexApi
         for (var i = 0; i < ((List<?>)responseKeys).size(); i++)
         {
             Object currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object feeInfo = Helpers.GetValue(response, currencyId);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
             {
@@ -3853,7 +3853,7 @@ public class Poloniex extends PoloniexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(deposits, currency, since, limit);
@@ -3877,7 +3877,7 @@ public class Poloniex extends PoloniexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // deposits
@@ -3916,9 +3916,9 @@ public class Poloniex extends PoloniexApi
         //
         // if it's being parsed from "withdraw()" method, get the original response
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (((Map<?, ?>)transaction).containsKey("withdrawNetworkEntry"))
+        if (transaction.containsKey("withdrawNetworkEntry"))
         {
-            transaction = ((Map<String, Object>)transaction).get("response");
+            transaction = (Map<String, Object>) (((Map<String, Object>)transaction).get("response"));
         }
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
@@ -3926,7 +3926,7 @@ public class Poloniex extends PoloniexApi
         String status = this.safeString(transaction, "status", "pending");
         status = this.parseTransactionStatus(status);
         String txid = this.safeString(transaction, "txid");
-        String type = (((((Map<?, ?>)transaction).containsKey("withdrawalRequestsId")))) ? "withdrawal" : "deposit";
+        String type = (((transaction.containsKey("withdrawalRequestsId")))) ? "withdrawal" : "deposit";
         String id = this.safeString2(transaction, "withdrawalRequestsId", "depositNumber");
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "paymentID");
@@ -4090,12 +4090,12 @@ public class Poloniex extends PoloniexApi
             //        ]
             //    }
             //
-            return this.parseLeverage(response, market);
+            return this.parseLeverage((Map<String, Object>) (response), market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object shortLeverage = null;
@@ -4269,7 +4269,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //            {
@@ -4313,7 +4313,7 @@ public class Poloniex extends PoloniexApi
         String collateral = Precise.stringMul(qty, avgPrice);
         // todo: some more fields
         final Object finalMarket = market;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -4341,7 +4341,7 @@ public class Poloniex extends PoloniexApi
             put( "marginRatio", Poloniex.this.safeNumber(position, "mgnRatio") );
             put( "stopLossPrice", Poloniex.this.safeNumber(position, "slTrgPx") );
             put( "takeProfitPrice", Poloniex.this.safeNumber(position, "tpTrgPx") );
-        }});
+        }}));
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type2, Object... optionalArgs)
@@ -4386,12 +4386,12 @@ public class Poloniex extends PoloniexApi
                 amount = Precise.stringAbs(amount);
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
-            return this.parseMarginModification(data, market);
+            return this.parseMarginModification((Map<String, Object>) (data), market);
         });
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(data, "symbol");

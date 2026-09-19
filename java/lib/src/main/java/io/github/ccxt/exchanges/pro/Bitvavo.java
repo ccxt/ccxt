@@ -152,7 +152,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     }})) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
         });
 
     }
@@ -238,7 +238,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object messageHash = Helpers.add((eventVar + "@"), marketId);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (data), market);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
@@ -418,7 +418,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     }})) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            Object trades = (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -665,7 +665,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "channels", channels );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            var symboltimeframecandlesVariable = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            var symboltimeframecandlesVariable = (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
@@ -860,7 +860,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "params", parameters );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
+            Object orderbook = (this.watchMultiple((String) (url), messageHashes, message, messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1165,7 +1165,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "unsubHashes", unsubHashes );
             }}, subscriptionArgs);
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchMultiple(url, unsubHashes, message, unsubHashes, subscription)).join();
+            return (this.watchMultiple((String) (url), unsubHashes, message, unsubHashes, subscription)).join();
         });
 
     }
@@ -1195,7 +1195,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object subscription = Helpers.GetValue(client.subscriptions, key);
             Object subHash = Helpers.replace(((String)key), "unsubscribe:", "");
             this.cleanCache(subscription);
-            this.cleanUnsubscription(client, subHash, key);
+            this.cleanUnsubscription(client, (String) (subHash), (String) (key));
             // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in client.rejections instead - that stale entry
@@ -1728,7 +1728,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         String messageHash = this.safeString(message, "requestId");
         Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", new HashMap<String, Object>() {{}});
-        Map<String, Object> withdraw = (Map<String, Object>) this.parseTransaction(response);
+        Map<String, Object> withdraw = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (response));
         client.resolve(withdraw, messageHash);
     }
 

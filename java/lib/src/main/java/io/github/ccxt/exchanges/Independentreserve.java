@@ -468,12 +468,12 @@ public class Independentreserve extends IndependentreserveApi
             for (var i = 0; i < ((List<?>)baseCurrencyIds).size(); i++)
             {
                 Object baseId = (baseCurrencyIds == null || i < 0 || i >= baseCurrencyIds.size() ? null : baseCurrencyIds.get(i));
-                String base = this.safeCurrencyCode(baseId);
+                String base = this.safeCurrencyCode((String) (baseId));
                 Double minAmount = this.safeNumber(limits, baseId);
                 for (var j = 0; j < ((List<?>)quoteCurrencyIds).size(); j++)
                 {
                     Object quoteId = (quoteCurrencyIds == null || j < 0 || j >= quoteCurrencyIds.size() ? null : quoteCurrencyIds.get(j));
-                    String quote = this.safeCurrencyCode(quoteId);
+                    String quote = this.safeCurrencyCode((String) (quoteId));
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final Object finalBase = base;
                     final Object finalBaseId = baseId;
@@ -609,7 +609,7 @@ public class Independentreserve extends IndependentreserveApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -697,7 +697,7 @@ public class Independentreserve extends IndependentreserveApi
             //     "SecondaryCurrencyCode":"Usd",
             //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
             // }
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -804,7 +804,7 @@ public class Independentreserve extends IndependentreserveApi
         final Object finalFeeRate = feeRate;
         final Object finalFeeCost = feeCost;
         final Object finalBase = base;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Independentreserve.this.safeString(order, "OrderGuid") );
             put( "clientOrderId", null );
@@ -830,7 +830,7 @@ public class Independentreserve extends IndependentreserveApi
                 put( "currency", finalBase );
             }} );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -1056,7 +1056,7 @@ public class Independentreserve extends IndependentreserveApi
             }
         }
         final Object finalSide = side;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1070,7 +1070,7 @@ public class Independentreserve extends IndependentreserveApi
             put( "amount", amount );
             put( "cost", cost );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1217,10 +1217,10 @@ public class Independentreserve extends IndependentreserveApi
                 response = (this.privatePostPlaceMarketOrder(this.extend(request, parameters))).join();
             }
             final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", ((Map<String, Object>)finalResponse).get("OrderGuid") );
-            }}, market);
+            }}), market);
         }).thenApply(Order::new);
 
     }
@@ -1289,7 +1289,7 @@ public class Independentreserve extends IndependentreserveApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1358,11 +1358,11 @@ public class Independentreserve extends IndependentreserveApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", ((Map<String, Object>)currency).get("id") );
                 put( "withdrawalAddress", address );
-                put( "amount", Independentreserve.this.currencyToPrecision(code, amount) );
+                put( "amount", Independentreserve.this.currencyToPrecision((String) (code), amount) );
             }};
             if (!java.util.Objects.equals(tag, null))
             {
@@ -1394,12 +1394,12 @@ public class Independentreserve extends IndependentreserveApi
             //        "Transaction": null
             //    }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //    {

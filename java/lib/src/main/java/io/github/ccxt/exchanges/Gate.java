@@ -2264,8 +2264,8 @@ public class Gate extends GateApi
                 var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-                String base = this.safeCurrencyCode(baseId);
-                String quote = this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode((String) (baseId));
+                String quote = this.safeCurrencyCode((String) (quoteId));
                 String takerPercent = this.safeString(market, "fee");
                 String makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
                 Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
@@ -2509,7 +2509,7 @@ public class Gate extends GateApi
         String date = this.safeString(parts, 2);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        String settle = this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode((String) (settleId));
         Object expiry = this.safeTimestamp(market, "expire_time");
         Object symbol = "";
         String marketType = "swap";
@@ -2994,7 +2994,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId);
@@ -3032,7 +3032,7 @@ public class Gate extends GateApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "name", Gate.this.safeString(rawCurrency, "name") );
@@ -3044,7 +3044,7 @@ public class Gate extends GateApi
             put( "networks", networks );
             put( "precision", Gate.this.parseNumber("0.0001") );
             put( "info", rawCurrency );
-        }});
+        }}));
     }
 
     /**
@@ -3302,7 +3302,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -3364,7 +3364,7 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             final Object finalCurrency = currency;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)finalCurrency).get("id") );
@@ -4079,12 +4079,12 @@ public class Gate extends GateApi
             {
                 throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
             }
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // SPOT
@@ -4156,7 +4156,7 @@ public class Gate extends GateApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("currency_pair", "contract", "name")));
-        String marketType = (((((Map<?, ?>)ticker).containsKey("mark_price")))) ? "contract" : "spot";
+        String marketType = (((ticker.containsKey("mark_price")))) ? "contract" : "spot";
         String symbol = this.safeSymbol(marketId, market, "_", marketType);
         String last = this.safeString2(ticker, "last", "last_price");
         String ask = this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("lowest_ask", "a", "ask1_price")));
@@ -4593,8 +4593,8 @@ public class Gate extends GateApi
                     Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quote", new HashMap<String, Object>() {{}});
                     Object baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
                     Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                    result = this.mergeBalanceAccount(result, ((String)baseCode), this.parseBalanceHelper((Map<String, Object>) (base)));
-                    result = this.mergeBalanceAccount(result, ((String)quoteCode), this.parseBalanceHelper((Map<String, Object>) (quote)));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), ((String)baseCode), (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), ((String)quoteCode), (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
                 } else
                 {
                     Object code = this.safeCurrencyCode(this.safeString(entry, "currency"));
@@ -5399,7 +5399,7 @@ final Object finalPointFee = pointFee;
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
         final Object finalAmountString = amountString;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "timestamp", finalTimestamp );
@@ -5414,7 +5414,7 @@ final Object finalPointFee = pointFee;
             put( "cost", null );
             put( "fee", null );
             put( "fees", fees );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -5455,7 +5455,7 @@ final Object finalPointFee = pointFee;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id")); // todo: currencies have network-junctions
             }
             if (!java.util.Objects.equals(limit, null))
@@ -5515,7 +5515,7 @@ final Object finalPointFee = pointFee;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id")); // todo: currencies have network-junctions
             }
             if (!java.util.Objects.equals(limit, null))
@@ -5564,11 +5564,11 @@ final Object finalPointFee = pointFee;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
-                put( "amount", Gate.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
             if (!java.util.Objects.equals(tag, null))
             {
@@ -5592,7 +5592,7 @@ final Object finalPointFee = pointFee;
             //        "memo": null
             //    }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5626,7 +5626,7 @@ final Object finalPointFee = pointFee;
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -6700,12 +6700,12 @@ final Object finalPointFee = pointFee;
         if (!java.util.Objects.equals(succeeded, true))
         {
             // cancelOrders response
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "clientOrderId", Gate.this.safeString(order, "text") );
                 put( "info", order );
                 put( "status", "rejected" );
                 put( "id", Gate.this.safeString(order, "id") );
-            }});
+            }}));
         }
         Object put = this.safeDict2(order, "put", "initial", new HashMap<String, Object>() {{}});
         Map<String, Object> trigger = (Map<String, Object>) this.safeDict(order, "trigger", new HashMap<String, Object>() {{}});
@@ -6841,7 +6841,7 @@ final Object finalRebate = rebate;
         }
         Map<String, Object> initial = (Map<String, Object>) this.safeDict(order, "initial", new HashMap<String, Object>() {{}});
         Boolean reduceOnlyInitial = (Boolean) this.safeBool(initial, "is_reduce_only");
-        Object reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
+        Object reduceOnly = this.safeBool(order, "is_reduce_only", (Boolean) (reduceOnlyInitial));
         String clientOrderId = this.safeString(order, "text");
         if (java.util.Objects.equals(clientOrderId, null))
         {
@@ -6865,7 +6865,7 @@ final Object finalRebate = rebate;
         final Object finalAmount = amount;
         final Object finalCost = cost;
         final Object finalRemaining = remaining;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Gate.this.safeString(order, "id") );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", finalTimestamp );
@@ -6889,7 +6889,7 @@ final Object finalRebate = rebate;
             put( "fees", ((Boolean.TRUE.equals(multipleFeeCurrencies))) ? fees : new ArrayList<Object>(Arrays.asList()) );
             put( "trades", null );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     public Object fetchOrderRequest(Object id, Object... optionalArgs)
@@ -7825,10 +7825,10 @@ final Object finalRebate = rebate;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object fromId = this.convertTypeToAccount(fromAccount);
             Object toId = this.convertTypeToAccount(toAccount);
-            Object truncated = this.currencyToPrecision(code, amount);
+            Object truncated = this.currencyToPrecision((String) (code), amount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", truncated );
@@ -7876,12 +7876,12 @@ final Object finalRebate = rebate;
             //        "currency_pair": "BTC_USDT"
             //    }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         //    {
@@ -7897,7 +7897,7 @@ final Object finalRebate = rebate;
             put( "id", Gate.this.safeString(transfer, "tx_id") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", Gate.this.safeCurrencyCode(null, currency) );
+            put( "currency", Gate.this.safeCurrencyCode((String) (null), currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -8002,7 +8002,7 @@ final Object finalRebate = rebate;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // swap and future
@@ -8132,7 +8132,7 @@ final Object finalRebate = rebate;
         final Object finalCollateral = collateral;
         final Object finalMarginMode = marginMode;
         final Object finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Gate.this.safeString(finalMarket, "symbol") );
@@ -8160,7 +8160,7 @@ final Object finalRebate = rebate;
             put( "percentage", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     /**
@@ -8265,7 +8265,7 @@ final Object finalRebate = rebate;
             {
                 throw new NullResponse((this.id + " fetchPosition() returned empty response")) ;
             }
-            return this.parsePosition(response, market);
+            return this.parsePosition((Map<String, Object>) (response), market);
         }).thenApply(Position::new);
 
     }
@@ -8702,10 +8702,10 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
-                put( "amount", Gate.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
@@ -8743,10 +8743,10 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
-                put( "amount", Gate.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
             Object isUnifiedAccount = false;
             List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "repayCrossMargin", "unifiedAccount");
@@ -8790,10 +8790,10 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
-                put( "amount", Gate.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
@@ -8846,10 +8846,10 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
-                put( "amount", Gate.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
             Object isUnifiedAccount = false;
             List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "borrowCrossMargin", "unifiedAccount");
@@ -8970,7 +8970,7 @@ final Object finalI = i;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             Object market = null;
@@ -9012,7 +9012,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseBorrowInterest(Object info, Object... optionalArgs)
+    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "currency_pair");
@@ -9189,12 +9189,12 @@ final Object finalI = i;
             {
                 throw new NotSupported((this.id + " modifyMarginHelper() not support this market type")) ;
             }
-            return this.parseMarginModification(response, market);
+            return this.parseMarginModification((Map<String, Object>) (response), market);
         });
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         //     {
@@ -9722,7 +9722,7 @@ final Object finalI = i;
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency(code);
+                    currency = this.currency((String) (code));
                     ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id")); // todo: currencies have network-junctions
                 }
             }
@@ -9817,7 +9817,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         // spot
@@ -10283,7 +10283,7 @@ final Object finalI = i;
         }
         final Object finalSide = side;
         final Object finalQuoteValueString = quoteValueString;
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Gate.this.safeSymbol(marketId, market) );
             put( "contracts", Gate.this.parseNumber(contractsString) );
@@ -10294,7 +10294,7 @@ final Object finalI = i;
             put( "quoteValue", Gate.this.parseNumber(Precise.stringAbs(finalQuoteValueString)) );
             put( "timestamp", timestamp );
             put( "datetime", Gate.this.iso8601(timestamp) );
-        }});
+        }}));
     }
 
     /**
@@ -10350,7 +10350,7 @@ final Object finalI = i;
                 String entryMarketId = this.safeString(entry, "name");
                 if (java.util.Objects.equals(entryMarketId, marketId))
                 {
-                    return this.parseGreeks(entry, market);
+                    return this.parseGreeks((Map<String, Object>) (entry), market);
                 }
             }
             throw new NullResponse(((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
@@ -10358,7 +10358,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseGreeks(Object greeks, Object... optionalArgs)
+    public Object parseGreeks(Map<String, Object> greeks, Object... optionalArgs)
     {
         //
         //     {
@@ -10491,7 +10491,7 @@ final Object finalI = i;
             {
                 throw new NotSupported((((this.id + " fetchLeverage() does not support ") + this.safeString(market, "type")) + " markets")) ;
             }
-            return this.parseLeverage(response, market);
+            return this.parseLeverage((Map<String, Object>) (response), market);
         }).thenApply(Leverage::new);
 
     }
@@ -10535,7 +10535,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString2(leverage, "currency_pair", "id");
@@ -10613,7 +10613,7 @@ final Object finalI = i;
             //         "bid1_price": "269.3"
             //     }
             //
-            return this.parseOption(response, null, market);
+            return this.parseOption((Map<String, Object>) (response), null, market);
         }).thenApply(Option::new);
 
     }
@@ -10639,7 +10639,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "underlying", (((Map<String, Object>)currency).get("code") + "_USDT") );
             }};
@@ -10691,7 +10691,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseOption(Object chain, Object... optionalArgs)
+    public Object parseOption(Map<String, Object> chain, Object... optionalArgs)
     {
         //
         //     {

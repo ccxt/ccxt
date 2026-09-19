@@ -568,14 +568,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         io.github.ccxt.ws.ArrayCache strored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         if (!java.util.Objects.equals(data, null))
         {
-            Object trade = this.parseWsTrade(data, market);
+            Object trade = this.parseWsTrade((Map<String, Object>) (data), market);
             Helpers.callDynamically(strored, "append", new Object[]{trade});
         }
         String messageHash = (("trades" + "::") + symbol);
         client.resolve(strored, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // watchTrades
@@ -625,7 +625,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }};
         }
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
@@ -639,7 +639,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "amount", Deepcoin.this.safeString(trade, "V") );
             put( "cost", Deepcoin.this.safeString(trade, "T") );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     public String parseTradeSide(String direction)
@@ -1136,7 +1136,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object stored = this.myTrades;
-            Object parsed = this.parseWsTrade(data, market);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (data), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             client.resolve(stored, messageHash);
             client.resolve(stored, symbolMessageHash);
@@ -1230,14 +1230,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(data, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), market);
             Helpers.callDynamically(this.orders, "append", new Object[]{parsed});
             client.resolve(this.orders, messageHash);
             client.resolve(this.orders, symbolMessageHash);
         }
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -1265,7 +1265,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String state = this.safeString(order, "Or");
         Object timestamp = this.safeTimestamp(order, "IT");
         String direction = this.safeString(order, "D");
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Deepcoin.this.safeString(order, "OS") );
             put( "clientOrderId", null );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
@@ -1291,7 +1291,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "reduceOnly", null );
             put( "postOnly", null );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     public String parseWsOrderStatus(String status)
@@ -1345,7 +1345,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 ((List<Object>)messageHashes).add(messageHash);
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "?listenKey="), listenKey);
-            Object positions = (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();
+            Object positions = (this.watchMultiple((String) (url), messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();
             if (this.newUpdates)
             {
                 return positions;
@@ -1422,7 +1422,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Long timestamp = this.safeInteger(position, "U");
         String direction = this.safeString(position, "p");
         String marginMode = this.safeString(position, "i");
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", Deepcoin.this.safeString(market, "symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -1451,7 +1451,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "takeProfitPrice", null );
             put( "percentage", null );
             put( "info", position );
-        }});
+        }}));
     }
 
     public String parsePositionSide(String direction)
@@ -1560,7 +1560,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     {
         String subHash = this.safeString(subscription, "subHash");
         String unsubHash = this.safeString(subscription, "unsubHash");
-        this.cleanUnsubscription(client, subHash, unsubHash);
+        this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash));
         this.cleanCache(subscription);
     }
 

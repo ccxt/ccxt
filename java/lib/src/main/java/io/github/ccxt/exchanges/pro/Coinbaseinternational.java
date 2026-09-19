@@ -163,7 +163,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             if (Helpers.isGreaterThan(symbolsLength, 1))
             {
-                return (this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
+                return (this.watchMultiple((String) (url), messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
             }
             return (this.watch(url, messageHash, this.extend(subscribe, parameters), messageHash, null)).join();
         });
@@ -203,7 +203,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
-                Object marketId = this.marketId(Helpers.GetValue((List<String>)(symbols), i));
+                Object marketId = this.marketId((String) (Helpers.GetValue((List<String>)(symbols), i)));
                 String symbol = this.symbol(marketId);
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
@@ -227,7 +227,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 put( "passphrase", Coinbaseinternational.this.password );
                 put( "signature", signature );
             }};
-            return (this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
         });
 
     }
@@ -715,7 +715,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //       "type": "UPDATE"
         //    }
         //
-        Object trade = this.parseWsTrade(message);
+        Object trade = this.parseWsTrade((Map<String, Object>) (message));
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         String channel = this.safeString(message, "channel");
         if (!(((Map<?, ?>)this.trades).containsKey(((String)symbol))))
@@ -732,7 +732,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return message;
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -749,7 +749,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString2(trade, "symbol", "product_id");
         String datetime = this.safeString(trade, "time");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Coinbaseinternational.this.safeString(trade, "match_id") );
             put( "order", null );
@@ -763,7 +763,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             put( "amount", Coinbaseinternational.this.safeString(trade, "trade_qty") );
             put( "cost", null );
             put( "fee", null );
-        }});
+        }}));
     }
 
     /**

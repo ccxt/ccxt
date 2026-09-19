@@ -1573,12 +1573,12 @@ public class Btse extends BtseApi
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseTicker(data, market);
+            return this.parseTicker((Map<String, Object>) (data), market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
@@ -2214,7 +2214,7 @@ public class Btse extends BtseApi
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Btse.this.iso8601(timestamp) );
@@ -2228,7 +2228,7 @@ public class Btse extends BtseApi
             put( "amount", Btse.this.safeString2(trade, "filledSize", "size") );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -3254,7 +3254,7 @@ public class Btse extends BtseApi
         final Object finalStatus = status;
         final Object finalMarket = market;
         final Object finalOrderType = orderType;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Btse.this.safeString2(order, "orderID", "orderId") );
             put( "clientOrderId", Btse.this.safeString2(order, "clOrderID", "clOrderId") );
@@ -3280,7 +3280,7 @@ public class Btse extends BtseApi
             put( "trades", null );
             put( "fee", null );
             put( "average", Btse.this.omitZero(Btse.this.safeString2(order, "avgFilledPrice", "averageFillPrice")) );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -3430,7 +3430,7 @@ public class Btse extends BtseApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             } else if (java.util.Objects.equals(walletType, "SPOT"))
             {
@@ -3595,7 +3595,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -3706,7 +3706,7 @@ public class Btse extends BtseApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             } else if (java.util.Objects.equals(walletType, "SPOT"))
             {
@@ -3755,7 +3755,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString2(item, "currency", "asset");
@@ -3956,7 +3956,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -4019,7 +4019,7 @@ public class Btse extends BtseApi
         Map<String, Object> stopLossOrder = (Map<String, Object>) this.safeDict(position, "stopLossOrder", new HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLossOrder, "triggerPrice");
         final Object finalMarket = market;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Btse.this.safeString(position, "positionId") );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -4048,7 +4048,7 @@ public class Btse extends BtseApi
             put( "marginRatio", null );
             put( "marginMode", Btse.this.parseMarginModeType(marginType) );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     public String parseMarginModeType(String marginMode)
@@ -4176,12 +4176,12 @@ public class Btse extends BtseApi
             }};
             List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginMode(data, market);
+            return this.parseMarginMode((Map<String, Object>) (data), market);
         }).thenApply(MarginMode::new);
 
     }
 
-    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
     {
         //
         //     {

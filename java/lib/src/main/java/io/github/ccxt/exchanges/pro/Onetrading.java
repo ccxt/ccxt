@@ -720,7 +720,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String datetime = this.safeString(order, "time");
         String marketId = this.safeString(order, "instrument_code");
         String symbol = this.safeSymbol(marketId, market, "_");
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Onetrading.this.safeString(order, "order_id") );
             put( "clientOrderId", Onetrading.this.safeString(order, "client_id") );
             put( "info", order );
@@ -742,7 +742,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             put( "status", Onetrading.this.parseTradingOrderStatus(Onetrading.this.safeString(order, "status")) );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseTradingOrderStatus(String status)
@@ -1164,7 +1164,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         String currencyId = this.safeString(balance, "currency_code");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode((String) (currencyId));
         Object account = this.account();
         ((Map<String, Object>)account).put("free", this.safeString(balance, "new_available"));
         ((Map<String, Object>)account).put("used", this.safeString(balance, "new_locked"));

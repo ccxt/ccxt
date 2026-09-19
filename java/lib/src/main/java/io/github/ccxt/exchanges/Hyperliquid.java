@@ -531,7 +531,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         // const id = i;
         String id = this.safeString(rawCurrency, "index");
@@ -540,7 +540,7 @@ public class Hyperliquid extends HyperliquidApi
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("cachedCurrenciesById")), id, name);
         final Object finalName = name;
         final Object finalCode = code;
-        Map<String, Object> result = (Map<String, Object>) this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        Map<String, Object> result = (Map<String, Object>) this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", finalName );
             put( "code", finalCode );
@@ -562,7 +562,7 @@ public class Hyperliquid extends HyperliquidApi
                     put( "max", null );
                 }} );
             }} );
-        }});
+        }}));
         // add in wrapped map
         String fullName = this.safeString(rawCurrency, "fullName");
         if (!java.util.Objects.equals(fullName, null) && !java.util.Objects.equals(name, null))
@@ -576,7 +576,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     nameWithoutU = Helpers.add(nameWithoutU, Helpers.GetValue(parts, j));
                 }
-                String baseCode = this.safeCurrencyCode(nameWithoutU);
+                String baseCode = this.safeCurrencyCode((String) (nameWithoutU));
                 if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("spotCurrencyMapping")), code, baseCode);
@@ -1478,7 +1478,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 Object market = Helpers.GetValue(response, i);
                 Object info = Helpers.GetValue(market, "info");
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (info), market);
                 String symbol = this.safeString(ticker, "symbol");
                 ((Map<String, Object>)result).put((String)symbol, ticker);
             }
@@ -1632,7 +1632,7 @@ public class Hyperliquid extends HyperliquidApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -3001,10 +3001,10 @@ public class Hyperliquid extends HyperliquidApi
             for (var i = 0; i < ((List<?>)statuses).size(); i++)
             {
                 Object status = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
-                ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+                ((List<Object>)orders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", status );
                     put( "status", status );
-                }}));
+                }})));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3252,9 +3252,9 @@ final Object finalClientOrderId = clientOrderId;
             //         }
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4185,10 +4185,10 @@ final Object finalClientOrderId = clientOrderId;
         if (!java.util.Objects.equals(error, null))
         {
             Object finalOrder = order; // java req
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalOrder );
                 put( "status", "rejected" );
-            }});
+            }}));
         }
         Object entry = this.safeDictN(order, new ArrayList<Object>(Arrays.asList("order", "resting", "filled")));
         if (java.util.Objects.equals(entry, null))
@@ -4251,7 +4251,7 @@ final Object finalClientOrderId = clientOrderId;
         final Object finalTriggerPx = triggerPx;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", finalOrder );
             put( "id", Hyperliquid.this.safeString(finalEntry, "oid") );
             put( "clientOrderId", Hyperliquid.this.safeString(finalEntry, "cloid") );
@@ -4277,7 +4277,7 @@ final Object finalClientOrderId = clientOrderId;
             put( "status", Hyperliquid.this.parseOrderStatus(status) );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -4449,7 +4449,7 @@ final Object finalClientOrderId = clientOrderId;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Hyperliquid.this.iso8601(timestamp) );
@@ -4467,7 +4467,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "currency", Hyperliquid.this.safeString(trade, "feeToken") );
                 put( "rate", null );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -4612,14 +4612,14 @@ final Object finalClientOrderId = clientOrderId;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i)))));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -4680,7 +4680,7 @@ final Object finalClientOrderId = clientOrderId;
         final Object finalSize = size;
         final Object finalInitialMargin = initialMargin;
         final Object finalMarginMode = marginMode;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -4704,7 +4704,7 @@ final Object finalClientOrderId = clientOrderId;
             put( "liquidationPrice", Hyperliquid.this.safeNumber(entry, "liquidationPx") );
             put( "marginMode", finalMarginMode );
             put( "percentage", Hyperliquid.this.parseNumber(percentage) );
-        }});
+        }}));
     }
 
     /**
@@ -4948,14 +4948,14 @@ final Object finalClientOrderId = clientOrderId;
             //         'status': 'ok'
             //     }
             //
-            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "code", Hyperliquid.this.safeString(response, "status") );
             }});
         });
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         //    {
@@ -5049,8 +5049,8 @@ final Object finalClientOrderId = clientOrderId;
                 //
                 // the sub-account branches below already hand back the unified structure; the
                 // spot <> swap branch returned the raw acknowledgement, breaking the shape
-                Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
-                return this.parseTransfer(transferResponse, currency);
+                Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
+                return this.parseTransfer((Map<String, Object>) (transferResponse), currency);
             }
             // transfer between main account and subaccount
             Boolean isDeposit = false;
@@ -5095,7 +5095,7 @@ final Object finalClientOrderId = clientOrderId;
                 //
                 // {'response': {'type': 'default'}, 'status': 'ok'}
                 //
-                return this.parseTransfer(response);
+                return this.parseTransfer((Map<String, Object>) (response));
             } else
             {
                 // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -5104,7 +5104,7 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     throw new ArgumentsRequired((this.id + " transfer() requires a currency code for spot sub-account transfers")) ;
                 }
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                 Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
                 String tokenName = this.safeString(currencyInfo, "name");
                 String tokenId = this.safeString(currencyInfo, "tokenId");
@@ -5125,13 +5125,13 @@ final Object finalClientOrderId = clientOrderId;
                     put( "signature", sig );
                 }};
                 Map<String, Object> response = (this.privatePostExchange(request)).join();
-                return this.parseTransfer(response);
+                return this.parseTransfer((Map<String, Object>) (response));
             }
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // {'response': {'type': 'default'}, 'status': 'ok'}
@@ -5142,7 +5142,7 @@ final Object finalClientOrderId = clientOrderId;
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", Hyperliquid.this.safeCurrencyCode(null, currency) );
+            put( "currency", Hyperliquid.this.safeCurrencyCode((String) (null), currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -5232,12 +5232,12 @@ final Object finalClientOrderId = clientOrderId;
                 put( "signature", finalSig );
             }};
             Map<String, Object> response = (this.privatePostExchange(request)).join();
-            return this.parseTransaction(response);
+            return this.parseTransaction((Map<String, Object>) (response));
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // { status: 'ok', response: { type: 'default' } }
@@ -5485,7 +5485,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         // {
@@ -6078,7 +6078,7 @@ final Object finalClientOrderId = clientOrderId;
         {
             coin = (String) (Helpers.replace(((String)coin), ":", "-")); // hip3
         }
-        return (this.safeCurrencyCode(coin) + "/USDC:USDC");
+        return (this.safeCurrencyCode((String) (coin)) + "/USDC:USDC");
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

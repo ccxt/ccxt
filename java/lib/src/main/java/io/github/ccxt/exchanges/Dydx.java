@@ -804,7 +804,7 @@ public class Dydx extends DydxApi
         String amount = this.safeString(trade, "size");
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
             put( "datetime", Dydx.this.iso8601(timestamp) );
@@ -818,7 +818,7 @@ public class Dydx extends DydxApi
             put( "type", null );
             put( "fee", null );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1106,7 +1106,7 @@ public class Dydx extends DydxApi
         String type = this.parseOrderType(this.safeStringUpper(order, "type"));
         String side = this.safeStringLower(order, "side");
         String timeInForce = this.safeStringUpper(order, "timeInForce");
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Dydx.this.safeString(order, "id") );
             put( "clientOrderId", Dydx.this.safeString(order, "clientId") );
@@ -1130,7 +1130,7 @@ public class Dydx extends DydxApi
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -1332,7 +1332,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // {
@@ -1367,7 +1367,7 @@ public class Dydx extends DydxApi
         Long timestamp = this.parse8601(this.safeString(position, "createdAt"));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -1391,7 +1391,7 @@ public class Dydx extends DydxApi
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     /**
@@ -1490,7 +1490,7 @@ public class Dydx extends DydxApi
         return this.hash(message, keccak(), "hex");
     }
 
-    public Map<String, Object> signHash(Object hash, Object privateKey)
+    public Object signHash(Object hash, Object privateKey)
     {
         Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
@@ -1502,7 +1502,7 @@ public class Dydx extends DydxApi
         }};
     }
 
-    public Map<String, Object> signMessage(Object message, Object privateKey)
+    public Object signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
@@ -1528,7 +1528,7 @@ public class Dydx extends DydxApi
         {
             throw new ArgumentsRequired((this.id + " signOnboardingAction() requires a privateKey to be set.")) ;
         }
-        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
+        Object signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -1538,8 +1538,8 @@ public class Dydx extends DydxApi
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
         var signDoc = ((List<Object>) encodedTxsignDocVariable).get(1);
-        Map<String, Object> signature = this.signHash(encodedTx, privateKey);
-        return this.encodeDydxTxRaw(signDoc, Helpers.add(((Map<String, Object>)signature).get("r"), ((Map<String, Object>)signature).get("s")));
+        Object signature = this.signHash(encodedTx, privateKey);
+        return this.encodeDydxTxRaw((Map<String, Object>) (signDoc), Helpers.add(((Map<String, Object>)signature).get("r"), ((Map<String, Object>)signature).get("s")));
     }
 
     public Object retrieveCredentials()
@@ -1555,7 +1555,7 @@ public class Dydx extends DydxApi
             Object signature = this.signOnboardingAction();
             privateKey = this.hashMessage(this.base16ToBinary(Helpers.add(((Map<String, Object>)signature).get("r"), ((Map<String, Object>)signature).get("s"))));
         }
-        credentials = this.retrieveDydxCredentials(privateKey);
+        credentials = this.retrieveDydxCredentials((String) (privateKey));
         ((Map<String, Object>)credentials).put("privateKey", this.binaryToBase16(((Map<String, Object>)credentials).get("privateKey")));
         ((Map<String, Object>)credentials).put("publicKey", this.binaryToBase16(((Map<String, Object>)credentials).get("publicKey")));
         Helpers.addElementToObject(this.options, "dydxCredentials", credentials);
@@ -1778,7 +1778,7 @@ public class Dydx extends DydxApi
                 put( "reduceOnly", reduceOnly );
                 put( "clientMetadata", finalClientMetadata );
                 put( "conditionType", finalConditionalType );
-                put( "conditionalOrderTriggerSubticks", Dydx.this.toDydxLong(finalConditionalOrderTriggerSubticks) );
+                put( "conditionalOrderTriggerSubticks", Dydx.this.toDydxLong((String) (finalConditionalOrderTriggerSubticks)) );
                 put( "orderRouterAddress", Dydx.this.safeString(Dydx.this.options, "routerAddress", "dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn") );
             }} );
         }};
@@ -1903,11 +1903,11 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", orderId );
                 put( "clientOrderId", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(orderRequest, "value"), "order"), "orderId"), "clientId") );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -2037,9 +2037,9 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", result );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -2125,9 +2125,9 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", result );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2179,7 +2179,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         // {
@@ -2241,7 +2241,7 @@ public class Dydx extends DydxApi
         }}, currency);
     }
 
-    public String parseLedgerEntryType(String type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRANSFER_IN", "transfer" );
@@ -2281,7 +2281,7 @@ public class Dydx extends DydxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchLedger" );
@@ -2473,12 +2473,12 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            return this.parseTransfer(response);
+            return this.parseTransfer((Map<String, Object>) (response));
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // {
@@ -2551,7 +2551,7 @@ public class Dydx extends DydxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchTransfers" );
@@ -2564,7 +2564,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // {
@@ -2653,7 +2653,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " withdraw requires subaccountId.")) ;
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("subaccountId")));
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
@@ -2693,7 +2693,7 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(data, currency);
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2727,7 +2727,7 @@ public class Dydx extends DydxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchWithdrawals" );
@@ -2767,7 +2767,7 @@ public class Dydx extends DydxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchDeposits" );
@@ -2807,7 +2807,7 @@ public class Dydx extends DydxApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchDepositsWithdrawals" );

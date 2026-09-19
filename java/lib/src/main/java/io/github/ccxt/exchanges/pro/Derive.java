@@ -317,7 +317,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }}, market);
         } else
         {
-            ticker = this.parseTicker(data);
+            ticker = this.parseTicker((Map<String, Object>) (data));
         }
         Object tickerSymbol = ((Map<String, Object>)ticker).get("symbol");
         if (!java.util.Objects.equals(tickerSymbol, null))

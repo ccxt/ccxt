@@ -734,7 +734,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, 0);
         String code = this.safeCurrencyCode(id);
@@ -774,7 +774,7 @@ public class Gemini extends GeminiApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
             put( "code", code );
@@ -796,7 +796,7 @@ public class Gemini extends GeminiApi
                 }} );
             }} );
             put( "networks", networks );
-        }});
+        }}));
     }
 
     /**
@@ -1166,9 +1166,9 @@ public class Gemini extends GeminiApi
                 }
             }
         }
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
-        String settle = this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode((String) (baseId));
+        String quote = this.safeCurrencyCode((String) (quoteId));
+        String settle = this.safeCurrencyCode((String) (settleId));
         Object symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settleId, null))
         {
@@ -1308,7 +1308,7 @@ public class Gemini extends GeminiApi
             //         "last":"9115.23"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         });
 
     }
@@ -1341,7 +1341,7 @@ public class Gemini extends GeminiApi
             //         "ask":"9115.87"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         });
 
     }
@@ -1401,7 +1401,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // fetchTickers
@@ -1461,8 +1461,8 @@ public class Gemini extends GeminiApi
                 baseId = (marketId == null ? null : ((String)marketId).substring(0, Math.min(3, ((String)marketId).length())));
                 quoteId = (marketId == null ? null : ((String)marketId).substring(Math.min(3, ((String)marketId).length()), Math.min(6, ((String)marketId).length())));
             }
-            base = this.safeCurrencyCode(baseId);
-            quote = this.safeCurrencyCode(quoteId);
+            base = this.safeCurrencyCode((String) (baseId));
+            quote = this.safeCurrencyCode((String) (quoteId));
             symbol = Helpers.add((base + "/"), quote);
         }
         if ((java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(market, null)))
@@ -1539,7 +1539,7 @@ public class Gemini extends GeminiApi
             //
             Object result = this.parseTickers(response, symbols);
             List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
-            return this.removeKeysFromDict(result, brokenPairs);
+            return this.removeKeysFromDict((Map<String, Object>) (result), brokenPairs);
         }).thenApply(Tickers::new);
 
     }
@@ -1593,7 +1593,7 @@ public class Gemini extends GeminiApi
         String amountString = this.safeString(trade, "amount");
         String side = this.safeStringLower(trade, "type");
         String symbol = this.safeSymbol(null, market);
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", orderId );
             put( "info", trade );
@@ -1607,7 +1607,7 @@ public class Gemini extends GeminiApi
             put( "cost", null );
             put( "amount", amountString );
             put( "fee", fee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1936,7 +1936,7 @@ public class Gemini extends GeminiApi
         final Object finalType = type;
         final Object finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "info", order );
@@ -1958,7 +1958,7 @@ public class Gemini extends GeminiApi
             put( "remaining", remaining );
             put( "fee", fee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2319,7 +2319,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -2354,7 +2354,7 @@ public class Gemini extends GeminiApi
             {
                 throw new ExchangeError(((this.id + " withdraw() failed: ") + this.json(response))) ;
             }
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2408,7 +2408,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -2491,7 +2491,7 @@ public class Gemini extends GeminiApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
-        String code = this.safeCurrencyCode(null, currency);
+        String code = this.safeCurrencyCode((String) (null), currency);
         return new HashMap<String, Object>() {{
             put( "currency", code );
             put( "network", null );
@@ -2551,7 +2551,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             code = ((Map<String, Object>)currency).get("code");
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -2687,7 +2687,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};

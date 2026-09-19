@@ -258,10 +258,10 @@ public class TestSharedMethods extends BaseTest {
         if (Boolean.TRUE.equals(definedValues))
         {
             // check by code
-            Object currencyByCode = exchange.currency(currencyCode);
+            Object currencyByCode = exchange.currency((String) (currencyCode));
             Assert(java.util.Objects.equals(((Map<String, Object>)currencyByCode).get("id"), currencyId), ((((("currencyId \"" + stringValue(currencyId)) + "\" does not match currency id from instance: \"") + stringValue(((Map<String, Object>)currencyByCode).get("id"))) + "\"") + logText));
             // check by id
-            Object currencyById = exchange.safeCurrency(currencyId);
+            Object currencyById = exchange.safeCurrency((String) (currencyId));
             Assert(java.util.Objects.equals(((Map<String, Object>)currencyById).get("code"), currencyCode), Helpers.add(((("currencyCode " + stringValue(currencyCode)) + " does not match currency of id: ") + stringValue(currencyId)), logText));
         }
     }

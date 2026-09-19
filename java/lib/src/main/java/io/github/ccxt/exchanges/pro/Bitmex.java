@@ -151,7 +151,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "op", "subscribe" );
                 put( "args", rawSubscriptions );
             }};
-            Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), rawSubscriptions, null)).join();
+            Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), rawSubscriptions, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -400,9 +400,9 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             String symbol = this.safeSymbol(marketId);
             if (!(((Map<?, ?>)this.tickers).containsKey(symbol)))
             {
-                Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new HashMap<String, Object>() {{}}));
+                Helpers.addElementToObject(this.tickers, symbol, this.parseTicker((Map<String, Object>) (new HashMap<String, Object>() {{}})));
             }
-            Map<String, Object> updatedTicker = (Map<String, Object>) this.parseTicker(update);
+            Map<String, Object> updatedTicker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (update));
             Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
             ((Map<String, Object>)tickers).put((String)symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
@@ -482,7 +482,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "op", "subscribe" );
                 put( "args", subscriptionHashes );
             }};
-            Object newLiquidations = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes, null)).join();
+            Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), subscriptionHashes, null)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -1049,7 +1049,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             Object side = this.safeString(position, "side");
             if (java.util.Objects.equals(side, null))
             {
@@ -1539,7 +1539,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object orderbook = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics, null)).join();
+            Object orderbook = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), topics, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1586,7 +1586,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics, null)).join();
+            Object trades = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), topics, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);

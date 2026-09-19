@@ -894,7 +894,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coin");
         String name = this.safeString(rawCurrency, "coinFulName");
@@ -927,7 +927,7 @@ public class Bitrue extends BitrueApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", name );
             put( "code", code );
@@ -946,7 +946,7 @@ public class Bitrue extends BitrueApi
                     put( "max", null );
                 }} );
             }} );
-        }});
+        }}));
     }
 
     /**
@@ -1422,7 +1422,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // fetchBidsAsks
@@ -1582,7 +1582,7 @@ public class Bitrue extends BitrueApi
             //         "time": 1699348013000
             //     }
             //
-            return this.parseTicker(data, market);
+            return this.parseTicker((Map<String, Object>) (data), market);
         }).thenApply(Ticker::new);
 
     }
@@ -2011,7 +2011,7 @@ public class Bitrue extends BitrueApi
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bitrue.this.iso8601(timestamp) );
@@ -2025,7 +2025,7 @@ public class Bitrue extends BitrueApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2208,7 +2208,7 @@ public class Bitrue extends BitrueApi
         final Object finalType = type;
         final Object finalTimeInForce = timeInForce;
         final Object finalStatus = status;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2230,7 +2230,7 @@ public class Bitrue extends BitrueApi
             put( "status", finalStatus );
             put( "fee", null );
             put( "trades", fills );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -3006,7 +3006,7 @@ public class Bitrue extends BitrueApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "status", 1 );
@@ -3090,7 +3090,7 @@ public class Bitrue extends BitrueApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "status", 5 );
@@ -3151,7 +3151,7 @@ public class Bitrue extends BitrueApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -3238,8 +3238,8 @@ public class Bitrue extends BitrueApi
         String txid = this.safeString(transaction, "txid");
         Long timestamp = this.safeInteger(transaction, "createdAt");
         Long updated = this.safeInteger(transaction, "updatedAt");
-        Boolean payAmount = (((Map<?, ?>)transaction).containsKey("payAmount"));
-        Boolean ctime = (((Map<?, ?>)transaction).containsKey("ctime"));
+        Boolean payAmount = (transaction.containsKey("payAmount"));
+        Boolean ctime = (transaction.containsKey("ctime"));
         String type = (((Boolean.TRUE.equals(payAmount) || Boolean.TRUE.equals(ctime)))) ? "withdrawal" : "deposit";
         String status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Double amount = this.safeNumber(transaction, "amount");
@@ -3323,7 +3323,7 @@ public class Bitrue extends BitrueApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -3358,7 +3358,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(data, currency);
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3446,7 +3446,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         //     fetchTransfers
@@ -3523,7 +3523,7 @@ public class Bitrue extends BitrueApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coinSymbol", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3587,14 +3587,14 @@ public class Bitrue extends BitrueApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             final Object finalFromId = fromId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coinSymbol", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Bitrue.this.currencyToPrecision(code, amount) );
+                put( "amount", Bitrue.this.currencyToPrecision((String) (code), amount) );
                 put( "transferType", ((finalFromId + "_to_") + toId) );
             }};
             Map<String, Object> response = (this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters))).join();
@@ -3606,7 +3606,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransfer(data, currency);
+            return this.parseTransfer((Map<String, Object>) (data), currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -3664,7 +3664,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         // setMargin
@@ -3735,7 +3735,7 @@ public class Bitrue extends BitrueApi
             //         "data": null
             //     }
             //
-            return this.parseMarginModification(response, market);
+            return this.parseMarginModification((Map<String, Object>) (response), market);
         }).thenApply(MarginModification::new);
 
     }

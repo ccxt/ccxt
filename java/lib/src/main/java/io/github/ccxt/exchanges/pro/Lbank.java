@@ -578,7 +578,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object trade = this.parseWsTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), market);
+            Object trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
             Helpers.addElementToObject(trade, "symbol", symbol);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
@@ -589,7 +589,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // request
@@ -622,7 +622,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         }
         final Object finalTimestamp = timestamp;
         final Object finalSide = side;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", datetime );
             put( "symbol", null );
@@ -636,7 +636,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "cost", Lbank.this.safeString(trade, "amount") );
             put( "fee", null );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -719,7 +719,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
         if (java.util.Objects.equals(myOrders, null))
         {
             return;
@@ -731,7 +731,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(myOrders, messageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -798,7 +798,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalCost = cost;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Lbank.this.safeString(orderUpdate, "uuid") );
             put( "clientOrderId", Lbank.this.safeString(orderUpdate, "customerID") );
@@ -819,7 +819,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "fee", null );
             put( "cost", finalCost );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseWsOrderStatus(String status)
@@ -890,7 +890,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", datetime);
         String currencyId = this.safeString(data, "assetCode");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode((String) (currencyId));
         Object account = this.account();
         ((Map<String, Object>)account).put("free", this.safeString(data, "free"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "freeze"));

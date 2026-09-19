@@ -259,7 +259,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "topic", "trade" );
                 put( "event", "sub" );
             }};
-            Object trades = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            Object trades = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -317,7 +317,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return this.parseTrade(trade, market);
@@ -405,7 +405,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "topic", ("kline_" + finalSelectedTimeframe) );
                 put( "event", "sub" );
             }};
-            var symboltimeframestoredVariable = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            var symboltimeframestoredVariable = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
@@ -563,7 +563,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "topic", "realtimes" );
                 put( "event", "sub" );
             }};
-            Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -640,7 +640,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parseTicker(ticker, market);
+        return this.parseTicker((Map<String, Object>) (ticker), market);
     }
 
     /**
@@ -715,7 +715,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "topic", finalChannel );
                 put( "event", "sub" );
             }};
-            Object orderbook = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            Object orderbook = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -947,7 +947,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("info", balance);
             ((Map<String, Object>)account).put("used", this.safeString(balance, "l"));
@@ -1070,7 +1070,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
         Helpers.callDynamically(orders, "append", new Object[]{order});
         String messageHash = "orders";
         client.resolve(orders, messageHash);
@@ -1078,7 +1078,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(orders, messageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(order, "O");
@@ -1106,7 +1106,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         final Object finalOrderType = orderType;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Toobit.this.safeString(order, "i") );
             put( "clientOrderId", Toobit.this.safeString(order, "c") );
@@ -1129,7 +1129,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             put( "status", Toobit.this.parseOrderStatus(Toobit.this.safeString(order, "X")) );
             put( "fee", finalFee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1216,7 +1216,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         String ts = this.safeString(trade, "t");
         Boolean isMaker = (java.util.Objects.equals(this.safeBool(trade, "m"), true));
         String takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Toobit.this.safeString(trade, "T") );
             put( "timestamp", ts );
@@ -1230,7 +1230,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             put( "amount", Toobit.this.safeString(trade, "q") );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1424,7 +1424,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "s");
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Toobit.this.safeSymbol(marketId) );
@@ -1449,7 +1449,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             put( "initialMarginPercentage", null );
             put( "leverage", Toobit.this.safeString(position, "v") );
             put( "marginRatio", null );
-        }});
+        }}));
     }
 
     public CompletableFuture<Object> authenticate(Object... optionalArgs)

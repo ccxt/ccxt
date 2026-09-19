@@ -392,7 +392,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Object checksum = this.handleOption("watchOrderBook", "checksum", true);
                 if (java.util.Objects.equals(checksum, true))
                 {
-                    throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
+                    throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol)))) ;
                 }
             }
         }
@@ -715,7 +715,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }} );
                 put( "nonce", id );
             }};
-            Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -897,7 +897,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }} );
                 put( "nonce", id );
             }};
-            Object newTickers = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            Object newTickers = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -1303,7 +1303,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
@@ -1398,7 +1398,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Object balance = (positionBalances == null || i < 0 || i >= positionBalances.size() ? null : positionBalances.get(i));
             String currencyId = this.safeString(balance, "instrument_name");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "quantity"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved_qty"));
@@ -1631,7 +1631,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "nonce", id );
             }};
             Map<String, Object> message = this.deepExtend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
         });
 
     }
@@ -1661,7 +1661,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "messageHashes", messageHashes );
             }};
             Map<String, Object> message = this.deepExtend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend))).join();
+            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, this.extend(subscription, subExtend))).join();
         });
 
     }
@@ -1914,7 +1914,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 {
                     Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                     Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                    this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash));
                 }
                 this.cleanCache(subscription);
             }

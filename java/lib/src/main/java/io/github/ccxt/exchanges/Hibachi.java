@@ -503,7 +503,7 @@ public class Hibachi extends HibachiApi
         if (!java.util.Objects.equals(code, null))
         {
             final Object finalCode = code;
-            ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
+            ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
     put( "id", "USDT" );
     put( "name", "USDT" );
     put( "type", "fiat" );
@@ -525,7 +525,7 @@ public class Hibachi extends HibachiApi
         }} );
     }} );
     put( "info", new HashMap<String, Object>() {{}} );
-}}));
+}})));
         }
         return result;
     }
@@ -586,7 +586,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> prices = (Map<String, Object>) this.safeDict(ticker, "prices");
@@ -689,7 +689,7 @@ public class Hibachi extends HibachiApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalOrderType = orderType;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "timestamp", timestamp );
             put( "datetime", Hibachi.this.iso8601(timestamp) );
@@ -703,7 +703,7 @@ public class Hibachi extends HibachiApi
             put( "type", finalOrderType );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -807,7 +807,7 @@ public class Hibachi extends HibachiApi
                 put( "prices", pricesResponse );
                 put( "stats", statsResponse );
             }};
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -889,7 +889,7 @@ public class Hibachi extends HibachiApi
         final Object finalRemainingString = remainingString;
         final Object finalReduceOnly = reduceOnly;
         final Object finalPostOnly = postOnly;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Hibachi.this.safeString(order, "orderId") );
             put( "clientOrderId", null );
@@ -913,7 +913,7 @@ public class Hibachi extends HibachiApi
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
             put( "triggerPrice", Hibachi.this.safeNumber(order, "triggerPrice") );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1162,10 +1162,10 @@ public class Hibachi extends HibachiApi
             //     "orderId": "578721673790138368"
             // }
             //
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", Hibachi.this.safeString(response, "orderId") );
                 put( "status", "pending" );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1217,11 +1217,11 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+                ((List<Object>)ret).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "pending" );
-                }}));
+                }})));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1294,10 +1294,10 @@ public class Hibachi extends HibachiApi
             //
             // {}
             //
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", "pending" );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1350,11 +1350,11 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+                ((List<Object>)ret).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "pending" );
-                }}));
+                }})));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1398,11 +1398,11 @@ public class Hibachi extends HibachiApi
             //
             // {}
             //
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", id );
                 put( "status", "canceled" );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1444,11 +1444,11 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+                ((List<Object>)ret).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "canceled" );
-                }}));
+                }})));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1495,9 +1495,9 @@ public class Hibachi extends HibachiApi
             //
             // {}
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2137,7 +2137,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // {
@@ -2159,7 +2159,7 @@ public class Hibachi extends HibachiApi
         String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
         String unrealizedTrading = this.safeString(position, "unrealizedTradingPnl", "0");
         String unrealizedPnl = Precise.stringAdd(unrealizedFunding, unrealizedTrading);
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -2183,7 +2183,7 @@ public class Hibachi extends HibachiApi
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     public Object sign(Object path, Object... optionalArgs)
@@ -2277,7 +2277,7 @@ public class Hibachi extends HibachiApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String transactionType = this.safeString(item, "transactionType");
@@ -2507,7 +2507,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
@@ -2562,7 +2562,7 @@ public class Hibachi extends HibachiApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", Hibachi.this.getAccountId() );
             }};

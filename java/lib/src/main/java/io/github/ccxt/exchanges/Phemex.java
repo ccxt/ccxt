@@ -1454,7 +1454,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id);
@@ -1476,7 +1476,7 @@ public class Phemex extends PhemexApi
         final Object finalMinAmount = minAmount;
         final Object finalMaxAmount = maxAmount;
         final Object finalValueScale = valueScale;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", rawCurrency );
             put( "code", code );
@@ -1499,7 +1499,7 @@ public class Phemex extends PhemexApi
             put( "valueScale", finalValueScale );
             put( "networks", null );
             put( "type", "crypto" );
-        }});
+        }}));
     }
 
     public Object customParseBidAsk(Object bidask, Object... optionalArgs)
@@ -1843,7 +1843,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // spot
@@ -2019,7 +2019,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(result, market);
+            return this.parseTicker((Map<String, Object>) (result), market);
         }).thenApply(Ticker::new);
 
     }
@@ -2455,7 +2455,7 @@ public class Phemex extends PhemexApi
         final Object finalAmountString = amountString;
         final Object finalCostString = costString;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
             put( "symbol", symbol );
@@ -2469,7 +2469,7 @@ public class Phemex extends PhemexApi
             put( "amount", finalAmountString );
             put( "cost", finalCostString );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     public Object parseSpotBalance(Map<String, Object> response)
@@ -2568,7 +2568,7 @@ public class Phemex extends PhemexApi
         Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, "account", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(balance, "currency");
         Object code = this.safeCurrencyCode(currencyId);
-        Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+        Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
         Long valueScale = this.safeInteger(currency, "valueScale", 8);
         Object account = this.account();
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
@@ -2630,7 +2630,7 @@ public class Phemex extends PhemexApi
                     {
                         coin = settle;
                     }
-                    Map<String, Object> currency = (Map<String, Object>) this.currency(coin);
+                    Map<String, Object> currency = (Map<String, Object>) this.currency((String) (coin));
                     ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
                     if (java.util.Objects.equals(((Map<String, Object>)currency).get("id"), "USDT"))
                     {
@@ -2927,7 +2927,7 @@ public class Phemex extends PhemexApi
         final Object finalClientOrderId = clientOrderId;
         final Object finalTimeInForce = timeInForce;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
@@ -2949,7 +2949,7 @@ public class Phemex extends PhemexApi
             put( "status", status );
             put( "fee", finalFee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderSide(String side)
@@ -3133,7 +3133,7 @@ public class Phemex extends PhemexApi
         final Object finalReduceOnly = reduceOnly;
         final Object finalPrice = price;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
@@ -3158,7 +3158,7 @@ public class Phemex extends PhemexApi
             put( "status", status );
             put( "fee", finalFee );
             put( "trades", null );
-        }});
+        }}));
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -3747,9 +3747,9 @@ public class Phemex extends PhemexApi
                 response = (this.privateDeleteSpotOrdersAll(this.extend(request, parameters))).join();
             }
             final Object finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4285,7 +4285,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -4359,7 +4359,7 @@ public class Phemex extends PhemexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> response = (this.privateGetExchangeWalletsDepositList(parameters)).join();
             //
@@ -4414,7 +4414,7 @@ public class Phemex extends PhemexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> response = (this.privateGetExchangeWalletsWithdrawList(parameters)).join();
             //
@@ -4465,7 +4465,7 @@ public class Phemex extends PhemexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -4649,7 +4649,7 @@ public class Phemex extends PhemexApi
             {
                 code = (((java.util.Objects.equals(subType, "linear")))) ? "USD" : "BTC";
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -4753,7 +4753,7 @@ public class Phemex extends PhemexApi
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                ((List<Object>)result).add(this.parsePosition(position));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (position)));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -4828,7 +4828,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //    {
@@ -4982,7 +4982,7 @@ public class Phemex extends PhemexApi
         Long lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         final Object finalIsCross = isCross;
         final Object finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Phemex.this.safeString(position, "execSeq") );
             put( "symbol", symbol );
@@ -5012,7 +5012,7 @@ public class Phemex extends PhemexApi
             put( "percentage", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     /**
@@ -5122,7 +5122,7 @@ public class Phemex extends PhemexApi
         Boolean isStableSettled = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC");
         if (!Boolean.TRUE.equals(isStableSettled))
         {
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(currencyCode);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (currencyCode));
             String scale = this.safeString(((Map<String, Object>)currency).get("info"), "valueScale");
             Object tickPrecision = this.parsePrecision(scale);
             value = Precise.stringMul(value, tickPrecision);
@@ -5295,7 +5295,7 @@ public class Phemex extends PhemexApi
             //         "data": "OK"
             //     }
             //
-            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
         }).thenApply(MarginModification::new);
@@ -5310,7 +5310,7 @@ public class Phemex extends PhemexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         //     {
@@ -5754,7 +5754,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -5792,7 +5792,7 @@ final Object finalI = i;
                 //     }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                transfer = this.parseTransfer(data, currency);
+                transfer = this.parseTransfer((Map<String, Object>) (data), currency);
             } else
             {
                 final Object finalFromId = fromId;
@@ -5812,7 +5812,7 @@ final Object finalI = i;
                 //         "data": "API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd"
                 //     }
                 //
-                transfer = this.parseTransfer(response);
+                transfer = this.parseTransfer((Map<String, Object>) (response));
             }
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
@@ -5868,7 +5868,7 @@ final Object finalI = i;
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a code argument")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -5908,7 +5908,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // transfer
@@ -6122,7 +6122,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
@@ -6183,7 +6183,7 @@ final Object finalI = i;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(data, currency);
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -6299,8 +6299,8 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCode);
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCode);
+            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
+            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
             Long valueScale = this.safeInteger(fromCurrency, "valueScale");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "fromCurrency", fromCode );
@@ -6327,7 +6327,7 @@ final Object finalI = i;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseConversion(data, fromCurrency, toCurrency);
+            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -6355,8 +6355,8 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCode);
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCode);
+            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
+            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
             Long valueScale = this.safeInteger(fromCurrency, "valueScale");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "code", id );
@@ -6388,7 +6388,7 @@ final Object finalI = i;
             Map<String, Object> fromResult = (Map<String, Object>) this.safeCurrency(fromCurrencyId, fromCurrency);
             String toCurrencyId = this.safeString(data, "toCurrency");
             Map<String, Object> to = (Map<String, Object>) this.safeCurrency(toCurrencyId, toCurrency);
-            return this.parseConversion(data, fromResult, to);
+            return this.parseConversion((Map<String, Object>) (data), fromResult, to);
         }).thenApply(Conversion::new);
 
     }
@@ -6466,7 +6466,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseConversion(Object conversion, Object... optionalArgs)
+    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
     {
         //
         // fetchConvertQuote
@@ -6604,7 +6604,7 @@ final Object finalI = i;
             {
                 code = (((java.util.Objects.equals(subType, "linear")))) ? "USD" : "BTC";
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -6632,14 +6632,14 @@ final Object finalI = i;
             for (var i = 0; i < ((List<?>)ranks).size(); i++)
             {
                 Object rank = (ranks == null || i < 0 || i >= ranks.size() ? null : ranks.get(i));
-                ((List<Object>)result).add(this.parseADLRank(rank));
+                ((List<Object>)result).add(this.parseADLRank((Map<String, Object>) (rank)));
             }
             return this.filterByArrayADLRanks(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseADLRank(Object info, Object... optionalArgs)
+    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // fetchPositionADLRank: linear

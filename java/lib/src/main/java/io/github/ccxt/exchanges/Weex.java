@@ -1083,7 +1083,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(currencyId);
@@ -1125,7 +1125,7 @@ public class Weex extends WeexApi
         Object networksLength = ((List<?>)networkKeys).size();
         Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", code );
             put( "id", currencyId );
@@ -1151,7 +1151,7 @@ public class Weex extends WeexApi
                 }} );
             }} );
             put( "networks", networks );
-        }});
+        }}));
     }
 
     /**
@@ -1498,14 +1498,14 @@ public class Weex extends WeexApi
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
                 Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-                ((List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
+                ((List<Object>)results).add(this.parseTicker((Map<String, Object>) (rawTicker), tickerMarket));
             }
             return this.filterByArrayTickers(results, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // spot
@@ -1723,7 +1723,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)ticker).put("markPrice", this.safeString(ticker, "price"));
             }
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -2203,7 +2203,7 @@ public class Weex extends WeexApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "id") );
             put( "order", Weex.this.safeString(trade, "orderId") );
@@ -2217,7 +2217,7 @@ public class Weex extends WeexApi
             put( "amount", Weex.this.safeString(trade, "qty") );
             put( "cost", Weex.this.safeString(trade, "quoteQty") );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2580,7 +2580,7 @@ public class Weex extends WeexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Integer maxLimit = 100;
             Object paginate = false;
@@ -2622,7 +2622,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(transfer, "tradeTime");
@@ -3986,7 +3986,7 @@ public class Weex extends WeexApi
         final Object finalRawType = rawType;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Weex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderId", "algoId", "successOrderId"))) );
             put( "clientOrderId", Weex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId", "clientAlgoId"))) );
             put( "symbol", Weex.this.safeString(finalMarket, "symbol") );
@@ -4012,7 +4012,7 @@ public class Weex extends WeexApi
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -4269,7 +4269,7 @@ public class Weex extends WeexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             if (java.util.Objects.equals(accountType, "contract"))
             {
@@ -4326,7 +4326,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         // spot
@@ -4656,7 +4656,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -4752,7 +4752,7 @@ public class Weex extends WeexApi
         final Object finalMarket = market;
         final Object finalMarginMode = marginMode;
         final Object finalHedged = hedged;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "id", Weex.this.safeString2(position, "id", "positionId") );
             put( "timestamp", timestamp );
@@ -4781,7 +4781,7 @@ public class Weex extends WeexApi
             put( "takeProfitPrice", null );
             put( "percentage", null );
             put( "info", position );
-        }});
+        }}));
     }
 
     /**
@@ -4949,7 +4949,7 @@ public class Weex extends WeexApi
             //     ]
             //
             Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginMode(marginMode, market);
+            return this.parseMarginMode((Map<String, Object>) (marginMode), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -4981,7 +4981,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(marginMode, "symbol");
@@ -5076,7 +5076,7 @@ public class Weex extends WeexApi
             }};
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage(marginMode, market);
+            return this.parseLeverage((Map<String, Object>) (marginMode), market);
         }).thenApply(Leverage::new);
 
     }
@@ -5108,7 +5108,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "symbol");
@@ -5308,7 +5308,7 @@ public class Weex extends WeexApi
             }};
             String parsedType = (((Helpers.isEqual(type, 1)))) ? "add" : "reduce";
             Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters))).join();
-            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "amount", Weex.this.parseNumber(amount) );
                 put( "type", parsedType );
             }});
@@ -5316,7 +5316,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         //     {

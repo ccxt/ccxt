@@ -439,7 +439,7 @@ public class Btcbox extends BtcboxApi
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object currencyId = ((Map<String, Object>)currency).get("id");
             String free = (currencyId + "_balance");
             if (Helpers.inOp(response, free))
@@ -512,7 +512,7 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeSymbol(null, market);
@@ -568,7 +568,7 @@ public class Btcbox extends BtcboxApi
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -620,7 +620,7 @@ public class Btcbox extends BtcboxApi
         Object type = null;
         String side = this.safeString(trade, "type");
         final Object finalMarket = market;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
@@ -634,7 +634,7 @@ public class Btcbox extends BtcboxApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -824,7 +824,7 @@ public class Btcbox extends BtcboxApi
         final Object finalTimestamp = timestamp;
         final Object finalStatus = status;
         final Object finalMarket = market;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", finalTimestamp );
@@ -846,7 +846,7 @@ public class Btcbox extends BtcboxApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}, market);
+        }}), market);
     }
 
     /**

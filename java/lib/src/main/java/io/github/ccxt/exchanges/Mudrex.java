@@ -533,7 +533,7 @@ public class Mudrex extends MudrexApi
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, market);
+            return this.parseTicker((Map<String, Object>) (data), market);
         }).thenApply(Ticker::new);
 
     }
@@ -577,14 +577,14 @@ public class Mudrex extends MudrexApi
                 {
                     continue;
                 }
-                ((Map<String, Object>)resultTickers).put((String)symbol, this.parseTicker(t, m));
+                ((Map<String, Object>)resultTickers).put((String)symbol, this.parseTicker((Map<String, Object>) (t), m));
             }
             return this.filterByArrayTickers(resultTickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String ms = this.safeString(ticker, "symbol");
@@ -1151,7 +1151,7 @@ public class Mudrex extends MudrexApi
         final Object finalTriggerPrice = triggerPrice;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", oid );
             put( "clientOrderId", null );
@@ -1178,7 +1178,7 @@ public class Mudrex extends MudrexApi
             put( "fees", new ArrayList<Object>(Arrays.asList()) );
             put( "lastUpdateTimestamp", Mudrex.this.parse8601(Mudrex.this.safeString(order, "updated_at")) );
             put( "reduceOnly", Mudrex.this.safeBool(order, "reduce_only") );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1419,7 +1419,7 @@ public class Mudrex extends MudrexApi
                 Object p = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String symRaw = this.safeString(p, "symbol");
                 Map<String, Object> m = (Map<String, Object>) this.safeMarket(symRaw);
-                Map<String, Object> pos = (Map<String, Object>) this.parsePosition(p, m);
+                Map<String, Object> pos = (Map<String, Object>) this.parsePosition((Map<String, Object>) (p), m);
                 ((List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols, false);
@@ -1487,7 +1487,7 @@ public class Mudrex extends MudrexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         market = this.safeMarket(null, market);
@@ -1882,7 +1882,7 @@ public class Mudrex extends MudrexApi
         final Object finalTradeSide = tradeSide;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", ts );
             put( "datetime", Mudrex.this.iso8601(ts) );
@@ -1896,7 +1896,7 @@ public class Mudrex extends MudrexApi
             put( "amount", null );
             put( "cost", Mudrex.this.safeString(trade, "transaction_amount") );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**

@@ -1376,7 +1376,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coinId");
         String code = this.safeCurrencyCode(currencyId);
@@ -1414,7 +1414,7 @@ public class Hashkey extends HashkeyApi
         }
         String rawType = this.safeString(rawCurrency, "tokenType");
         String type = (((java.util.Objects.equals(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "precision", null );
@@ -1436,7 +1436,7 @@ public class Hashkey extends HashkeyApi
             }} );
             put( "networks", parsedNetworks );
             put( "info", rawCurrency );
-        }});
+        }}));
     }
 
     /**
@@ -1734,14 +1734,14 @@ public class Hashkey extends HashkeyApi
             final Object finalFeeCurrncyId = feeCurrncyId;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Hashkey.this.parseNumber(finalFeeCost) );
-                put( "currency", Hashkey.this.safeCurrencyCode(finalFeeCurrncyId) );
+                put( "currency", Hashkey.this.safeCurrencyCode((String) (finalFeeCurrncyId)) );
             }};
         }
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString2(trade, "id", "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -1755,7 +1755,7 @@ public class Hashkey extends HashkeyApi
             put( "order", Hashkey.this.safeString(trade, "orderId") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1900,7 +1900,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1932,7 +1932,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -2198,7 +2198,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2210,7 +2210,7 @@ public class Hashkey extends HashkeyApi
             {
                 networkCode = this.defaultNetworkCode(code);
             }
-            ((Map<String, Object>)request).put("chainType", this.networkCodeToId(networkCode, code));
+            ((Map<String, Object>)request).put("chainType", this.networkCodeToId((String) (networkCode), code));
             Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
@@ -2294,7 +2294,7 @@ public class Hashkey extends HashkeyApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2365,7 +2365,7 @@ public class Hashkey extends HashkeyApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2442,7 +2442,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
@@ -2469,12 +2469,12 @@ public class Hashkey extends HashkeyApi
             //         "accountId": "1732885739589466115"
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //  fetchDeposits
@@ -2619,10 +2619,10 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
-                put( "quantity", Hashkey.this.currencyToPrecision(code, amount) );
+                put( "quantity", Hashkey.this.currencyToPrecision((String) (code), amount) );
                 put( "fromAccountId", fromAccount );
                 put( "toAccountId", toAccount );
             }};
@@ -2635,12 +2635,12 @@ public class Hashkey extends HashkeyApi
             //         "orderId": "1740839420695806720"
             //     }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(transfer, "timestamp");
@@ -2794,7 +2794,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             ((Map<String, Object>)request).put("startTime", since);
             if (!java.util.Objects.equals(limit, null))
@@ -2854,7 +2854,7 @@ public class Hashkey extends HashkeyApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -3478,7 +3478,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + ((Map<String, Object>)market).get("type")) + " type of markets")) ;
             }
-            Object order = this.safeOrder(response);
+            Object order = this.safeOrder((Map<String, Object>) (response));
             Helpers.addElementToObject(order, "info", response);
             return new ArrayList<Object>(Arrays.asList(order));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3532,7 +3532,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
             }
-            Object order = this.safeOrder(response);
+            Object order = this.safeOrder((Map<String, Object>) (response));
             Helpers.addElementToObject(order, "info", response);
             return new ArrayList<Object>(Arrays.asList(order));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -4106,7 +4106,7 @@ public class Hashkey extends HashkeyApi
         final Object finalFeeCurrncyId = feeCurrncyId;
         final Object finalReduceOnly = reduceOnly;
         final Object finalPostOnly = postOnly;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString(order, "orderId") );
             put( "clientOrderId", Hashkey.this.safeString(order, "clientOrderId") );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -4129,13 +4129,13 @@ public class Hashkey extends HashkeyApi
             put( "cost", Hashkey.this.omitZero(Hashkey.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) );
             put( "trades", null );
             put( "fee", new HashMap<String, Object>() {{
-                put( "currency", Hashkey.this.safeCurrencyCode(finalFeeCurrncyId) );
+                put( "currency", Hashkey.this.safeCurrencyCode((String) (finalFeeCurrncyId)) );
                 put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "feeAmount")) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     public Object parseOrderSideAndReduceOnly(Object unparsed)
@@ -4479,13 +4479,13 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "id", null );
             put( "timestamp", null );
@@ -4514,7 +4514,7 @@ public class Hashkey extends HashkeyApi
             put( "takeProfitPrice", null );
             put( "percentage", null );
             put( "info", position );
-        }});
+        }}));
     }
 
     /**
@@ -4551,12 +4551,12 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             Map<String, Object> leverage = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage(leverage, market);
+            return this.parseLeverage((Map<String, Object>) (leverage), market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marginMode = this.safeStringLower(leverage, "marginType");
@@ -4608,7 +4608,7 @@ public class Hashkey extends HashkeyApi
             //         "leverage": "3"
             //     }
             //
-            return this.parseLeverage(response, market);
+            return this.parseLeverage((Map<String, Object>) (response), market);
         });
 
     }
@@ -4756,7 +4756,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             final Object finalType = type;
-            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "amount", amount );
             }});
@@ -4764,7 +4764,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(data, "symbol");

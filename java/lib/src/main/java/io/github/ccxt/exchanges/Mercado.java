@@ -387,7 +387,7 @@ public class Mercado extends MercadoApi
                 Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
                 Object baseId = coin;
                 String quoteId = "BRL";
-                String base = this.safeCurrencyCode(baseId);
+                String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode(quoteId);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
@@ -481,7 +481,7 @@ public class Mercado extends MercadoApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -561,7 +561,7 @@ public class Mercado extends MercadoApi
             //         }
             //     }
             //
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -588,7 +588,7 @@ public class Mercado extends MercadoApi
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -602,7 +602,7 @@ public class Mercado extends MercadoApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -663,7 +663,7 @@ public class Mercado extends MercadoApi
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             if (balances.containsKey(currencyId))
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
@@ -764,10 +764,10 @@ public class Mercado extends MercadoApi
             }
             // TODO: replace this with a call to parseOrder for unification
             final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)finalResponse).get("response_data"), "order"), "order_id")) );
-            }}, market);
+            }}), market);
         }).thenApply(Order::new);
 
     }
@@ -895,7 +895,7 @@ public class Mercado extends MercadoApi
         List<Object> rawTrades = (List<Object>) this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
         Object symbol = ((Map<String, Object>)market).get("symbol");
         final Object finalSide = side;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -917,7 +917,7 @@ public class Mercado extends MercadoApi
             put( "status", status );
             put( "fee", fee );
             put( "trades", rawTrades );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -983,7 +983,7 @@ public class Mercado extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "quantity", toFixed(amount, 10) );
@@ -1039,12 +1039,12 @@ public class Mercado extends MercadoApi
             //
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(responseData, "withdrawal");
-            return this.parseTransaction(withdrawal, currency);
+            return this.parseTransaction((Map<String, Object>) (withdrawal), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -1060,7 +1060,7 @@ public class Mercado extends MercadoApi
         //     }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        currency = this.safeCurrency(null, currency);
+        currency = this.safeCurrency((String) (null), currency);
         final Object finalCurrency = currency;
         return new HashMap<String, Object>() {{
             put( "id", Mercado.this.safeString(transaction, "id") );

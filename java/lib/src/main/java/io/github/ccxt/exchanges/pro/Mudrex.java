@@ -153,7 +153,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "assets", assets );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            Object ticker = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};

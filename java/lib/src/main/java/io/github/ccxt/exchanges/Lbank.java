@@ -609,7 +609,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(Helpers.GetValue(rawCurrency, 0), "assetCode"); // first member is guaranteed
         String code = this.safeCurrencyCode(id);
@@ -650,7 +650,7 @@ public class Lbank extends LbankApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "precision", null );
@@ -672,7 +672,7 @@ public class Lbank extends LbankApi
             }} );
             put( "networks", networks );
             put( "info", networksRaw );
-        }});
+        }}));
     }
 
     /**
@@ -894,7 +894,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1015,7 +1015,7 @@ public class Lbank extends LbankApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(first, market);
+            return this.parseTicker((Map<String, Object>) (first), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1329,7 +1329,7 @@ public class Lbank extends LbankApi
         final Object finalAmountString = amountString;
         final Object finalCostString = costString;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", Lbank.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
@@ -1343,7 +1343,7 @@ public class Lbank extends LbankApi
             put( "cost", finalCostString );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1606,7 +1606,7 @@ public class Lbank extends LbankApi
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
                 Object currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-                String code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode((String) (currencyId));
                 Object account = this.account();
                 ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
                 ((Map<String, Object>)account).put("free", this.safeString(free, currencyId));
@@ -2100,10 +2100,10 @@ public class Lbank extends LbankApi
             //      }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", Lbank.this.safeString(result, "order_id") );
                 put( "info", result );
-            }}, market);
+            }}), market);
         }).thenApply(Order::new);
 
     }
@@ -2254,7 +2254,7 @@ public class Lbank extends LbankApi
         final Object finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
         final Object finalAmountString = amountString;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "datetime", Lbank.this.iso8601(timestamp) );
@@ -2276,7 +2276,7 @@ public class Lbank extends LbankApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2804,7 +2804,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assetCode", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2853,7 +2853,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2923,7 +2923,7 @@ public class Lbank extends LbankApi
             parameters = this.omit(parameters, "fee");
             // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
             this.checkRequiredArgument("withdraw", fee, "fee");
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", address );
                 put( "coin", ((Map<String, Object>)currency).get("id") );
@@ -2983,7 +2983,7 @@ public class Lbank extends LbankApi
         return this.safeString(this.safeDict(statuses, ((String)type), new HashMap<String, Object>() {{}}), status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits (private)
@@ -3108,7 +3108,7 @@ public class Lbank extends LbankApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3174,7 +3174,7 @@ public class Lbank extends LbankApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))

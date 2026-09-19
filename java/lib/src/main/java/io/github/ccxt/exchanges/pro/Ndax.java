@@ -129,7 +129,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "TimeStamp": "1534862990358"
         //     }
         //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(payload);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (payload));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (!java.util.Objects.equals(symbol, null))

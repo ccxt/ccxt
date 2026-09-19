@@ -1545,7 +1545,7 @@ public class Mexc extends MexcApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(id);
@@ -1578,7 +1578,7 @@ public class Mexc extends MexcApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
             put( "code", code );
@@ -1596,7 +1596,7 @@ public class Mexc extends MexcApi
             }} );
             put( "type", "crypto" );
             put( "networks", networks );
-        }});
+        }}));
     }
 
     /**
@@ -2229,7 +2229,7 @@ public class Mexc extends MexcApi
                     final Object finalFeeAsset = feeAsset;
                     fee = new HashMap<String, Object>() {{
                         put( "cost", Mexc.this.safeString(trade, "commission") );
-                        put( "currency", Mexc.this.safeCurrencyCode(finalFeeAsset) );
+                        put( "currency", Mexc.this.safeCurrencyCode((String) (finalFeeAsset)) );
                     }};
                 }
             }
@@ -2248,7 +2248,7 @@ public class Mexc extends MexcApi
         final Object finalAmountString = amountString;
         final Object finalCostString = costString;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "order", finalOrderId );
             put( "timestamp", finalTimestamp );
@@ -2262,7 +2262,7 @@ public class Mexc extends MexcApi
             put( "cost", finalCostString );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2564,12 +2564,12 @@ public class Mexc extends MexcApi
                 ticker = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "symbol");
@@ -2589,7 +2589,7 @@ public class Mexc extends MexcApi
         String prevClose = null;
         Boolean isSwap = (Boolean) this.safeBool(market, "swap");
         // if swap
-        if ((java.util.Objects.equals(isSwap, true)) || (((Map<?, ?>)ticker).containsKey("timestamp")))
+        if ((java.util.Objects.equals(isSwap, true)) || (ticker.containsKey("timestamp")))
         {
             //
             //     {
@@ -3190,10 +3190,10 @@ public class Mexc extends MexcApi
             // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", Mexc.this.safeString(data, "orderId") );
                 put( "timestamp", Mexc.this.safeInteger(data, "ts") );
-            }}, market);
+            }}), market);
         });
 
     }
@@ -4320,11 +4320,11 @@ public class Mexc extends MexcApi
         if (!java.util.Objects.equals(code, null))
         {
             // error upon placing multiple orders
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "status", "rejected" );
                 put( "clientOrderId", Mexc.this.safeString(order, "newClientOrderId") );
-            }});
+            }}));
         }
         Object id = null;
         if ((order instanceof String))
@@ -4360,7 +4360,7 @@ public class Mexc extends MexcApi
         final Object finalMarket = market;
         final Object finalTimeInForce = timeInForce;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "clientOrderId", Mexc.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
@@ -4382,7 +4382,7 @@ public class Mexc extends MexcApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderSide(String status)
@@ -4668,11 +4668,11 @@ public class Mexc extends MexcApi
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (!java.util.Objects.equals(baseCode, null))
                 {
-                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper((Map<String, Object>) (base)));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
                 }
                 if (!java.util.Objects.equals(quoteCode, null))
                 {
-                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper((Map<String, Object>) (quote)));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
                 }
             }
             return this.safeBalance(result);
@@ -5680,7 +5680,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -5744,7 +5744,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -5857,7 +5857,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
                 // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
                 // due to that I'm applying the network parameter directly so the user can control it on its side
@@ -5933,7 +5933,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -5977,7 +5977,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -6043,7 +6043,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             currencyId = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-")))), 0);
         }
-        String code = this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode((String) (currencyId), currency);
         Object network = null;
         String rawNetwork = this.safeString(transaction, "network");
         if (!java.util.Objects.equals(rawNetwork, null))
@@ -6246,7 +6246,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // fetchPositions
@@ -6321,7 +6321,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Double leverage = this.safeNumber(position, "leverage");
         Double liquidationPrice = this.safeNumber(position, "liquidatePrice");
         Long timestamp = this.safeInteger(position, "updateTime");
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -6349,7 +6349,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
             put( "lastUpdateTimestamp", null );
-        }});
+        }}));
     }
 
     /**
@@ -6396,7 +6396,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //     }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseTransfer(data);
+                return this.parseTransfer((Map<String, Object>) (data));
             } else if (java.util.Objects.equals(marketType, "swap"))
             {
                 throw new BadRequest(((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
@@ -6441,7 +6441,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Object fromAccountType = null;
             List<Object> fromAccountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "fromAccountType");
@@ -6545,7 +6545,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accounts = new HashMap<String, Object>() {{
                 put( "spot", "SPOT" );
                 put( "swap", "FUTURES" );
@@ -6588,7 +6588,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
             //     }
             //
-            Object transaction = this.parseTransfer(response, currency);
+            Object transaction = this.parseTransfer((Map<String, Object>) (response), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
@@ -6598,7 +6598,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // spot: fetchTransfer
@@ -6728,7 +6728,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -6752,12 +6752,12 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //       "id":"7213fea8e94b4a5593d507237e5a555b"
                 //     }
                 //
-                return this.parseTransaction(responseForInternal, currency);
+                return this.parseTransaction((Map<String, Object>) (responseForInternal), currency);
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             Object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-            network = this.networkCodeToId(network, ((Map<String, Object>)currency).get("code"));
+            network = this.networkCodeToId((String) (network), ((Map<String, Object>)currency).get("code"));
             this.checkAddress(address);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
@@ -6779,7 +6779,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //       "id":"7213fea8e94b4a5593d507237e5a555b"
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -7132,12 +7132,12 @@ final Object finalRiskIncrVol = riskIncrVol;
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverage(data, market);
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marginMode = null;
@@ -7342,7 +7342,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //
             // { success: true, code: '0' }
             //
-            return this.parseLeverage(response, market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
+            return this.parseLeverage((Map<String, Object>) (response), market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
         });
 
     }

@@ -204,13 +204,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
                 put( "status", finalStatus );
                 put( "info", response );
                 put( "symbol", symbol );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -284,13 +284,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
                 put( "status", finalStatus );
                 put( "info", response );
                 put( "symbol", symbol );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -378,13 +378,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                     status = "canceled";
                 }
     final Object finalStatus = status;
-                            ((List<Object>)ordersToReturn).add(this.safeOrder(new HashMap<String, Object>() {{
+                            ((List<Object>)ordersToReturn).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", orderId );
                     put( "clientOrderId", clientOrderId );
                     put( "status", finalStatus );
                     put( "info", response );
                     put( "symbol", ((Map<String, Object>)market).get("symbol") );
-                }}));
+                }})));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -462,13 +462,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
             final Object finalSymbol = symbol;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
                 put( "status", finalStatus );
                 put( "info", response );
                 put( "symbol", finalSymbol );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -516,9 +516,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             //   "type": "cancel_all_orders"
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -924,7 +924,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
     public Object parseWsTicker(Map<String, Object> rawTicker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parseTicker(rawTicker, market);
+        return this.parseTicker((Map<String, Object>) (rawTicker), market);
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -969,7 +969,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Object parsed = this.parseWsTrade(rawTrade);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1108,14 +1108,14 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < ((List<?>)entry).size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
-            Object trade = this.parseWsTrade(data);
+            Object trade = this.parseWsTrade((Map<String, Object>) (data));
             Helpers.callDynamically(trades, "append", new Object[]{trade});
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchMyTrades
@@ -1188,7 +1188,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Pacifica.this.iso8601(timestamp) );
@@ -1205,7 +1205,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 put( "cost", fee );
                 put( "currency", "USDC" );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**

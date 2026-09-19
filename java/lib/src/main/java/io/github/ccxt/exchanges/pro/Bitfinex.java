@@ -499,7 +499,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object subscription = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String name = "myTrade";
         Object data = this.safeValue(message, 2);
-        Object trade = this.parseWsTrade(data);
+        Object trade = this.parseWsTrade((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
@@ -571,7 +571,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
                 Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
-                Object parsed = this.parseWsTrade(Helpers.GetValue(trades, index), market);
+                Object parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
             }
         } else
@@ -585,13 +585,13 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 return;
             }
             List<Object> trade = (List<Object>) this.safeList(message, 2, new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parseWsTrade(trade, market);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    [
@@ -672,7 +672,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         if (!java.util.Objects.equals(feeValue, null))
         {
             String currencyId = this.safeString(trade, 10);
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             final Object finalFeeValue = feeValue;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
@@ -690,7 +690,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         final Object finalSide = side;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bitfinex.this.iso8601(timestamp) );
@@ -704,7 +704,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "amount", finalAmount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     public void handleTicker(Client client, Object message, Map<String, Object> subscription)
@@ -983,7 +983,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (java.util.Objects.equals(checksum, true))
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
                 client.reject(error, messageHash);
             }
         }
@@ -1093,7 +1093,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             Object rawBalance = Helpers.GetValue(data, i);
             String currencyId = this.safeString(rawBalance, 1);
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object balance = this.parseWsBalance(rawBalance);
             String balanceType = this.safeString(rawBalance, 0);
             Map<String, Object> oldBalance = (Map<String, Object>) this.safeDict(this.balance, balanceType, new HashMap<String, Object>() {{}});
@@ -1171,7 +1171,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-            this.cleanUnsubscription(client, subHash, messageHash);
+            this.cleanUnsubscription(client, (String) (subHash), (String) (messageHash));
         }
         this.cleanCache(subscription);
         return true;
@@ -1380,14 +1380,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object value = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(value);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (value));
                 Object symbol = ((Map<String, Object>)parsed).get("symbol");
                 ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);
                 Helpers.callDynamically(orders, "append", new Object[]{parsed});
             }
         } else
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(data);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data));
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);
@@ -1415,7 +1415,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //   [
@@ -1486,7 +1486,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalAmount = amount;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -1507,7 +1507,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "fee", null );
             put( "cost", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public void handleMessage(Client client, Object message)

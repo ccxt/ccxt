@@ -369,7 +369,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 put( "method", method );
                 put( "params", args );
             }};
-            (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
@@ -402,7 +402,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 1, new HashMap<String, Object>() {{}});
         String messageHash = (("ticker" + ":") + symbol);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (rawTicker), market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         // watchTicker
         client.resolve(ticker, messageHash);
@@ -585,14 +585,14 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        Object parsed = this.parseWsTrade(trade);
+        Object parsed = this.parseWsTrade((Map<String, Object>) (trade));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
         String messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //   [
@@ -622,7 +622,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, 10);
-            Object feeCurrencyCode = (((!java.util.Objects.equals(feeCurrencyId, null)))) ? this.safeCurrencyCode(feeCurrencyId) : ((Map<String, Object>)market).get("quote");
+            Object feeCurrencyCode = (((!java.util.Objects.equals(feeCurrencyId, null)))) ? this.safeCurrencyCode((String) (feeCurrencyId)) : ((Map<String, Object>)market).get("quote");
             final Object finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -651,7 +651,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -665,7 +665,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -749,16 +749,16 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         Object stored = this.orders;
         Long status = this.safeInteger(parameters, 0);
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(this.extend(data, new HashMap<String, Object>() {{
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
             put( "status", status );
-        }}));
+        }})));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
         String messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //   {
@@ -840,7 +840,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         final Object finalRemaining = remaining;
         final Object finalUnifiedStatus = unifiedStatus;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", id );
@@ -863,7 +863,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             put( "status", finalUnifiedStatus );
             put( "fee", finalFee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseWsOrderType(Object status)
@@ -1032,7 +1032,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if (Boolean.TRUE.equals(isMargin))
             {
                 String currencyId = this.safeString(balanceDict, "a");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode((String) (currencyId));
                 Object account = this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balanceDict, "av"));
                 ((Map<String, Object>)account).put("total", this.safeString(balanceDict, "B"));
@@ -1048,7 +1048,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     Object currencyId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                     Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balanceDict, currencyId, new HashMap<String, Object>() {{}});
-                    String code = this.safeCurrencyCode(currencyId);
+                    String code = this.safeCurrencyCode((String) (currencyId));
                     Object account = this.account();
                     ((Map<String, Object>)account).put("free", this.safeString(rawBalance, "available"));
                     ((Map<String, Object>)account).put("used", this.safeString(rawBalance, "freeze"));

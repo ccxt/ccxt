@@ -598,7 +598,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id);
@@ -634,7 +634,7 @@ public class Hollaex extends HollaexApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "numericId", Hollaex.this.safeInteger(rawCurrency, "id") );
             put( "code", code );
@@ -657,7 +657,7 @@ public class Hollaex extends HollaexApi
             }} );
             put( "networks", networks );
             put( "type", type );
-        }});
+        }}));
     }
 
     /**
@@ -785,7 +785,7 @@ public class Hollaex extends HollaexApi
             //         "timestamp": "2020-03-03T03:11:18.965Z"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -845,12 +845,12 @@ public class Hollaex extends HollaexApi
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            ((Map<String, Object>)result).put((String)symbol, this.extend(this.parseTicker(ticker, market), parameters));
+            ((Map<String, Object>)result).put((String)symbol, this.extend(this.parseTicker((Map<String, Object>) (ticker), market), parameters));
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -1001,7 +1001,7 @@ public class Hollaex extends HollaexApi
             }};
         }
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -1015,7 +1015,7 @@ public class Hollaex extends HollaexApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1198,7 +1198,7 @@ public class Hollaex extends HollaexApi
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString(response, (currencyId + "_available")));
             ((Map<String, Object>)account).put("total", this.safeString(response, (currencyId + "_balance")));
@@ -1542,7 +1542,7 @@ public class Hollaex extends HollaexApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Map<String, Object> meta = (Map<String, Object>) this.safeDict(order, "meta", new HashMap<String, Object>() {{}});
         Boolean postOnly = (Boolean) this.safeBool(meta, "post_only", false);
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -1564,7 +1564,7 @@ public class Hollaex extends HollaexApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1943,7 +1943,7 @@ public class Hollaex extends HollaexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2011,7 +2011,7 @@ public class Hollaex extends HollaexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
@@ -2040,7 +2040,7 @@ public class Hollaex extends HollaexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transaction = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction(transaction, currency);
+            return this.parseTransaction((Map<String, Object>) (transaction), currency);
         });
 
     }
@@ -2073,7 +2073,7 @@ public class Hollaex extends HollaexApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2114,7 +2114,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchWithdrawals, fetchDeposits
@@ -2256,7 +2256,7 @@ public class Hollaex extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             if (!java.util.Objects.equals(tag, null))
             {
                 address = (address + (":" + tag));
@@ -2273,7 +2273,7 @@ public class Hollaex extends HollaexApi
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
                 put( "address", finalAddress );
-                put( "network", Hollaex.this.networkCodeToId(finalNetwork, code) );
+                put( "network", Hollaex.this.networkCodeToId((String) (finalNetwork), code) );
             }};
             Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, parameters))).join();
             //
@@ -2286,7 +2286,7 @@ public class Hollaex extends HollaexApi
             //         "fee_coin": "xht"
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }

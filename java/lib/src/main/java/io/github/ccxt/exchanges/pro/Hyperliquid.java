@@ -162,7 +162,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             if (java.util.Objects.equals(ordersLength, 0))
             {
                 // not sure why but it is happening sometimes
-                return this.safeOrder(new HashMap<String, Object>() {{}});
+                return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{}}));
             }
             Object parsedOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
             return parsedOrder;
@@ -260,10 +260,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             for (var i = 0; i < ((List<?>)statuses).size(); i++)
             {
                 Object status = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
-                ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+                ((List<Object>)orders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", status );
                     put( "status", status );
-                }}));
+                }})));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -781,7 +781,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     public Object parseWsTicker(Object rawTicker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parseTicker(rawTicker, market);
+        return this.parseTicker((Map<String, Object>) (rawTicker), market);
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -831,7 +831,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Object parsed = this.parseWsTrade(rawTrade);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
@@ -968,14 +968,14 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < ((List<?>)entry).size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
-            Object trade = this.parseWsTrade(data);
+            Object trade = this.parseWsTrade((Map<String, Object>) (data));
             Helpers.callDynamically(trades, "append", new Object[]{trade});
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // fetchMyTrades
@@ -1026,7 +1026,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         String fee = this.safeString(trade, "fee");
         final Object finalSide = side;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Hyperliquid.this.iso8601(timestamp) );
@@ -1043,7 +1043,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "cost", fee );
                 put( "currency", "USDC" );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1447,7 +1447,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             ((Map<String, Object>)account).put("total", this.safeString(marginSummary, "accountValue"));
         } else
         {
-            code = this.safeCurrencyCode(currencyId);
+            code = this.safeCurrencyCode((String) (currencyId));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "hold"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
         }
@@ -1560,7 +1560,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }

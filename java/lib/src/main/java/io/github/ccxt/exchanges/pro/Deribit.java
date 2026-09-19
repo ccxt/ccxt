@@ -185,7 +185,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Helpers.addElementToObject(this.balance, "info", data);
         String currencyId = this.safeString(data, "currency");
-        String currencyCode = this.safeCurrencyCode(currencyId);
+        String currencyCode = this.safeCurrencyCode((String) (currencyId));
         Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
         if (!java.util.Objects.equals(currencyCode, null))
         {
@@ -291,7 +291,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 put( "id", Deribit.this.requestId() );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
+            Object newTickers = (this.watchMultiple((String) (url), channels, request, channels, request)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -338,7 +338,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (data));
         String messageHash = this.safeString(parameters, "channel");
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, messageHash);
@@ -381,7 +381,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 put( "id", Deribit.this.requestId() );
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
-            Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
+            Object newTickers = (this.watchMultiple((String) (url), channels, request, channels, request)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -1164,7 +1164,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 throw new ExchangeError((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
             }
-            return (this.watchMultiple(url, messageHashes, extendedRequest, rawSubscriptions, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, extendedRequest, rawSubscriptions, null)).join();
         });
 
     }

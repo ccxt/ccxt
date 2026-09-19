@@ -174,7 +174,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // {
@@ -189,7 +189,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Dydx.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -203,7 +203,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             put( "amount", Dydx.this.safeString(trade, "size") );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**

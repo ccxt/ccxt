@@ -452,7 +452,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object accountType = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object account = this.account();
         String currencyId = this.safeString(balance, "ccy");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode((String) (currencyId));
         ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
         ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
         if (!java.util.Objects.equals(accountType, null))
@@ -581,7 +581,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object parsed = this.parseWsTrade(data, market);
+        Object parsed = this.parseWsTrade((Map<String, Object>) (data), market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageWithType);
@@ -647,14 +647,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
-            Object parsed = this.parseWsTrade(trade, market);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // spot watchTrades
@@ -695,7 +695,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "created_at");
-        Boolean isSpot = (((Map<?, ?>)trade).containsKey("margin_market"));
+        Boolean isSpot = (trade.containsKey("margin_market"));
         String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         String marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
@@ -706,13 +706,13 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             String feeCurrencyId = this.safeString(trade, "fee_ccy", ((Map<String, Object>)market).get("quote"));
             final Object finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
-                put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Coinex.this.safeCurrencyCode((String) (feeCurrencyId)) );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinex.this.safeString(trade, "deal_id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -726,7 +726,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             put( "amount", Coinex.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -808,7 +808,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
+            Object result = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
             if (this.newUpdates)
             {
                 return result;
@@ -902,7 +902,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
+            Object trades = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return trades;
@@ -985,7 +985,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }};
             // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256());
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
-            Object orderbooks = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
+            Object orderbooks = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return orderbooks;
@@ -1307,7 +1307,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Map<String, Object> order = this.extend(new HashMap<String, Object>() {{
             put( "status", Coinex.this.safeString(data, "event") );
         }}, this.safeDict2(data, "order", "stop", new HashMap<String, Object>() {{}}));
-        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order);
+        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order));
         Object symbol = ((Map<String, Object>)parsedOrder).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(this.orders, null))
@@ -1324,7 +1324,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // spot
@@ -1418,7 +1418,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Long timestamp = this.safeInteger(order, "created_at");
         String marketId = this.safeString(order, "market");
         String status = this.safeString(order, "status");
-        Boolean isSpot = (((Map<?, ?>)order).containsKey("margin_market"));
+        Boolean isSpot = (order.containsKey("margin_market"));
         String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         Object fee = null;
@@ -1428,13 +1428,13 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             String feeCurrencyId = this.safeString(order, "fee_ccy", ((Map<String, Object>)market).get("quote"));
             final Object finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
-                put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Coinex.this.safeCurrencyCode((String) (feeCurrencyId)) );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Coinex.this.safeString2(order, "order_id", "stop_id") );
             put( "clientOrderId", Coinex.this.safeString(order, "client_id") );
@@ -1457,7 +1457,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             put( "status", Coinex.this.parseWsOrderStatus((String) (status)) );
             put( "fee", finalFee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseWsOrderStatus(String status)
@@ -1524,7 +1524,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
+            Object result = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
             if (this.newUpdates)
             {
                 return result;

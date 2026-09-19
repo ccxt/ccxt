@@ -453,7 +453,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} currency the raw currency data from the exchange
      * @returns {object} a [currency structure]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    public Object parseCurrency(Object currency)
+    public Object parseCurrency(Map<String, Object> currency)
     {
         String id = this.safeString2(currency, "id", "symbol", "");
         String code = this.safeCurrencyCode(id);
@@ -531,7 +531,7 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> currencyData = this.extend(currency, new HashMap<String, Object>() {{
                     put( "id", key );
                 }});
-                Object parsed = this.parseCurrency(currencyData);
+                Object parsed = this.parseCurrency((Map<String, Object>) (currencyData));
                 String code = this.safeString(parsed, "code", "");
                 if (java.util.Objects.equals(code, ""))
                 {
@@ -553,7 +553,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} [market] the market the ticker is for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String tickerSymbol = this.safeString(ticker, "symbol");
@@ -662,7 +662,7 @@ public class Revolutx extends RevolutxApi
             {
                 Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 ((Map<String, Object>)tickerData).put("timestamp", timestamp);
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (tickerData));
                 String symbol = this.safeString(ticker, "symbol", "");
                 if (java.util.Objects.equals(symbol, ""))
                 {
@@ -1125,7 +1125,7 @@ public class Revolutx extends RevolutxApi
         final Object finalFilledValue = filledValue;
         final Object finalRemainingValue = remainingValue;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "symbol", symbol );
@@ -1143,7 +1143,7 @@ public class Revolutx extends RevolutxApi
             put( "lastUpdateTimestamp", updatedDate );
             put( "fee", finalFee );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1279,11 +1279,11 @@ public class Revolutx extends RevolutxApi
                 put( "venue_order_id", id );
             }};
             Object response = (this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters))).join();
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", id );
                 put( "status", "canceled" );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }

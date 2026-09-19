@@ -188,7 +188,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Object trade = this.parseWsTrade(rawTrade);
+            Object trade = this.parseWsTrade((Map<String, Object>) (rawTrade));
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             Object stored = this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
@@ -203,7 +203,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return this.parseTrade(trade, market);
@@ -411,7 +411,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parseTicker(ticker, market);
+        return this.parseTicker((Map<String, Object>) (ticker), market);
     }
 
     /**
@@ -454,8 +454,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     put( "instId", ((Map<String, Object>)market).get("id") );
                 }});
             }
-            Map<String, Object> request = this.getSubscriptionRequest(args);
-            Object ticker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
+            Object request = this.getSubscriptionRequest(args);
+            Object ticker = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -641,7 +641,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> sub = new HashMap<String, Object>() {{
                 put( "channel", "account" );
             }};
-            Map<String, Object> request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(sub)));
+            Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(sub)));
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), "private");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(Balances::new);
@@ -765,7 +765,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             Object symbol = ((Map<String, Object>)order).get("symbol");
             Object messageHash = Helpers.add((channelName + ":"), symbol);
             Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -774,7 +774,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return this.parseOrder(order, market);
@@ -847,7 +847,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     public Object parseWsPosition(Object position, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parsePosition(position, market);
+        return this.parsePosition((Map<String, Object>) (position), market);
     }
 
     /**
@@ -879,7 +879,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 put( "channel", "funding-rate" );
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
-            Map<String, Object> request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
+            Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), "public");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(FundingRate::new);
@@ -996,15 +996,15 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         put( "channel", channelName );
     }}));
             }
-            Map<String, Object> request = this.getSubscriptionRequest(rawSubscriptions);
+            Object request = this.getSubscriptionRequest(rawSubscriptions);
             String privateOrPublic = ((Helpers.isTrue(isPublic))) ? "public" : "private";
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), privateOrPublic);
-            return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
         });
 
     }
 
-    public Map<String, Object> getSubscriptionRequest(Object args)
+    public Object getSubscriptionRequest(Object args)
     {
         return new HashMap<String, Object>() {{
             put( "op", "subscribe" );

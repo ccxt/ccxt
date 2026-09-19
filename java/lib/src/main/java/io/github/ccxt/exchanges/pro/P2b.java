@@ -235,7 +235,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 put( "params", args );
                 put( "id", P2b.this.milliseconds() );
             }};
-            (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
@@ -305,7 +305,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 put( "id", P2b.this.milliseconds() );
             }};
             Map<String, Object> query = this.extend(subscribe, parameters);
-            Object trades = (this.watchMultiple(url, messageHashes, query, messageHashes, null)).join();
+            Object trades = (this.watchMultiple((String) (url), messageHashes, query, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -498,7 +498,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             }});
         } else
         {
-            ticker = this.parseTicker(tickerData, market);
+            ticker = this.parseTicker((Map<String, Object>) (tickerData), market);
         }
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);

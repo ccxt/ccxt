@@ -184,7 +184,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "ch", name );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -446,7 +446,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object marketId = this.marketId(Helpers.GetValue(symbols, i));
+                    Object marketId = this.marketId((String) (Helpers.GetValue(symbols, i)));
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         ((List<Object>)marketIds).add(marketId);
@@ -812,7 +812,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
-            Map<String, Object> trade = this.extend(this.parseWsTrade((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i)), market), parameters);
+            Map<String, Object> trade = this.extend(this.parseWsTrade((Map<String, Object>) ((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i))), market), parameters);
             ((List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -820,7 +820,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -833,7 +833,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "t");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Hitbtc.this.safeString(trade, "i") );
             put( "order", null );
@@ -847,7 +847,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "amount", Hitbtc.this.safeString(trade, "q") );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1131,7 +1131,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         client.resolve(orders, Helpers.add((messageHash + "::"), symbol));
     }
 
-    public Object parseWsOrderTrade(Object trade, Object... optionalArgs)
+    public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -1162,7 +1162,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "created_at");
         String marketId = this.safeString(trade, "symbol");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Hitbtc.this.safeString(trade, "trade_id") );
             put( "order", Hitbtc.this.safeString(trade, "id") );
@@ -1180,10 +1180,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "currency", null );
                 put( "rate", null );
             }} );
-        }}, market);
+        }}), market);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //    {
@@ -1219,7 +1219,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         List<Object> trades = null;
         if (!java.util.Objects.equals(tradeId, null))
         {
-            Object trade = this.parseWsOrderTrade(order, market);
+            Object trade = this.parseWsOrderTrade((Map<String, Object>) (order), market);
             trades = new ArrayList<Object>(Arrays.asList(trade));
         }
         String rawStatus = this.safeString(order, "status");
@@ -1235,7 +1235,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         final Object finalMarket = market;
         final Object finalParsedStatus = parsedStatus;
         final Object finalTrades = trades;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Hitbtc.this.safeString(order, "id") );
             put( "clientOrderId", Hitbtc.this.safeString(order, "client_order_id") );
@@ -1257,7 +1257,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "average", null );
             put( "trades", finalTrades );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1591,13 +1591,13 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(Helpers.GetValue(result, i));
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (Helpers.GetValue(result, i)));
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
         } else
         {
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(result);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (result));
             client.resolve(parsedOrder, messageHash);
         }
         return message;

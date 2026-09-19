@@ -161,7 +161,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", null );
@@ -175,7 +175,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             put( "amount", Luno.this.safeString(trade, "base") );
             put( "cost", Luno.this.safeString(trade, "counter") );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**

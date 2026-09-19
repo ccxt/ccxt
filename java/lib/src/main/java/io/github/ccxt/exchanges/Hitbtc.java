@@ -1094,10 +1094,10 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public Object parseCurrency(Map<String, Object> currency)
     {
         Object currencyId = ((Map<String, Object>)currency).get("_coin_id");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode((String) (currencyId));
         Object entry = currency;
         List<Object> rawNetworks = (List<Object>) this.safeList(entry, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -1128,7 +1128,7 @@ public class Hitbtc extends HitbtcApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", entry );
             put( "code", code );
             put( "id", currencyId );
@@ -1146,7 +1146,7 @@ public class Hitbtc extends HitbtcApi
                 }} );
             }} );
             put( "type", null );
-        }});
+        }}));
     }
 
     /**
@@ -1168,7 +1168,7 @@ public class Hitbtc extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1218,7 +1218,7 @@ public class Hitbtc extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1362,7 +1362,7 @@ public class Hitbtc extends HitbtcApi
             //         "timestamp": "2021-06-02T17:52:36.732Z"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1419,14 +1419,14 @@ public class Hitbtc extends HitbtcApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(entry, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker((Map<String, Object>) (entry), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1700,7 +1700,7 @@ public class Hitbtc extends HitbtcApi
         String id = this.safeString(trade, "id");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", orderId );
@@ -1714,7 +1714,7 @@ public class Hitbtc extends HitbtcApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     public CompletableFuture<Object> fetchTransactionsHelper(String types, String code2, Object since2, Object limit2, Map<String, Object> parameters)
@@ -1736,7 +1736,7 @@ public class Hitbtc extends HitbtcApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currencies", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1802,7 +1802,7 @@ public class Hitbtc extends HitbtcApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // transaction
@@ -3186,7 +3186,7 @@ public class Hitbtc extends HitbtcApi
         String timeInForce = this.safeString(order, "time_in_force");
         Object rawTrades = this.safeValue(order, "trades");
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", id );
@@ -3212,7 +3212,7 @@ public class Hitbtc extends HitbtcApi
             put( "triggerPrice", Hitbtc.this.safeString(order, "stop_price") );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -3263,7 +3263,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(marginMode, "symbol");
@@ -3299,8 +3299,8 @@ public class Hitbtc extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object requestAmount = this.currencyToPrecision(code, amount);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Object requestAmount = this.currencyToPrecision((String) (code), amount);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             fromAccount = ((String)fromAccount).toLowerCase();
             toAccount = ((String)toAccount).toLowerCase();
@@ -3323,12 +3323,12 @@ public class Hitbtc extends HitbtcApi
             //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
             //     ]
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // transfer
@@ -3342,7 +3342,7 @@ public class Hitbtc extends HitbtcApi
             put( "id", Hitbtc.this.safeString(transfer, 0) );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", Hitbtc.this.safeCurrencyCode(null, currency) );
+            put( "currency", Hitbtc.this.safeCurrencyCode((String) (null), currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -3389,7 +3389,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "from_currency", finalFromNetwork );
                 put( "to_currency", finalToNetwork );
-                put( "amount", Hitbtc.this.currencyToPrecision(finalCode, amount) );
+                put( "amount", Hitbtc.this.currencyToPrecision((String) (finalCode), amount) );
             }};
             List<Object> response = (this.privatePostWalletConvert(this.extend(request, parameters))).join();
             // {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
@@ -3427,7 +3427,7 @@ public class Hitbtc extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -3460,7 +3460,7 @@ public class Hitbtc extends HitbtcApi
             //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3726,7 +3726,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(response, i)));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (Helpers.GetValue(response, i))));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -3817,12 +3817,12 @@ public class Hitbtc extends HitbtcApi
             //         },
             //     ]
             //
-            return this.parsePosition(response, market);
+            return this.parsePosition((Map<String, Object>) (response), market);
         }).thenApply(Position::new);
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     [
@@ -3885,7 +3885,7 @@ public class Hitbtc extends HitbtcApi
         final Object finalEntryPrice = entryPrice;
         final Object finalContracts = contracts;
         final Object finalCollateral = collateral;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -3914,7 +3914,7 @@ public class Hitbtc extends HitbtcApi
             put( "marginRatio", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     public Object parseOpenInterest(Object interest, Object... optionalArgs)
@@ -4219,7 +4219,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             Object parsedAmount = this.parseNumber(amount);
-            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "amount", parsedAmount );
                 put( "type", type );
             }});
@@ -4227,7 +4227,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         //
         // addMargin/reduceMargin
@@ -4400,12 +4400,12 @@ public class Hitbtc extends HitbtcApi
             //         ]
             //     }
             //
-            return this.parseLeverage(response, market);
+            return this.parseLeverage((Map<String, Object>) (response), market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "symbol");

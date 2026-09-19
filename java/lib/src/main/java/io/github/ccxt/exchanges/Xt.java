@@ -1418,7 +1418,7 @@ public class Xt extends XtApi
                 {
                     final Object finalCode = code;
                     final Object finalType = type;
-                    ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", currencyId );
         put( "code", finalCode );
@@ -1444,7 +1444,7 @@ public class Xt extends XtApi
                 put( "max", null );
             }} );
         }} );
-    }}));
+    }})));
                 }
             }
             return result;
@@ -2279,9 +2279,9 @@ public class Xt extends XtApi
             Object ticker = this.safeValue(response, "result");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                return this.parseTicker(Helpers.GetValue(ticker, 0), market);
+                return this.parseTicker((Map<String, Object>) (Helpers.GetValue(ticker, 0)), market);
             }
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -2385,7 +2385,7 @@ public class Xt extends XtApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) ((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i))), market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2494,7 +2494,7 @@ public class Xt extends XtApi
                 String marketId = this.safeString(rawTicker, "s");
                 String marketType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, market, "_", marketType);
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, marketInner);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (rawTicker), marketInner);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2506,7 +2506,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -2556,7 +2556,7 @@ public class Xt extends XtApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "s");
         Object marketType = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("type") : null;
-        Boolean hasSpotKeys = (Helpers.inOp(ticker, "cv")) || (Helpers.inOp(ticker, "aq"));
+        Boolean hasSpotKeys = (ticker.containsKey("cv")) || (ticker.containsKey("aq"));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
@@ -2995,7 +2995,7 @@ public class Xt extends XtApi
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalAmount = amount;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Xt.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "tradeId", "execId"))) );
             put( "timestamp", timestamp );
@@ -3012,7 +3012,7 @@ public class Xt extends XtApi
                 put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString2(trade, "feeCurrency", "feeCoin")) );
                 put( "cost", Xt.this.safeString(trade, "fee") );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -4675,7 +4675,7 @@ public class Xt extends XtApi
             //         "result": true
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(response)));
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (response))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4728,7 +4728,7 @@ public class Xt extends XtApi
             //         "result": null
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(response)));
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (response))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4905,7 +4905,7 @@ public class Xt extends XtApi
         final Object finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
         final Object finalSide = side;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Xt.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId", "trackId"))) );
             put( "clientOrderId", Xt.this.safeString2(order, "clientOrderId", "clientModifyId") );
@@ -4933,7 +4933,7 @@ public class Xt extends XtApi
                 put( "cost", Xt.this.safeNumber(order, "fee") );
             }} );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -4986,7 +4986,7 @@ public class Xt extends XtApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -5045,7 +5045,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -5127,7 +5127,7 @@ public class Xt extends XtApi
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((List<Object>) networkCodeparametersVariable).get(1);
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object networkId = this.networkCodeToId(networkCode, code);
             this.checkRequiredArgument("fetchDepositAddress", networkId, "network");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5165,7 +5165,7 @@ public class Xt extends XtApi
         this.checkAddress(address);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", Xt.this.safeCurrencyCode(null, currency) );
+            put( "currency", Xt.this.safeCurrencyCode((String) (null), currency) );
             put( "network", null );
             put( "address", address );
             put( "tag", Xt.this.safeString(depositAddress, "memo") );
@@ -5200,7 +5200,7 @@ public class Xt extends XtApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -5273,7 +5273,7 @@ public class Xt extends XtApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -5342,7 +5342,7 @@ public class Xt extends XtApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -5355,7 +5355,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "chain", networkId );
-                put( "amount", Xt.this.currencyToPrecision(code, amount) );
+                put( "amount", Xt.this.currencyToPrecision((String) (code), amount) );
                 put( "address", address );
             }};
             if (!java.util.Objects.equals(tag, null))
@@ -5374,12 +5374,12 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(result, currency);
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -5421,7 +5421,7 @@ public class Xt extends XtApi
         //     }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String type = (((((Map<?, ?>)transaction).containsKey("fromAddr")))) ? "deposit" : "withdraw";
+        String type = (((transaction.containsKey("fromAddr")))) ? "deposit" : "withdraw";
         Long timestamp = this.safeInteger(transaction, "createdTime");
         String address = this.safeString(transaction, "address");
         String memo = this.safeString(transaction, "memo");
@@ -5625,12 +5625,12 @@ public class Xt extends XtApi
             //         "result": null
             //     }
             //
-            return this.parseMarginModification(response, market);
+            return this.parseMarginModification((Map<String, Object>) (response), market);
         });
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -6543,7 +6543,7 @@ final Object finalMarket = market;
                 if (!java.util.Objects.equals(positionSize, "0"))
                 {
                     Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
-                    return this.parsePosition(merged, marketInner);
+                    return this.parsePosition((Map<String, Object>) (merged), marketInner);
                 }
             }
             throw new NullResponse(((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
@@ -6640,7 +6640,7 @@ final Object finalMarket = market;
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
                 Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
-                ((List<Object>)result).add(this.parsePosition(merged, marketInner));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (merged), marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -6746,7 +6746,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // position/list
@@ -6815,7 +6815,7 @@ final Object finalMarket = market;
         Object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
         Long timestamp = this.safeInteger(position, "closeTime");
         final Object finalMarket = market;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Xt.this.safeString(position, "id") );
             put( "symbol", symbol );
@@ -6841,7 +6841,7 @@ final Object finalMarket = market;
             put( "marginMode", marginMode );
             put( "percentage", null );
             put( "marginRatio", null );
-        }});
+        }}));
     }
 
     /**
@@ -6866,11 +6866,11 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsById");
             String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
-            Object amountString = this.currencyToPrecision(code, amount);
+            Object amountString = this.currencyToPrecision((String) (code), amount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "bizId", Xt.this.uuid() );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -6892,12 +6892,12 @@ final Object finalMarket = market;
             //       status: undefined
             //   }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{

@@ -1618,7 +1618,7 @@ public class Lighter extends LighterApi
                 }
                 String quoteId = "USDC";
                 String settleId = (((java.util.Objects.equals(type, "swap")))) ? "USDC" : null;
-                String base = this.safeCurrencyCode(baseId);
+                String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
                 Object symbol = ((base + "/") + quote);
@@ -1736,7 +1736,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "asset_id");
         String code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
@@ -1752,7 +1752,7 @@ public class Lighter extends LighterApi
         final Object finalCode = code;
         final Object finalDepositMin = depositMin;
         final Object finalWithdrawMin = withdrawMin;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", finalCode );
             put( "code", finalCode );
@@ -1774,7 +1774,7 @@ public class Lighter extends LighterApi
                 }} );
             }} );
             put( "info", rawCurrency );
-        }});
+        }}));
     }
 
     /**
@@ -1847,7 +1847,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // fetchTicker, fetchTickers
@@ -2023,7 +2023,7 @@ public class Lighter extends LighterApi
             List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
             Map<String, Object> first = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(first, market);
+            return this.parseTicker((Map<String, Object>) (first), market);
         }).thenApply(Ticker::new);
 
     }
@@ -2502,7 +2502,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -2552,7 +2552,7 @@ public class Lighter extends LighterApi
         final Object finalMarginMode = marginMode;
         final Object finalSide = side;
         final Object finalLeverage = leverage;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -2576,7 +2576,7 @@ public class Lighter extends LighterApi
             put( "liquidationPrice", Lighter.this.safeNumber(position, "liquidation_price") );
             put( "marginMode", finalMarginMode );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     /**
@@ -2983,7 +2983,7 @@ public class Lighter extends LighterApi
         final Object finalSide = side;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Lighter.this.safeString(order, "order_id") );
             put( "clientOrderId", Lighter.this.omitZero(Lighter.this.safeString2(order, "client_order_id", "client_order_index")) );
@@ -3009,7 +3009,7 @@ public class Lighter extends LighterApi
             put( "status", Lighter.this.parseOrderStatus(status) );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public String parseOrderStatus(String status)
@@ -3136,13 +3136,13 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             if (java.util.Objects.equals(((Map<String, Object>)currency).get("code"), "USDC"))
             {
-                amount = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(code, amount)));
+                amount = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision((String) (code), amount)));
             } else if (java.util.Objects.equals(((Map<String, Object>)currency).get("code"), "ETH"))
             {
-                amount = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amount)));
+                amount = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision((String) (code), amount)));
             } else
             {
                 throw new ExchangeError((this.id + " transfer() only supports USDC and ETH transfers")) ;
@@ -3176,7 +3176,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseTransfer(response);
+            return this.parseTransfer((Map<String, Object>) (response));
         }).thenApply(TransferEntry::new);
 
     }
@@ -3233,7 +3233,7 @@ public class Lighter extends LighterApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
             Map<String, Object> response = (this.privateGetTransferHistory(this.extend(request, parameters))).join();
             //
@@ -3271,7 +3271,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         //     {
@@ -3372,7 +3372,7 @@ public class Lighter extends LighterApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetDepositHistory(this.extend(request, parameters))).join();
@@ -3456,7 +3456,7 @@ public class Lighter extends LighterApi
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetWithdrawHistory(this.extend(request, parameters))).join();
@@ -3489,7 +3489,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -3595,13 +3595,13 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             if (java.util.Objects.equals(((Map<String, Object>)currency).get("code"), "USDC"))
             {
-                amount = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(code, amount)));
+                amount = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision((String) (code), amount)));
             } else if (java.util.Objects.equals(((Map<String, Object>)currency).get("code"), "ETH"))
             {
-                amount = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amount)));
+                amount = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision((String) (code), amount)));
             } else
             {
                 throw new ExchangeError((this.id + " withdraw() only supports USDC and ETH transfers")) ;
@@ -3628,7 +3628,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseTransaction(response);
+            return this.parseTransaction((Map<String, Object>) (response));
         }).thenApply(Transaction::new);
 
     }
@@ -3811,7 +3811,7 @@ public class Lighter extends LighterApi
         final Object finalOrderId = orderId;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Lighter.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
@@ -3825,7 +3825,7 @@ public class Lighter extends LighterApi
             put( "amount", Lighter.this.safeString(trade, "size") );
             put( "cost", Lighter.this.safeString(trade, "usd_amount") );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -4281,12 +4281,12 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseMarginModification(response, market);
+            return this.parseMarginModification((Map<String, Object>) (response), market);
         }).thenApply(MarginModification::new);
 
     }
 
-    public Object parseMarginModification(Object data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(data, "predicted_execution_time_ms");

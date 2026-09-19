@@ -524,11 +524,11 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrency(Map<String, Object> rawCurrency)
     {
         String id = this.safeString(rawCurrency, "code");
         String code = this.safeCurrencyCode(id);
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "name", Onetrading.this.safeString(rawCurrency, "name") );
@@ -549,7 +549,7 @@ public class Onetrading extends OnetradingApi
                 }} );
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
-        }});
+        }}));
     }
 
     /**
@@ -915,7 +915,7 @@ public class Onetrading extends OnetradingApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // fetchTicker, fetchTickers
@@ -1012,7 +1012,7 @@ public class Onetrading extends OnetradingApi
             //         "low":"8110.0"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker((Map<String, Object>) (response), market);
         }).thenApply(Ticker::new);
 
     }
@@ -1063,7 +1063,7 @@ public class Onetrading extends OnetradingApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) ((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i))));
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1355,7 +1355,7 @@ public class Onetrading extends OnetradingApi
         final Object finalTimestamp = timestamp;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Onetrading.this.safeString2(finalTrade, "trade_id", "sequence") );
             put( "order", Onetrading.this.safeString(finalTrade, "order_id") );
             put( "timestamp", finalTimestamp );
@@ -1369,7 +1369,7 @@ public class Onetrading extends OnetradingApi
             put( "takerOrMaker", finalTakerOrMaker );
             put( "fee", finalFee );
             put( "info", finalTrade );
-        }}, market);
+        }}), market);
     }
 
     public Object parseBalance(Object response)
@@ -1536,7 +1536,7 @@ public class Onetrading extends OnetradingApi
         String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
         Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only");
         List<Object> rawTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "info", order );
@@ -1557,7 +1557,7 @@ public class Onetrading extends OnetradingApi
             put( "remaining", null );
             put( "status", status );
             put( "trades", rawTrades );
-        }}, market);
+        }}), market);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -1746,9 +1746,9 @@ public class Onetrading extends OnetradingApi
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     ]
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1783,9 +1783,9 @@ public class Onetrading extends OnetradingApi
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     ]
             //
-            Object order = this.safeOrder(new HashMap<String, Object>() {{
+            Object order = this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
-            }});
+            }}));
             return new ArrayList<Object>(Arrays.asList(order));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

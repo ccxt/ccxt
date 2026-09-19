@@ -146,7 +146,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         {
             Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(entry, "currency");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
             ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
@@ -332,7 +332,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             return;
         } else if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            ticker = this.parseTicker(message, market);
+            ticker = this.parseTicker((Map<String, Object>) (message), market);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             Map<String, Object> lastTicker = (Map<String, Object>) this.safeDict(this.tickers, symbol);
@@ -461,13 +461,13 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object parsed = this.parseWsTrade(message, market);
+        Object parsed = this.parseWsTrade((Map<String, Object>) (message), market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -485,7 +485,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "timestamp");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(trade, "trade_id") );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
             put( "datetime", datetime );
@@ -499,7 +499,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "cost", null );
             put( "fee", null );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -645,19 +645,19 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order));
                 Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
             }
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(message);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
         }
         this.orders = cachedOrders;
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -705,7 +705,7 @@ final Object finalTradeId = tradeId;
             }});
         }
         final Object finalMarket = market;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(order, "orderID") );
             put( "clientOrderId", Blockchaincom.this.safeString(order, "clOrdID") );
             put( "datetime", datetime );
@@ -731,7 +731,7 @@ final Object finalTradeId = tradeId;
             put( "info", order );
             put( "lastTradeTimestamp", null );
             put( "average", Blockchaincom.this.safeString(order, "avgPx") );
-        }}, market);
+        }}), market);
     }
 
     public String parseWsOrderStatus(String status)

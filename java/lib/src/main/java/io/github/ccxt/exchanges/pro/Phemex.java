@@ -341,7 +341,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         } else if (message.containsKey("spot_market24h"))
         {
             Object ticker = this.safeValue(message, "spot_market24h");
-            ((List<Object>)tickers).add(this.parseTicker(ticker));
+            ((List<Object>)tickers).add(this.parseTicker((Map<String, Object>) (ticker)));
         } else if (message.containsKey("data"))
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -445,7 +445,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             Object balance = Helpers.GetValue(message, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();
@@ -681,7 +681,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList()) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            Object ticker = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1575,7 +1575,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Object finalClientOrderId = clientOrderId;
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalTimeInForce = timeInForce;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
@@ -1598,7 +1598,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public void handleMessage(Client client, Object message)

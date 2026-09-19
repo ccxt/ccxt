@@ -224,7 +224,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 message = this.extend(message, parameters);
             }
-            Object newTicker = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            Object newTicker = (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -399,7 +399,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         if (!java.util.Objects.equals(code, null))
         {
             ((Map<String, Object>)ticker).put("market", this.safeString(ticker, "market", code));
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }
         Object date = this.safeString(ticker, "date", "");
         Object time = this.safeString(ticker, "time", "");
@@ -772,7 +772,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 fallbackSymbol = this.safeSymbol(marketId, null, "_");
             }
-            Object parsed = this.parseWsTrade(rawTrade);
+            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
             String symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
             {
@@ -787,7 +787,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         // generation 1
@@ -839,7 +839,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Object timestamp = Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
         String sideId = this.safeString(trade, "buySellGb");
         final Object finalSideId = sideId;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", null );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -853,7 +853,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             put( "amount", Bithumb.this.safeString(trade, "contQty") );
             put( "cost", Bithumb.this.safeString(trade, "contAmt") );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     public Boolean handleErrorMessage(Client client, Map<String, Object> message)
@@ -970,7 +970,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             Object asset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
             String currencyId = this.safeString(asset, "currency");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString(asset, "balance"));
             ((Map<String, Object>)account).put("used", this.safeString(asset, "locked"));
@@ -1135,7 +1135,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myOrder";
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
         String symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
         if (java.util.Objects.equals(this.orders, null))
@@ -1150,7 +1150,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         client.resolve(cachedOrders, symbolSpecificMessageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //    {
@@ -1234,7 +1234,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         final Object finalSide = side;
         final Object finalStatus = status;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bithumb.this.safeString2(order, "uuid", "order_id") );
             put( "clientOrderId", null );
@@ -1257,7 +1257,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             put( "status", finalStatus );
             put( "fee", finalFee );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     public void handleMessage(Client client, Object message)

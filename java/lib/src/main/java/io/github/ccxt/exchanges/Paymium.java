@@ -241,7 +241,7 @@ public class Paymium extends PaymiumApi
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object currencyId = ((Map<String, Object>)currency).get("id");
             String free = ("balance_" + currencyId);
             if (((Map<?, ?>)response).containsKey(free))
@@ -311,7 +311,7 @@ public class Paymium extends PaymiumApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         // {
@@ -404,7 +404,7 @@ public class Paymium extends PaymiumApi
             //     "size":"0.00041087"
             // }
             //
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -420,7 +420,7 @@ public class Paymium extends PaymiumApi
         String amountField = ("traded_" + ((String)((Map<String, Object>)market).get("base")).toLowerCase());
         String amount = this.safeString(trade, amountField);
         final Object finalMarket = market;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
@@ -434,7 +434,7 @@ public class Paymium extends PaymiumApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -634,10 +634,10 @@ public class Paymium extends PaymiumApi
                 ((Map<String, Object>)request).put("price", price);
             }
             Map<String, Object> response = (this.privatePostUserOrders(this.extend(request, parameters))).join();
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", Paymium.this.safeString(response, "uuid") );
-            }}, market);
+            }}), market);
         }).thenApply(Order::new);
 
     }
@@ -663,9 +663,9 @@ public class Paymium extends PaymiumApi
                 put( "uuid", id );
             }};
             Map<String, Object> response = (this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters))).join();
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -692,7 +692,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             if (((String)toAccount).indexOf("@") < 0)
             {
                 throw new ExchangeError((this.id + " transfer() only allows transfers to an email address")) ;
@@ -704,7 +704,7 @@ public class Paymium extends PaymiumApi
             final Object finalCode = code;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Paymium.this.currencyToPrecision(finalCode, amount) );
+                put( "amount", Paymium.this.currencyToPrecision((String) (finalCode), amount) );
                 put( "email", toAccount );
             }};
             Map<String, Object> response = (this.privatePostUserEmailTransfers(this.extend(request, parameters))).join();
@@ -740,12 +740,12 @@ public class Paymium extends PaymiumApi
             //         ]
             //     }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer((Map<String, Object>) (response), currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         //     {

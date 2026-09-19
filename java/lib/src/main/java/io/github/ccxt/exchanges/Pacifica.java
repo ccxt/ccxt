@@ -1876,7 +1876,7 @@ public class Pacifica extends PacificaApi
         final Object finalOrderId = orderId;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Pacifica.this.iso8601(timestamp) );
@@ -1894,7 +1894,7 @@ public class Pacifica extends PacificaApi
                 put( "currency", "USDC" );
                 put( "rate", null );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1971,12 +1971,12 @@ public class Pacifica extends PacificaApi
             String orderId = this.safeString(order, "order_id");
             final Object finalStatus = status;
             final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "status", finalStatus );
                 put( "info", finalResponse );
                 put( "symbol", symbol );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -2258,11 +2258,11 @@ public class Pacifica extends PacificaApi
                 }
                 String orderId = this.safeString(order, "order_id");
     final Object finalStatus = status;
-                            ((List<Object>)ordersToReturn).add(this.safeOrder(new HashMap<String, Object>() {{
+                            ((List<Object>)ordersToReturn).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", order );
                     put( "id", orderId );
                     put( "status", finalStatus );
-                }}));
+                }})));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2337,11 +2337,11 @@ public class Pacifica extends PacificaApi
                 }
     final Object finalStatus = status;
                 final Object finalSymbol = symbol;
-                            ((List<Object>)ordersToReturn).add(this.safeOrder(new HashMap<String, Object>() {{
+                            ((List<Object>)ordersToReturn).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", order );
                     put( "status", finalStatus );
                     put( "symbol", finalSymbol );
-                }}));
+                }})));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2417,9 +2417,9 @@ public class Pacifica extends PacificaApi
             //   error: null
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}))));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2496,12 +2496,12 @@ public class Pacifica extends PacificaApi
             String status = (((java.util.Objects.equals(success, true)))) ? "canceled" : "closed";
             final Object finalResponse = response;
             final Object finalSymbol = symbol;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", status );
                 put( "info", finalResponse );
                 put( "symbol", finalSymbol );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -2577,11 +2577,11 @@ public class Pacifica extends PacificaApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(data, "order_id");
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "info", response );
                 put( "symbol", symbol );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -2759,7 +2759,7 @@ public class Pacifica extends PacificaApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (info));
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2771,7 +2771,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -3325,7 +3325,7 @@ public class Pacifica extends PacificaApi
         String filledAmount = this.safeString2(order, "filled_amount", "f");
         String remaining = Precise.stringSub(totalAmount, filledAmount);
         final Object finalSide = side;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Pacifica.this.safeString2(order, "order_id", "i") );
             put( "clientOrderId", Pacifica.this.safeString2(order, "client_order_id", "I") );
@@ -3349,7 +3349,7 @@ public class Pacifica extends PacificaApi
             put( "status", Pacifica.this.parseOrderStatus(status) );
             put( "fee", null );
             put( "trades", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -3428,14 +3428,14 @@ public class Pacifica extends PacificaApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i)))));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -3466,7 +3466,7 @@ public class Pacifica extends PacificaApi
         final Object finalSide = side;
         final Object finalMargin = margin;
         final Object finalMarginMode = marginMode;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -3490,7 +3490,7 @@ public class Pacifica extends PacificaApi
             put( "liquidationPrice", null );
             put( "marginMode", finalMarginMode );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     /**
@@ -3885,7 +3885,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -4076,7 +4076,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String operationType = "transfer_funds";
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "to_account", toAccount );
@@ -4097,7 +4097,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer((Map<String, Object>) (data), currency), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", Pacifica.this.safeString(request, "account") );
                 put( "toAccount", toAccount );
@@ -4106,7 +4106,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
     {
         //
         // {
@@ -4132,7 +4132,7 @@ public class Pacifica extends PacificaApi
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", Pacifica.this.safeCurrencyCode(null, currency) );
+            put( "currency", Pacifica.this.safeCurrencyCode((String) (null), currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );

@@ -141,7 +141,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }});
             String type = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type), "/public");
-            return (this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscription)).join();
+            return (this.watchMultiple((String) (url), messageHashes, this.deepExtend(message, parameters), messageHashes, subscription)).join();
         });
 
     }
@@ -203,7 +203,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 }} );
             }} );
         }};
-        this.extendExchangeOptions(extendedOptions);
+        this.extendExchangeOptions((Map<String, Object>) (extendedOptions));
         // instantiate client
         this.client(url);
         // return headers to original state
@@ -216,7 +216,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 }} );
             }} );
         }};
-        this.extendExchangeOptions(defaultOptions);
+        this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
     }
 
     /**
@@ -645,7 +645,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object trade = this.parseWsTrade(rawTrade, market);
+            Object trade = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
             ((List<Object>)newTrades).add(trade);
         }
         List<Object> sorted = this.sortBy(newTrades, "timestamp");
@@ -658,7 +658,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(tradesArray, messageHash);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -683,7 +683,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "t") );
             put( "timestamp", timestamp );
@@ -697,7 +697,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "amount", Weex.this.safeString(trade, "q") );
             put( "cost", Weex.this.safeString(trade, "v") );
             put( "fee", null );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1559,7 +1559,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!java.util.Objects.equals(commission, null))
         {
             String commissionAsset = this.safeString(trade, "coin");
-            Object feeCurrency = this.safeCurrencyCode(commissionAsset);
+            Object feeCurrency = this.safeCurrencyCode((String) (commissionAsset));
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -1579,7 +1579,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "id") );
             put( "timestamp", timestamp );
@@ -1593,7 +1593,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "amount", Weex.this.safeString(trade, "fillSize") );
             put( "cost", Weex.this.safeString(trade, "fillValue") );
             put( "fee", finalFee );
-        }});
+        }}));
     }
 
     /**
@@ -1751,7 +1751,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(rawOrder);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder));
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1775,7 +1775,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // spot
@@ -1879,7 +1879,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!java.util.Objects.equals(commission, null))
         {
             String commissionAsset = this.safeString(order, "coin");
-            Object feeCurrency = this.safeCurrencyCode(commissionAsset);
+            Object feeCurrency = this.safeCurrencyCode((String) (commissionAsset));
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -1914,7 +1914,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         final Object finalFee = fee;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Weex.this.safeString(order, "id") );
             put( "clientOrderId", Weex.this.safeString(order, "clientOrderId") );
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
@@ -1940,7 +1940,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2109,7 +2109,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(balanceUpdates, i);
             String currencyId = this.safeString(entry, "coin");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(entry, "available", "amount"));
             ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
@@ -2329,7 +2329,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
     {
         // same as REST api
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parsePosition(position, market);
+        return this.parsePosition((Map<String, Object>) (position), market);
     }
 
     public Object getMarketFromClientAndMessage(Client client, Map<String, Object> message)
@@ -2388,7 +2388,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 String unSubHash = this.safeString(messageHashes, i);
                 String subHash = this.safeString(subHashes, i);
-                this.cleanUnsubscription(client, subHash, unSubHash, subHashIsPrefix);
+                this.cleanUnsubscription(client, (String) (subHash), (String) (unSubHash), subHashIsPrefix);
             }
             this.cleanCache(subscription);
         }

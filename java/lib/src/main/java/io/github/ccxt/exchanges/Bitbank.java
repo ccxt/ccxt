@@ -457,7 +457,7 @@ public class Bitbank extends BitbankApi
         }});
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeSymbol(null, market);
@@ -512,7 +512,7 @@ public class Bitbank extends BitbankApi
             }};
             Map<String, Object> response = (this.publicGetPairTicker(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, market);
+            return this.parseTicker((Map<String, Object>) (data), market);
         }).thenApply(Ticker::new);
 
     }
@@ -586,7 +586,7 @@ public class Bitbank extends BitbankApi
         String side = this.safeString(trade, "side");
         final Object finalMarket_2 = market;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", Bitbank.this.iso8601(timestamp) );
             put( "symbol", ((Map<String, Object>)finalMarket_2).get("symbol") );
@@ -600,7 +600,7 @@ public class Bitbank extends BitbankApi
             put( "cost", null );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -904,7 +904,7 @@ public class Bitbank extends BitbankApi
         String type = this.safeStringLower(order, "type");
         String side = this.safeStringLower(order, "side");
         final Object finalMarket = market;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "datetime", Bitbank.this.iso8601(timestamp) );
@@ -926,7 +926,7 @@ public class Bitbank extends BitbankApi
             put( "trades", null );
             put( "fee", null );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1193,7 +1193,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1244,7 +1244,7 @@ public class Bitbank extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -1268,12 +1268,12 @@ public class Bitbank extends BitbankApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(data, currency);
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -1293,7 +1293,7 @@ public class Bitbank extends BitbankApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String txid = this.safeString(transaction, "txid");
-        currency = this.safeCurrency(null, currency);
+        currency = this.safeCurrency((String) (null), currency);
         final Object finalCurrency = currency;
         return new HashMap<String, Object>() {{
             put( "id", txid );
