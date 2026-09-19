@@ -284,7 +284,7 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
         bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
-        string marketType = ((bool) isSwap) ? "swap" : "spot";
+        string marketType = (isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
@@ -331,7 +331,7 @@ public partial class bingx : ccxt.bingx
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        object inverse = ((bool) ((isInverse == null))) ? (isEqual(getValue(market, "inverse"), true)) : isInverse;
+        object inverse = (((isInverse == null))) ? (isEqual(getValue(market, "inverse"), true)) : isInverse;
         string baseVolumeKey = ((bool) isTrue(inverse)) ? "m" : "v";
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
@@ -577,7 +577,7 @@ public partial class bingx : ccxt.bingx
         string? rawHash = this.safeString(message, "dataType", "");
         object marketId = getValue(((string)rawHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
         bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
-        string marketType = ((bool) isSwap) ? "swap" : "spot";
+        string marketType = (isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade::" + symbol);
@@ -785,7 +785,7 @@ public partial class bingx : ccxt.bingx
         bool isAllEndpoint = ((firstPart == "all"));
         string? marketId = this.safeString(data, "symbol", firstPart);
         bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
-        string marketType = ((bool) isSwap) ? "swap" : "spot";
+        string marketType = (isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
@@ -840,10 +840,10 @@ public partial class bingx : ccxt.bingx
         // for linear swap, (T) is the opening time
         bool isSpot = ((this.safeBool(market, "spot") == true));
         bool isInverse = ((this.safeBool(market, "inverse") == true));
-        string timestamp = ((bool) isSpot) ? "t" : "T";
+        string timestamp = (isSpot) ? "t" : "T";
         if ((this.safeBool(market, "swap") == true))
         {
-            timestamp = ((bool) isInverse) ? "t" : "T";
+            timestamp = (isInverse) ? "t" : "T";
         }
         return new List<object> {this.safeInteger(ohlcv, timestamp), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
@@ -920,7 +920,7 @@ public partial class bingx : ccxt.bingx
         string? firstPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         bool isAllEndpoint = ((firstPart == "all"));
         string? marketId = this.safeString(message, "s", firstPart);
-        string marketType = ((bool) isSwap) ? "swap" : "spot";
+        string marketType = (isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         List<object> candles = null;
         if (isSwap)
@@ -1119,10 +1119,10 @@ public partial class bingx : ccxt.bingx
         bool isSpot = ((type == "spot"));
         string spotHash = "spot:private";
         string swapHash = "swap:private";
-        string subscriptionHash = ((bool) isSpot) ? spotHash : swapHash;
+        string subscriptionHash = (isSpot) ? spotHash : swapHash;
         string spotMessageHash = "spot:order";
         string swapMessageHash = "swap:order";
-        string messageHash = ((bool) isSpot) ? spotMessageHash : swapMessageHash;
+        string messageHash = (isSpot) ? spotMessageHash : swapMessageHash;
         if ((market != null))
         {
             messageHash = messageHash + (":" + (symbolVar));
@@ -1199,10 +1199,10 @@ public partial class bingx : ccxt.bingx
         bool isSpot = ((type == "spot"));
         string spotHash = "spot:private";
         string swapHash = "swap:private";
-        string subscriptionHash = ((bool) isSpot) ? spotHash : swapHash;
+        string subscriptionHash = (isSpot) ? spotHash : swapHash;
         string spotMessageHash = "spot:mytrades";
         string swapMessageHash = "swap:mytrades";
-        string messageHash = ((bool) isSpot) ? spotMessageHash : swapMessageHash;
+        string messageHash = (isSpot) ? spotMessageHash : swapMessageHash;
         if ((market != null))
         {
             messageHash = messageHash + (":" + (symbolVar));
@@ -1270,8 +1270,8 @@ public partial class bingx : ccxt.bingx
         string swapSubHash = "swap:private";
         string spotMessageHash = "spot:balance";
         string swapMessageHash = "swap:balance";
-        string messageHash = ((bool) isSpot) ? spotMessageHash : swapMessageHash;
-        string subscriptionHash = ((bool) isSpot) ? spotSubHash : swapSubHash;
+        string messageHash = (isSpot) ? spotMessageHash : swapMessageHash;
+        string subscriptionHash = (isSpot) ? spotSubHash : swapSubHash;
         Dictionary<string, object> request = null;
         object baseUrl = null;
         string uuid = this.uuid();
@@ -1503,7 +1503,7 @@ public partial class bingx : ccxt.bingx
             }
         }
         string? marginMode = this.safeString(position, "mt");
-        double? collateral = ((bool) ((marginMode == "isolated"))) ? this.safeNumber(position, "iw") : null;
+        double? collateral = (((marginMode == "isolated"))) ? this.safeNumber(position, "iw") : null;
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -1840,7 +1840,7 @@ public partial class bingx : ccxt.bingx
         string? symbol = ((string)(parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedOrder)["symbol"] : null));
         string spotHash = "spot:order";
         string swapHash = "swap:order";
-        string messageHash = ((bool) (isSpot)) ? spotHash : swapHash;
+        string messageHash = ((isSpot)) ? spotHash : swapHash;
         (client as WebSocketClient).resolve(stored, messageHash);
         (client as WebSocketClient).resolve(stored, ((messageHash + ":") + symbol));
     }
@@ -1912,14 +1912,14 @@ public partial class bingx : ccxt.bingx
             cachedTrades = new ArrayCacheBySymbolById(limit);
             this.myTrades = cachedTrades;
         }
-        string type = ((bool) isSpot) ? "spot" : "swap";
+        string type = (isSpot) ? "spot" : "swap";
         string? marketId = this.safeString(result, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
         Dictionary<string, object> parsed = this.parseTrade(result, market);
         string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string spotHash = "spot:mytrades";
         string swapHash = "swap:mytrades";
-        string messageHash = ((bool) isSpot) ? spotHash : swapHash;
+        string messageHash = (isSpot) ? spotHash : swapHash;
         callDynamically(cachedTrades, "append", new object[] {parsed});
         (client as WebSocketClient).resolve(cachedTrades, messageHash);
         (client as WebSocketClient).resolve(cachedTrades, ((messageHash + ":") + symbol));
@@ -1968,7 +1968,7 @@ public partial class bingx : ccxt.bingx
         Int64? timestamp = this.safeInteger2(message, "T", "E");
         string? spotUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
         bool isSpot = ((spotUrl != null)) && ((((string)client.url).IndexOf(((string)spotUrl), StringComparison.Ordinal) == 0));
-        string type = ((bool) isSpot) ? "spot" : "swap";
+        string type = (isSpot) ? "spot" : "swap";
         if (!(inOp(this.balance, type)))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
