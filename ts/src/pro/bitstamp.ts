@@ -64,7 +64,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -93,7 +93,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -115,7 +115,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchChannel (channel: string, subHash: string, topic: string, symbols: string[], params = {}): Promise<any> {
+    async unWatchChannel (channel: string, subHash: string, topic: string, symbols: string[], params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const unsubHash = 'unsubscribe:' + channel;
         const request: Dict = {
@@ -132,7 +132,7 @@ export default class bitstamp extends bitstampRest {
         return await this.watch (url, unsubHash, this.extend (request, params), unsubHash, subscription);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -188,7 +188,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleDelta (orderbook: any, delta: any): void {
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -201,14 +201,14 @@ export default class bitstamp extends bitstampRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any) {
+    handleBidAsks (bookSide: any, bidAsks: any[]): void {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
 
-    override getCacheIndex (orderbook: any, deltas: any) {
+    override getCacheIndex (orderbook: any, deltas: any): number {
         // we will consider it a fail
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
@@ -239,7 +239,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -271,7 +271,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -325,7 +325,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -376,7 +376,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -395,7 +395,7 @@ export default class bitstamp extends bitstampRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleFundingRate (client: Client, message: any) {
+    handleFundingRate (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -434,7 +434,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
@@ -467,7 +467,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchOrders() requires a symbol argument');
         }
@@ -492,7 +492,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
@@ -525,7 +525,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchMyTrades() requires a symbol argument');
         }
@@ -539,7 +539,7 @@ export default class bitstamp extends bitstampRest {
         return await this.unWatchChannel (channel, channel, 'myTrades', [ symbol ], params);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -624,7 +624,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -673,7 +673,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // order_deleted after a full fill - amount_str carries the amount
         // left to be executed, amount_at_create the original order amount
@@ -765,7 +765,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client: Client, message: any) {
+    handleOrderBookSubscription (client: Client, message: Dict): void {
         const channel = this.safeString (message, 'channel');
         if (channel === undefined) {
             return;
@@ -776,7 +776,7 @@ export default class bitstamp extends bitstampRest {
         this.orderbooks[symbol] = this.orderBook ();
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): void {
         //
         //     {
         //         "event": "bts:subscription_succeeded",
@@ -798,7 +798,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleUnsubscriptionStatus (client: Client, message: any) {
+    handleUnsubscriptionStatus (client: Client, message: Dict): void {
         //
         //     {
         //         "event": "bts:unsubscription_succeeded",
@@ -845,7 +845,7 @@ export default class bitstamp extends bitstampRest {
      * @param {string[]} symbols the symbols to remove from the cache
      * @returns {object} the new cache holding the remaining entries
      */
-    pruneCachedBySymbols (newCache: any, cache: any, symbols: string[]) {
+    pruneCachedBySymbols (newCache: ArrayCache, cache: ArrayCache, symbols: string[]): ArrayCache {
         const entries = this.toArray (cache);
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
@@ -857,7 +857,7 @@ export default class bitstamp extends bitstampRest {
         return newCache;
     }
 
-    handleSubject (client: Client, message: any) {
+    handleSubject (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -932,7 +932,7 @@ export default class bitstamp extends bitstampRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
@@ -978,7 +978,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
@@ -1038,7 +1038,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    async subscribePrivate (subscription: any, messageHash: any, params = {}) {
+    async subscribePrivate (subscription: Dict, messageHash: string, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         await this.authenticate ();
         messageHash += '-' + this.options['userId'];
