@@ -1503,14 +1503,14 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
 }
-func (this *Bitflyer) ParseDepositStatus(status any) *string {
+func (this *Bitflyer) ParseDepositStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"COMPLETED": "ok",
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseWithdrawalStatus(status any) *string {
+func (this *Bitflyer) ParseWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"COMPLETED": "ok",

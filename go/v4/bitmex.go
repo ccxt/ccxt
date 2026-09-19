@@ -1802,7 +1802,7 @@ func (this *Bitmex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
 }
-func (this *Bitmex) ParseLedgerEntryType(typeVar any) *string {
+func (this *Bitmex) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"Withdrawal":      "transaction",
 		"RealisedPNL":     "margin",

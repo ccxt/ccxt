@@ -2289,7 +2289,7 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Dydx) ParseLedgerEntryType(typeVar any) *string {
+func (this *Dydx) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"TRANSFER_IN":  "transfer",
 		"TRANSFER_OUT": "transfer",

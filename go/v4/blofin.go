@@ -2920,7 +2920,7 @@ func (this *Blofin) ParseTransactionDepositStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Blofin) ParseLedgerEntryType(typeVar any) *string {
+func (this *Blofin) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"1":  "transfer",
 		"2":  "trade",

@@ -1074,7 +1074,7 @@ func (this *Poloniex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		},
 	}, market)
 }
-func (this *Poloniex) ParseStatus(status any) *string {
+func (this *Poloniex) ParseStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"PARTIALLY_FILLED":   "open",

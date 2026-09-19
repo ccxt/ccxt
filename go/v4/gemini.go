@@ -936,7 +936,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 	ch <- result
 	return nil
 }
-func (this *Gemini) ParseMarketActive(status any) any {
+func (this *Gemini) ParseMarketActive(status *string) any {
 	var statuses map[string]any = map[string]any{
 		"open":        true,
 		"closed":      false,
@@ -944,7 +944,7 @@ func (this *Gemini) ParseMarketActive(status any) any {
 		"post_only":   true,
 		"limit_only":  true,
 	}
-	if IsEqual(status, nil) {
+	if status == nil {
 		return true // as defaulted below
 	}
 	return this.SafeBool(statuses, status, true)

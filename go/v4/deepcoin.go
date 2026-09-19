@@ -1797,7 +1797,7 @@ func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Deepcoin) ParseLedgerEntryType(typeVar any) *string {
+func (this *Deepcoin) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"1": "trade",
 		"2": "trade",
@@ -4116,7 +4116,7 @@ func (this *Deepcoin) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Deepcoin) FetchMarketsByType(typeVar any, options ...FetchMarketsByTypeOptions) ([]MarketInterface, error) {
+func (this *Deepcoin) FetchMarketsByType(typeVar string, options ...FetchMarketsByTypeOptions) ([]MarketInterface, error) {
 
 	opts := FetchMarketsByTypeOptionsStruct{}
 

@@ -1353,7 +1353,7 @@ func (this *Woofipro) ParseFundingRate(fundingRate any, optionalArgs ...any) any
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Woofipro) ParseFundingInterval(interval any) any {
+func (this *Woofipro) ParseFundingInterval(interval *string) any {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -3741,7 +3741,7 @@ func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"info":             item,
 	}, currency)
 }
-func (this *Woofipro) ParseLedgerEntryType(typeVar any) *string {
+func (this *Woofipro) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",

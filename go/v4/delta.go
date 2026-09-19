@@ -806,7 +806,7 @@ func (this *Delta) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Delta) IndexByStringifiedNumericId(input any) any {
 	var result map[string]any = map[string]any{}
-	if IsEqual(input, nil) {
+	if input == nil {
 		return nil
 	}
 	var keys []string = ObjectKeys(input)

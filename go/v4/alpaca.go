@@ -2708,7 +2708,7 @@ func (this *Alpaca) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Alpaca) ParseTransactionType(typeVar any) *string {
+func (this *Alpaca) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"INCOMING": "deposit",
 		"OUTGOING": "withdrawal",

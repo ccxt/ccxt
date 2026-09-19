@@ -3222,7 +3222,7 @@ func (this *Bittrade) FetchBalance(params ...any) (Balances, error) {
 	}
 	return NewBalances(res), nil
 }
-func (this *Bittrade) FetchOrdersByStates(states any, options ...FetchOrdersByStatesOptions) ([]Order, error) {
+func (this *Bittrade) FetchOrdersByStates(states string, options ...FetchOrdersByStatesOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatesOptionsStruct{}
 

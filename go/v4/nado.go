@@ -3713,8 +3713,8 @@ func (this *Nado) ConvertToX18(value any) any {
 	}
 	return Precise.StringDiv(Precise.StringMul(value, "1000000000000000000"), "1", 0)
 }
-func (this *Nado) ParseX18(value any) any {
-	if IsEqual(value, nil) {
+func (this *Nado) ParseX18(value *string) any {
+	if value == nil {
 		return nil
 	}
 	return this.ParseNumber(Precise.StringDiv(value, "1000000000000000000"))

@@ -759,7 +759,7 @@ func (this *Onetrading) ParseTradingOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Onetrading) ParseTradingOrderStatus(status any) *string {
+func (this *Onetrading) ParseTradingOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CANCELLED":               "canceled",
 		"SELF_TRADE":              "rejected",
@@ -1151,7 +1151,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 	}
 }
-func (this *Onetrading) ParseWsOrderStatus(status any) *string {
+func (this *Onetrading) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"ORDER_REJECTED":       "rejected",
 		"ORDER_CLOSED":         "closed",

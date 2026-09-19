@@ -2630,7 +2630,7 @@ func (this *Kucoin) GetOrdersMessageHashSuffix(topic any) any {
 	}
 	return suffix
 }
-func (this *Kucoin) ParseWsOrderStatus(status any) *string {
+func (this *Kucoin) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"open":      "open",
 		"filled":    "closed",

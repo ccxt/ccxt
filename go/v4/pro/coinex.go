@@ -1472,7 +1472,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Coinex) ParseWsOrderStatus(status any) *string {
+func (this *Coinex) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"active_success": "open",
 		"active_fail":    "canceled",

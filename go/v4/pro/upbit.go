@@ -508,7 +508,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 	var request map[string]any = map[string]any{
 		"type": channel,
 	}
-	if !ccxt.IsEqual(symbol, nil) {
+	if symbol != nil {
 
 		retRes37312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes37312)
@@ -530,7 +530,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]any{})
 	}
 	var channelKey any = channel
-	if !ccxt.IsEqual(symbol, nil) {
+	if symbol != nil {
 		channelKey = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 	}
 	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)

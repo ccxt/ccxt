@@ -2332,7 +2332,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Coinbaseexchange) ParseLedgerEntryType(typeVar any) *string {
+func (this *Coinbaseexchange) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"transfer":   "transfer",
 		"match":      "trade",

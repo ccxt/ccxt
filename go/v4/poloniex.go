@@ -838,7 +838,7 @@ func (this *Poloniex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var ohlcvLength int = GetArrayLength(ohlcv)
-	var isContract bool = IsEqual(ohlcvLength, 9)
+	var isContract bool = (ohlcvLength == 9)
 	if isContract {
 		return []any{this.SafeInteger(ohlcv, 7), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 5)}
 	}
@@ -2249,7 +2249,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 		"hedged":             hedged,
 	}, market)
 }
-func (this *Poloniex) ParseOrderType(status any) *string {
+func (this *Poloniex) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"MARKET":      "market",
 		"LIMIT":       "limit",
@@ -3548,7 +3548,7 @@ func (this *Poloniex) ParseDepositAddressSpecial(response any, currency any, net
 	}
 	var tag any = nil
 	this.CheckAddress(address)
-	if !IsEqual(networkEntry, nil) {
+	if networkEntry != nil {
 		var depositAddress *string = this.SafeString(GetValue(networkEntry, "info"), "depositAddress")
 		if depositAddress != nil {
 			tag = address

@@ -2058,7 +2058,7 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             fills,
 	}, market)
 }
-func (this *Tokocrypto) ParseOrderType(status any) *string {
+func (this *Tokocrypto) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"2": "market",
 		"1": "limit",
@@ -2880,7 +2880,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	ch <- this.ParseTransactions(withdrawals, currency, since, limit)
 	return nil
 }
-func (this *Tokocrypto) ParseTransactionStatusByType(status any, optionalArgs ...any) *string {
+func (this *Tokocrypto) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	var statusesByType map[string]any = map[string]any{

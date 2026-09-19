@@ -6954,7 +6954,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(data, currency, since, limit)
 	return nil
 }
-func (this *Okx) ParseLedgerEntryType(typeVar any) *string {
+func (this *Okx) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"1":  "transfer",
 		"2":  "trade",
@@ -8787,7 +8787,7 @@ func (this *Okx) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Okx) ParseFundingInterval(interval any) any {
+func (this *Okx) ParseFundingInterval(interval *string) any {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"7200000":  "2h",
@@ -9463,7 +9463,7 @@ func (this *Okx) ParseBorrowRateHistories(response any, codes any, since any, li
 	for i := 0; i < GetArrayLength(response); i++ {
 		var item any = GetValue(response, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(item, "ccy"))
-		if (code != nil) && (IsEqual(codes, nil) || this.InArray(code, codes)) {
+		if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 			if !(func() bool {
 				if code == nil {
 					return false

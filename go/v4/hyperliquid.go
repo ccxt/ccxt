@@ -4559,7 +4559,7 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hyperliquid) ParseOrderType(status any) *string {
+func (this *Hyperliquid) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"stop limit":  "limit",
 		"stop market": "market",
@@ -5828,7 +5828,7 @@ func (this *Hyperliquid) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              fee,
 	}, currency)
 }
-func (this *Hyperliquid) ParseLedgerEntryType(typeVar any) *string {
+func (this *Hyperliquid) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"internalTransfer":     "transfer",
 		"accountClassTransfer": "transfer",

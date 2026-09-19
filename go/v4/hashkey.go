@@ -2876,7 +2876,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(response, currency, since, limit)
 	return nil
 }
-func (this *Hashkey) ParseLedgerEntryType(typeVar any) *string {
+func (this *Hashkey) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"1":   "trade",
 		"2":   "fee",

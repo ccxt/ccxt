@@ -4498,7 +4498,7 @@ func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Aster) ParseLedgerEntryType(typeVar any) *string {
+func (this *Aster) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"TRANSFER":                      "transfer",
 		"WELCOME_BONUS":                 "cashback",

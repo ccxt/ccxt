@@ -324,7 +324,7 @@ func (this *Cex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var method *string = this.SafeString(params, "method", "private") // default to private because the specified ticker is received quicker
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"e":     "subscribe",
 		"rooms": []any{"tickers"},
 	}

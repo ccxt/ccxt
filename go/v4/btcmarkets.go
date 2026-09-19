@@ -526,7 +526,7 @@ func (this *Btcmarkets) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcmarkets) ParseTransactionType(typeVar any) *string {
+func (this *Btcmarkets) ParseTransactionType(typeVar *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Withdraw": "withdrawal",
 		"Deposit":  "deposit",
@@ -1944,7 +1944,7 @@ func (this *Btcmarkets) Init(userConfig map[string]any) {
 }
 
 // typed methods
-func (this *Btcmarkets) FetchTransactionsWithMethod(method any, options ...FetchTransactionsWithMethodOptions) ([]Transaction, error) {
+func (this *Btcmarkets) FetchTransactionsWithMethod(method string, options ...FetchTransactionsWithMethodOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsWithMethodOptionsStruct{}
 

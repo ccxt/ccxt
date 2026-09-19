@@ -4773,7 +4773,7 @@ func (this *Lbank) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesO
 	}
 	return NewDepositWithdrawFees(res), nil
 }
-func (this *Lbank) FetchPrivateDepositWithdrawFees(options ...FetchPrivateDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Lbank) FetchPrivateDepositWithdrawFees(options ...FetchPrivateDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchPrivateDepositWithdrawFeesOptionsStruct{}
 
@@ -4782,11 +4782,11 @@ func (this *Lbank) FetchPrivateDepositWithdrawFees(options ...FetchPrivateDeposi
 	}
 	res := <-this.FetchPrivateDepositWithdrawFeesAsync(opts.Codes, opts.Params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
-func (this *Lbank) FetchPublicDepositWithdrawFees(options ...FetchPublicDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Lbank) FetchPublicDepositWithdrawFees(options ...FetchPublicDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchPublicDepositWithdrawFeesOptionsStruct{}
 
@@ -4795,9 +4795,9 @@ func (this *Lbank) FetchPublicDepositWithdrawFees(options ...FetchPublicDepositW
 	}
 	res := <-this.FetchPublicDepositWithdrawFeesAsync(opts.Codes, opts.Params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 // missing typed methods from base

@@ -2896,7 +2896,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Phemex) ParseOrderSide(side any) *string {
+func (this *Phemex) ParseOrderSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"1": "buy",
 		"2": "sell",
@@ -5321,7 +5321,7 @@ func (this *Phemex) setMarginBody(ch chan any, symbol any, amount any, optionalA
 	})
 	return nil
 }
-func (this *Phemex) ParseMarginStatus(status any) *string {
+func (this *Phemex) ParseMarginStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "ok",
 	}

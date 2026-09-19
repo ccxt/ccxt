@@ -1940,7 +1940,7 @@ func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Cex) ParseLedgerEntryType(typeVar any) *string {
+func (this *Cex) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"deposit":    "deposit",
 		"withdraw":   "withdrawal",

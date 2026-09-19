@@ -1763,7 +1763,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":         order,
 	}, market)
 }
-func (this *Mexc) ParseWsOrderStatus(status any, optionalArgs ...any) *string {
+func (this *Mexc) ParseWsOrderStatus(status *string, optionalArgs ...any) *string {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var statuses map[string]any = map[string]any{
@@ -1780,7 +1780,7 @@ func (this *Mexc) ParseWsOrderStatus(status any, optionalArgs ...any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseWsOrderType(typeVar any) *string {
+func (this *Mexc) ParseWsOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"1":   "limit",
 		"2":   "limit",
@@ -1793,7 +1793,7 @@ func (this *Mexc) ParseWsOrderType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar)
 }
-func (this *Mexc) ParseWsTimeInForce(timeInForce any) *string {
+func (this *Mexc) ParseWsTimeInForce(timeInForce *string) *string {
 	var timeInForceIds map[string]any = map[string]any{
 		"1":   "GTC",
 		"2":   "PO",
@@ -2460,7 +2460,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArg
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(listenKey, nil) {
+	if listenKey == nil {
 
 		return nil
 	}

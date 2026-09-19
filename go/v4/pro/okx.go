@@ -200,7 +200,7 @@ func (this *Okx) subscribeBody(ch chan any, access any, messageHash any, channel
 	var firstArgument map[string]any = map[string]any{
 		"channel": channel,
 	}
-	if !ccxt.IsEqual(symbol, nil) {
+	if symbol != nil {
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 		firstArgument["instId"] = market["id"]

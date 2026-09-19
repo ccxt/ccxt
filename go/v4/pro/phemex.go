@@ -56,7 +56,7 @@ func (this *Phemex) Describe() any {
 	})
 }
 func (this *Phemex) FromEn(en any, scale any) any {
-	if ccxt.IsEqual(en, nil) {
+	if en == nil {
 		return nil
 	}
 	precise := ccxt.NewPrecise(en)
@@ -67,7 +67,7 @@ func (this *Phemex) FromEn(en any, scale any) any {
 func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (ccxt.IsEqual(ep, nil)) || (market == nil) {
+	if (ep == nil) || (market == nil) {
 		return ep
 	}
 	return this.FromEn(ep, this.SafeInteger(market, "priceScale"))
@@ -75,7 +75,7 @@ func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (ccxt.IsEqual(ev, nil)) || (market == nil) {
+	if (ev == nil) || (market == nil) {
 		return ev
 	}
 	return this.FromEn(ev, this.SafeInteger(market, "valueScale"))
@@ -83,7 +83,7 @@ func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (ccxt.IsEqual(er, nil)) || (market == nil) {
+	if (er == nil) || (market == nil) {
 		return er
 	}
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
@@ -128,7 +128,7 @@ func (this *Phemex) ParseSwapTicker(ticker any, optionalArgs ...any) any {
 	var average any = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), market))
 	var open any = this.ParseNumber(openString)
-	if (openString != nil) && (!ccxt.IsEqual(lastString, nil)) {
+	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
 		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
@@ -190,7 +190,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var average any = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), market))
 	var open any = this.ParseNumber(openString)
-	if (openString != nil) && (!ccxt.IsEqual(lastString, nil)) {
+	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
 		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
@@ -1113,7 +1113,7 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 	//
 	var channel string = "trades"
 	var tradesLength int = ccxt.GetArrayLength(message)
-	if ccxt.IsEqual(tradesLength, 0) {
+	if tradesLength == 0 {
 		return
 	}
 	var cachedTrades any = this.MyTrades

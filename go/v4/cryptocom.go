@@ -3351,7 +3351,7 @@ func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
 		"trades": []any{},
 	}, market)
 }
-func (this *Cryptocom) ParseDepositStatus(status any) *string {
+func (this *Cryptocom) ParseDepositStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "ok",
@@ -3360,7 +3360,7 @@ func (this *Cryptocom) ParseDepositStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Cryptocom) ParseWithdrawalStatus(status any) *string {
+func (this *Cryptocom) ParseWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "pending",
@@ -3733,7 +3733,7 @@ func (this *Cryptocom) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		},
 	}, currency)
 }
-func (this *Cryptocom) ParseLedgerEntryType(typeVar any) *string {
+func (this *Cryptocom) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"TRADING":           "trade",
 		"TRADE_FEE":         "fee",
@@ -3935,7 +3935,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
 }
-func (this *Cryptocom) ParseSettlement(settlement any, market any) any {
+func (this *Cryptocom) ParseSettlement(settlement any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "i": "BTCUSD-230526",
@@ -3944,6 +3944,8 @@ func (this *Cryptocom) ParseSettlement(settlement any, market any) any {
 	//         "t": 1685087999500
 	//     }
 	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
 	var timestamp *int64 = this.SafeInteger(settlement, "x")
 	var marketId *string = this.SafeString(settlement, "i")
 	return map[string]any{
@@ -3954,7 +3956,7 @@ func (this *Cryptocom) ParseSettlement(settlement any, market any) any {
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Cryptocom) ParseSettlements(settlements any, market any) any {
+func (this *Cryptocom) ParseSettlements(settlements any, optionalArgs ...any) any {
 	//
 	//     [
 	//         {
@@ -3965,6 +3967,8 @@ func (this *Cryptocom) ParseSettlements(settlements any, market any) any {
 	//         }
 	//     ]
 	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
 		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))

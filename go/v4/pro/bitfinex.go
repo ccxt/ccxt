@@ -603,7 +603,7 @@ func (this *Bitfinex) HandleTrades(client any, message any, subscription any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var messageLength int = ccxt.GetArrayLength(message)
-	if ccxt.IsEqual(messageLength, 2) {
+	if messageLength == 2 {
 		// initial snapshot
 		var trades any = this.SafeList(message, 1, []any{})
 		// needs to be reversed to make chronological order
@@ -1488,7 +1488,7 @@ func (this *Bitfinex) HandleOrders(client any, message any, subscription any) {
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	}
 }
-func (this *Bitfinex) ParseWsOrderStatus(status any) *string {
+func (this *Bitfinex) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"ACTIVE":    "open",
 		"CANCELED":  "canceled",

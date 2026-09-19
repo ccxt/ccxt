@@ -769,7 +769,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	})
 	return parsed
 }
-func (this *Coinbaseexchange) ParseWsOrderStatus(status any) *string {
+func (this *Coinbaseexchange) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"filled":   "closed",
 		"canceled": "canceled",

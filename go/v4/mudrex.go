@@ -253,7 +253,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(*base+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders map[string]any = map[string]any{}
-	if !IsEqual(headers, nil) {
+	if headers != nil {
 		requestHeaders = this.Extend(map[string]any{}, headers)
 	}
 	var brokerId *string = this.SafeString(this.Options, "broker")

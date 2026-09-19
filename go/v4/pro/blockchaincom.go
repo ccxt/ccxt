@@ -734,7 +734,7 @@ func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) any {
 		"average":            this.SafeString(order, "avgPx"),
 	}, market)
 }
-func (this *Blockchaincom) ParseWsOrderStatus(status any) *string {
+func (this *Blockchaincom) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":   "open",
 		"open":      "open",

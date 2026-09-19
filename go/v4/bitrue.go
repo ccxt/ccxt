@@ -3178,7 +3178,7 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(data, currency)
 	return nil
 }
-func (this *Bitrue) ParseTransactionStatusByType(status any, optionalArgs ...any) *string {
+func (this *Bitrue) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	var statusesByType map[string]any = map[string]any{

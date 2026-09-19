@@ -792,7 +792,9 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- retRes51415
 	return nil
 }
-func (this *Gate) HandleOrderBookSubscription(client any, message any, subscription any) {
+func (this *Gate) HandleOrderBookSubscription(client any, message any, optionalArgs ...any) {
+	subscription := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = subscription
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {

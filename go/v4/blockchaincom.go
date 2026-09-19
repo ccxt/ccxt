@@ -663,7 +663,7 @@ func (this *Blockchaincom) fetchTickersBody(ch chan any, optionalArgs ...any) an
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
 }
-func (this *Blockchaincom) ParseOrderState(state any) any {
+func (this *Blockchaincom) ParseOrderState(state *string) any {
 	var states map[string]any = map[string]any{
 		"OPEN":        "open",
 		"REJECTED":    "rejected",
@@ -1244,7 +1244,7 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 	}
 	return nil
 }
-func (this *Blockchaincom) ParseTransactionState(state any) any {
+func (this *Blockchaincom) ParseTransactionState(state *string) any {
 	var states map[string]any = map[string]any{
 		"COMPLETED": "ok",
 		"REJECTED":  "failed",
@@ -2049,7 +2049,7 @@ func (this *Blockchaincom) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Blockchaincom) FetchOrdersByState(state any, options ...FetchOrdersByStateOptions) ([]Order, error) {
+func (this *Blockchaincom) FetchOrdersByState(state string, options ...FetchOrdersByStateOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStateOptionsStruct{}
 

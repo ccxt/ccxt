@@ -2445,13 +2445,13 @@ func (this *Toobit) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Toobit) ParseOrderType(status any) *string {
+func (this *Toobit) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"MARKET":      "market",
 		"LIMIT":       "limit",
 		"LIMIT_MAKER": "limit",
 	}
-	if IsEqual(status, nil) {
+	if status == nil {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -3163,7 +3163,7 @@ func (this *Toobit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Toobit) ParseLedgerType(typeVar any) *string {
+func (this *Toobit) ParseLedgerType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"USER_ACCOUNT_TRANSFER": "transfer",
 		"AIRDROP":               "rebate",
@@ -3334,7 +3334,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan any, typeVar an
 	}
 	var currency any = nil
 	var request any = map[string]any{}
-	if !IsEqual(code, nil) {
+	if code != nil {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
@@ -4592,7 +4592,7 @@ func (this *Toobit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	}
 	return NewTransactionArray(res), nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar string, code string, since int64, limit int64, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsOrWithdrawalsHelperOptionsStruct{}
 

@@ -3221,7 +3221,7 @@ func (this *Bitvavo) FetchOrdersWs(options ...ccxt.FetchOrdersWsOptions) ([]ccxt
 	}
 	return ccxt.NewOrderArray(res), nil
 }
-func (this *Bitvavo) WatchRequest(action any, request any) (map[string]any, error) {
+func (this *Bitvavo) WatchRequest(action string, request map[string]any) (map[string]any, error) {
 	res := <-this.WatchRequestAsync(action, request)
 	if ccxt.IsError(res) {
 		return map[string]any{}, ccxt.CreateReturnError(res)

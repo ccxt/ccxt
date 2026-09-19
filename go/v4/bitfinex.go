@@ -2112,7 +2112,7 @@ func (this *Bitfinex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, state, status)
 }
-func (this *Bitfinex) ParseOrderFlags(flags any) any {
+func (this *Bitfinex) ParseOrderFlags(flags *string) any {
 	// flags can be added to each other...
 	var flagValues map[string]any = map[string]any{
 		"1024": []any{"reduceOnly"},
@@ -2121,7 +2121,7 @@ func (this *Bitfinex) ParseOrderFlags(flags any) any {
 	}
 	return this.SafeList(flagValues, flags, nil)
 }
-func (this *Bitfinex) ParseTimeInForce(orderType any) *string {
+func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
 	var orderTypes map[string]any = map[string]any{
 		"EXCHANGE IOC": "IOC",
 		"EXCHANGE FOK": "FOK",

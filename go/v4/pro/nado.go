@@ -1597,7 +1597,7 @@ func (this *Nado) watchPublicBody(ch chan any, streamType any, market any, messa
 	var stream map[string]any = map[string]any{
 		"type": streamType,
 	}
-	if !ccxt.IsEqual(market, nil) {
+	if market != nil {
 		stream["product_id"] = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var request map[string]any = map[string]any{
@@ -1823,7 +1823,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan any, streamType any, markets a
 			var market any = ccxt.GetValue(markets, i)
 			var id any = this.RequestId()
 			var requestParams any = func() any {
-				if ccxt.IsEqual(subscriptionParams, nil) {
+				if subscriptionParams == nil {
 					return params
 				}
 				return ccxt.GetValue(subscriptionParams, i)
@@ -1898,7 +1898,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan any, streamType any, markets
 		var id any = this.RequestId()
 		var unsubscribeHash any = ccxt.Add("unsubscribe:", messageHash)
 		var requestParams any = func() any {
-			if ccxt.IsEqual(subscriptionParams, nil) {
+			if subscriptionParams == nil {
 				return params
 			}
 			return ccxt.GetValue(subscriptionParams, i)
@@ -3406,7 +3406,7 @@ func (this *Nado) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([
 	}
 	return ccxt.NewOrderArray(res), nil
 }
-func (this *Nado) WatchExecuteRequest(requestIdString string, request any) (map[string]any, error) {
+func (this *Nado) WatchExecuteRequest(requestIdString string, request map[string]any) (map[string]any, error) {
 	res := <-this.WatchExecuteRequestAsync(requestIdString, request)
 	if ccxt.IsError(res) {
 		return map[string]any{}, ccxt.CreateReturnError(res)

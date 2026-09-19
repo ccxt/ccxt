@@ -1360,7 +1360,7 @@ func (this *Btcbox) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	}
 	return NewOrder(res), nil
 }
-func (this *Btcbox) FetchOrdersByType(typeVar any, options ...FetchOrdersByTypeOptions) ([]Order, error) {
+func (this *Btcbox) FetchOrdersByType(typeVar string, options ...FetchOrdersByTypeOptions) ([]Order, error) {
 
 	opts := FetchOrdersByTypeOptionsStruct{}
 

@@ -436,7 +436,7 @@ func (this *Bitso) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(payload, currency, since, limit)
 	return nil
 }
-func (this *Bitso) ParseLedgerEntryType(typeVar any) *string {
+func (this *Bitso) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"funding":    "transaction",
 		"withdrawal": "transaction",

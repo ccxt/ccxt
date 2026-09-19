@@ -5186,7 +5186,7 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	ch <- this.ParseOrder(order, market)
 	return nil
 }
-func (this *Htx) ParseMarginBalanceHelper(balance any, code any, result any) any {
+func (this *Htx) ParseMarginBalanceHelper(balance any, code *string, result any) any {
 	var account any = nil
 	if InOp(result, code) {
 		account = GetValue(result, code)
@@ -9226,7 +9226,7 @@ func (this *Htx) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Htx) ParseFundingInterval(interval any) any {
+func (this *Htx) ParseFundingInterval(interval *string) any {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -11605,7 +11605,7 @@ func (this *Htx) ParseSettlements(settlements any, market any) any {
 	for i := 0; i < GetArrayLength(settlements); i++ {
 		var settlement any = GetValue(settlements, i)
 		var list any = this.SafeList(settlement, "list")
-		if IsEqual(GetValue(market, "linear"), true) {
+		if GetValue(market, "linear") == true {
 			var parsedSettlement any = this.ParseSettlement(settlement, market)
 			result = append(result, parsedSettlement)
 		} else if !IsEqual(list, nil) {
@@ -12607,7 +12607,7 @@ func (this *Htx) FetchOrder(id string, options ...FetchOrderOptions) (Order, err
 	}
 	return NewOrder(res), nil
 }
-func (this *Htx) FetchSpotOrdersByStates(states any, options ...FetchSpotOrdersByStatesOptions) ([]Order, error) {
+func (this *Htx) FetchSpotOrdersByStates(states string, options ...FetchSpotOrdersByStatesOptions) ([]Order, error) {
 
 	opts := FetchSpotOrdersByStatesOptionsStruct{}
 

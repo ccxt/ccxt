@@ -2487,7 +2487,7 @@ func (this *Deribit) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Deribit) ParseOrderType(orderType any) *string {
+func (this *Deribit) ParseOrderType(orderType *string) *string {
 	var orderTypes map[string]any = map[string]any{
 		"stop_limit":  "limit",
 		"take_limit":  "limit",
@@ -4492,7 +4492,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	return nil
 }
 func (this *Deribit) AddPaginationCursorToResult(cursor any, data any) any {
-	if !IsEqual(cursor, nil) {
+	if cursor != nil {
 		var dataLength int = GetArrayLength(data)
 		if dataLength > 0 {
 			var first any = GetValue(data, 0)

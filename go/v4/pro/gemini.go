@@ -283,7 +283,7 @@ func (this *Gemini) HandleTrades(client any, message any) {
 	}
 }
 func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp any) {
-	if !ccxt.IsEqual(trades, nil) {
+	if trades != nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var storesForSymbols map[string]any = map[string]any{}
 		for i := 0; i < ccxt.GetArrayLength(trades); i++ {
@@ -958,7 +958,7 @@ func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Gemini) ParseWsOrderStatus(status any) *string {
+func (this *Gemini) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"accepted":        "open",
 		"booked":          "open",
@@ -969,7 +969,7 @@ func (this *Gemini) ParseWsOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gemini) ParseWsOrderType(typeVar any) *string {
+func (this *Gemini) ParseWsOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"exchange limit": "limit",
 		"market buy":     "market",

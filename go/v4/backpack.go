@@ -979,7 +979,7 @@ func (this *Backpack) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Backpack) ParseMarketType(typeVar any) *string {
+func (this *Backpack) ParseMarketType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"SPOT": "spot",
 		"PERP": "swap",

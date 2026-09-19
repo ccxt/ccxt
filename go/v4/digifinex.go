@@ -3642,7 +3642,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	//
 	var data any = this.SafeList(response, "data", []any{})
 	var addresses any = this.ParseDepositAddresses(data, []any{currency["code"]})
-	var address any = this.SafeValue(addresses, code)
+	var address any = this.SafeDict(addresses, code)
 	if IsEqual(address, nil) {
 		panic(InvalidAddress(Add(Add(this.Id+" fetchDepositAddress() did not return an address for ", code), " - create the deposit address in the user settings on the exchange website first.")))
 	}
@@ -4438,7 +4438,7 @@ func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Digifinex) ParseFundingInterval(interval any) any {
+func (this *Digifinex) ParseFundingInterval(interval *string) any {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -5434,7 +5434,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
-			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
+			var depositWithdrawFee any = this.SafeDict(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 				AddElementToObject(GetValue(depositWithdrawFees, code), "info", []any{})
@@ -6383,7 +6383,7 @@ func (this *Digifinex) FetchDepositAddress(code string, options ...FetchDepositA
 	}
 	return NewDepositAddress(res), nil
 }
-func (this *Digifinex) FetchTransactionsByType(typeVar any, options ...FetchTransactionsByTypeOptions) ([]Transaction, error) {
+func (this *Digifinex) FetchTransactionsByType(typeVar string, options ...FetchTransactionsByTypeOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsByTypeOptionsStruct{}
 

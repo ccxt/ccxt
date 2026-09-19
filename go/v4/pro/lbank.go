@@ -844,7 +844,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Lbank) ParseWsOrderStatus(status any) *string {
+func (this *Lbank) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"-1": "canceled",
 		"0":  "open",

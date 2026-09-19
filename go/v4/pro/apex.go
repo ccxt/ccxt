@@ -176,7 +176,7 @@ func (this *Apex) HandleTrades(client any, message any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var topic *string = this.SafeString(message, "topic")
 	var trades any = data
 	var parts []string = ccxt.Split(topic, ".")
@@ -704,7 +704,7 @@ func (this *Apex) HandleOHLCV(client any, message any) {
 	//         "type": "snapshot"
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var topic *string = this.SafeString(message, "topic")
 	var topicParts []string = ccxt.Split(topic, ".")
 	var topicLength int = len(topicParts)
@@ -728,8 +728,13 @@ func (this *Apex) HandleOHLCV(client any, message any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
 	}
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var parsed any = this.ParseWsOHLCV(ccxt.GetValue(data, i))
+	for i := 0; i < len(data); i++ {
+		var parsed any = this.ParseWsOHLCV(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}())
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)

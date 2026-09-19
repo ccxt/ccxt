@@ -3756,7 +3756,7 @@ func (this *Woo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              fee,
 	}, currency)
 }
-func (this *Woo) ParseLedgerEntryType(typeVar any) *string {
+func (this *Woo) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",

@@ -4265,8 +4265,10 @@ func (this *Grvt) DefaultSignature() any {
 		}(),
 	}
 }
-func (this *Grvt) HandleUntilOptionString(key any, request any, params any, optionalArgs ...any) any {
-	multiplier := GetArg(optionalArgs, 0, 1)
+func (this *Grvt) HandleUntilOptionString(key any, request any, optionalArgs ...any) any {
+	params := GetArg(optionalArgs, 0, nil)
+	_ = params
+	multiplier := GetArg(optionalArgs, 1, 1)
 	_ = multiplier
 	var until *int64 = this.SafeInteger2(params, "until", "till")
 	if until != nil {

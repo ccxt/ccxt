@@ -10816,7 +10816,7 @@ func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		},
 	}, currency)
 }
-func (this *Bitget) ParseLedgerType(typeVar any) *string {
+func (this *Bitget) ParseLedgerType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"trans_to_cross":                  "transfer",
 		"trans_from_cross":                "transfer",

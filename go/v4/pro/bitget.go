@@ -113,11 +113,11 @@ func (this *Bitget) GetInstType(methodName any, market any, optionalArgs ...any)
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var instType any = nil
-	if ccxt.IsEqual(market, nil) {
+	if market == nil {
 		instTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
 		params = ccxt.GetValue(instTypeparamsVariable, 1)
-	} else if (ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) || (ccxt.IsEqual(ccxt.GetValue(market, "future"), true)) {
+	} else if (ccxt.GetValue(market, "swap") == true) || (ccxt.GetValue(market, "future") == true) {
 		instTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
 		params = ccxt.GetValue(instTypeparamsVariable, 1)
@@ -2550,7 +2550,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Bitget) ParseWsOrderStatus(status any) *string {
+func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":              "open",
 		"live":             "open",

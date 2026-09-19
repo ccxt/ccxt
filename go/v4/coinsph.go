@@ -2235,12 +2235,12 @@ func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Coinsph) ParseOrderSide(status any) *string {
+func (this *Coinsph) ParseOrderSide(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"BUY":  "buy",
 		"SELL": "sell",
 	}
-	if IsEqual(status, nil) {
+	if status == nil {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2250,12 +2250,12 @@ func (this *Coinsph) EncodeOrderSide(status any) any {
 		"buy":  "BUY",
 		"sell": "SELL",
 	}
-	if IsEqual(status, nil) {
+	if status == nil {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderType(status any) *string {
+func (this *Coinsph) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"MARKET":            "market",
 		"LIMIT":             "limit",
@@ -2265,7 +2265,7 @@ func (this *Coinsph) ParseOrderType(status any) *string {
 		"TAKE_PROFIT":       "market",
 		"TAKE_PROFIT_LIMIT": "limit",
 	}
-	if IsEqual(status, nil) {
+	if status == nil {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2280,7 +2280,7 @@ func (this *Coinsph) EncodeOrderType(status any) any {
 		"take_profit":       "TAKE_PROFIT",
 		"take_profit_limit": "TAKE_PROFIT_LIMIT",
 	}
-	if IsEqual(status, nil) {
+	if status == nil {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2299,13 +2299,13 @@ func (this *Coinsph) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderTimeInForce(status any) *string {
+func (this *Coinsph) ParseOrderTimeInForce(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"GTC": "GTC",
 		"FOK": "FOK",
 		"IOC": "IOC",
 	}
-	if IsEqual(status, nil) {
+	if status == nil {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)

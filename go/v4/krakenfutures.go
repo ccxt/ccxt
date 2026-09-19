@@ -3303,7 +3303,7 @@ func (this *Krakenfutures) ParseIncome(income any, optionalArgs ...any) any {
 		"amount":    this.SafeNumber(income, "realized_funding"),
 	}
 }
-func (this *Krakenfutures) ParseLedgerEntryType(typeVar any) *string {
+func (this *Krakenfutures) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"futures trade":               "trade",
 		"futures liquidation":         "trade",
@@ -5203,7 +5203,7 @@ func (this *Krakenfutures) FetchLeverageTiers(options ...FetchLeverageTiersOptio
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) TransferOut(code string, amount any, options ...TransferOutOptions) (TransferEntry, error) {
+func (this *Krakenfutures) TransferOut(code string, amount float64, options ...TransferOutOptions) (map[string]any, error) {
 
 	opts := TransferOutOptionsStruct{}
 
@@ -5212,9 +5212,9 @@ func (this *Krakenfutures) TransferOut(code string, amount any, options ...Trans
 	}
 	res := <-this.TransferOutAsync(code, amount, opts.Params)
 	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return NewTransferEntry(res), nil
+	return res.(map[string]any), nil
 }
 
 /**

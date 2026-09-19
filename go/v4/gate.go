@@ -3301,7 +3301,7 @@ func (this *Gate) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(fundingInterval),
 	}
 }
-func (this *Gate) ParseFundingInterval(interval any) any {
+func (this *Gate) ParseFundingInterval(interval *string) any {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -9919,7 +9919,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
 }
-func (this *Gate) ParseSettlement(settlement any, market any) any {
+func (this *Gate) ParseSettlement(settlement any, optionalArgs ...any) any {
 	//
 	// fetchSettlementHistory
 	//
@@ -9959,6 +9959,8 @@ func (this *Gate) ParseSettlement(settlement any, market any) any {
 	//         "fee": "0.03079386"
 	//     }
 	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
 	var timestamp *int64 = this.SafeTimestamp(settlement, "time")
 	var marketId *string = this.SafeString(settlement, "contract")
 	return map[string]any{
@@ -9969,7 +9971,7 @@ func (this *Gate) ParseSettlement(settlement any, market any) any {
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Gate) ParseSettlements(settlements any, market any) any {
+func (this *Gate) ParseSettlements(settlements any, optionalArgs ...any) any {
 	//
 	// fetchSettlementHistory
 	//
@@ -10000,6 +10002,8 @@ func (this *Gate) ParseSettlements(settlements any, market any) any {
 	//         }
 	//     ]
 	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
 		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
@@ -10252,7 +10256,7 @@ func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Gate) ParseLedgerEntryType(typeVar any) *string {
+func (this *Gate) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"deposit":              "deposit",
 		"withdraw":             "withdrawal",
@@ -12180,7 +12184,7 @@ func (this *Gate) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Gate) FetchOrdersByStatus(status string, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 

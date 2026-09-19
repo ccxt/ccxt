@@ -1741,7 +1741,7 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan any, types any, code any
 		"types": types,
 	}
 	var currency any = nil
-	if !IsEqual(code, nil) {
+	if code != nil {
 		currency = this.Currency(code)
 		request["currencies"] = GetValue(currency, "id")
 	}
@@ -1795,7 +1795,7 @@ func (this *Hitbtc) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hitbtc) ParseTransactionType(typeVar any) *string {
+func (this *Hitbtc) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"DEPOSIT":  "deposit",
 		"WITHDRAW": "withdrawal",
@@ -3460,14 +3460,16 @@ func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"info":        transfer,
 	}
 }
-func (this *Hitbtc) ConvertCurrencyNetworkAsync(code any, amount any, fromNetwork any, toNetwork any, params any) <-chan any {
+func (this *Hitbtc) ConvertCurrencyNetworkAsync(code any, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
-	go this.convertCurrencyNetworkBody(ch, code, amount, fromNetwork, toNetwork, params)
+	go this.convertCurrencyNetworkBody(ch, code, amount, fromNetwork, toNetwork, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) convertCurrencyNetworkBody(ch chan any, code any, amount any, fromNetwork any, toNetwork any, params any) any {
+func (this *Hitbtc) convertCurrencyNetworkBody(ch chan any, code any, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
 	if this.Markets == nil {
 
 		retRes280612 := (<-this.LoadMarketsAsync())
@@ -5151,8 +5153,14 @@ func (this *Hitbtc) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	}
 	return NewTradeArray(res), nil
 }
-func (this *Hitbtc) FetchTransactionsHelper(types any, code any, since any, limit any, params any) ([]Transaction, error) {
-	res := <-this.FetchTransactionsHelperAsync(types, code, since, limit, params)
+func (this *Hitbtc) FetchTransactionsHelper(types string, code string, since int64, limit int64, options ...FetchTransactionsHelperOptions) ([]Transaction, error) {
+
+	opts := FetchTransactionsHelperOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.FetchTransactionsHelperAsync(types, code, since, limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

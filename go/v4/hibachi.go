@@ -1656,7 +1656,7 @@ func (this *Hibachi) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Hibachi) SignMessage(message any, privateKey any) any {
-	if IsEqual(GetArrayLength(privateKey), 44) {
+	if GetLength(privateKey) == 44 {
 		// For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
 		return this.Hmac(message, this.Encode(privateKey), sha256, "hex")
 	} else {
@@ -2343,7 +2343,7 @@ func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any,
 	}
 	return nil
 }
-func (this *Hibachi) ParseTransactionType(typeVar any) *string {
+func (this *Hibachi) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"deposit":      "transaction",
 		"withdrawal":   "transaction",

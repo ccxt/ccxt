@@ -3376,13 +3376,13 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- ledger
 	return nil
 }
-func (this *Coinbase) ParseLedgerEntryStatus(status any) *string {
+func (this *Coinbase) ParseLedgerEntryStatus(status *string) *string {
 	var types map[string]any = map[string]any{
 		"completed": "ok",
 	}
 	return this.SafeString(types, status, status)
 }
-func (this *Coinbase) ParseLedgerEntryType(typeVar any) *string {
+func (this *Coinbase) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"buy":                 "trade",
 		"sell":                "trade",
@@ -7149,7 +7149,7 @@ func (this *Coinbase) FetchMyBuys(options ...FetchMyBuysOptions) ([]Trade, error
 	}
 	return NewTradeArray(res), nil
 }
-func (this *Coinbase) FetchTransactionsWithMethod(method any, options ...FetchTransactionsWithMethodOptions) ([]Transaction, error) {
+func (this *Coinbase) FetchTransactionsWithMethod(method string, options ...FetchTransactionsWithMethodOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsWithMethodOptionsStruct{}
 
@@ -7645,7 +7645,7 @@ func (this *Coinbase) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Coinbase) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Coinbase) FetchOrdersByStatus(status string, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 

@@ -4491,7 +4491,7 @@ func (this *Mexc) ParseOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Mexc) ParseOrderSide(status any) *string {
+func (this *Mexc) ParseOrderSide(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"BUY":  "buy",
 		"SELL": "sell",
@@ -4500,7 +4500,7 @@ func (this *Mexc) ParseOrderSide(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseOrderType(status any) *string {
+func (this *Mexc) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"MARKET":              "market",
 		"LIMIT":               "limit",
@@ -4523,7 +4523,7 @@ func (this *Mexc) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseOrderTimeInForce(status any) *string {
+func (this *Mexc) ParseOrderTimeInForce(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"GTC": "GTC",
 		"FOK": "FOK",
@@ -6304,7 +6304,7 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"fee":         fee,
 	}
 }
-func (this *Mexc) ParseTransactionStatusByType(status any, optionalArgs ...any) *string {
+func (this *Mexc) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	var statusesByType map[string]any = map[string]any{
@@ -8207,7 +8207,7 @@ func (this *Mexc) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Mexc) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOptions) ([]Order, error) {
+func (this *Mexc) FetchOrdersByIds(ids []string, options ...FetchOrdersByIdsOptions) ([]Order, error) {
 
 	opts := FetchOrdersByIdsOptionsStruct{}
 
@@ -8302,7 +8302,7 @@ func (this *Mexc) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Mexc) FetchOrdersByState(state any, options ...FetchOrdersByStateOptions) ([]Order, error) {
+func (this *Mexc) FetchOrdersByState(state float64, options ...FetchOrdersByStateOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStateOptionsStruct{}
 
@@ -8392,8 +8392,14 @@ func (this *Mexc) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Mexc) FetchAccountHelper(typeVar any, params any) (map[string]any, error) {
-	res := <-this.FetchAccountHelperAsync(typeVar, params)
+func (this *Mexc) FetchAccountHelper(typeVar string, options ...FetchAccountHelperOptions) (map[string]any, error) {
+
+	opts := FetchAccountHelperOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.FetchAccountHelperAsync(typeVar, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}

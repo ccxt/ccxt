@@ -3347,7 +3347,7 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"info":             item,
 	}, currency)
 }
-func (this *Modetrade) ParseLedgerEntryType(typeVar any) *string {
+func (this *Modetrade) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",

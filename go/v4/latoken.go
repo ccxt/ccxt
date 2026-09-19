@@ -1427,7 +1427,7 @@ func (this *Latoken) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Latoken) ParseOrderType(status any) *string {
+func (this *Latoken) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"ORDER_TYPE_MARKET": "market",
 		"ORDER_TYPE_LIMIT":  "limit",
@@ -2165,7 +2165,7 @@ func (this *Latoken) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Latoken) ParseTransactionType(typeVar any) *string {
+func (this *Latoken) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"TRANSACTION_TYPE_DEPOSIT":    "deposit",
 		"TRANSACTION_TYPE_WITHDRAWAL": "withdrawal",

@@ -3297,7 +3297,7 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 		"average":            nil,
 	}, market)
 }
-func (this *Bitstamp) ParseLedgerEntryType(typeVar any) *string {
+func (this *Bitstamp) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"0":  "transaction",
 		"1":  "transaction",

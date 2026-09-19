@@ -4143,7 +4143,7 @@ func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Pacifica) ParseLedgerEntryType(typeVar any) *string {
+func (this *Pacifica) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
 		"subaccount_transfer":  "transfer",
 		"deposit":              "transaction",

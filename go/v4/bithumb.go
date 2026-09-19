@@ -2566,7 +2566,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var amount any = this.FixCommaNumber(this.SafeStringN(order, []any{"order_qty", "units", "volume"}))
 	var remaining any = this.FixCommaNumber(this.SafeString2(order, "units_remaining", "remaining_volume"))
-	if IsEqual(remaining, nil) {
+	if remaining == nil {
 		if status != nil && *status == "closed" {
 			remaining = "0"
 		} else if status == nil || *status != "canceled" {
@@ -3898,7 +3898,7 @@ func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) any 
 }
 func (this *Bithumb) FixCommaNumber(numberStr any) any {
 	// some endpoints need this https://github.com/ccxt/ccxt/issues/11031
-	if IsEqual(numberStr, nil) {
+	if numberStr == nil {
 		return nil
 	}
 	var finalNumberStr any = numberStr

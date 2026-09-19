@@ -2533,7 +2533,7 @@ func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal":    nil,
 	}
 }
-func (this *Foxbit) ParseLedgerEntryType(typeVar any) *string {
+func (this *Foxbit) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"DEPOSITING":           "transaction",
 		"WITHDRAWING":          "transaction",

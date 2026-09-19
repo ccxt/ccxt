@@ -1509,7 +1509,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
 }
-func (this *Kraken) ParseLedgerEntryType(typeVar any) *string {
+func (this *Kraken) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"trade":      "trade",
 		"withdrawal": "transaction",
@@ -3675,7 +3675,7 @@ func (this *Kraken) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kraken) ParseNetwork(network any) any {
+func (this *Kraken) ParseNetwork(network *string) any {
 	var withdrawMethods map[string]any = SafeMapTyped(this.Options, "withdrawMethods")
 	return this.SafeString(withdrawMethods, network, network)
 }
@@ -5552,7 +5552,7 @@ func (this *Kraken) FetchPositions(options ...FetchPositionsOptions) ([]Position
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kraken) TransferOut(code string, amount any, options ...TransferOutOptions) (TransferEntry, error) {
+func (this *Kraken) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
 
 	opts := TransferOutOptionsStruct{}
 

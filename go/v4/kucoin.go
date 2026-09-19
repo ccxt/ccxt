@@ -4876,12 +4876,12 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	return nil
 }
 func (this *Kucoin) HandleTriggerPrices(params any) any {
-	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
-	var stopLossPrice any = this.SafeValue(params, "stopLossPrice")
-	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
-	var isStopLoss bool = !IsEqual(stopLossPrice, nil)
-	var isTakeProfit bool = !IsEqual(takeProfitPrice, nil)
-	if (isStopLoss && isTakeProfit) || ((!IsEqual(triggerPrice, nil)) && (!IsEqual(stopLossPrice, nil))) || ((!IsEqual(triggerPrice, nil)) && isTakeProfit) {
+	var triggerPrice *float64 = this.SafeNumber2(params, "triggerPrice", "stopPrice")
+	var stopLossPrice *float64 = this.SafeNumber(params, "stopLossPrice")
+	var takeProfitPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
+	var isStopLoss bool = (stopLossPrice != nil)
+	var isTakeProfit bool = (takeProfitPrice != nil)
+	if (isStopLoss && isTakeProfit) || ((triggerPrice != nil) && (stopLossPrice != nil)) || ((triggerPrice != nil) && isTakeProfit) {
 		panic(ExchangeError(this.Id + " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice"))
 	}
 	return []any{triggerPrice, stopLossPrice, takeProfitPrice}
@@ -11095,7 +11095,7 @@ func (this *Kucoin) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kucoin) ParseLedgerEntryType(typeVar any) *string {
+func (this *Kucoin) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"Assets Transferred in After Upgrading": "transfer",
 		"Deposit":                               "transaction",
@@ -11141,7 +11141,7 @@ func (this *Kucoin) ParseLedgerEntryType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Kucoin) ParseLedgerDirection(direction any) any {
+func (this *Kucoin) ParseLedgerDirection(direction *string) any {
 	var directions map[string]any = map[string]any{
 		"in":          "in",
 		"out":         "out",
@@ -11152,7 +11152,7 @@ func (this *Kucoin) ParseLedgerDirection(direction any) any {
 	}
 	return this.SafeString(directions, direction, direction)
 }
-func (this *Kucoin) ParseLedgerStatus(status any) *string {
+func (this *Kucoin) ParseLedgerStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Completed": "ok",
 		"Pending":   "pending",
@@ -11995,7 +11995,7 @@ func (this *Kucoin) ParseBorrowRateHistories(response any, codes any, since any,
 	for i := 0; i < GetArrayLength(response); i++ {
 		var item any = GetValue(response, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(item, "currency"))
-		if (code != nil) && (IsEqual(codes, nil) || this.InArray(code, codes)) {
+		if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 			if !(func() bool {
 				if code == nil {
 					return false
@@ -12834,7 +12834,7 @@ func (this *Kucoin) ParseFundingRate(data any, optionalArgs ...any) any {
 		"interval":                 this.ParseFundingInterval(granularity),
 	}
 }
-func (this *Kucoin) ParseFundingInterval(interval any) any {
+func (this *Kucoin) ParseFundingInterval(interval *string) any {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -16008,7 +16008,7 @@ func (this *Kucoin) CancelAllContractOrders(options ...CancelAllContractOrdersOp
  * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Kucoin) FetchOrdersByStatus(status string, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -16080,7 +16080,7 @@ func (this *Kucoin) FetchSpotOrdersByStatus(status any, options ...FetchSpotOrde
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchContractOrdersByStatus(status any, options ...FetchContractOrdersByStatusOptions) ([]Order, error) {
+func (this *Kucoin) FetchContractOrdersByStatus(status string, options ...FetchContractOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchContractOrdersByStatusOptionsStruct{}
 

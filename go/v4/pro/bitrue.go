@@ -925,7 +925,7 @@ func (this *Bitrue) ParseWsTicker(tick any, market any, optionalArgs ...any) any
 		"quoteVolume":   quoteVolume,
 	}, market)
 }
-func (this *Bitrue) ParseWsOrderType(typeId any) *string {
+func (this *Bitrue) ParseWsOrderType(typeId *string) *string {
 	var types map[string]any = map[string]any{
 		"1": "limit",
 		"2": "market",
@@ -933,7 +933,7 @@ func (this *Bitrue) ParseWsOrderType(typeId any) *string {
 	}
 	return this.SafeString(types, typeId, typeId)
 }
-func (this *Bitrue) ParseWsOrderStatus(status any) *string {
+func (this *Bitrue) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "open",
 		"1": "open",
