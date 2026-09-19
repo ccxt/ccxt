@@ -3052,7 +3052,7 @@ func (this *Upbit) Sign(path any, optionalArgs ...any) any {
 	var url any = this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
 		"hostname": this.Hostname,
 	})
-	url = Add(url, Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params)))
+	url = Add(url, Add("/"+this.Version+"/", this.ImplodeParams(path, params)))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if !IsEqual(method, "POST") {
 		if len(ObjectKeys(query)) > 0 {

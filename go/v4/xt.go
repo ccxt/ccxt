@@ -7450,9 +7450,9 @@ func (this *Xt) Sign(path any, optionalArgs ...any) any {
 	var payload any = nil
 	if (IsEqual(endpoint, "spot")) || (IsEqual(endpoint, "user")) {
 		if signed {
-			payload = Add(Add("/", this.Version), request)
+			payload = Add("/"+this.Version, request)
 		} else {
-			payload = Add(Add(Add("/", this.Version), "/public"), request)
+			payload = Add("/"+this.Version+"/public", request)
 		}
 	} else {
 		payload = request

@@ -1341,7 +1341,7 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	if this.Id == "btctrader" {
-		panic(ExchangeError(Add(this.Id, " is an abstract base API for BTCExchange, BTCTurk")))
+		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
 	}
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {

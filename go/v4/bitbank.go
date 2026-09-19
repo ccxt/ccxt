@@ -1415,12 +1415,12 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 		} else {
 			auth = nonce
 		}
-		url = Add(url, Add(Add(this.Version, "/"), this.ImplodeParams(path, params)))
+		url = Add(url, Add(this.Version+"/", this.ImplodeParams(path, params)))
 		if IsEqual(method, "POST") {
 			body = this.Json(query)
 			auth = Add(auth, body)
 		} else {
-			auth = Add(auth, Add(Add(Add("/", this.Version), "/"), path))
+			auth = Add(auth, Add("/"+this.Version+"/", path))
 			if len(ObjectKeys(query)) > 0 {
 				query = this.Urlencode(query)
 				url = Add(url, Add("?", query))

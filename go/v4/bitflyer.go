@@ -1687,7 +1687,7 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var request any = Add(Add("/", this.Version), "/")
+	var request any = "/" + this.Version + "/"
 	if IsEqual(api, "private") {
 		request = Add(request, "me/")
 	}

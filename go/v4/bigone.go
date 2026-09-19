@@ -2385,7 +2385,7 @@ func (this *Bigone) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 		}
 	}
-	AddElementToObject(headers, "User-Agent", Add("ccxt/"+this.Id+"-", this.Version))
+	AddElementToObject(headers, "User-Agent", "ccxt/"+this.Id+"-"+this.Version)
 	return map[string]any{
 		"url":     url,
 		"method":  method,

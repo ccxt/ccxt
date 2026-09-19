@@ -4932,7 +4932,7 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var requestPath any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	var requestPath any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {

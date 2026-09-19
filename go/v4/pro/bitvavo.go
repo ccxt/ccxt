@@ -2455,7 +2455,7 @@ func (this *Bitvavo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(future, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var stringTimestamp string = ccxt.ToString(timestamp)
-		var auth any = ccxt.Add(ccxt.Add(stringTimestamp+"GET/", this.Version), "/websocket")
+		var auth any = stringTimestamp + "GET/" + this.Version + "/websocket"
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 		var action string = "authenticate"
 		var request map[string]any = map[string]any{

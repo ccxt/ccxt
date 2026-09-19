@@ -9446,7 +9446,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 		var nonce any = this.Nonce()
 		var timestamp int64 = this.ParseToInt(Divide(nonce, 1000))
 		var timestampString string = ToString(timestamp)
-		var signaturePath any = Add(Add("/api/", this.Version), entirePath)
+		var signaturePath any = Add("/api/"+this.Version, entirePath)
 		var payloadArray []any = []any{ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
 		// eslint-disable-next-line quotes
 		var payload string = Join(payloadArray, "\n")
