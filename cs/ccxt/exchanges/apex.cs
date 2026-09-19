@@ -925,7 +925,7 @@ public partial class apex : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "symbol", this.safeString(market, "id2") },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200; // default is 200 when requested with `since`
         }
@@ -933,7 +933,7 @@ public partial class apex : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
         }
@@ -983,7 +983,7 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id2") },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100; // default is 200 when requested with `since`
         }
@@ -1047,7 +1047,7 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id2") },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 500; // default is 50
         }
@@ -1204,11 +1204,11 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> market = this.market(symbol);
         ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["beginTimeInclusive"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1508,7 +1508,7 @@ public partial class apex : Exchange
         string orderSide = ((string)side).ToUpper();
         string? orderSize = this.amountToPrecision(symbol, amount);
         string? orderPrice = "0";
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             orderPrice = this.priceToPrecision(symbol, price);
         }
@@ -1530,7 +1530,7 @@ public partial class apex : Exchange
             triggerPrice = takeProfitPrice;
         }
         bool isMarket = (orderType == "MARKET");
-        if (isMarket && (isEqual(price, null)))
+        if (isMarket && ((price == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for market orders")) ;
         }
@@ -1909,11 +1909,11 @@ public partial class apex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["beginTimeInclusive"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1993,11 +1993,11 @@ public partial class apex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["beginTimeInclusive"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2041,11 +2041,11 @@ public partial class apex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["beginTimeInclusive"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

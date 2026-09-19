@@ -1345,11 +1345,11 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
@@ -1385,7 +1385,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
@@ -1506,10 +1506,10 @@ public partial class coinbaseexchange : Exchange
         }
         object until = this.safeValue2(parameters, "until", "end");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 limitVar = 300; // max = 300
@@ -1773,11 +1773,11 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
@@ -1868,7 +1868,7 @@ public partial class coinbaseexchange : Exchange
             object cost = this.safeNumber2(parameters, "cost", "funds");
             if (isEqual(cost, null))
             {
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     cost = multiply(amount, price);
                 }
@@ -2162,11 +2162,11 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
@@ -2227,7 +2227,7 @@ public partial class coinbaseexchange : Exchange
         {
             ((IDictionary<string,object>)request)["id"] = id;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

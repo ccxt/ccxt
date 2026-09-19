@@ -1454,7 +1454,7 @@ public partial class bitfinex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "precision", precision },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["len"] = limit;
         }
@@ -1819,12 +1819,12 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
             sort = "1";
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 10000); // default 120, max 10000
         }
@@ -1901,7 +1901,7 @@ public partial class bitfinex : Exchange
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitVar },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
             ((IDictionary<string,object>)request)["sort"] = 1;
@@ -2121,7 +2121,7 @@ public partial class bitfinex : Exchange
         bool ioc = ((timeInForce == "IOC"));
         bool fok = ((timeInForce == "FOK"));
         bool postOnly = (((postOnlyParam == true)) || ((timeInForce == "PO")));
-        if ((ioc || fok) && (isEqual(price, null)))
+        if ((ioc || fok) && ((price == null)))
         {
             throw new InvalidOrder ((string)(this.id + " createOrder() requires a price argument with IOC and FOK orders")) ;
         }
@@ -2673,11 +2673,11 @@ public partial class bitfinex : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 25, max 2500
         }
@@ -2808,11 +2808,11 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "end", this.milliseconds() },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 25, max 1000
         }
@@ -3231,11 +3231,11 @@ public partial class bitfinex : Exchange
         }
         IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 1000
         }
@@ -3710,11 +3710,11 @@ public partial class bitfinex : Exchange
         }
         IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3851,7 +3851,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
@@ -4165,11 +4165,11 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4313,11 +4313,11 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4565,7 +4565,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", this.parseToNumeric(id) },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             object amountString = this.amountToPrecision(symbol, amount);
             amountString = ((bool) (isEqual(side, "buy"))) ? amountString : ((string)Precise.stringNeg(amountString));

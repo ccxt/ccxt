@@ -1218,7 +1218,7 @@ public partial class binance : PredictionExchange
             Dictionary<string, object> market = this.market(getValue(outcomeObj, "market"));
             ((IDictionary<string,object>)request)["marketId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1309,11 +1309,11 @@ public partial class binance : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startDate"] = this.yyyymmdd(since);
         }
@@ -1601,11 +1601,11 @@ public partial class binance : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startDate"] = this.yyyymmdd(since);
         }
@@ -1925,7 +1925,7 @@ public partial class binance : PredictionExchange
         string defaultTif = "FOK";
         if ((typeUpper == "LIMIT"))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + "createOrder requires price for limit order")) ;
             }
@@ -1946,7 +1946,7 @@ public partial class binance : PredictionExchange
                     feeRateBps = "0";
                 } else
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new ArgumentsRequired ((string)(((this.id + " createOrder requires price for ") + (side)) + " order")) ;
                     }

@@ -898,8 +898,8 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        limitVar = ((bool) (isEqual(limitVar, null))) ? 50 : limitVar;
-        if (!isEqual(limitVar, null))
+        limitVar = ((bool) ((limitVar == null))) ? 50 : limitVar;
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
@@ -1213,7 +1213,7 @@ public partial class blofin : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
@@ -1280,7 +1280,7 @@ public partial class blofin : Exchange
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 100));
         }
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 100; // default 100, max 100
         }
@@ -1336,11 +1336,11 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1935,7 +1935,7 @@ public partial class blofin : Exchange
             { "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b") },
             { "reduceOnly", this.safeBool(parameters, "reduceOnly", true) },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
         }
@@ -2122,7 +2122,7 @@ public partial class blofin : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -2189,7 +2189,7 @@ public partial class blofin : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -2266,11 +2266,11 @@ public partial class blofin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -2317,11 +2317,11 @@ public partial class blofin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
@@ -2507,7 +2507,7 @@ public partial class blofin : Exchange
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2932,11 +2932,11 @@ public partial class blofin : Exchange
                 ((IDictionary<string,object>)request)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
@@ -3385,11 +3385,11 @@ public partial class blofin : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }

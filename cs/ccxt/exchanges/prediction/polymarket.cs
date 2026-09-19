@@ -1657,17 +1657,17 @@ public partial class polymarket : PredictionExchange
         Int64 nowS = this.seconds();
         object startS = null;
         object endS = nowS;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             startS = this.parseToInt(divide(since, 1000));
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 object endBound = this.sum(startS, multiply(multiply(limitVar, fidelityMin), 60));
                 endS = ((bool) (isLessThan(endBound, nowS))) ? endBound : nowS;
             }
         } else
         {
-            object barCount = ((bool) (!isEqual(limitVar, null))) ? limitVar : 100;
+            object barCount = ((bool) ((limitVar != null))) ? limitVar : 100;
             startS = subtract(nowS, (multiply(multiply(barCount, fidelityMin), 60)));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
@@ -1677,7 +1677,7 @@ public partial class polymarket : PredictionExchange
         Int64? maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
         if (isGreaterThan((subtract(endS, startS)), maxWindow))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 endS = this.sum(startS, maxWindow);
             } else
@@ -1748,7 +1748,7 @@ public partial class polymarket : PredictionExchange
         }
         List<object> candles = this.sortBy(unsortedCandles, 0);
         int candlesLength = (candles?.Count ?? 0);
-        if ((!isEqual(limitVar, null)) && (isGreaterThan(candlesLength, limitVar)))
+        if (((limitVar != null)) && (isGreaterThan(candlesLength, limitVar)))
         {
             return ccxt.BaseExchange.ToOHLCVList(this.arraySlice(candles, prefixUnaryNeg(ref limitVar)));
         }
@@ -2519,7 +2519,7 @@ public partial class polymarket : PredictionExchange
         {
             orderTypeStr = ((bool) isMarket) ? "FOK" : "GTC";
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             if (!isMarket)
             {
@@ -2527,7 +2527,7 @@ public partial class polymarket : PredictionExchange
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             price = this.safeNumber(outcomeObj, "price");
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
             }
@@ -2704,7 +2704,7 @@ public partial class polymarket : PredictionExchange
         string rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
         string? makerRaw = null;
         string? takerRaw = null;
-        if ((!isEqual(cost, null)) && (isEqual(side, "BUY")))
+        if (((cost != null)) && (isEqual(side, "BUY")))
         {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise

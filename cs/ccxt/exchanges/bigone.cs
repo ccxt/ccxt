@@ -1144,7 +1144,7 @@ public partial class bigone : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit; // default 50, max 200
             }
@@ -1464,8 +1464,8 @@ public partial class bigone : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         bool untilIsDefined = (!isEqual(until, null));
-        bool sinceIsDefined = (!isEqual(since, null));
-        if (isEqual(limitVar, null))
+        bool sinceIsDefined = ((since != null));
+        if ((limitVar == null))
         {
             limitVar = ((bool) (sinceIsDefined && untilIsDefined)) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
         }
@@ -1773,7 +1773,7 @@ public partial class bigone : Exchange
                 parameters = this.omit(parameters, "cost");
                 if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if ((isEqual(price, null)) && (isEqual(cost, null)))
+                    if (((price == null)) && (isEqual(cost, null)))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -1977,7 +1977,7 @@ public partial class bigone : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 20, max 200
         }
@@ -2032,7 +2032,7 @@ public partial class bigone : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 20, max 200
         }
@@ -2360,7 +2360,7 @@ public partial class bigone : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset_symbol"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 50
         }
@@ -2415,7 +2415,7 @@ public partial class bigone : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset_symbol"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 50
         }

@@ -1148,7 +1148,7 @@ public partial class bullish : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         parameters = this.handleSinceAndUntil(since, parameters);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["_pageSize"] = this.getClosestLimit(limit);
         }
@@ -1217,7 +1217,7 @@ public partial class bullish : Exchange
                 return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
             }
             parameters = this.handleSinceAndUntil(since, parameters);
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["_pageSize"] = this.getClosestLimit(limit);
             }
@@ -1670,7 +1670,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["_pageSize"] = this.getClosestLimit(limit);
         }
@@ -1745,7 +1745,7 @@ public partial class bullish : Exchange
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         parameters = this.handleSinceAndUntil(since, parameters);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["_pageSize"] = this.getClosestLimit(limit);
         }
@@ -1802,7 +1802,7 @@ public partial class bullish : Exchange
         Int64 ninetyDays = (((multiply(90, 24) * 60) * 60) * 1000);
         Int64 now = this.milliseconds();
         Int64 allowedSince = (now - ninetyDays);
-        if ((!isEqual(since, null)) && (isLessThan(since, allowedSince)))
+        if (((since != null)) && (isLessThan(since, allowedSince)))
         {
             throw new BadRequest ((string)(((this.id + " ") + (method)) + "() only allows fetching entries up to 90 days in the past")) ;
         }
@@ -1826,10 +1826,10 @@ public partial class bullish : Exchange
         sinceKey ??= "createdAtDatetime[gte]";
         untilKey ??= "createdAtDatetime[lte]";
         object until = this.safeInteger(parameters, "until");
-        if ((!isEqual(since, null)) || (!isEqual(until, null)))
+        if (((since != null)) || (!isEqual(until, null)))
         {
             Int64 timeDelta = (((multiply(7, 24) * 60) * 60) * 1000); // 7 days
-            if (isEqual(since, null))
+            if ((since == null))
             {
                 since = subtract(until, timeDelta);
                 parameters = this.omit(parameters, "until");
@@ -2127,11 +2127,11 @@ public partial class bullish : Exchange
             parameters = this.omit(parameters, "postOnly");
             ((IDictionary<string,object>)request)["type"] = "POST_ONLY";
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2373,7 +2373,7 @@ public partial class bullish : Exchange
         {
             ((IDictionary<string,object>)request)["createdAtDatetime[lte]"] = this.iso8601(until);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["createdAtDatetime[gte]"] = this.iso8601(since);
         }
@@ -3019,7 +3019,7 @@ public partial class bullish : Exchange
             ((IDictionary<string,object>)request)["assetSymbol"] = getValue(currency, "id");
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if ((isEqual(since, null)) && (isEqual(until, null)))
+        if (((since == null)) && (isEqual(until, null)))
         {
             // since and until are mandatory for this endpoint, set until to now if both are undefined
             Int64 now = this.milliseconds();
@@ -3028,7 +3028,7 @@ public partial class bullish : Exchange
             });
         }
         parameters = this.handleSinceAndUntil(since, parameters);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["_pageSize"] = this.getClosestLimit(limit);
         }

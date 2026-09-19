@@ -448,7 +448,7 @@ public partial class bitbns : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
@@ -1104,7 +1104,7 @@ public partial class bitbns : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "page", 0 },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = this.iso8601(since);
         }

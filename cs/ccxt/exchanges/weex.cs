@@ -1677,7 +1677,7 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((!isEqual(limit, null)) && (isGreaterThan(limit, 15)))
+        if (((limit != null)) && (isGreaterThan(limit, 15)))
         {
             ((IDictionary<string,object>)request)["limit"] = 200; // default is 15, max is 200
         }
@@ -1834,7 +1834,7 @@ public partial class weex : Exchange
         string? priceType = this.safeStringUpper(parameters, "price");
         parameters = this.omit(parameters, new List<object>() {"historical", "until", "price"});
         List<object> response = null;
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             limitVar = mathMin(limitVar, 1000); // hardcap threshold
         }
@@ -1846,17 +1846,17 @@ public partial class weex : Exchange
             }
             object startTime = since;
             object endTime = until;
-            if ((isEqual(since, null)) || (isEqual(until, null)))
+            if (((since == null)) || (isEqual(until, null)))
             {
                 Int64 now = this.milliseconds();
                 Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-                object numberOfCandles = ((bool) (!isEqual(limitVar, null) && !isEqual(limitVar, null) && !isEqual(limitVar, 0))) ? limitVar : maxHistoricalLimit;
+                object numberOfCandles = ((bool) ((limitVar != null) && (limitVar != null) && !isEqual(limitVar, 0))) ? limitVar : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
-                if ((isEqual(since, null)) && (isEqual(until, null)))
+                if (((since == null)) && (isEqual(until, null)))
                 {
                     endTime = now;
                     startTime = subtract(now, timeDelta);
-                } else if (isEqual(since, null))
+                } else if ((since == null))
                 {
                     if (isEqual(until, null))
                     {
@@ -1873,7 +1873,7 @@ public partial class weex : Exchange
             response = await this.contractGetCapiV3MarketHistoryKlines(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limitVar;
             }
@@ -1919,7 +1919,7 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
@@ -2223,11 +2223,11 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2404,11 +2404,11 @@ public partial class weex : Exchange
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit));
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["after"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3214,11 +3214,11 @@ public partial class weex : Exchange
             response = await this.privateGetApiV3OpenOrders(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -3429,11 +3429,11 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
         }
@@ -3513,11 +3513,11 @@ public partial class weex : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.toSandboxMarketId(market);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3859,11 +3859,11 @@ public partial class weex : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3972,11 +3972,11 @@ public partial class weex : Exchange
             {
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             }
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -3987,11 +3987,11 @@ public partial class weex : Exchange
             items = this.safeList(contractResponse, "items", new List<object>() {});
         } else if ((accountType == "funding"))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
@@ -4002,11 +4002,11 @@ public partial class weex : Exchange
             items = this.safeList(fundingResponse, "items", new List<object>() {});
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["after"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -4170,11 +4170,11 @@ public partial class weex : Exchange
             }
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

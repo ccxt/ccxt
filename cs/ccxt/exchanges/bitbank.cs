@@ -678,9 +678,9 @@ public partial class bitbank : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
             }
@@ -1009,11 +1009,11 @@ public partial class bitbank : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
         }
@@ -1048,11 +1048,11 @@ public partial class bitbank : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
         }

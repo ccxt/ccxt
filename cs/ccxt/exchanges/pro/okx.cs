@@ -1422,7 +1422,7 @@ public partial class okx : ccxt.okx
         IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
         depth = ((IList<object>)depthparametersVariable)[0];
         parameters = ((IList<object>)depthparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (isEqual(limit, 1))
             {

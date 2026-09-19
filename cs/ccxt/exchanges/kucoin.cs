@@ -3889,17 +3889,17 @@ public partial class kucoin : Exchange
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
@@ -3995,17 +3995,17 @@ public partial class kucoin : Exchange
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide(sinceVar, denominator)).ToString()))));
@@ -4075,17 +4075,17 @@ public partial class kucoin : Exchange
         }
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object endAt = this.milliseconds(); // required param
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["from"] = sinceVar;
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 // For each query, the system would return at most 200 pieces of data.
                 // To obtain more data, please page the data by time.
                 limitVar = this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit);
             }
             endAt = this.sum(sinceVar, multiply(limitVar, duration));
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             sinceVar = subtract(endAt, multiply(limitVar, duration));
             ((IDictionary<string,object>)request)["from"] = sinceVar;
@@ -4419,7 +4419,7 @@ public partial class kucoin : Exchange
         if (isTrue(uta))
         {
             string limitString = "20";
-            if ((isEqual(limit, null)) || (isGreaterThanOrEqual(limit, 100)))
+            if (((limit == null)) || (isGreaterThanOrEqual(limit, 100)))
             {
                 limitString = "FULL";
             } else if (isGreaterThan(limit, 20))
@@ -4442,7 +4442,7 @@ public partial class kucoin : Exchange
             {
                 throw new BadRequest ((string)(this.id + " fetchOrderBook() can only return level 2")) ;
             }
-            if (isEqual(limit, null))
+            if ((limit == null))
             {
                 // full L2 snapshot - required for correct ws diff-sync: the futures delta
                 // stream covers the whole book while depth20/depth100 truncate the snapshot,
@@ -4476,12 +4476,12 @@ public partial class kucoin : Exchange
             {
                 throw new BadRequest ((string)(this.id + " fetchOrderBook() limit argument must be 20 or 100")) ;
             }
-        } else if (!isAuthenticated || !isEqual(limit, null))
+        } else if (!isAuthenticated || (limit != null))
         {
             if ((level == 2))
             {
                 ((IDictionary<string,object>)request)["level"] = level;
-                if (!isEqual(limit, null))
+                if ((limit != null))
                 {
                     if ((isEqual(limit, 20)) || (isEqual(limit, 100)))
                     {
@@ -4491,7 +4491,7 @@ public partial class kucoin : Exchange
                         throw new ExchangeError ((string)(this.id + " fetchOrderBook() limit argument must be 20 or 100")) ;
                     }
                 }
-                ((IDictionary<string,object>)request)["limit"] = ((bool) (!isEqual(limit, null))) ? limit : 100;
+                ((IDictionary<string,object>)request)["limit"] = ((bool) ((limit != null))) ? limit : 100;
             }
             response = await this.publicGetMarketOrderbookLevelLevelLimit(this.extend(request, parameters));
         } else
@@ -5032,7 +5032,7 @@ public partial class kucoin : Exchange
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if ((uppercaseType == "LIMIT"))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for limit orders")) ;
             } else
@@ -5662,11 +5662,11 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["newPrice"] = this.priceToPrecision(symbol, price);
         }
@@ -6401,11 +6401,11 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["status"] = lowercaseStatus;
             }
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startAt"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
@@ -6506,7 +6506,7 @@ public partial class kucoin : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
@@ -6643,14 +6643,14 @@ public partial class kucoin : Exchange
         bool isUnified = (isEqual(accountMode, "unified"));
         string? tradeType = this.handleTradeType(isContract, marginMode, isUnified, parameters);
         ((IDictionary<string,object>)parameters)["tradeType"] = tradeType;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endAt", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -7841,11 +7841,11 @@ public partial class kucoin : Exchange
         if (isEqual(hf, true))
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 // only returns trades up to one week after the since param
                 ((IDictionary<string,object>)request)["startAt"] = since;
@@ -7860,7 +7860,7 @@ public partial class kucoin : Exchange
         } else if (isEqual(method, "private_get_fills"))
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 // only returns trades up to one week after the since param
                 ((IDictionary<string,object>)request)["startAt"] = since;
@@ -7971,11 +7971,11 @@ public partial class kucoin : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = mathMin(1000, limit);
         }
@@ -8089,11 +8089,11 @@ public partial class kucoin : Exchange
         bool isUnified = (isEqual(accountMode, "unified"));
         string? tradeType = this.handleTradeType(isContract, marginMode, isUnified, parameters);
         ((IDictionary<string,object>)request)["tradeType"] = tradeType;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -8967,7 +8967,7 @@ public partial class kucoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -8975,14 +8975,14 @@ public partial class kucoin : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (!isEqual(since, null) && isLessThan(since, 1550448000000))
+        if ((since != null) && isLessThan(since, 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt(divide(since, 1000));
             response = await this.privateGetHistDeposits(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startAt"] = since;
             }
@@ -9055,11 +9055,11 @@ public partial class kucoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
@@ -9144,7 +9144,7 @@ public partial class kucoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -9152,14 +9152,14 @@ public partial class kucoin : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (!isEqual(since, null) && isLessThan(since, 1550448000000))
+        if ((since != null) && isLessThan(since, 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
             ((IDictionary<string,object>)request)["startAt"] = this.parseToInt(divide(since, 1000));
             response = await this.privateGetHistWithdrawals(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startAt"] = since;
             }
@@ -9233,11 +9233,11 @@ public partial class kucoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
@@ -10380,7 +10380,7 @@ public partial class kucoin : Exchange
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, maxLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
@@ -10394,7 +10394,7 @@ public partial class kucoin : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endAt", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if ((type == "contract"))
             {
@@ -10793,14 +10793,14 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "isIsolated", isIsolated },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit; // default:50, min:10, max:500
         }
@@ -10858,14 +10858,14 @@ public partial class kucoin : Exchange
             { "isIsolated", isIsolated },
             { "currency", getValue(currency, "id") },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit; // default:50, min:10, max:500
         }
@@ -11641,7 +11641,7 @@ public partial class kucoin : Exchange
         parameters = this.omit(parameters, "until");
         object start = since;
         Int64? end = until;
-        if (isEqual(since, null))
+        if ((since == null))
         {
             start = 0;
         }
@@ -11754,14 +11754,14 @@ public partial class kucoin : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
         List<object> dataList = new List<object>() {};
         if (isTrue(uta))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
@@ -11793,7 +11793,7 @@ public partial class kucoin : Exchange
             dataList = this.safeList(data, "items", new List<object>() {});
         } else
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 // * Since is ignored if limit is defined
                 ((IDictionary<string,object>)request)["maxCount"] = limit;
@@ -12039,11 +12039,11 @@ public partial class kucoin : Exchange
         }
         if (isTrue(uta))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startAt"] = since;
             }
-            if (!isEqual(limitVar, null))
+            if ((limitVar != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limitVar;
             }
@@ -12080,12 +12080,12 @@ public partial class kucoin : Exchange
             response = await this.utaPrivateGetPositionHistory(this.extend(request, parameters));
         } else
         {
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 200;
             }
             ((IDictionary<string,object>)request)["limit"] = limitVar;
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["from"] = since;
             }
@@ -13153,11 +13153,11 @@ public partial class kucoin : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -13378,11 +13378,11 @@ public partial class kucoin : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         } else

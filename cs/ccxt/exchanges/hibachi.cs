@@ -1000,7 +1000,7 @@ public partial class hibachi : Exchange
             sideInternal = "BID";
         }
         string? priceInternal = "";
-        if ((!isEqual(price, null)) && (!isEqual(price, 0)))
+        if (((price != null)) && (!isEqual(price, 0)))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
@@ -1690,7 +1690,7 @@ public partial class hibachi : Exchange
         {
             ((IDictionary<string,object>)request)["status"] = status;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -1804,7 +1804,7 @@ public partial class hibachi : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", timeframeVar },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["fromMs"] = since;
         }
@@ -2421,11 +2421,11 @@ public partial class hibachi : Exchange
             ((IDictionary<string,object>)request)["contractId"] = (market.ContainsKey("numericId") ? market["numericId"] : null);
             symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.parseToInt(divide(since, 1000));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

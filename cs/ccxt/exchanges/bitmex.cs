@@ -1394,7 +1394,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1489,11 +1489,11 @@ public partial class bitmex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1590,11 +1590,11 @@ public partial class bitmex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(500, limit);
         }
@@ -1813,7 +1813,7 @@ public partial class bitmex : Exchange
         //         // date-based pagination not supported
         //     }
         //
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1879,7 +1879,7 @@ public partial class bitmex : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -2142,7 +2142,7 @@ public partial class bitmex : Exchange
             { "binSize", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "partial", true },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100, max 500
         }
@@ -2158,7 +2158,7 @@ public partial class bitmex : Exchange
         useOpenTimestamp = ((IList<object>)useOpenTimestampparametersVariable)[0];
         parameters = ((IList<object>)useOpenTimestampparametersVariable)[1];
         // if since is not set, they will return candles starting from 2017-01-01
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             object timestamp = since;
             if (isTrue(useOpenTimestamp))
@@ -2478,7 +2478,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         } else
@@ -2486,7 +2486,7 @@ public partial class bitmex : Exchange
             // by default reverse=false, i.e. trades are fetched since the time of market inception (year 2015 for XBTUSD)
             ((IDictionary<string,object>)request)["reverse"] = true;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // api maximum 1000
         }
@@ -2715,12 +2715,12 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["orderID"] = id;
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             Int64? qty = this.parseToInt(this.amountToPrecision(symbol, amount));
             ((IDictionary<string,object>)request)["orderQty"] = qty;
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -3379,11 +3379,11 @@ public partial class bitmex : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -3393,7 +3393,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
-        if ((isEqual(since, null)) && (isEqual(until, null)))
+        if (((since == null)) && (isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["reverse"] = true;
         }
@@ -3799,11 +3799,11 @@ public partial class bitmex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -4151,11 +4151,11 @@ public partial class bitmex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }

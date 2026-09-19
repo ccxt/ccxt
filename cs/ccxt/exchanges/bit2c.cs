@@ -559,11 +559,11 @@ public partial class bit2c : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["date"] = this.parseToInt(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 100000
         }
@@ -939,12 +939,12 @@ public partial class bit2c : Exchange
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["take"] = limit;
         }
         ((IDictionary<string,object>)request)["take"] = limit;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["toTime"] = this.yyyymmdd(this.milliseconds(), ".");
             ((IDictionary<string,object>)request)["fromTime"] = this.yyyymmdd(since, ".");

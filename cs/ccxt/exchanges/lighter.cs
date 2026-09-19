@@ -929,7 +929,7 @@ public partial class lighter : Exchange
          * @param {int} [params.orderExpiry] orderExpiry
          * @returns {any[]} request to be sent to the exchange
          */
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument")) ;
         }
@@ -1645,7 +1645,7 @@ public partial class lighter : Exchange
             { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "limit", 100 },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -1935,13 +1935,13 @@ public partial class lighter : Exchange
         Int64 now = this.milliseconds();
         object startTs = null;
         object endTs = null;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             startTs = since;
             if (!isEqual(until, null))
             {
                 endTs = until;
-            } else if (!isEqual(limit, null))
+            } else if ((limit != null))
             {
                 int duration = this.parseTimeframe(timeframeVar);
                 endTs = this.sum(since, multiply(multiply(duration, limit), 1000));
@@ -1953,7 +1953,7 @@ public partial class lighter : Exchange
         {
             endTs = ((bool) (!isEqual(until, null))) ? until : now;
             int defaultLimit = 100;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 startTs = subtract(endTs, multiply(multiply(this.parseTimeframe(timeframeVar), 1000), limit));
             } else
@@ -2585,7 +2585,7 @@ public partial class lighter : Exchange
             { "account_index", accountIndex },
             { "limit", 100 },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -3376,7 +3376,7 @@ public partial class lighter : Exchange
             { "limit", 100 },
             { "account_index", accountIndex },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }

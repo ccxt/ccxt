@@ -2009,7 +2009,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default = 100, maximum = 100
         }
@@ -2271,10 +2271,10 @@ public partial class whitebit : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             int maxLimit = 1440;
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = maxLimit;
             }
@@ -2282,7 +2282,7 @@ public partial class whitebit : Exchange
             Int64? start = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["start"] = start;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limitVar, 1440);
         }
@@ -2595,7 +2595,7 @@ public partial class whitebit : Exchange
         if (!isEqual(total, null))
         {
             ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, total);
-        } else if (!isEqual(amount, null))
+        } else if ((amount != null))
         {
             if (isLimitOrder)
             {
@@ -2612,12 +2612,12 @@ public partial class whitebit : Exchange
             }
         }
         // Handle price parameter for limit orders
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         // Ensure at least one modifiable parameter is provided
-        bool hasModifiableParam = (!isEqual(amount, null)) || (!isEqual(price, null)) || (!isEqual(triggerPrice, null)) || (!isEqual(total, null));
+        bool hasModifiableParam = ((amount != null)) || ((price != null)) || (!isEqual(triggerPrice, null)) || (!isEqual(total, null));
         if (!hasModifiableParam)
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
@@ -2761,7 +2761,7 @@ public partial class whitebit : Exchange
         // Sort by timestamp (most recent first)
         List<object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if (!isEqual(limit, null) && isGreaterThan((sortedOrders?.Count ?? 0), limit))
+        if ((limit != null) && isGreaterThan((sortedOrders?.Count ?? 0), limit))
         {
             return ccxt.BaseExchange.ToOrderList(slice(sortedOrders, 0, limit));
         }
@@ -2940,7 +2940,7 @@ public partial class whitebit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -2995,7 +2995,7 @@ public partial class whitebit : Exchange
             symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // default 50 max 100
         }
@@ -3203,7 +3203,7 @@ public partial class whitebit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -3258,15 +3258,15 @@ public partial class whitebit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
         }
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -3321,15 +3321,15 @@ public partial class whitebit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
         }
-        if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
             limitVar = 100;
         }
-        if (!isEqual(limitVar, null))
+        if ((limitVar != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -3890,7 +3890,7 @@ public partial class whitebit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -4207,11 +4207,11 @@ public partial class whitebit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startDate"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4311,7 +4311,7 @@ public partial class whitebit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 1000
         }
@@ -4465,12 +4465,12 @@ public partial class whitebit : Exchange
         {
             ((IDictionary<string,object>)request)["fromTicker"] = code;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             Int64? start = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["from"] = this.numberToString(start);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4590,11 +4590,11 @@ public partial class whitebit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startDate"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = since;
         }
@@ -4840,14 +4840,14 @@ public partial class whitebit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startDate"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

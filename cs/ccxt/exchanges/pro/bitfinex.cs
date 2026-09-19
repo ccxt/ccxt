@@ -707,7 +707,7 @@ public partial class bitfinex : ccxt.bitfinex
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if ((!isEqual(limit, 25)) && (!isEqual(limit, 100)))
             {
@@ -721,7 +721,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "prec", prec },
             { "freq", freq },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["len"] = limit; // string, number of price points, '25', '100', default = '25'
         }

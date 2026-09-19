@@ -1838,7 +1838,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1932,7 +1932,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1940,7 +1940,7 @@ public partial class mexc : Exchange
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             Int64? until = this.safeInteger2(parameters, "endTime", "until");
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
                 if (isEqual(until, null))
@@ -1950,7 +1950,7 @@ public partial class mexc : Exchange
             }
             if (!isEqual(until, null))
             {
-                if (isEqual(since, null))
+                if ((since == null))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " fetchTrades() requires a since parameter when until is provided")) ;
                 }
@@ -2200,10 +2200,10 @@ public partial class mexc : Exchange
         IList<object> candles = new List<object>() {};
         Int64? until = this.safeInteger2(parameters, "until", "endTime");
         object start = since;
-        if ((!isEqual(until, null)) && (isEqual(since, null)))
+        if ((!isEqual(until, null)) && ((since == null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
-            object usedLimit = ((bool) (!isEqual(limit, null) && !isEqual(limit, null) && !isEqual(limit, 0))) ? limit : maxLimit;
+            object usedLimit = ((bool) ((limit != null) && (limit != null) && !isEqual(limit, 0))) ? limit : maxLimit;
             start = subtract(until, (multiply(usedLimit, duration)));
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -2219,7 +2219,7 @@ public partial class mexc : Exchange
                     ((IDictionary<string,object>)request)["endTime"] = mathMin(end, now);
                 }
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -2245,14 +2245,14 @@ public partial class mexc : Exchange
             candles = this.toArray(response);
         } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
             }
             if (!isEqual(until, null))
             {
                 ((IDictionary<string,object>)request)["end"] = this.parseToInt((until / 1000));
-                if (isEqual(since, null))
+                if ((since == null))
                 {
                     ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(start, 1000));
                 }
@@ -2727,7 +2727,7 @@ public partial class mexc : Exchange
                 ((IDictionary<string,object>)request)["quoteOrderQty"] = this.costToPrecision(symbol, amount);
             } else
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
                 } else
@@ -2743,7 +2743,7 @@ public partial class mexc : Exchange
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -3219,7 +3219,7 @@ public partial class mexc : Exchange
             IList<object> marginModequeryInnerVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", parameters);
             var marginMode = ((IList<object>) marginModequeryInnerVariable)[0];
             var queryInner = ((IList<object>) marginModequeryInnerVariable)[1];
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
@@ -3227,7 +3227,7 @@ public partial class mexc : Exchange
             {
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -3294,7 +3294,7 @@ public partial class mexc : Exchange
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_time"] = since;
                 Int64? end = this.safeInteger(parameters, "end_time", until);
@@ -3316,7 +3316,7 @@ public partial class mexc : Exchange
                 ((IDictionary<string,object>)request)["start_time"] = this.sum(until, multiply((this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null), -1));
                 ((IDictionary<string,object>)request)["end_time"] = until;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
@@ -3565,7 +3565,7 @@ public partial class mexc : Exchange
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
         } else
         {
-            if (isEqual(limit, null))
+            if ((limit == null))
             {
                 ((IDictionary<string,object>)request)["page_size"] = 100; // max
             }
@@ -4608,11 +4608,11 @@ public partial class mexc : Exchange
         List<object> trades = new List<object>() {};
         if ((marketType == "spot"))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -4625,7 +4625,7 @@ public partial class mexc : Exchange
             trades = await this.spotPrivateGetMyTrades(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_time"] = since;
                 Int64? end = this.safeInteger(parameters, "end_time");
@@ -4634,7 +4634,7 @@ public partial class mexc : Exchange
                     ((IDictionary<string,object>)request)["end_time"] = this.sum(since, (this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null));
                 }
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
@@ -4863,7 +4863,7 @@ public partial class mexc : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
@@ -5055,7 +5055,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
@@ -5467,11 +5467,11 @@ public partial class mexc : Exchange
                 ((IDictionary<string,object>)request)["coin"] = add(add(getValue(request, "coin"), "-"), rawNetwork);
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (isGreaterThan(limit, 1000))
             {
@@ -5527,11 +5527,11 @@ public partial class mexc : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (isGreaterThan(limit, 1000))
             {
@@ -6027,11 +6027,11 @@ public partial class mexc : Exchange
         object resultList = new List<object>() {};
         if ((marketType == "spot"))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 if (isGreaterThan(limit, 100))
                 {
@@ -6061,7 +6061,7 @@ public partial class mexc : Exchange
             resultList = this.safeList(response, "rows", new List<object>() {});
         } else if ((marketType == "swap"))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
@@ -6715,7 +6715,7 @@ public partial class mexc : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }

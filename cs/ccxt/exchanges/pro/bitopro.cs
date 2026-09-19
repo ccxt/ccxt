@@ -65,7 +65,7 @@ public partial class bitopro : ccxt.bitopro
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if ((!isEqual(limit, 5)) && (!isEqual(limit, 10)) && (!isEqual(limit, 20)) && (!isEqual(limit, 50)) && (!isEqual(limit, 100)) && (!isEqual(limit, 500)) && (!isEqual(limit, 1000)))
             {
@@ -80,7 +80,7 @@ public partial class bitopro : ccxt.bitopro
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = (("ORDER_BOOK" + ":") + (symbolVar));
         object endPart = null;
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             endPart = (market.ContainsKey("id") ? market["id"] : null);
         } else

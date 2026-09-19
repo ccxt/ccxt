@@ -605,7 +605,7 @@ public partial class coinbaseinternational : Exchange
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "granularity", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
         } else
@@ -695,7 +695,7 @@ public partial class coinbaseinternational : Exchange
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "result_offset", offSet },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["result_limit"] = limit;
         }
@@ -792,11 +792,11 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["portfolios"] = portfolios;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["result_limit"] = limit;
         } else
@@ -884,11 +884,11 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["portfolios"] = portfolios;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["result_limit"] = limit;
         } else
@@ -1199,11 +1199,11 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             object newLimit = mathMin(limit, 100);
             ((IDictionary<string,object>)request)["result_limit"] = newLimit;
@@ -2079,7 +2079,7 @@ public partial class coinbaseinternational : Exchange
         ((IDictionary<string,object>)request)["type"] = typeId;
         if (isEqual(type, "limit"))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(this.id + " createOrder() requires a price parameter for a limit order types")) ;
             }
@@ -2356,11 +2356,11 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["portfolio"] = portfolio;
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2488,7 +2488,7 @@ public partial class coinbaseinternational : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument"] = symbol;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (isGreaterThan(limit, 100))
             {
@@ -2496,7 +2496,7 @@ public partial class coinbaseinternational : Exchange
             }
             ((IDictionary<string,object>)request)["result_limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["ref_datetime"] = this.iso8601(since);
         }
@@ -2582,7 +2582,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (isGreaterThan(limit, 100))
             {
@@ -2590,7 +2590,7 @@ public partial class coinbaseinternational : Exchange
             }
             ((IDictionary<string,object>)request)["result_limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }

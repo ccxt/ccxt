@@ -715,7 +715,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1025,7 +1025,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1154,7 +1154,7 @@ public partial class bitflyer : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100
         }
@@ -1200,7 +1200,7 @@ public partial class bitflyer : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100
         }

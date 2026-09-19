@@ -1406,7 +1406,7 @@ public partial class bitmex : ccxt.bitmex
     {
         parameters ??= new Dictionary<string, object>();
         object table = null;
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             table = this.safeString(this.options, "watchOrderBookLevel", "orderBookL2");
         } else if (isEqual(limit, 25))

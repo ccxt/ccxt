@@ -1052,11 +1052,11 @@ public partial class krakenfutures : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         parameters = this.omit(parameters, "price");
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             int duration = this.parseTimeframe(timeframeVar);
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 2000;
             }
@@ -1064,7 +1064,7 @@ public partial class krakenfutures : Exchange
             object toTimestamp = this.sum(getValue(request, "from"), subtract(multiply(limitVar, duration), 1));
             Int64 currentTimestamp = this.seconds();
             ((IDictionary<string,object>)request)["to"] = mathMin(toTimestamp, currentTimestamp);
-        } else if (!isEqual(limitVar, null))
+        } else if ((limitVar != null))
         {
             limitVar = mathMin(limitVar, 2000);
             int duration = this.parseTimeframe(timeframeVar);
@@ -1151,12 +1151,12 @@ public partial class krakenfutures : Exchange
             IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("before", request, parameters);
             request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
             parameters = ((IList<object>)requestparametersVariable)[1];
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["since"] = since;
                 ((IDictionary<string,object>)request)["sort"] = "asc";
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["count"] = limit;
             }
@@ -1502,12 +1502,12 @@ public partial class krakenfutures : Exchange
         price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
         bool isLimitOrder = (isEqual(type, "lmt")) || (isEqual(type, "post")) || (isEqual(type, "ioc"));
         string? limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
-        if (isLimitOrder && (isEqual(price, null)) && ((limitPriceParam == null)))
+        if (isLimitOrder && ((price == null)) && ((limitPriceParam == null)))
         {
             throw new ArgumentsRequired ((string)(((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
         }
         bool isMarketOrder = (isEqual(type, "mkt"));
-        if ((!isEqual(price, null)) && !isMarketOrder)
+        if (((price != null)) && !isMarketOrder)
         {
             ((IDictionary<string,object>)request)["limitPrice"] = this.priceToPrecision(symbol, price);
         }
@@ -1700,11 +1700,11 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["size"] = amount;
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["limitPrice"] = price;
         }
@@ -2031,11 +2031,11 @@ public partial class krakenfutures : Exchange
             market = this.market(symbol);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = since;
         }
@@ -2105,11 +2105,11 @@ public partial class krakenfutures : Exchange
             market = this.market(symbol);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
@@ -2836,12 +2836,12 @@ public partial class krakenfutures : Exchange
             currency = this.currency(((string)code));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = since;
             ((IDictionary<string,object>)request)["sort"] = "asc";
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             // each trade execution emits two rows and the position-size legs are
             // filtered out below, so ask for twice the limit to compensate,
@@ -2922,12 +2922,12 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "info", "funding rate change" },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = since;
             ((IDictionary<string,object>)request)["sort"] = "asc";
         }
-        if ((!isEqual(limit, null)) && ((symbol == null)))
+        if (((limit != null)) && ((symbol == null)))
         {
             // the account log has no contract filter, so a symbol is applied on the
             // client side - a server side page size would truncate the rows of other

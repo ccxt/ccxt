@@ -118,7 +118,7 @@ public partial class kraken : ccxt.kraken
         bool isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if (isLimitOrder)
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " limit orders require a price argument")) ;
             }
@@ -851,7 +851,7 @@ public partial class kraken : ccxt.kraken
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requiredParams = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (this.inArray(limit, new List<object>() {10, 25, 100, 500, 1000}))
             {

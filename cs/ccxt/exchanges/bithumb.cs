@@ -915,7 +915,7 @@ public partial class bithumb : Exchange
         {
             ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["count"] = limit; // default 30, max 30
             }
@@ -1471,7 +1471,7 @@ public partial class bithumb : Exchange
         if (isEqual(generation, 2))
         {
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["count"] = limit;
             }
@@ -1719,7 +1719,7 @@ public partial class bithumb : Exchange
         parameters = ((IList<object>)generationparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1929,7 +1929,7 @@ public partial class bithumb : Exchange
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
                 if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if ((isEqual(price, null)) && ((cost == null)))
+                    if (((price == null)) && ((cost == null)))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -2590,11 +2590,11 @@ public partial class bithumb : Exchange
                 throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
             }
             market = this.market(symbol);
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["after"] = since;
             }
-            if (isEqual(limitVar, null))
+            if ((limitVar == null))
             {
                 limitVar = 100;
             }
@@ -2656,7 +2656,7 @@ public partial class bithumb : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3286,7 +3286,7 @@ public partial class bithumb : Exchange
             throw new BadRequest ((string)(this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3417,7 +3417,7 @@ public partial class bithumb : Exchange
             throw new BadRequest ((string)(this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

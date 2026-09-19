@@ -793,11 +793,11 @@ public partial class indodax : Exchange
             { "tf", selectedTimeframe },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 1000;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
         } else
@@ -1096,7 +1096,7 @@ public partial class indodax : Exchange
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
                     }
@@ -1121,7 +1121,7 @@ public partial class indodax : Exchange
         }
         if (priceIsRequired)
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
@@ -1285,7 +1285,7 @@ public partial class indodax : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             string startTime = this.yyyymmdd(since);
             ((IDictionary<string,object>)request)["start"] = startTime;

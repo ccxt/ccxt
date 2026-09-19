@@ -1570,11 +1570,11 @@ public partial class hyperliquid : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        bool useTail = isEqual(sinceVar, null);
+        bool useTail = (sinceVar == null);
         object originalSince = sinceVar;
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 // optimization if limit is provided
                 Int64 timeframeInMilliseconds = multiply(this.parseTimeframe(timeframeVar), 1000);
@@ -1678,7 +1678,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["type"] = "userFillsByTime";
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1791,7 +1791,7 @@ public partial class hyperliquid : Exchange
             data = add(data, "01");
             data = add(data, vaultAddress);
         }
-        if (!isEqual(expiresAfter, null))
+        if ((expiresAfter != null))
         {
             data = add(data, "00");
             data = add(data, ("00000" + this.intToBase16(expiresAfter)));
@@ -3374,12 +3374,12 @@ public partial class hyperliquid : Exchange
             { "type", "fundingHistory" },
             { "coin", this.safeString(market, "baseName") },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
         {
-            object maxLimit = ((bool) (isEqual(limit, null))) ? 500 : limit;
+            object maxLimit = ((bool) ((limit == null))) ? 500 : limit;
             ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(maxLimit, 60), 60), 1000));
         }
         Int64? until = this.safeInteger(parameters, "until");
@@ -4005,7 +4005,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["type"] = "userFillsByTime";
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -5011,7 +5011,7 @@ public partial class hyperliquid : Exchange
             { "type", "userNonFundingLedgerUpdates" },
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -5120,14 +5120,14 @@ public partial class hyperliquid : Exchange
             { "type", "userNonFundingLedgerUpdates" },
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
         if (!isEqual(until, null))
         {
-            if (isEqual(since, null))
+            if ((since == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchDeposits requires since while until is set")) ;
             }
@@ -5209,7 +5209,7 @@ public partial class hyperliquid : Exchange
             { "type", "userNonFundingLedgerUpdates" },
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -5375,7 +5375,7 @@ public partial class hyperliquid : Exchange
             { "user", userAddress },
             { "type", "userFunding" },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }

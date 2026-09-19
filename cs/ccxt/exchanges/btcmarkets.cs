@@ -365,11 +365,11 @@ public partial class btcmarkets : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["after"] = since;
         }
@@ -774,11 +774,11 @@ public partial class btcmarkets : Exchange
             { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeWindow", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 200); // default is 10, max 200
         }
@@ -1101,7 +1101,7 @@ public partial class btcmarkets : Exchange
         }
         if (priceIsRequired)
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + "order")) ;
             } else
@@ -1410,11 +1410,11 @@ public partial class btcmarkets : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["marketId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["after"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1485,11 +1485,11 @@ public partial class btcmarkets : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["marketId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["after"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

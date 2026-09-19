@@ -743,7 +743,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "markets", ids },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -1112,7 +1112,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200;
         }
@@ -1291,7 +1291,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int timeframePeriod = this.parseTimeframe(timeframeVar);
         string? timeframeValue = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = 200;
         }
@@ -1301,7 +1301,7 @@ public partial class upbit : Exchange
             { "count", limitVar },
         };
         object response = null;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             // convert `since` to `to` value
             ((IDictionary<string,object>)request)["to"] = this.iso8601(this.sum(since, multiply(multiply(timeframePeriod, limitVar), 1000)));
@@ -1360,7 +1360,7 @@ public partial class upbit : Exchange
             quoteAmount = this.costToPrecision(symbol, cost);
         } else if ((createMarketBuyOrderRequiresPrice == true))
         {
-            if (isEqual(price, null) || isEqual(amount, null))
+            if ((price == null) || isEqual(amount, null))
             {
                 throw new InvalidOrder ((string)(this.id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
             }
@@ -1439,7 +1439,7 @@ public partial class upbit : Exchange
         };
         if (isEqual(type, "limit"))
         {
-            if (isEqual(price, null) || isEqual(amount, null))
+            if ((price == null) || isEqual(amount, null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " the limit type order in createOrder() is required price and amount.")) ;
             }
@@ -1634,7 +1634,7 @@ public partial class upbit : Exchange
         }
         if (isEqual(type, "limit"))
         {
-            if (isEqual(price, null) || isEqual(amount, null))
+            if ((price == null) || (amount == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " editOrder() is required price and amount to create limit type order.")) ;
             }
@@ -1650,7 +1650,7 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["new_price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((amount == null))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " editOrder() is required amount to create market sell type order.")) ;
                 }
@@ -1671,7 +1671,7 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["new_price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((amount == null))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " editOrder() is required amount to create best sell order.")) ;
                 }
@@ -1762,7 +1762,7 @@ public partial class upbit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default is 100
         }
@@ -1859,7 +1859,7 @@ public partial class upbit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default is 100
         }
@@ -2223,7 +2223,7 @@ public partial class upbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2282,11 +2282,11 @@ public partial class upbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2349,11 +2349,11 @@ public partial class upbit : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

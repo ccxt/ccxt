@@ -874,11 +874,11 @@ public partial class poloniex : Exchange
         };
         string keyStart = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? "startTime" : "sTime";
         string keyEnd = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? "endTime" : "eTime";
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)[(string)keyStart] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             // limit should in between 100 and 500
             ((IDictionary<string,object>)request)["limit"] = limit;
@@ -1727,7 +1727,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 1000, for spot & swap
         }
@@ -1807,11 +1807,11 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string startKey = ((bool) isContract) ? "sTime" : "startTime";
         string endKey = ((bool) isContract) ? "eTime" : "endTime";
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)[(string)startKey] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2136,7 +2136,7 @@ public partial class poloniex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             int max = ((bool) ((marketType == "spot"))) ? 2000 : 100;
             ((IDictionary<string,object>)request)["limit"] = mathMax(limit, max);
@@ -2254,11 +2254,11 @@ public partial class poloniex : Exchange
         {
             throw new NotSupported ((string)(this.id + " fetchClosedOrders() is not supported for spot markets yet")) ;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(200, limit);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["sTime"] = since;
         }
@@ -2406,7 +2406,7 @@ public partial class poloniex : Exchange
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() does not support trigger orders for ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
             }
-            upperCaseType = ((bool) (isEqual(price, null))) ? "STOP" : "STOP_LIMIT";
+            upperCaseType = ((bool) ((price == null))) ? "STOP" : "STOP_LIMIT";
             ((IDictionary<string,object>)request)["stopPrice"] = triggerPrice;
         } else if (isPostOnly)
         {
@@ -2429,7 +2429,7 @@ public partial class poloniex : Exchange
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)))
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
@@ -2986,7 +2986,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
             if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
@@ -3281,7 +3281,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         int year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         Int64 now = this.seconds();
-        Int64? start = ((bool) (!isEqual(since, null))) ? this.parseToInt(divide(since, 1000)) : subtract(now, multiply(10, year));
+        Int64? start = ((bool) ((since != null))) ? this.parseToInt(divide(since, 1000)) : subtract(now, multiply(10, year));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "start", start },
             { "end", now },

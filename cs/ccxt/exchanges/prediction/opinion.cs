@@ -1133,7 +1133,7 @@ public partial class opinion : PredictionExchange
         string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         bool isMarket = (isEqual(type, "market"));
         string sideStr = ((string)((string)side)).ToUpper();
-        if (isEqual(price, null))
+        if ((price == null))
         {
             if (!isMarket)
             {

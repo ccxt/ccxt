@@ -876,7 +876,7 @@ public partial class coinspot : Exchange
         {
             market = this.market(symbol);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startdate"] = this.yyyymmdd(since);
         }

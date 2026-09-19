@@ -348,7 +348,7 @@ public partial class onetrading : ccxt.onetrading
         string messageHash = ("book:" + (symbolVar));
         string subscriptionHash = "ORDER_BOOK";
         object depth = 0;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             depth = limit;
         }

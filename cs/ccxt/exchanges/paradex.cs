@@ -1113,10 +1113,10 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["price_kind"] = price;
         }
         parameters = this.omit(parameters, new List<object>() {"until", "till", "price"});
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["end_at"] = subtract(this.sum(since, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
             } else
@@ -1126,7 +1126,7 @@ public partial class paradex : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["end_at"] = until;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["start_at"] = add(subtract(until, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
             } else
@@ -1478,7 +1478,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1520,11 +1520,11 @@ public partial class paradex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = mathMin(limit, 1000);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }
@@ -2075,7 +2075,7 @@ public partial class paradex : Exchange
                 ((IDictionary<string,object>)request)["instruction"] = "IOC";
             }
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2290,11 +2290,11 @@ public partial class paradex : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument")) ;
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a price argument")) ;
         }
@@ -2675,11 +2675,11 @@ public partial class paradex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
@@ -2884,11 +2884,11 @@ public partial class paradex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }
@@ -3079,7 +3079,7 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = since;
         } else
@@ -3162,11 +3162,11 @@ public partial class paradex : Exchange
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "next", "cursor", null, 100));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }
@@ -3238,11 +3238,11 @@ public partial class paradex : Exchange
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "next", "cursor", null, 100));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }
@@ -3319,11 +3319,11 @@ public partial class paradex : Exchange
         {
             currency = this.safeCurrency(code);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }
@@ -3862,14 +3862,14 @@ public partial class paradex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = mathMin(limit, 5000);
         } else
         {
             ((IDictionary<string,object>)request)["page_size"] = 100;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }
@@ -3952,14 +3952,14 @@ public partial class paradex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = mathMin(limit, 5000); // api maximum 5000
         } else
         {
             ((IDictionary<string,object>)request)["page_size"] = 1000; // max is 5000
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;
         }

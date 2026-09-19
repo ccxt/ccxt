@@ -1442,7 +1442,7 @@ public partial class pacifica : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(since, null))
+        if ((since == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a \"since\" argument")) ;
         }
@@ -1477,7 +1477,7 @@ public partial class pacifica : Exchange
         object until = this.safeInteger(request, "end_time");
         if (isEqual(until, null))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 until = subtract(add(since, (multiply(limit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
             }
@@ -1630,11 +1630,11 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
@@ -1882,7 +1882,7 @@ public partial class pacifica : Exchange
             object defaultSlippage = this.handleOption("createOrder", "defaultSlippage", "0.5");
             string? slippage = this.safeString2(parameters, "slippage", "slippage_percent", defaultSlippage);
             ((IDictionary<string,object>)sigPayload)["slippage_percent"] = slippage;
-        } else if ((isTakeProfitOrder || isStopLossOrder) && (isEqual(price, null)))
+        } else if ((isTakeProfitOrder || isStopLossOrder) && ((price == null)))
         {
             operationType = "set_position_tpsl";
         } else if (isStopOrder)
@@ -1899,7 +1899,7 @@ public partial class pacifica : Exchange
             {
                 ((IDictionary<string,object>)stopPayload)["client_order_id"] = stopClientOrderId;
             }
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)stopPayload)["limit_price"] = this.priceToPrecision(symbol, price);
             }
@@ -1921,7 +1921,7 @@ public partial class pacifica : Exchange
             Dictionary<string, object> tpPayload = new Dictionary<string, object>() {
                 { "stop_price", this.priceToPrecision(symbol, takeProfitPrice) },
             };
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)tpPayload)["limit_price"] = this.priceToPrecision(symbol, price);
             }
@@ -1932,13 +1932,13 @@ public partial class pacifica : Exchange
             Dictionary<string, object> slPayload = new Dictionary<string, object>() {
                 { "stop_price", this.priceToPrecision(symbol, stopLossPrice) },
             };
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IDictionary<string,object>)slPayload)["limit_price"] = this.priceToPrecision(symbol, price);
             }
             ((IDictionary<string,object>)sigPayload)["stop_loss"] = slPayload;
         }
-        if (!isEqual(price, null) && (operationType == "create_order"))
+        if ((price != null) && (operationType == "create_order"))
         {
             ((IDictionary<string,object>)sigPayload)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2450,7 +2450,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2754,7 +2754,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3518,7 +3518,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3635,7 +3635,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

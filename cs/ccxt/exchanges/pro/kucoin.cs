@@ -1660,7 +1660,7 @@ public partial class kucoin : ccxt.kucoin
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if ((!isEqual(limit, 20)) && (!isEqual(limit, 100)) && (!isEqual(limit, 50)) && (!isEqual(limit, 5)))
             {

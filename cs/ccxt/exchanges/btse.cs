@@ -915,7 +915,7 @@ public partial class btse : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", interval },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
         } else
@@ -923,7 +923,7 @@ public partial class btse : Exchange
             // the endpoint returns only 10 candles when the limit is omitted
             ((IDictionary<string,object>)request)["limit"] = maxLimit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             // the endpoint accepts timestamps in seconds
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
@@ -934,7 +934,7 @@ public partial class btse : Exchange
         parameters = ((IList<object>)untilparametersVariable)[1];
         if ((until != null))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
@@ -1007,7 +1007,7 @@ public partial class btse : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = mathMin(limit, 50); // the endpoint supports a maximum depth of 50
         }
@@ -1067,7 +1067,7 @@ public partial class btse : Exchange
         if ((period == null))
         {
             period = "7D";
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 object age = subtract(this.milliseconds(), since);
                 int day = 86400000;
@@ -1738,7 +1738,7 @@ public partial class btse : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 500); // the endpoint supports a maximum of 500 trades
         }
@@ -1816,11 +1816,11 @@ public partial class btse : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -2180,7 +2180,7 @@ public partial class btse : Exchange
         bool isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
         if (isLimitOrder || (isEqual(type, "PEG")) || (isEqual(type, "OCO")))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for ") + (type)) + " orders")) ;
             }
@@ -2203,7 +2203,7 @@ public partial class btse : Exchange
                 quoteAmount = this.costToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
@@ -2441,7 +2441,7 @@ public partial class btse : Exchange
         bool isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
         if (isLimitOrder || (isEqual(type, "OCO")))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for ") + (type)) + " orders")) ;
             }
@@ -2555,7 +2555,7 @@ public partial class btse : Exchange
                 {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
-                    if (!isEqual(price, null))
+                    if ((price != null))
                     {
                         ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
                     }
@@ -2704,16 +2704,16 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             parameters = this.omit(parameters, "triggerPrice");
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["orderSize"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
         }
         bool? isSlide = this.safeBool(parameters, "slide", false);
-        if ((isEqual(amount, null)) && (isEqual(price, null)) && ((triggerPrice == null)) && ((isSlide != true)))
+        if (((amount == null)) && ((price == null)) && ((triggerPrice == null)) && ((isSlide != true)))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
         }
@@ -2729,15 +2729,15 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["symbol"] = this.futuresRequestId(market);
             if ((triggerPrice != null))
             {
-                if ((!isEqual(amount, null)) || (!isEqual(price, null)))
+                if (((amount != null)) || ((price != null)))
                 {
                     throw new BadRequest ((string)(this.id + " editOrder() can not amend the trigger price together with the price or the amount on contract markets")) ;
                 }
                 ((IDictionary<string,object>)request)["amendType"] = "TRIGGER_PRICE";
-            } else if ((!isEqual(amount, null)) && (!isEqual(price, null)))
+            } else if (((amount != null)) && ((price != null)))
             {
                 ((IDictionary<string,object>)request)["amendType"] = "ALL";
-            } else if (!isEqual(amount, null))
+            } else if ((amount != null))
             {
                 ((IDictionary<string,object>)request)["amendType"] = "SIZE";
             } else
@@ -3194,11 +3194,11 @@ public partial class btse : Exchange
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a code argument for the spot wallet history")) ;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -3437,11 +3437,11 @@ public partial class btse : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchLedger() requires a code argument for the spot wallet history")) ;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }

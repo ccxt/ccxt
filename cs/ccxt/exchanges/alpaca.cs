@@ -840,11 +840,11 @@ public partial class alpaca : Exchange
         List<object> symbolTrades = null;
         if ((method == "marketPublicGetV1beta3CryptoLocTrades"))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -1014,11 +1014,11 @@ public partial class alpaca : Exchange
         List<object> ohlcvs = null;
         if ((method == "marketPublicGetV1beta3CryptoLocBars"))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
             }
@@ -1068,7 +1068,7 @@ public partial class alpaca : Exchange
                 for (int i = 1; isLessThan(i, paginationCalls); i++)
                 {
                     int ohlcvsLength = (ohlcvs?.Count ?? 0);
-                    if (((pageToken == null)) || ((!isEqual(limit, null)) && (isGreaterThanOrEqual(ohlcvsLength, limit))))
+                    if (((pageToken == null)) || (((limit != null)) && (isGreaterThanOrEqual(ohlcvsLength, limit))))
                     {
                         break;
                     }
@@ -1586,7 +1586,7 @@ public partial class alpaca : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["until"] = this.iso8601(until);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["after"] = this.iso8601(since);
             string? direction = this.safeString(parameters, "direction");
@@ -1596,7 +1596,7 @@ public partial class alpaca : Exchange
                 ((IDictionary<string,object>)request)["direction"] = "asc";
             }
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1720,7 +1720,7 @@ public partial class alpaca : Exchange
         {
             market = this.market(symbol);
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
         }
@@ -1730,7 +1730,7 @@ public partial class alpaca : Exchange
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             parameters = this.omit(parameters, "triggerPrice");
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
         }
@@ -1909,11 +1909,11 @@ public partial class alpaca : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["until"] = this.iso8601(until);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["after"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
