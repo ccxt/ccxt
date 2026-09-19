@@ -58,7 +58,7 @@ func AwaitAfterResolveTest() {
 	go func() {
 		defer wg.Done()
 		// awaits strictly after the resolve below (20ms) has happened
-		time.Sleep(60 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		ch1 := fut.Await()
 		<-ch1
 		// fmt.Println("Got result from ch1:", res)
