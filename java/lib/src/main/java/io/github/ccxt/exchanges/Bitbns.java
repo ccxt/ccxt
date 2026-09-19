@@ -1418,7 +1418,7 @@ public class Bitbns extends BitbnsApi
 
     }
 
-    public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
+    public String parseTransactionStatusByType(Object status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{

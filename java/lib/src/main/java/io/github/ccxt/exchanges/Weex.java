@@ -4890,7 +4890,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         // contract

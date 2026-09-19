@@ -699,14 +699,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object fundingRate = this.parseWsFundingRate((Map<String, Object>) (data), null, message);
+        Map<String, Object> fundingRate = this.parseWsFundingRate((Map<String, Object>) (data), null, message);
         String symbol = this.safeString(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
         String messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
     }
 
-    public Object parseWsFundingRate(Map<String, Object> fundingRate, Object... optionalArgs)
+    public Map<String, Object> parseWsFundingRate(Map<String, Object> fundingRate, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object message = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -1051,7 +1051,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         return null;
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }

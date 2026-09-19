@@ -2728,7 +2728,7 @@ public class Bydfi extends BydfiApi
         }});
     }
 
-    public Object parsePositionSide(String side)
+    public String parsePositionSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "BUY", "long" );

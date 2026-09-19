@@ -3133,7 +3133,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseTransactionStatusByType(String status, Object... optionalArgs)
+    public String parseTransactionStatusByType(String status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
@@ -3241,7 +3241,7 @@ public class Bitrue extends BitrueApi
         Boolean payAmount = (((Map<?, ?>)transaction).containsKey("payAmount"));
         Boolean ctime = (((Map<?, ?>)transaction).containsKey("ctime"));
         String type = (((Boolean.TRUE.equals(payAmount) || Boolean.TRUE.equals(ctime)))) ? "withdrawal" : "deposit";
-        Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
+        String status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Double amount = this.safeNumber(transaction, "amount");
         Object network = null;
         String currencyId = this.safeString2(transaction, "symbol", "coin");

@@ -331,7 +331,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         }
     }
 
-    public Object handleHeartbeat(Client client, Map<String, Object> message)
+    public Map<String, Object> handleHeartbeat(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -342,7 +342,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         return message;
     }
 
-    public Object handleSubscriptions(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptions(Client client, Map<String, Object> message)
     {
         //
         //    {

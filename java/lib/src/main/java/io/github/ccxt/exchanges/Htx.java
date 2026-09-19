@@ -2319,7 +2319,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -2461,7 +2461,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseTradingLimits(Map<String, Object> limits, Object... optionalArgs)
+    public Map<String, Object> parseTradingLimits(Map<String, Object> limits, Object... optionalArgs)
     {
         //
         //   {                                "symbol": "aidocbtc",
@@ -10256,7 +10256,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(Object type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "trade", "trade" );
@@ -10919,7 +10919,7 @@ public class Htx extends HtxApi
             //         "data": 1000
             //     }
             //
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan((Map<String, Object>) (response), currency);
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -10963,7 +10963,7 @@ public class Htx extends HtxApi
             //         "data": null
             //     }
             //
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan((Map<String, Object>) (response), currency);
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -11013,7 +11013,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             Object loan = this.safeValue(data, 0);
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan((Map<String, Object>) (loan), currency);
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (loan), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -11063,7 +11063,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             Object loan = this.safeValue(data, 0);
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan((Map<String, Object>) (loan), currency);
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (loan), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -11071,7 +11071,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // borrowMargin cross
@@ -11457,7 +11457,7 @@ public class Htx extends HtxApi
             List<Object> list = (List<Object>) this.safeList(settlement, "list");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object parsedSettlement = this.parseSettlement((Map<String, Object>) (settlement), market);
+                Map<String, Object> parsedSettlement = this.parseSettlement((Map<String, Object>) (settlement), market);
                 ((List<Object>)result).add(parsedSettlement);
             } else if (!java.util.Objects.equals(list, null))
             {
@@ -11469,7 +11469,7 @@ public class Htx extends HtxApi
                 for (var j = 0; j < ((List<?>)list).size(); j++)
                 {
                     Object item = (list == null || j < 0 || j >= list.size() ? null : list.get(j));
-                    Object parsedSettlement = this.parseSettlement((Map<String, Object>) (item), market);
+                    Map<String, Object> parsedSettlement = this.parseSettlement((Map<String, Object>) (item), market);
                     ((List<Object>)result).add(this.extend(parsedSettlement, timestampDetails));
                 }
             } else
@@ -11480,7 +11480,7 @@ public class Htx extends HtxApi
         return result;
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object market)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object market)
     {
         //
         // coin-m swap, fetchSettlementHistory

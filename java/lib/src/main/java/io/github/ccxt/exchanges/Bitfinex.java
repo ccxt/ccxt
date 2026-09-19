@@ -3894,7 +3894,7 @@ public class Bitfinex extends BitfinexApi
         return response;
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         if (java.util.Objects.equals(type, null))
         {

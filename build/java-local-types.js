@@ -669,6 +669,31 @@ function isParseStructureReturnType (printer, type) {
     return (symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.TypeLiteral | ts.SymbolFlags.TypeAlias | ts.SymbolFlags.ObjectLiteral)) !== 0;
 }
 
+// D-09: a local whose initializer is a whole call to an internal (non-override) method the
+// PRINTER itself retyped (javaTranspiler.javaNativeReturnType -> Map / String / Boolean).
+// The printed signature carries the native type, so the declaration is emitted with it and
+// needs no checkcast; the printer's printVariableDeclarationList prefix guard falls back to
+// the Object declaration whenever the printed shape is not the expected `this.<name> (`.
+function internalReturnLocalType (printer, initializer) {
+    if (typeof printer.javaNativeReturnType !== 'function' || !isThisCall (initializer)) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (initializer)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || declaration.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const native = printer.javaNativeReturnType (declaration);
+    if (native === undefined) {
+        return undefined;
+    }
+    return { type: native, valuePrefix: 'this.', strictPlus: native === 'String' };
+}
+
 function parseStructureLocalType (printer, initializer, name) {
     const isMap = PARSE_MAP_LOCAL_NAMES.has (name);
     const isList = PARSE_LIST_LOCAL_NAMES.has (name);
@@ -1816,6 +1841,14 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const dict = safeDictLocalType (printer, assertedCall, name);
     if (dict !== undefined) {
         return dict;
+    }
+    // D-09: a call to an internal (non-override) method the PRINTER itself retyped
+    // (javaTranspiler.javaNativeReturnType) — the call already prints the native type, so
+    // the local carries it with NO checkcast. Placed before the name-list families so an
+    // admitted parse* name takes the cast-free declaration.
+    const internalReturn = internalReturnLocalType (printer, initializer);
+    if (internalReturn !== undefined) {
+        return internalReturn;
     }
     const parseStructure = parseStructureLocalType (printer, initializer, name);
     if (parseStructure !== undefined) {

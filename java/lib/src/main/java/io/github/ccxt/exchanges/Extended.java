@@ -1417,7 +1417,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseFundingHistory(Map<String, Object> history, Object... optionalArgs)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> history, Object... optionalArgs)
     {
         //
         //     {
@@ -2737,7 +2737,7 @@ public class Extended extends ExtendedApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (fee));
+                Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) (fee));
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2749,7 +2749,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {

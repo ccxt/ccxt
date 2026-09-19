@@ -1706,7 +1706,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         //    {

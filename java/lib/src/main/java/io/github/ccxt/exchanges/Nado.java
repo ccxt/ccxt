@@ -2867,7 +2867,7 @@ public class Nado extends NadoApi
         }};
     }
 
-    public Object parseFundingHistory(Map<String, Object> funding, Object... optionalArgs)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> funding, Object... optionalArgs)
     {
         //
         //     {

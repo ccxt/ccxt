@@ -1065,7 +1065,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return request;
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;
@@ -1268,7 +1268,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return joinedResult;
     }
 
-    public Object handleSystemStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -1928,7 +1928,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

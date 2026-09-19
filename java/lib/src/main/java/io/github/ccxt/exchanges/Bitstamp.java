@@ -1316,7 +1316,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object constructCurrencyObject(Object id, Object code, Object name, Object precision, Object minCost, Object originalPayload)
+    public Map<String, Object> constructCurrencyObject(Object id, Object code, Object name, Object precision, Object minCost, Object originalPayload)
     {
         String currencyType = "crypto";
         Object description = this.describe();
@@ -2163,7 +2163,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "market");
@@ -2185,7 +2185,7 @@ public class Bitstamp extends BitstampApi
         }};
         for (var i = 0; i < ((List<?>)fees).size(); i++)
         {
-            Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
+            Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
             Object symbol = ((Map<String, Object>)fee).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3227,7 +3227,7 @@ public class Bitstamp extends BitstampApi
         }}, market);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "0", "transaction" );
@@ -3267,7 +3267,7 @@ public class Bitstamp extends BitstampApi
         //     ]
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
+        String type = this.parseLedgerEntryType(this.safeString(item, "type"));
         if (java.util.Objects.equals(type, "trade"))
         {
             Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(item);

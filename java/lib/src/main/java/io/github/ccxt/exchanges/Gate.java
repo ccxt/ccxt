@@ -2357,7 +2357,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Object parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
+                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
                     ((List<Object>)result).add(parsedMarket);
                 }
             }
@@ -2388,7 +2388,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Object parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
+                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
                     ((List<Object>)result).add(parsedMarket);
                 }
             }
@@ -2397,7 +2397,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseContractMarket(Map<String, Object> market, String settleId)
+    public Map<String, Object> parseContractMarket(Map<String, Object> market, String settleId)
     {
         //
         //  Perpetual swap
@@ -3529,7 +3529,7 @@ public class Gate extends GateApi
         return result;
     }
 
-    public Object parseTradingFee(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //    {
@@ -3831,14 +3831,14 @@ public class Gate extends GateApi
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
-            Object funding = this.parseFundingHistory((Map<String, Object>) (entry));
+            Map<String, Object> funding = this.parseFundingHistory((Map<String, Object>) (entry));
             ((List<Object>)result).add(funding);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public Object parseFundingHistory(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //    {
@@ -8871,7 +8871,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseMarginLoan(Object info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
     {
         //
         // Cross
@@ -9579,7 +9579,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         // fetchSettlementHistory
@@ -9912,7 +9912,7 @@ final Object finalI = i;
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "deposit", "deposit" );

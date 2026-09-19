@@ -2325,7 +2325,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }});
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

@@ -1562,7 +1562,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public Object parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(trade, "tid");

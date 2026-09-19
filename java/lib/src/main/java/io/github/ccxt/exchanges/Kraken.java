@@ -1166,7 +1166,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> response, Object market)
+    public Map<String, Object> parseTradingFee(Map<String, Object> response, Object market)
     {
         Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(response, "fees_maker", new HashMap<String, Object>() {{}});
         Map<String, Object> takerFees = (Map<String, Object>) this.safeDict(response, "fees", new HashMap<String, Object>() {{}});
@@ -1488,7 +1488,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "trade", "trade" );
@@ -1523,7 +1523,7 @@ public class Kraken extends KrakenApi
         Object account = null;
         String referenceId = this.safeString(item, "refid");
         Object referenceAccount = null;
-        Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
+        String type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String currencyId = this.safeString(item, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
@@ -3571,7 +3571,7 @@ final Object finalId = id;
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseNetwork(String network)
+    public String parseNetwork(String network)
     {
         Map<String, Object> withdrawMethods = (Map<String, Object>) this.safeDict(this.options, "withdrawMethods", new HashMap<String, Object>() {{}});
         return this.safeString(withdrawMethods, network, network);

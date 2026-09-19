@@ -1106,7 +1106,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         // {
         //     "event": "bts:error",

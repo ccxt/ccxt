@@ -1062,7 +1062,7 @@ public class Cex extends CexApi
             {
                 market = this.safeMarket(key);
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, key)), market);
+            Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, key)), market);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
                 ((Map<String, Object>)result).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
@@ -1081,7 +1081,7 @@ public class Cex extends CexApi
         return result;
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -1866,7 +1866,7 @@ public class Cex extends CexApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "deposit", "deposit" );

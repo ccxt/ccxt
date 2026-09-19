@@ -111,7 +111,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Object ordersRequest = this.createOrdersRequest(orders, parameters);
-            Object wrapped = this.wrapAsPostAction((Map<String, Object>) (ordersRequest));
+            Map<String, Object> wrapped = this.wrapAsPostAction((Map<String, Object>) (ordersRequest));
             Map<String, Object> request = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
             Object response = (this.watch(url, requestId, request, requestId, null)).join();
@@ -208,7 +208,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             Object postRequest = this.editOrdersRequest(new ArrayList<Object>(Arrays.asList(order)), globalParams);
-            Object wrapped = this.wrapAsPostAction((Map<String, Object>) (postRequest));
+            Map<String, Object> wrapped = this.wrapAsPostAction((Map<String, Object>) (postRequest));
             Map<String, Object> request = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
             Object response = (this.watch(url, requestId, request, requestId, null)).join();
@@ -249,7 +249,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object wrapped = this.wrapAsPostAction((Map<String, Object>) (request));
+            Map<String, Object> wrapped = this.wrapAsPostAction((Map<String, Object>) (request));
             Map<String, Object> wsRequest = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
@@ -1796,7 +1796,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         client.resolve(stored, messageHash);
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2155,7 +2155,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }};
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -2173,7 +2173,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         return requestId;
     }
 
-    public Object wrapAsPostAction(Map<String, Object> request)
+    public Map<String, Object> wrapAsPostAction(Map<String, Object> request)
     {
         Object requestId = this.requestId();
         return new HashMap<String, Object>() {{

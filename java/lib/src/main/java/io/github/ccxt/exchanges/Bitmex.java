@@ -1785,7 +1785,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Withdrawal", "transaction" );
@@ -1847,7 +1847,7 @@ public class Bitmex extends BitmexApi
         String account = this.safeString(item, "account");
         String referenceId = this.safeString(item, "tx");
         Object referenceAccount = null;
-        Object type = this.parseLedgerEntryType(this.safeString(item, "transactType"));
+        String type = this.parseLedgerEntryType(this.safeString(item, "transactType"));
         String currencyId = this.safeString(item, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
@@ -4516,7 +4516,7 @@ public class Bitmex extends BitmexApi
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         //    {

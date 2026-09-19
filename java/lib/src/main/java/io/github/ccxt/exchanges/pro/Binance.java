@@ -41,7 +41,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return this.deepExtend(superDescribe, this.describeData());
     }
 
-    public Object describeData()
+    public Map<String, Object> describeData()
     {
         return new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{

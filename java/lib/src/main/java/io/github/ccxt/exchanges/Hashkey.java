@@ -2842,7 +2842,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "trade" );
@@ -2875,7 +2875,7 @@ public class Hashkey extends HashkeyApi
         String id = this.safeString(item, "id");
         String account = this.safeString(item, "accountId");
         Long timestamp = this.safeInteger(item, "created");
-        Object type = this.parseLedgerEntryType(this.safeString(item, "flowTypeValue"));
+        String type = this.parseLedgerEntryType(this.safeString(item, "flowTypeValue"));
         String currencyId = this.safeString(item, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
@@ -5007,7 +5007,7 @@ final Object finalI = i;
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> parsedFee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (fee));
+                Map<String, Object> parsedFee = this.parseTradingFee((Map<String, Object>) (fee));
                 ((Map<String, Object>)result).put((String)((String)((Map<String, Object>)parsedFee).get("symbol")), parsedFee);
             }
             return result;
@@ -5015,7 +5015,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         // spot

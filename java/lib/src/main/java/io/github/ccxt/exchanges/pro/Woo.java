@@ -407,7 +407,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
+    public Map<String, Object> handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         this.handleDeltas(((Map<String, Object>)orderbook).get("asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
@@ -534,7 +534,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }}, market);
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1889,7 +1889,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         client.resolve(fundingRate, messageHash);
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -2050,7 +2050,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         // { event: "pong", ts: 1657117026090 }
@@ -2059,7 +2059,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return message;
     }
 
-    public Object handleSubscribe(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscribe(Client client, Map<String, Object> message)
     {
         //
         //     {

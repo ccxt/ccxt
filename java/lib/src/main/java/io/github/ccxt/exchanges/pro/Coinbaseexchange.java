@@ -66,7 +66,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }});
     }
 
-    public Object authenticate()
+    public Map<String, Object> authenticate()
     {
         this.checkRequiredCredentials();
         String path = "/users/self/verify";
@@ -327,7 +327,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             symbol = this.symbol(symbol);
             Object name = "user";
             String messageHash = "myTrades";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             Object trades = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
             if (this.newUpdates)
             {
@@ -363,7 +363,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }
             Object name = "user";
             String messageHash = "myTrades";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             Object trades = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
             if (this.newUpdates)
             {
@@ -401,7 +401,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             symbols = this.marketSymbols(symbols, null, false);
             Object name = "user";
             String messageHash = "orders";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             Object orders = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
             if (this.newUpdates)
             {
@@ -444,7 +444,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             symbol = this.symbol(symbol);
             Object name = "user";
             String messageHash = "orders";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             Object orders = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
             if (this.newUpdates)
             {
@@ -504,7 +504,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 put( "marketIds", marketIds );
                 put( "limit", limit );
             }};
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             Object orderbook = (this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -550,14 +550,14 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 put( "marketId", ((Map<String, Object>)market).get("id") );
                 put( "limit", limit );
             }};
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             Object orderbook = (this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object handleTrade(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -599,7 +599,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Object handleMyTrade(Client client, Map<String, Object> message)
+    public Map<String, Object> handleMyTrade(Client client, Map<String, Object> message)
     {
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
@@ -979,7 +979,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }});
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1159,7 +1159,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1175,7 +1175,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

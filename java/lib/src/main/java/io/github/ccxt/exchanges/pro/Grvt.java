@@ -1170,7 +1170,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         return this.parseOrder(order, market);
     }
 
-    public Object handleErrorMessage(Client client, Object response)
+    public Boolean handleErrorMessage(Client client, Object response)
     {
         //
         //    {

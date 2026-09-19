@@ -132,7 +132,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public Object handleOHLCV(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -375,7 +375,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -1296,7 +1296,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public Object handleAuthenticate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1306,7 +1306,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         //     {
@@ -1408,7 +1408,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;

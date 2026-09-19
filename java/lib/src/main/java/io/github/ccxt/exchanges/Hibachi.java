@@ -1361,7 +1361,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object cancelOrderRequest(Object id)
+    public Map<String, Object> cancelOrderRequest(Object id)
     {
         Object bigid = this.convertToBigInt(id);
         String idbase16 = this.intToBase16(bigid);
@@ -1391,7 +1391,7 @@ public class Hibachi extends HibachiApi
 
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object request = this.cancelOrderRequest(id);
+            Map<String, Object> request = this.cancelOrderRequest(id);
             ((Map<String, Object>)request).put("accountId", this.getAccountId());
             Map<String, Object> response = (this.privateDeleteTradeOrder(this.extend(request, parameters))).join();
             // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
@@ -1427,7 +1427,7 @@ public class Hibachi extends HibachiApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object orderRequest = this.cancelOrderRequest(Helpers.GetValue(ids, i));
+                Map<String, Object> orderRequest = this.cancelOrderRequest(Helpers.GetValue(ids, i));
                 ((Map<String, Object>)orderRequest).put("action", "cancel");
                 ((List<Object>)orders).add(orderRequest);
             }
@@ -2658,7 +2658,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         //     {

@@ -8309,7 +8309,7 @@ public class Bybit extends BybitApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(Object type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Deposit", "transaction" );
@@ -9939,7 +9939,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(result, currency);
+            Map<String, Object> transaction = this.parseMarginLoan(result, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -9947,7 +9947,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseMarginLoan(Object info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
     {
         //
         // borrowCrossMargin
@@ -10112,7 +10112,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -10239,7 +10239,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
+                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -10533,7 +10533,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object market)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object market)
     {
         //
         // fetchSettlementHistory

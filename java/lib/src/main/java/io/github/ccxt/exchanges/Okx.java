@@ -4140,7 +4140,7 @@ public class Okx extends OkxApi
         return this.safeBalance(result);
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         // https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
         //
@@ -6869,7 +6869,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "transfer" );
@@ -9944,7 +9944,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //     {
@@ -10509,7 +10509,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
     {
         //
         //     {
@@ -10550,7 +10550,7 @@ public class Okx extends OkxApi
             List<Object> details = (List<Object>) this.safeList(entry, "details", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)details).size(); j++)
             {
-                Object settlement = this.parseSettlement((Map<String, Object>) ((details == null || j < 0 || j >= details.size() ? null : details.get(j))), (Map<String, Object>) (market));
+                Map<String, Object> settlement = this.parseSettlement((Map<String, Object>) ((details == null || j < 0 || j >= details.size() ? null : details.get(j))), (Map<String, Object>) (market));
                 ((List<Object>)result).add(this.extend(settlement, new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Okx.this.iso8601(timestamp) );

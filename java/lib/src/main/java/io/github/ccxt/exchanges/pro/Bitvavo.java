@@ -944,7 +944,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
+    public Map<String, Object> handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
     {
         //
         //     {
@@ -1170,7 +1170,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public Object handleUnsubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleUnsubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2209,7 +2209,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(tradesArray, messageHash);
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2295,7 +2295,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

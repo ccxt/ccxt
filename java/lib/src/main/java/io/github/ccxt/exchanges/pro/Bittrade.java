@@ -118,7 +118,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -209,7 +209,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public Object handleTrades(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -646,7 +646,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         return message;
     }
 
-    public Object handleSystemStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -724,7 +724,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

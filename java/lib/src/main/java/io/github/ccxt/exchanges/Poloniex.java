@@ -3356,7 +3356,7 @@ public class Poloniex extends PoloniexApi
         return new ArrayList<Object>(Arrays.asList(request, parameters, currency, networkEntry));
     }
 
-    public Object parseDepositAddressSpecial(Map<String, Object> response, Object currency, Map<String, Object> networkEntry)
+    public Map<String, Object> parseDepositAddressSpecial(Map<String, Object> response, Object currency, Map<String, Object> networkEntry)
     {
         String address = this.safeString(response, "address");
         if (java.util.Objects.equals(address, null))

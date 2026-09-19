@@ -2811,7 +2811,7 @@ public class Tokocrypto extends TokocryptoApi
 
     }
 
-    public Object parseTransactionStatusByType(String status, Object... optionalArgs)
+    public String parseTransactionStatusByType(String status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{

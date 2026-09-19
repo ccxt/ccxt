@@ -788,7 +788,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")));
     }
 
-    public Object handleOHLCV(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -839,7 +839,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return message;
     }
 
-    public Object handleTrade(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1024,7 +1024,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }}, market);
     }
 
-    public Object handleOrder(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrder(Client client, Map<String, Object> message)
     {
         //
         // Order is created
@@ -1242,7 +1242,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }});
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1552,7 +1552,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1618,7 +1618,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return false;
     }
 
-    public Object handleAuthenticate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //    {

@@ -1217,7 +1217,7 @@ final Object finalBase = base;
 
     }
 
-    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -2776,7 +2776,7 @@ final Object finalBase = base;
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "buy", "trade" );
@@ -2794,7 +2794,7 @@ final Object finalBase = base;
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String rawType = this.safeString(item, "type");
-        Object type = this.parseLedgerEntryType(rawType);
+        String type = this.parseLedgerEntryType(rawType);
         String currencyId = this.safeString(item, "receivedCurrency");
         String amount = this.safeString(item, "receivedAmount");
         String direction = "in";

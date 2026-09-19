@@ -276,7 +276,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     }
 
-    public Object cleanParams(Map<String, Object> parameters)
+    public Map<String, Object> cleanParams(Map<String, Object> parameters)
     {
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType", "settle", "defaultSettle", "unifiedMargin"))));
         return parameters;
@@ -2956,7 +2956,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -3180,7 +3180,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }};
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -3204,7 +3204,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return message;
     }
 
-    public Object handleAuthenticate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -3247,7 +3247,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return message;
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -3266,7 +3266,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return message;
     }
 
-    public Object handleUnSubscribe(Client client, Map<String, Object> message)
+    public Map<String, Object> handleUnSubscribe(Client client, Map<String, Object> message)
     {
         //
         // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}

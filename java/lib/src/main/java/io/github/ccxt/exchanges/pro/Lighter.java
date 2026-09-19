@@ -189,7 +189,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
+    public Map<String, Object> handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "order_book", new HashMap<String, Object>() {{}});
         this.handleDeltas(((Map<String, Object>)orderbook).get("asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
@@ -1791,7 +1791,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {

@@ -1133,7 +1133,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     }
 
-    public Object handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -1321,7 +1321,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -1363,7 +1363,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
     }
 
-    public Object handleAuthenticate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1392,7 +1392,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         return message;
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //    {

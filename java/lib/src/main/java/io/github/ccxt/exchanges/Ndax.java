@@ -1713,7 +1713,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(Object type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Trade", "trade" );
@@ -2984,7 +2984,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseTransactionStatusByType(Object... optionalArgs)
+    public String parseTransactionStatusByType(Object... optionalArgs)
     {
         Object status = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object type = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;

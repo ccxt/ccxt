@@ -2370,7 +2370,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     { "result": true, "id": 2 }
