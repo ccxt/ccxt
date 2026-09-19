@@ -487,7 +487,7 @@ export default class blofin extends blofinRest {
             throw new NotSupported (this.id + ' watchBalance() is not supported for spot markets yet');
         }
         const messageHash = marketType + ':balance';
-        const sub = {
+        const sub: Dict = {
             'channel': 'account',
         };
         const request = this.getSubscriptionRequest ([ sub ]);
@@ -554,12 +554,12 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const trigger = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const channel = (trigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
-            const first = this.safeValue (orders, 0);
+            const first = this.safeDict (orders, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = orders.getLimit (tradeSymbol, limit);
         }
@@ -668,7 +668,7 @@ export default class blofin extends blofinRest {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchFundingRate', market, params);
         const messageHash = 'fundingRate:' + market['symbol'];
-        const requestParams = {
+        const requestParams: Dict = {
             'channel': 'funding-rate',
             'instId': market['id'],
         };
@@ -742,7 +742,7 @@ export default class blofin extends blofinRest {
                 } else {
                     market = this.market (current);
                 }
-                const topic = {
+                const topic: Dict = {
                     'channel': channel,
                     'instId': market['id'],
                 };
@@ -832,7 +832,7 @@ export default class blofin extends blofinRest {
         const nonce = 'n_' + timestamp;
         const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
         const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
-        const request = {
+        const request: Dict = {
             'op': 'login',
             'args': [
                 {

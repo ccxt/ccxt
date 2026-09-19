@@ -846,7 +846,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketMarkPrice (this.extend (request, params));
