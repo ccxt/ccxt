@@ -1135,7 +1135,7 @@ export default class paradex extends Exchange {
         // against an index, and this rate is the amount for a whole period
         const hours = this.safeString (this.safeDict (market, 'info', {}), 'funding_period_hours');
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        let interval = undefined;
+        let interval: Str = undefined;
         if ((hours !== undefined) && Precise.stringGt (hours, '0')) {
             interval = hours + 'h';
         }
@@ -3467,7 +3467,7 @@ export default class paradex extends Exchange {
             path = path.replace ('v2/', '');
         }
         let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
