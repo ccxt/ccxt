@@ -40,7 +40,7 @@ export default class mudrex extends mudrexRest {
         };
     }
 
-    requestId () {
+    requestId (): number {
         const reqid = this.sum (this.safeInteger (this.options, 'correlationId', 0), 1);
         this.options['correlationId'] = reqid;
         return reqid;
@@ -51,7 +51,7 @@ export default class mudrex extends mudrexRest {
      * @method
      * @description injects the broker Partner-Id into the websocket connection headers
      */
-    setBrokerHeaders () {
+    setBrokerHeaders (): void {
         const brokerId = this.safeString (this.options, 'broker');
         if (brokerId === undefined) {
             return;
@@ -156,7 +156,7 @@ export default class mudrex extends mudrexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    override handleMessage (client: any, message: any) {
+    override handleMessage (client: Client, message: any) {
         if (this.safeString (message, 'method') === 'PONG') {
             return;
         }
@@ -175,7 +175,7 @@ export default class mudrex extends mudrexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: Dict): void {
         const error = this.safeDict (message, 'error', {});
         const code = this.safeString (error, 'code');
         const msg = this.safeString (error, 'msg');
@@ -186,7 +186,7 @@ export default class mudrex extends mudrexRest {
         throw new ExchangeError (feedback);
     }
 
-    handleOHLCV (client: any, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         const stream = this.safeString (message, 'stream');
         if (stream === undefined) {
             return;
@@ -223,7 +223,7 @@ export default class mudrex extends mudrexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTicker (client: any, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const t = data[i];

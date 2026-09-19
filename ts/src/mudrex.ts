@@ -179,7 +179,7 @@ export default class mudrex extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const base = this.safeString (apiUrls, api);
         if (base === undefined) {
@@ -957,7 +957,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrdersByState (state: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByState (state: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

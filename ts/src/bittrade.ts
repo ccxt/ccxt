@@ -458,7 +458,7 @@ export default class bittrade extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id: Str, params = {}) {
+    async fetchTradingLimitsById (id: Str, params: Dict = {}) {
         const request: Dict = {
             'symbol': id,
         };
@@ -482,7 +482,7 @@ export default class bittrade extends Exchange {
         return this.parseTradingLimits (this.safeDict (response, 'data', {}));
     }
 
-    parseTradingLimits (limits: any, symbol: Str = undefined, params = {}) {
+    parseTradingLimits (limits: Dict, symbol: Str = undefined, params: Dict = {}) {
         //
         //   {                                  symbol: "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -1284,7 +1284,7 @@ export default class bittrade extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByStates (states: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1376,7 +1376,7 @@ export default class bittrade extends Exchange {
         return await this.fetchOpenOrdersV1 (symbol, since, limit, params) as Order[];
     }
 
-    async fetchOpenOrdersV1 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersV1 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrdersV1() requires a symbol argument');
         }
@@ -1452,7 +1452,7 @@ export default class bittrade extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
@@ -1742,7 +1742,7 @@ export default class bittrade extends Exchange {
         return this.parseCancelOrders (response) as Order[];
     }
 
-    parseCancelOrders (orders: any) {
+    parseCancelOrders (orders: Dict): Order[] {
         //
         //    {
         //        "success": [
@@ -2027,7 +2027,7 @@ export default class bittrade extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',
@@ -2099,7 +2099,7 @@ export default class bittrade extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/';
         if (api === 'market') {
             url += api;
