@@ -1082,7 +1082,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

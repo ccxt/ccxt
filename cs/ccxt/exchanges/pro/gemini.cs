@@ -434,7 +434,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
     {
-        bool isInitial = (inOp(message, "auction_events")) && (inOp(message, "trades")) && (inOp(message, "changes"));
+        bool isInitial = ((message != null && ((IDictionary<string, object>)message).ContainsKey("auction_events"))) && ((message != null && ((IDictionary<string, object>)message).ContainsKey("trades"))) && ((message != null && ((IDictionary<string, object>)message).ContainsKey("changes")));
         List<object> changes = this.safeList(message, "changes", new List<object>() {});
         string? marketId = this.safeStringLower(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);

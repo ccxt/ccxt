@@ -297,10 +297,10 @@ public partial class cex : ccxt.cex
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("ticker:" + (symbolVar));
         string? method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
-        object message = ((object)new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "subscribe" },
             { "rooms", new List<object>() {"tickers"} },
-        });
+        };
         string subscriptionHash = "tickers";
         if ((method == "private"))
         {

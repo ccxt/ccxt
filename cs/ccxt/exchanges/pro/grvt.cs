@@ -694,7 +694,7 @@ public partial class grvt : ccxt.grvt
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

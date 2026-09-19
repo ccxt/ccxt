@@ -951,13 +951,13 @@ public partial class aster : ccxt.aster
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
         string? orderId = this.safeString(trade, "i");
-        if (inOp(trade, "m"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("m")))
         {
             if ((side == null))
             {
-                side = ((bool) (isEqual(getValue(trade, "m"), true))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((bool) (isEqual(((IDictionary<string,object>)trade)["m"], true))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((bool) (isEqual(getValue(trade, "m"), true))) ? "maker" : "taker";
+            takerOrMaker = ((bool) (isEqual(((IDictionary<string,object>)trade)["m"], true))) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -1418,7 +1418,7 @@ public partial class aster : ccxt.aster
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
-    public async virtual Task authenticate(object type = null, object parameters = null)
+    public async virtual Task<object> authenticate(object type = null, object parameters = null)
     {
         type ??= "spot";
         parameters ??= new Dictionary<string, object>();

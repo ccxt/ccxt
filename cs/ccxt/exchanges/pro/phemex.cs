@@ -294,15 +294,15 @@ public partial class phemex : ccxt.phemex
         //    }
         //
         List<object> tickers = new List<object>() {};
-        if (inOp(message, "market24h"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("market24h")))
         {
             object ticker = this.safeValue(message, "market24h");
             ((IList<object>)tickers).Add(this.parseSwapTicker(ticker));
-        } else if (inOp(message, "spot_market24h"))
+        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("spot_market24h")))
         {
             object ticker = this.safeValue(message, "spot_market24h");
             ((IList<object>)tickers).Add(this.parseTicker(ticker));
-        } else if (inOp(message, "data"))
+        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("data")))
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < data.Count; i++)
@@ -1623,32 +1623,32 @@ public partial class phemex : ccxt.phemex
             }
         }
         string? methodName = this.safeString(message, "method", "");
-        if ((inOp(message, "market24h")) || (inOp(message, "spot_market24h")) || (getIndexOf(methodName, "perp_market24h_pack_p") >= 0))
+        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("market24h"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("spot_market24h"))) || (getIndexOf(methodName, "perp_market24h_pack_p") >= 0))
         {
             this.handleTicker(client as WebSocketClient, message);
             return;
-        } else if ((inOp(message, "trades")) || (inOp(message, "trades_p")))
+        } else if (((message != null && ((IDictionary<string, object>)message).ContainsKey("trades"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("trades_p"))))
         {
             this.handleTrades(client as WebSocketClient, message);
             return;
-        } else if ((inOp(message, "kline")) || (inOp(message, "kline_p")))
+        } else if (((message != null && ((IDictionary<string, object>)message).ContainsKey("kline"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("kline_p"))))
         {
             this.handleOHLCV(client as WebSocketClient, message);
             return;
-        } else if ((inOp(message, "book")) || (inOp(message, "orderbook_p")))
+        } else if (((message != null && ((IDictionary<string, object>)message).ContainsKey("book"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("orderbook_p"))))
         {
             this.handleOrderBook(client as WebSocketClient, message);
             return;
         }
-        if ((inOp(message, "orders")) || (inOp(message, "orders_p")))
+        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("orders"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("orders_p"))))
         {
             IDictionary<string, object> orders = this.safeDict2(message, "orders", "orders_p", new Dictionary<string, object>() {});
             this.handleOrders(client as WebSocketClient, orders);
         }
-        if ((inOp(message, "accounts")) || (inOp(message, "accounts_p")) || (inOp(message, "wallets")))
+        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("wallets"))))
         {
-            string type = ((bool) (inOp(message, "accounts"))) ? "swap" : "spot";
-            if (inOp(message, "accounts_p"))
+            string type = ((bool) ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts")))) ? "swap" : "spot";
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p")))
             {
                 type = "perpetual";
             }

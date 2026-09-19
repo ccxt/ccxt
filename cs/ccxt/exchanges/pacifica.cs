@@ -706,33 +706,33 @@ public partial class pacifica : Exchange
         });
     }
 
-    public async virtual Task<object> initializeClient()
+    public async virtual Task<bool> initializeClient()
     {
         try
         {
             await this.handleBuilderFeeApproval();
         } catch(Exception e)
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
-    public async virtual Task<object> handleBuilderFeeApproval()
+    public async virtual Task<bool> handleBuilderFeeApproval()
     {
         if (this.isSandboxModeEnabled)
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
         bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if ((buildFee != true))
         {
-            return false;  // skip if builder fee is not enabled
+            return ((bool)((object)(false))!);  // skip if builder fee is not enabled
         }
         bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if ((approvedBuilderFee == true))
         {
-            return true;  // skip if builder fee is already approved
+            return ((bool)((object)(true))!);  // skip if builder fee is already approved
         }
         try
         {
@@ -744,7 +744,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     /**

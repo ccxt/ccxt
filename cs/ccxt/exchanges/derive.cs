@@ -1539,7 +1539,7 @@ public partial class derive : Exchange
     public virtual object signOrder(object order, object privateKey)
     {
         object hashOrder = this.hashOrderMessage(order);
-        return this.signHash(slice(hashOrder, -64, null), slice(privateKey, -64, null));
+        return this.signHash(((hashOrder == null) ? null : ((string)hashOrder).Substring(Math.Max(((string)hashOrder).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
     public virtual object hashMessage(object message)
@@ -1555,7 +1555,7 @@ public partial class derive : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
         string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
@@ -1564,7 +1564,7 @@ public partial class derive : Exchange
 
     public virtual object signMessage(object message, object privateKey)
     {
-        return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
     public virtual string? parseUnits(object num, object dec = null)

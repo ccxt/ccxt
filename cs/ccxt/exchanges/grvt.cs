@@ -810,18 +810,18 @@ public partial class grvt : Exchange
         return response;
     }
 
-    public async virtual Task<object> initializeClient(object parameters = null)
+    public async virtual Task<bool?> initializeClient(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
         if ((builderFee != true))
         {
-            return false;  // skip if builder fee is not enabled
+            return ((bool?)((object)(false)));  // skip if builder fee is not enabled
         }
         bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if ((approvedBuilderFee == true))
         {
-            return true;  // skip if builder fee is already approved
+            return ((bool?)((object)(true)));  // skip if builder fee is already approved
         }
         List<object> results = await promiseAll(new List<object> {this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()});
         //
@@ -884,7 +884,7 @@ public partial class grvt : Exchange
                 ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
             }
         }
-        return null;  // just c#
+        return ((bool?)((object)(null)));  // just c#
     }
 
     /**
@@ -2251,11 +2251,11 @@ public partial class grvt : Exchange
         };
     }
 
-    public async virtual Task<object> loadAccountInfos()
+    public async virtual Task<bool?> loadAccountInfos()
     {
         if ((this.safeString(this.options, "userMainAccountId") != null))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         List<object> promises = new List<object>() {};
         ((IList<object>)promises).Add(this.privateTradingPostFullV1AggregatedAccountSummary());
@@ -2312,7 +2312,7 @@ public partial class grvt : Exchange
             string? subAccountId = this.safeString(subAccountIds, 0);
             ((IDictionary<string,object>)this.options)["accountId"] = subAccountId;
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     /**
@@ -3760,7 +3760,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual List<object> handleUntilOptionString(object key, object request, object parameters, object multiplier = null)
+    public virtual List<object> handleUntilOptionString(object key, object request, object parameters = null, object multiplier = null)
     {
         multiplier ??= 1;
         Int64? until = this.safeInteger2(parameters, "until", "till");

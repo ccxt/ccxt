@@ -1110,7 +1110,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "trades", "trades" },
         };
         string? unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
-        if (inOp(message, "key"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("key")))
         {
             // handle ohlcv differently because the message is different
             string? key = this.safeString(message, "key");

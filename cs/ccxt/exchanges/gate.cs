@@ -1939,7 +1939,7 @@ public partial class gate : Exchange
      * @see https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
-    public async virtual Task<object> loadUnifiedStatus(object parameters = null)
+    public async virtual Task<bool> loadUnifiedStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool? unifiedAccount = this.safeBool(this.options, "unifiedAccount");
@@ -1969,7 +1969,7 @@ public partial class gate : Exchange
                 ((IDictionary<string,object>)this.options)["unifiedAccount"] = false;
             }
         }
-        return (this.options.ContainsKey("unifiedAccount") ? this.options["unifiedAccount"] : null);
+        return ((bool)((object)((this.options.ContainsKey("unifiedAccount") ? this.options["unifiedAccount"] : null)))!);
     }
 
     public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)
@@ -9042,7 +9042,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, object market)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market = null)
     {
         //
         // fetchSettlementHistory
@@ -9094,7 +9094,7 @@ public partial class gate : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, object market)
+    public virtual object parseSettlements(object settlements, object market = null)
     {
         //
         // fetchSettlementHistory

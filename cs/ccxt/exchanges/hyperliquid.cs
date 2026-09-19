@@ -1754,7 +1754,7 @@ public partial class hyperliquid : Exchange
 
     public virtual object signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         return new Dictionary<string, object>() {
             { "r", ("0x" + ((signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null))) },
             { "s", ("0x" + ((signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null))) },
@@ -1764,7 +1764,7 @@ public partial class hyperliquid : Exchange
 
     public virtual object signMessage(object message, object privateKey)
     {
-        return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
     public virtual Dictionary<string, object> constructPhantomAgent(object hash, object isTestnet = null)
@@ -2049,25 +2049,25 @@ public partial class hyperliquid : Exchange
         return await this.privatePostExchange(request);
     }
 
-    public async virtual Task<object> initializeClient()
+    public async virtual Task<bool> initializeClient()
     {
         try
         {
             await promiseAll(new List<object> {this.handleBuilderFeeApproval(), this.setRef(), this.isUnifiedEnabled("fetchBalance", null, false, new Dictionary<string, object>() {})}); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch(Exception e)
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
-    public async virtual Task<object> handleBuilderFeeApproval()
+    public async virtual Task<bool> handleBuilderFeeApproval()
     {
         bool? buildFee = this.safeBool(this.options, "builderFee", true);
         bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if ((approvedBuilderFee == true))
         {
-            return true;  // skip if builder fee is already approved
+            return ((bool)((object)(true))!);  // skip if builder fee is already approved
         }
         try
         {
@@ -2085,7 +2085,7 @@ public partial class hyperliquid : Exchange
         {
             ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     /**

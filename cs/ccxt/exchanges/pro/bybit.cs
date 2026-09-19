@@ -1409,10 +1409,10 @@ public partial class bybit : ccxt.bybit
 
     public virtual string getPrivateType(object url)
     {
-        if (getIndexOf(url, "spot") >= 0)
+        if (((string)url).IndexOf("spot", StringComparison.Ordinal) >= 0)
         {
             return "spot";
-        } else if (getIndexOf(url, "v5/private") >= 0)
+        } else if (((string)url).IndexOf("v5/private", StringComparison.Ordinal) >= 0)
         {
             return "unified";
         } else

@@ -1608,11 +1608,11 @@ public partial class hitbtc : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currencies"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3079,8 +3079,9 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<object> convertCurrencyNetwork(string code, object amount, object fromNetwork, object toNetwork, object parameters)
+    public async virtual Task<object> convertCurrencyNetwork(string code, object amount, object fromNetwork, object toNetwork, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();

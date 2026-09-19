@@ -2180,8 +2180,8 @@ public partial class bitget : ccxt.bitget
         //         "stpMode": "none"
         //     }
         //
-        bool isSpot = !(inOp(order, "posMode"));
-        bool isMargin = (inOp(order, "loanType"));
+        bool isSpot = !((order != null && ((IDictionary<string, object>)order).ContainsKey("posMode")));
+        bool isMargin = ((order != null && ((IDictionary<string, object>)order).ContainsKey("loanType")));
         string? category = this.safeStringLower(order, "category");
         if ((category == "spot"))
         {

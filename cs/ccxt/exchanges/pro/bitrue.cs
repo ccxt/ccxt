@@ -914,7 +914,7 @@ public partial class bitrue : ccxt.bitrue
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (inOp(message, "channel"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("channel")))
         {
             string? channel = this.safeString(message, "channel");
             if (((string)channel).IndexOf("_depth_step", StringComparison.Ordinal) > -1)
@@ -930,7 +930,7 @@ public partial class bitrue : ccxt.bitrue
             {
                 this.handleTicker(client as WebSocketClient, message);
             }
-        } else if (inOp(message, "ping"))
+        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
         {
             this.handlePing(client as WebSocketClient, message);
         } else

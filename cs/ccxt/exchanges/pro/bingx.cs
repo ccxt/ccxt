@@ -1666,7 +1666,7 @@ public partial class bingx : ccxt.bingx
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
@@ -1827,7 +1827,7 @@ public partial class bingx : ccxt.bingx
         //        }
         //    }
         //
-        bool isSpot = (inOp(message, "dataType"));
+        bool isSpot = ((message != null && ((IDictionary<string, object>)message).ContainsKey("dataType")));
         IDictionary<string, object> data = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         if ((this.orders == null))
         {
@@ -1903,7 +1903,7 @@ public partial class bingx : ccxt.bingx
         //        }
         //    }
         //
-        bool isSpot = (inOp(message, "dataType"));
+        bool isSpot = ((message != null && ((IDictionary<string, object>)message).ContainsKey("dataType")));
         IDictionary<string, object> result = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         object cachedTrades = this.myTrades;
         if ((cachedTrades == null))

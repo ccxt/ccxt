@@ -577,7 +577,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object parsed = base.parseTrade(trade);
         string? feeRate = null;
         bool isMaker = false;
-        if (inOp(trade, "maker_fee_rate"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker_fee_rate")))
         {
             isMaker = true;
             ((IDictionary<string,object>)parsed)["takerOrMaker"] = "maker";

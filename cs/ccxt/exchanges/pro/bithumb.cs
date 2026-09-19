@@ -823,7 +823,7 @@ public partial class bithumb : ccxt.bithumb
             ((WebSocketClient)client).reject(new ExchangeError((((this.id + " websocket error ") + errorName) + addedMessage)));
             return ((bool?)((object)(false)));
         }
-        if (!(inOp(message, "status")))
+        if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("status"))))
         {
             return ((bool?)((object)(true)));
         }

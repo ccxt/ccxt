@@ -4133,7 +4133,7 @@ public partial class aster : Exchange
         double? contractSize = this.safeNumber(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        bool linear = (inOp(position, "notional"));
+        bool linear = ((position != null && ((IDictionary<string, object>)position).ContainsKey("notional")));
         if ((marginMode == "cross"))
         {
             // calculate collateral
@@ -4431,7 +4431,7 @@ public partial class aster : Exchange
             }
         }
         // as oppose to notionalValue
-        bool usdm = (inOp(position, "notional"));
+        bool usdm = ((position != null && ((IDictionary<string, object>)position).ContainsKey("notional")));
         string? maintenanceMarginString = this.safeString(position, "maintMargin");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
         string? entryPriceString = this.safeString(position, "entryPrice");
@@ -4692,7 +4692,7 @@ public partial class aster : Exchange
 
     public virtual object signMessage(object message, object privateKey)
     {
-        return this.signHash(this.keccakMessage(message), slice(privateKey, -64, null));
+        return this.signHash(this.keccakMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
     public virtual object signWithdrawPayload(object withdrawPayload, object network)
@@ -4925,7 +4925,7 @@ public partial class aster : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
         string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
@@ -5104,18 +5104,18 @@ public partial class aster : Exchange
         return true;
     }
 
-    public async virtual Task<object> initializeClient(object parameters = null)
+    public async virtual Task<bool?> initializeClient(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
         if ((builderFee != true))
         {
-            return false;  // skip if builder fee is not enabled
+            return ((bool?)((object)(false)));  // skip if builder fee is not enabled
         }
         bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if ((approvedBuilderFee == true))
         {
-            return true;  // skip if builder fee is already approved
+            return ((bool?)((object)(true)));  // skip if builder fee is already approved
         }
         List<object> result = await this.fapiPrivateGetV3Builder();
         //
@@ -5168,7 +5168,7 @@ public partial class aster : Exchange
                 ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable if err
             }
         }
-        return null;  // just c#
+        return ((bool?)((object)(null)));  // just c#
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

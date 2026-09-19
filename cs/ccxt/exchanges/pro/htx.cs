@@ -2422,7 +2422,7 @@ public partial class htx : ccxt.htx
                 }
             }
         }
-        if (inOp(message, "unsubbed"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("unsubbed")))
         {
             this.handleUnSubscription(client as WebSocketClient, subscription);
         }
@@ -2822,12 +2822,12 @@ public partial class htx : ccxt.htx
             //         }
             //     }
             //
-            if (inOp(message, "id"))
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("id")))
             {
                 this.handleSubscriptionStatus(client as WebSocketClient, message);
                 return;
             }
-            if (inOp(message, "action"))
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("action")))
             {
                 string? action = this.safeString(message, "action");
                 if ((action == "ping"))
@@ -2841,9 +2841,9 @@ public partial class htx : ccxt.htx
                     return;
                 }
             }
-            if (inOp(message, "ch"))
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ch")))
             {
-                if (isEqual(getValue(message, "ch"), "auth"))
+                if (isEqual(((IDictionary<string,object>)message)["ch"], "auth"))
                 {
                     this.handleAuthenticate(client as WebSocketClient, message);
                     return;
@@ -2854,7 +2854,7 @@ public partial class htx : ccxt.htx
                     return;
                 }
             }
-            if (inOp(message, "op"))
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("op")))
             {
                 string? op = this.safeString(message, "op");
                 if ((op == "ping"))
@@ -2878,7 +2878,7 @@ public partial class htx : ccxt.htx
                     return;
                 }
             }
-            if (inOp(message, "ping"))
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
             {
                 this.handlePing(client as WebSocketClient, message);
             }

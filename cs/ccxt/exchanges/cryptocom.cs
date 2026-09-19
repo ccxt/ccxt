@@ -3599,7 +3599,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, object market)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market = null)
     {
         //
         //     {
@@ -3620,7 +3620,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, object market)
+    public virtual object parseSettlements(object settlements, object market = null)
     {
         //
         //     [

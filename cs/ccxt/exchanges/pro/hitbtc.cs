@@ -1518,7 +1518,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleOrderRequest(client as WebSocketClient, message);
             }
-            if ((isEqual(result, true)) && !(inOp(message, "id")))
+            if ((isEqual(result, true)) && !((message != null && ((IDictionary<string, object>)message).ContainsKey("id"))))
             {
                 this.handleAuthenticate(client as WebSocketClient, message);
             }

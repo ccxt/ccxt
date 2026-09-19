@@ -138,9 +138,9 @@ public partial class apex : ccxt.apex
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? topic = this.safeString(message, "topic");
-        object trades = data;
+        List<object> trades = data;
         List<object> parts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
@@ -152,7 +152,7 @@ public partial class apex : ccxt.apex
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        int length = getArrayLength(trades);
+        int length = (trades?.Count ?? 0);
         for (object j = 0; isLessThan(j, length); postFixIncrement(ref j))
         {
             object index = subtract(subtract(length, j), 1);
@@ -608,7 +608,7 @@ public partial class apex : ccxt.apex
         //         "type": "snapshot"
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? topic = this.safeString(message, "topic");
         List<object> topicParts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         int topicLength = topicParts.Count;
@@ -629,9 +629,9 @@ public partial class apex : ccxt.apex
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            object parsed = this.parseWsOHLCV(getValue(data, i));
+            object parsed = this.parseWsOHLCV(data[i]);
             callDynamically(stored, "append", new object[] {parsed});
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);

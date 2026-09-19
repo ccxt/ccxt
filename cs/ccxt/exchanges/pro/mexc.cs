@@ -692,7 +692,7 @@ public partial class mexc : ccxt.mexc
         object parsed = null;
         object symbol = null;
         string? timeframe = null;
-        if (inOp(message, "publicSpotKline"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("publicSpotKline")))
         {
             symbol = this.symbol(this.safeString(message, "symbol"));
             IDictionary<string, object> data = this.safeDict(message, "publicSpotKline", new Dictionary<string, object>() {});

@@ -569,7 +569,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
-    public async virtual Task<object> preLoadLighterLibrary(object parameters = null)
+    public async virtual Task<bool> preLoadLighterLibrary(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object apiKeyIndex = null;
@@ -590,11 +590,11 @@ public partial class lighter : Exchange
         object signer = this.safeDict(getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex), "signer");
         if ((signer != null))
         {
-            return true;
+            return ((bool)((object)(true))!);
         }
         signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
-        return ((signer != null));
+        return ((bool)((object)(((signer != null))))!);
     }
 
     public virtual List<object> handleApiKeyIndex(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
@@ -796,17 +796,17 @@ public partial class lighter : Exchange
         return this.json(decTxInfo);
     }
 
-    public async virtual Task<object> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
+    public async virtual Task<bool> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
     {
         bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if ((buildFee != true))
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
         bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if ((approvedBuilderFee == true))
         {
-            return true;
+            return ((bool)((object)(true))!);
         }
         try
         {
@@ -819,7 +819,7 @@ public partial class lighter : Exchange
         {
             ((IDictionary<string,object>)this.options)["builderFee"] = false;
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     public async virtual Task<object> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, object parameters = null)

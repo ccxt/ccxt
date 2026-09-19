@@ -2169,7 +2169,7 @@ public partial class nado : ccxt.nado
             return;
         }
         string? id = this.safeString(message, "id");
-        bool hasResult = (inOp(message, "result"));
+        bool hasResult = ((message != null && ((IDictionary<string, object>)message).ContainsKey("result")));
         IDictionary<string, object> result = this.safeDict(message, "result");
         string? method = this.safeString(result, "method");
         if ((method == "pong"))

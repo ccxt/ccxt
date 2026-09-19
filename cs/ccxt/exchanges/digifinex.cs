@@ -3333,7 +3333,7 @@ public partial class digifinex : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         object addresses = this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)});
-        object address = this.safeValue(addresses, code);
+        IDictionary<string, object> address = this.safeDict(addresses, code);
         if ((address == null))
         {
             throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() did not return an address for ") + (code)) + " - create the deposit address in the user settings on the exchange website first.")) ;
@@ -4850,7 +4850,7 @@ public partial class digifinex : Exchange
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codes == null)) || (this.inArray(code, codes))))
             {
-                object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                IDictionary<string, object> depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if ((depositWithdrawFee == null))
                 {
                     ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});

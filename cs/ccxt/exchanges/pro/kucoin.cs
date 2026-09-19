@@ -3878,10 +3878,10 @@ public partial class kucoin : ccxt.kucoin
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
-        } else if (inOp(message, "T"))
+        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("T")))
         {
             this.handleSubject(client as WebSocketClient, message);
-        } else if (inOp(message, "result"))
+        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("result")))
         {
             bool? result = this.safeBool(message, "result", true);
             if ((result != true))
