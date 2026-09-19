@@ -1606,7 +1606,6 @@ class BaseExchange {
     }
 
     public static function eddsa($request, $secret, $algorithm = 'ed25519') {
-        $curve = new EdDSA($algorithm);
         if (preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match) >= 1) {
             // trim pem header from 48 bytes -> 32 bytes
             // in hex so 96 chars -> 64 chars
@@ -1614,7 +1613,15 @@ class BaseExchange {
         } else {
             $hex_secret = bin2hex($secret);
         }
-        $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
+        $message = static::encode($request);
+        $seed = hex2bin($hex_secret);
+        // libsodium produces the same RFC 8032 signature as the pure-PHP curve and is far faster
+        if (($algorithm === 'ed25519') && function_exists('sodium_crypto_sign_detached') && (strlen($seed) === SODIUM_CRYPTO_SIGN_SEEDBYTES)) {
+            $keypair = sodium_crypto_sign_seed_keypair($seed);
+            return static::binary_to_base64(sodium_crypto_sign_detached($message, sodium_crypto_sign_secretkey($keypair)));
+        }
+        $curve = new EdDSA($algorithm);
+        $signature = $curve->sign(bin2hex($message), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
     }
 

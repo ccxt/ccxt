@@ -9,6 +9,7 @@ async function testFetchHistoryBase () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
+        'enableRateLimit': false,
     });
     assert (testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
     const trueAssertion = exchange.parseNumber (undefined) === undefined;
