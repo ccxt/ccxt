@@ -200,8 +200,10 @@ const CSHARP_DECLARED_DICT_TYPES = [ 'Dictionary<', 'IDictionary<', 'ConcurrentD
 // List<Int64> receiver casts the key in the helper, so it keeps the helper)
 const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
 
-// a method signature line inside a class body: indented, a member name, an argument list
-const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*\(/;
+// a method signature line inside a class body: indented, a member name, an argument list;
+// the return type accepts a trailing `?` (`bool?` / `double?`), or the region boundary
+// drifts and a later method's body reads the previous method's parameter types
+const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)[ ]*\(/;
 // a declaration of one variable: `Type name = value;` / `Type name;`
 const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*(=[ ]*([^;]*))?;[ ]*$/;
 // the same declaration with a collection/object initializer that spans lines (`= new X () {`)

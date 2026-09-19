@@ -1406,7 +1406,7 @@ public partial class modetrade : ccxt.modetrade
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
-        if (!((message != null && message.ContainsKey("success"))))
+        if (!(inOp(message, "success")))
         {
             return ((bool?)((object)(false)));
         }
