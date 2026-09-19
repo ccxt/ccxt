@@ -2967,7 +2967,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
@@ -2975,7 +2975,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            object _netIdTmp = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
             if ((_netIdTmp != null))
             {
                 ((IDictionary<string,object>)request)["chain"] = ((string)_netIdTmp).ToLower();
@@ -3007,7 +3007,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
@@ -3015,7 +3015,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            object _netIdTmp = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
             if ((_netIdTmp != null))
             {
                 ((IDictionary<string,object>)request)["chain"] = ((string)_netIdTmp).ToLower();
@@ -4125,7 +4125,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
@@ -4133,7 +4133,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, getValue(currency, "code")); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         Dictionary<string, object> response = await this.privatePostDepositAddressCreate(this.extend(request, parameters));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -4194,7 +4194,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
@@ -4202,7 +4202,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            object _netIdTmp = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
             if ((_netIdTmp != null))
             {
                 ((IDictionary<string,object>)request)["chain"] = ((string)_netIdTmp).ToLower();
@@ -4239,7 +4239,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        string? currencyId = ((string)getValue(currency, "id"));
+        string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", currencyId },
         };
@@ -4311,7 +4311,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         object uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositAddressesByNetwork", "uta", uta);
@@ -4374,8 +4374,8 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
         }
         List<object> chains = this.safeList(response, "data", new List<object>() {});
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currency, "code") },
+        object parsed = this.parseDepositAddresses(chains, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false, new Dictionary<string, object>() {
+            { "currency", (currency.ContainsKey("code") ? currency["code"] : null) },
         });
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
@@ -8732,7 +8732,7 @@ public partial class kucoin : Exchange
         this.checkAddress(address);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "toAddress", address },
             { "withdrawType", "ADDRESS" },
         };
@@ -8746,7 +8746,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            object _netIdTmp = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
             if ((_netIdTmp != null))
             {
                 ((IDictionary<string,object>)request)["chain"] = ((string)_netIdTmp).ToLower();
@@ -8965,7 +8965,7 @@ public partial class kucoin : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limit != null))
         {
@@ -9053,7 +9053,7 @@ public partial class kucoin : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limit != null))
         {
@@ -9142,7 +9142,7 @@ public partial class kucoin : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limit != null))
         {
@@ -9231,7 +9231,7 @@ public partial class kucoin : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limit != null))
         {
@@ -9355,7 +9355,7 @@ public partial class kucoin : Exchange
         {
             if ((currency != null))
             {
-                ((IDictionary<string,object>)request)["balanceCurrency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["balanceCurrency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
             response = await this.privateGetIsolatedAccounts(this.extend(request, parameters));
         } else if (cross)
@@ -9365,7 +9365,7 @@ public partial class kucoin : Exchange
         {
             if ((currency != null))
             {
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
             ((IDictionary<string,object>)request)["type"] = type;
             response = await this.privateGetAccounts(this.extend(request, parameters));
@@ -9538,7 +9538,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.futuresPrivateGetAccountOverview(this.extend(request, parameters));
         //
@@ -9784,7 +9784,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         string? requestedAmount = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", requestedAmount },
         };
         object transferType = "INTERNAL";
@@ -9892,7 +9892,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         string? requestedAmount = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", requestedAmount },
         };
         object transferType = "INTERNAL";
@@ -10389,7 +10389,7 @@ public partial class kucoin : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endAt", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
@@ -10595,10 +10595,10 @@ public partial class kucoin : Exchange
             currency = this.currency(((string)code));
             if (isEqual(marginMode, "isolated"))
             {
-                ((IDictionary<string,object>)request)["balanceCurrency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["balanceCurrency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             } else
             {
-                ((IDictionary<string,object>)request)["quoteCurrency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["quoteCurrency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
         }
         IDictionary<string, object> market = null;
@@ -10856,7 +10856,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "isIsolated", isIsolated },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((since != null))
         {
@@ -10950,7 +10950,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.utaPrivateGetAccountInterestLimits(this.extend(request, parameters));
         //
@@ -10990,7 +10990,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "size", this.currencyToPrecision(((string)code), amount) },
             { "timeInForce", "FOK" },
         };
@@ -11033,7 +11033,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "size", this.currencyToPrecision(((string)code), amount) },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeInForce", "FOK" },
@@ -11075,7 +11075,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "size", this.currencyToPrecision(((string)code), amount) },
         };
         Dictionary<string, object> response = await this.privatePostMarginRepay(this.extend(request, parameters));
@@ -11116,7 +11116,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "size", this.currencyToPrecision(((string)code), amount) },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "isIsolated", true },
@@ -13376,7 +13376,7 @@ public partial class kucoin : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {

@@ -2547,7 +2547,7 @@ public partial class ndax : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
-            { "ProductId", getValue(currency, "id") },
+            { "ProductId", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "GenerateNewKey", false },
         };
         Dictionary<string, object> response = await this.privateGetGetDepositInfo(this.extend(request, parameters));
@@ -2952,7 +2952,7 @@ public partial class ndax : Exchange
         Dictionary<string, object> withdrawTemplateTypesRequest = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
-            { "ProductId", getValue(currency, "id") },
+            { "ProductId", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest);
         //
@@ -2971,13 +2971,13 @@ public partial class ndax : Exchange
         IDictionary<string, object> firstTemplateType = this.safeDict(templateTypes, 0);
         if ((firstTemplateType == null))
         {
-            throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template type for ") + (getValue(currency, "code")))) ;
+            throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template type for ") + ((currency.ContainsKey("code") ? currency["code"] : null)))) ;
         }
         string? templateName = this.safeString(firstTemplateType, "TemplateName");
         Dictionary<string, object> withdrawTemplateRequest = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
-            { "ProductId", getValue(currency, "id") },
+            { "ProductId", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "TemplateType", templateName },
             { "AccountProviderId", getValue(firstTemplateType, "AccountProviderId") },
         };
@@ -2993,7 +2993,7 @@ public partial class ndax : Exchange
         string? template = this.safeString(withdrawTemplateResponse, "Template");
         if ((template == null))
         {
-            throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template for ") + (getValue(currency, "code")))) ;
+            throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template for ") + ((currency.ContainsKey("code") ? currency["code"] : null)))) ;
         }
         object withdrawTemplate = parseJson(template);
         ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
@@ -3007,7 +3007,7 @@ public partial class ndax : Exchange
         Dictionary<string, object> withdrawPayload = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
-            { "ProductId", getValue(currency, "id") },
+            { "ProductId", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "TemplateForm", this.json(withdrawTemplate) },
             { "TemplateType", templateName },
         };

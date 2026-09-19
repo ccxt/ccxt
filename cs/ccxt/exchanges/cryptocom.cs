@@ -2509,7 +2509,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "address", address },
         };
@@ -2565,7 +2565,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> currency = this.safeCurrency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetDepositAddress(this.extend(request, parameters));
         //
@@ -2669,7 +2669,7 @@ public partial class cryptocom : Exchange
         if ((code != null))
         {
             currency = this.safeCurrency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -2738,7 +2738,7 @@ public partial class cryptocom : Exchange
         if ((code != null))
         {
             currency = this.safeCurrency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {

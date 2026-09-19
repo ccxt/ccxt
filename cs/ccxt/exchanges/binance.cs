@@ -4553,11 +4553,11 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timestamp", this.milliseconds() },
         };
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -6008,7 +6008,7 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
@@ -6838,11 +6838,11 @@ public partial class binance : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"price", "until"});
-        if ((since != null) && !isEqual(until, null) && (limitVar == null))
+        if (!isEqual(since, null) && !isEqual(until, null) && isEqual(limitVar, null))
         {
             limitVar = maxLimit;
         }
-        limitVar = ((bool) ((limitVar == null))) ? defaultLimit : mathMin(limitVar, maxLimit);
+        limitVar = ((bool) (isEqual(limitVar, null))) ? defaultLimit : mathMin(limitVar, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitVar },
@@ -6862,7 +6862,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["symbol"] = marketId;
         }
         // const duration = this.parseTimeframe (timeframeVar);
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
             //
@@ -7303,7 +7303,7 @@ public partial class binance : Exchange
         };
         if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) != true))
         {
-            if ((since != null))
+            if (!isEqual(since, null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
                 // https://github.com/ccxt/ccxt/issues/6400
@@ -7318,7 +7318,7 @@ public partial class binance : Exchange
         }
         string? method = this.safeString(this.options, "fetchTradesMethod");
         method = this.safeString2(parameters, "fetchTradesMethod", "method", method);
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             bool isFutureOrSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true));
             bool isHistoricalEndpoint = ((method != null)) && (((string)method).IndexOf("GetHistoricalTrades", StringComparison.Ordinal) >= 0);
@@ -7623,7 +7623,7 @@ public partial class binance : Exchange
                 if ((quoteOrderQtyNew != null))
                 {
                     ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                } else if ((price != null))
+                } else if (!isEqual(price, null))
                 {
                     string? amountString = this.numberToString(amount);
                     string? priceString = this.numberToString(price);
@@ -7663,7 +7663,7 @@ public partial class binance : Exchange
         }
         if (priceIsRequired)
         {
-            if ((price == null))
+            if (isEqual(price, null))
             {
                 throw new InvalidOrder ((string)(((this.id + " editOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
@@ -7709,7 +7709,7 @@ public partial class binance : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
-        if (((price == null)) && !(((IDictionary<string, object>)parameters).ContainsKey("priceMatch")))
+        if ((isEqual(price, null)) && !(((IDictionary<string, object>)parameters).ContainsKey("priceMatch")))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
@@ -7729,7 +7729,7 @@ public partial class binance : Exchange
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "origClientOrderId"});
-        if ((price != null))
+        if (!isEqual(price, null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -9219,7 +9219,7 @@ public partial class binance : Exchange
                     if ((quoteOrderQtyNew != null))
                     {
                         notional = quoteOrderQtyNew;
-                    } else if ((price != null))
+                    } else if (!isEqual(price, null))
                     {
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
@@ -9259,7 +9259,7 @@ public partial class binance : Exchange
                     if ((quoteOrderQtyNew != null))
                     {
                         ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                    } else if ((price != null))
+                    } else if (!isEqual(price, null))
                     {
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
@@ -9342,7 +9342,7 @@ public partial class binance : Exchange
         }
         if (priceIsRequired && !isPriceMatch)
         {
-            if ((price == null))
+            if (isEqual(price, null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
@@ -9740,11 +9740,11 @@ public partial class binance : Exchange
         bool isInverseType = this.isInverse(type, subType);
         Int64? until = this.safeIntegerN(parameters, new List<object>() {"until", "till", "endTime"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional", "until", "till", "endTime"});
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             if (isEqual(stock, true))
             {
@@ -9766,7 +9766,7 @@ public partial class binance : Exchange
                 until = this.milliseconds();
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
-            if ((since == null))
+            if (isEqual(since, null))
             {
                 Int64 oneWeek = (((multiply(7, 24) * 60) * 60) * 1000);
                 ((IDictionary<string,object>)request)["startTime"] = subtract(until, oneWeek);
@@ -10123,11 +10123,11 @@ public partial class binance : Exchange
         object response = null;
         if ((type == "option"))
         {
-            if ((since != null))
+            if (!isEqual(since, null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if ((limit != null))
+            if (!isEqual(limit, null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -11098,7 +11098,7 @@ public partial class binance : Exchange
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         object endTime = this.safeInteger2(parameters, "until", "endTime");
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             Int64? startTime = since;
             ((IDictionary<string,object>)request)["startTime"] = startTime;
@@ -11122,7 +11122,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["endTime"] = endTime;
             parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         }
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             if (((type == "option")) || ((this.safeBool(market, "contract") == true)))
             {
@@ -11157,7 +11157,7 @@ public partial class binance : Exchange
                     endTime = this.milliseconds();
                     ((IDictionary<string,object>)request)["endTime"] = endTime;
                 }
-                if ((since == null))
+                if (isEqual(since, null))
                 {
                     Int64 oneWeek = (((multiply(7, 24) * 60) * 60) * 1000);
                     ((IDictionary<string,object>)request)["startTime"] = subtract(endTime, oneWeek);
@@ -11391,7 +11391,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
             ((IDictionary<string,object>)request)["endTime"] = this.sum(since, 7776000000);
@@ -11571,7 +11571,7 @@ public partial class binance : Exchange
                 currency = this.currency(((string)code));
             }
             ((IDictionary<string,object>)request)["transactionType"] = 0;
-            if ((since != null))
+            if (!isEqual(since, null))
             {
                 ((IDictionary<string,object>)request)["beginTime"] = since;
             }
@@ -11586,9 +11586,9 @@ public partial class binance : Exchange
             if ((code != null))
             {
                 currency = this.currency(((string)code));
-                ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
-            if ((since != null))
+            if (!isEqual(since, null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
@@ -11599,7 +11599,7 @@ public partial class binance : Exchange
                 }
                 ((IDictionary<string,object>)request)["endTime"] = endTime;
             }
-            if ((limit != null))
+            if (!isEqual(limit, null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -11670,7 +11670,7 @@ public partial class binance : Exchange
                 currency = this.currency(((string)code));
             }
             ((IDictionary<string,object>)request)["transactionType"] = 1;
-            if ((since != null))
+            if (!isEqual(since, null))
             {
                 ((IDictionary<string,object>)request)["beginTime"] = since;
             }
@@ -11681,15 +11681,15 @@ public partial class binance : Exchange
             if ((code != null))
             {
                 currency = this.currency(((string)code));
-                ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
-            if ((since != null))
+            if (!isEqual(since, null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
                 ((IDictionary<string,object>)request)["endTime"] = this.sum(since, 7776000000);
             }
-            if ((limit != null))
+            if (!isEqual(limit, null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -12063,7 +12063,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
         ((IDictionary<string,object>)request)["type"] = this.safeString(parameters, "type");
@@ -12231,11 +12231,11 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["type"] = type;
             limitKey = "size";
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)[(string)limitKey] = limit;
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -12276,7 +12276,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
+            { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
@@ -12284,7 +12284,7 @@ public partial class binance : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
         }
         // has support for the 'network' parameter
         Dictionary<string, object> response = await this.sapiGetCapitalDepositAddress(this.extend(request, parameters));
@@ -12626,7 +12626,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
+            { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },
         };
         if ((tagVar != null))
@@ -12639,9 +12639,9 @@ public partial class binance : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
         }
-        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(((string)getValue(currency, "code")), amount, networkCode);
+        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(((string)(currency.ContainsKey("code") ? currency["code"] : null)), amount, networkCode);
         Dictionary<string, object> response = await this.sapiPostCapitalWithdrawApply(this.extend(request, parameters));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
@@ -13010,7 +13010,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "type", type },
         };
@@ -13124,7 +13124,7 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         parameters = this.omit(parameters, "type");
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -13135,7 +13135,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -14626,11 +14626,11 @@ public partial class binance : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -15040,11 +15040,11 @@ public partial class binance : Exchange
             symbol = this.safeString(market, "symbol");
             ((IDictionary<string,object>)request)["underlying"] = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -15098,11 +15098,11 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             symbol = this.safeString(market, "symbol");
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -15248,7 +15248,7 @@ public partial class binance : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "recordId", id },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         List<object> response = await this.eapiPrivateGetBill(this.extend(request, parameters));
         //
@@ -15314,11 +15314,11 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchLedger", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -15340,7 +15340,7 @@ public partial class binance : Exchange
             {
                 throw new ExchangeError ((string)(this.id + " fetchLedger() could not resolve currency")) ;
             }
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.eapiPrivateGetBill(this.extend(request, parameters));
         } else if (this.isLinear(type, subType))
         {
@@ -16044,7 +16044,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         List<object> response = await this.sapiGetMarginInterestRateHistory(this.extend(request, parameters));
         //
@@ -16154,7 +16154,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        if ((limitVar == null))
+        if (isEqual(limitVar, null))
         {
             limitVar = 93;
         } else if (isGreaterThan(limitVar, 93))
@@ -16163,10 +16163,10 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "limit", limitVar },
         };
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
             object endTime = subtract(this.sum(since, multiply(limitVar, 86400000)), 1); // required when startTime is further than 93 days in the past
@@ -16268,7 +16268,7 @@ public partial class binance : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         // ensure you have enough token in your funding account before calling this code
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "token", getValue(currency, "id") },
+            { "token", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
         };
         Dictionary<string, object> response = await this.sapiPostGiftcardCreateCode(this.extend(request, parameters));
@@ -16373,13 +16373,13 @@ public partial class binance : Exchange
         if ((code != null))
         {
             Dictionary<string, object> currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -16482,7 +16482,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
         Dictionary<string, object> response = null;
@@ -16533,7 +16533,7 @@ public partial class binance : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "isIsolated", "TRUE" },
@@ -16570,7 +16570,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
         Dictionary<string, object> response = null;
@@ -16617,7 +16617,7 @@ public partial class binance : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "isIsolated", "TRUE" },
@@ -16705,7 +16705,7 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if ((limitVar != null))
+        if (!isEqual(limitVar, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -16715,7 +16715,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["contractType"] = this.safeString(parameters, "contractType", "CURRENT_QUARTER");
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -16725,9 +16725,9 @@ public partial class binance : Exchange
         if ((!isEqual(endTime, null)) && ((endTime != 0)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
-        } else if (((since != null)) && (!isEqual(since, 0)))
+        } else if ((!isEqual(since, null)) && (!isEqual(since, 0)))
         {
-            if ((limitVar == null))
+            if (isEqual(limitVar, null))
             {
                 limitVar = 30; // Exchange default
             }
@@ -16936,11 +16936,11 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)[(string)symbolKey] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             if ((type == "spot"))
             {
@@ -17606,11 +17606,11 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = ((bool) (isEqual(type, "add"))) ? 1 : 2;
         }
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -17733,7 +17733,7 @@ public partial class binance : Exchange
     public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((amount == null))
+        if (isEqual(amount, null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchConvertQuote() requires an amount argument")) ;
         }
@@ -17789,7 +17789,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if ((isEqual(fromCode, "BUSD")) || (isEqual(toCode, "BUSD")))
         {
-            if ((amount == null))
+            if (isEqual(amount, null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " createConvertTrade() requires an amount argument")) ;
             }
@@ -17838,7 +17838,7 @@ public partial class binance : Exchange
             if ((code != null))
             {
                 Dictionary<string, object> currency = this.currency(((string)code));
-                ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
             }
             ((IDictionary<string,object>)request)["tranId"] = id;
             ((IDictionary<string,object>)request)["startTime"] = (now - msInDay);
@@ -17896,7 +17896,7 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object msInThirtyDays = 2592000000;
         Int64 now = this.milliseconds();
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
@@ -17919,8 +17919,8 @@ public partial class binance : Exchange
         if (isEqual(code, "BUSD"))
         {
             Dictionary<string, object> currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
-            if ((limit != null))
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            if (!isEqual(limit, null))
             {
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
@@ -17934,7 +17934,7 @@ public partial class binance : Exchange
             {
                 throw new BadRequest ((string)(this.id + " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
             }
-            if ((limit != null))
+            if (!isEqual(limit, null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -18125,11 +18125,11 @@ public partial class binance : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if ((since != null))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

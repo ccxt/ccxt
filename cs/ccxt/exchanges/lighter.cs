@@ -2880,10 +2880,10 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (((getValue(currency, "code") as string) == "USDC"))
+        if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "USDC"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(((string)code), amountVar)));
-        } else if (((getValue(currency, "code") as string) == "ETH"))
+        } else if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "ETH"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(((string)code), amountVar)));
         } else
@@ -2897,7 +2897,7 @@ public partial class lighter : Exchange
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "to_account_index", toAccountIndex },
-            { "asset_index", this.parseToInt(getValue(currency, "id")) },
+            { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
             { "from_route_type", fromRouteType },
             { "to_route_type", toRouteType },
             { "amount", amountVar },
@@ -3092,7 +3092,7 @@ public partial class lighter : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetDepositHistory(this.extend(request, parameters));
         //
@@ -3167,7 +3167,7 @@ public partial class lighter : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetWithdrawHistory(this.extend(request, parameters));
         //
@@ -3299,10 +3299,10 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (((getValue(currency, "code") as string) == "USDC"))
+        if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "USDC"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(((string)code), amountVar)));
-        } else if (((getValue(currency, "code") as string) == "ETH"))
+        } else if ((((currency.ContainsKey("code") ? currency["code"] : null) as string) == "ETH"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(((string)code), amountVar)));
         } else
@@ -3313,7 +3313,7 @@ public partial class lighter : Exchange
         parameters = this.omit(parameters, "routeType");
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "asset_index", this.parseToInt(getValue(currency, "id")) },
+            { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
             { "route_type", routeType },
             { "amount", amountVar },
             { "nonce", nonce },

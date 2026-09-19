@@ -1488,7 +1488,7 @@ public partial class kraken : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -3460,7 +3460,7 @@ public partial class kraken : Exchange
         if ((code != null))
         {
             Dictionary<string, object> currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -3552,7 +3552,7 @@ public partial class kraken : Exchange
         if ((code != null))
         {
             Dictionary<string, object> currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -3667,7 +3667,7 @@ public partial class kraken : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostDepositMethods(this.extend(request, parameters));
         //
@@ -3755,7 +3755,7 @@ public partial class kraken : Exchange
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "method", depositMethod },
         };
         Dictionary<string, object> response = await this.privatePostDepositAddresses(this.extend(request, parameters));
@@ -3822,7 +3822,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
             Dictionary<string, object> currency = this.currency(((string)code));
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "asset", getValue(currency, "id") },
+                { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
                 { "amount", amount },
             };
             if ((address != null) && (address != ""))
@@ -4019,7 +4019,7 @@ public partial class kraken : Exchange
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "from", fromAccountParsed },
             { "to", toAccountParsed },
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((fromAccountParsed != "Spot Wallet"))
         {

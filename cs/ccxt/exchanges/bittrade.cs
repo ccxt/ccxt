@@ -2227,7 +2227,7 @@ public partial class bittrade : Exchange
         };
         if ((currency != null))
         {
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limitVar != null))
         {
@@ -2272,7 +2272,7 @@ public partial class bittrade : Exchange
         };
         if ((currency != null))
         {
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limitVar != null))
         {
@@ -2417,7 +2417,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", address },
             { "amount", amount },
-            { "currency", ((string)getValue(currency, "id")).ToLower() },
+            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToLower() },
         };
         if ((tagVar != null))
         {
@@ -2431,10 +2431,10 @@ public partial class bittrade : Exchange
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (isEqual(network, "erc20"))
             {
-                ((IDictionary<string,object>)request)["chain"] = add(getValue(currency, "id"), network);
+                ((IDictionary<string,object>)request)["chain"] = add((currency.ContainsKey("id") ? currency["id"] : null), network);
             } else
             {
-                ((IDictionary<string,object>)request)["chain"] = add(network, getValue(currency, "id"));
+                ((IDictionary<string,object>)request)["chain"] = add(network, (currency.ContainsKey("id") ? currency["id"] : null));
             }
             parameters = this.omit(parameters, "network");
         }

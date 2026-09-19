@@ -215,7 +215,7 @@ public partial class paymium : Exchange
         {
             string? code = ((string)currencies[i]);
             Dictionary<string, object> currency = this.currency(((string)code));
-            string? currencyId = ((string)getValue(currency, "id"));
+            string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
             string free = ("balance_" + currencyId);
             if (inOp(response, free))
             {
@@ -611,7 +611,7 @@ public partial class paymium : Exchange
             throw new ExchangeError ((string)(this.id + " transfer() only allows BTC or EUR")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "email", toAccount },
         };

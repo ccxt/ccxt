@@ -1549,7 +1549,7 @@ public partial class btcmarkets : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "assetName", getValue(currency, "id") },
+            { "assetName", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
         if ((code != "AUD"))

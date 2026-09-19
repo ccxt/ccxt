@@ -1821,7 +1821,7 @@ public partial class bitmex : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         List<object> response = await this.privateGetUserWalletHistory(this.extend(request, parameters));
         //
@@ -1877,7 +1877,7 @@ public partial class bitmex : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limit != null))
         {
@@ -3235,10 +3235,10 @@ public partial class bitmex : Exchange
         networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", qty },
             { "address", address },
-            { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
+            { "network", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
         };
         if ((this.twofa != null))
         {
@@ -3538,9 +3538,9 @@ public partial class bitmex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         parameters = this.omit(parameters, "network");
-        object parsedNetwork = this.networkCodeToId(networkCode, getValue(currency, "code"));
+        object parsedNetwork = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "network", parsedNetwork },
         };
         string response = await this.privateGetUserDepositAddress(this.extend(request, parameters));

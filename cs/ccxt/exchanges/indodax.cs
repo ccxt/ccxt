@@ -1211,7 +1211,7 @@ public partial class indodax : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostWithdrawFee(this.extend(request, parameters));
         //
@@ -1244,7 +1244,7 @@ public partial class indodax : Exchange
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostWithdrawFee(this.extend(request, parameters));
         //
@@ -1371,8 +1371,8 @@ public partial class indodax : Exchange
         } else
         {
             currency = this.currency(((string)code));
-            List<object> withdraws = this.safeList(withdraw, getValue(currency, "id"), new List<object>() {});
-            List<object> deposits = this.safeList(deposit, getValue(currency, "id"), new List<object>() {});
+            List<object> withdraws = this.safeList(withdraw, (currency.ContainsKey("id") ? currency["id"] : null), new List<object>() {});
+            List<object> deposits = this.safeList(deposit, (currency.ContainsKey("id") ? currency["id"] : null), new List<object>() {});
             transactions = this.arrayConcat(withdraws, deposits);
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
@@ -1411,7 +1411,7 @@ public partial class indodax : Exchange
         // Alternatively:
         // let requestId = this.uuid ();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "withdraw_amount", amount },
             { "withdraw_address", address },
             { "request_id", ((object)requestId).ToString() },

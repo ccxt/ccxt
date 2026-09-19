@@ -2354,7 +2354,7 @@ public partial class bitteam : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "numericId");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("numericId") ? currency["numericId"] : null);
         }
         if ((limit != null))
         {

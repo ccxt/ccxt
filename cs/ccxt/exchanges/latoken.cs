@@ -1968,7 +1968,7 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "recipient", toAccount },
             { "value", this.currencyToPrecision(((string)code), amount) },
         };

@@ -2512,8 +2512,8 @@ public partial class phemex : Exchange
                     coin = settle;
                 }
                 Dictionary<string, object> currency = this.currency(((string)coin));
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
-                if (((getValue(currency, "id") as string) == "USDT"))
+                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+                if ((((currency.ContainsKey("id") ? currency["id"] : null) as string) == "USDT"))
                 {
                     response = await this.privateGetGAccountsAccountPositions(this.extend(request, parameters));
                 } else
@@ -4080,7 +4080,7 @@ public partial class phemex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks");
         string? defaultNetwork = this.safeStringUpper(defaultNetworks, code);
@@ -4411,7 +4411,7 @@ public partial class phemex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         object response = null;
         if (isUSDTSettled)
@@ -4862,7 +4862,7 @@ public partial class phemex : Exchange
         if (!isStableSettled)
         {
             Dictionary<string, object> currency = this.safeCurrency(currencyCode);
-            string? scale = this.safeString(getValue(currency, "info"), "valueScale");
+            string? scale = this.safeString((currency.ContainsKey("info") ? currency["info"] : null), "valueScale");
             string? tickPrecision = this.parsePrecision(scale);
             value = Precise.stringMul(value, tickPrecision);
         }
@@ -5460,7 +5460,7 @@ public partial class phemex : Exchange
         if (!isEqual(direction, null))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "currency", getValue(currency, "id") },
+                { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
                 { "moveOp", direction },
                 { "amountEv", scaledAmmount },
             };
@@ -5487,7 +5487,7 @@ public partial class phemex : Exchange
                 { "fromUserId", fromId },
                 { "toUserId", toId },
                 { "amountEv", scaledAmmount },
-                { "currency", getValue(currency, "id") },
+                { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
                 { "bizType", this.safeString(parameters, "bizType", "SPOT") },
             };
             Dictionary<string, object> response = await this.privatePostAssetsUniversalTransfer(this.extend(request, parameters));
@@ -5548,7 +5548,7 @@ public partial class phemex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((since != null))
         {
@@ -5797,14 +5797,14 @@ public partial class phemex : Exchange
         {
             if (!(this.inArray(code, stableCoins)))
             {
-                networkId = getValue(currency, "id");
+                networkId = (currency.ContainsKey("id") ? currency["id"] : null);
             } else
             {
                 throw new ArgumentsRequired ((string)(this.id + " withdraw () requires an extra argument params[\"network\"]")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },
             { "amount", amount },
             { "chainName", ((string)networkId).ToUpper() },
@@ -6228,7 +6228,7 @@ public partial class phemex : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         object response = null;
         if (isUSDTSettled)

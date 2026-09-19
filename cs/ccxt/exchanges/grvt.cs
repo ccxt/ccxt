@@ -1748,7 +1748,7 @@ public partial class grvt : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = new List<object>() {getValue(currency, "code")};
+            ((IDictionary<string,object>)request)["currency"] = new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)};
         }
         if ((limit != null))
         {
@@ -1815,7 +1815,7 @@ public partial class grvt : Exchange
         } else
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = new List<object>() {getValue(currency, "code")};
+            ((IDictionary<string,object>)request)["currency"] = new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)};
         }
         if ((limit != null))
         {
@@ -2168,7 +2168,7 @@ public partial class grvt : Exchange
             { "from_sub_account_id", this.safeString(parameters, "from_sub_account_id", fromAccountVar) },
             { "to_account_id", this.safeString(parameters, "to_account_id", defaultFromAccountId) },
             { "to_sub_account_id", this.safeString(parameters, "to_sub_account_id", toAccountVar) },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "num_tokens", this.currencyToPrecision(((string)code), amount) },
             { "signature", this.defaultSignature() },
             { "transfer_type", "STANDARD" },
@@ -2338,7 +2338,7 @@ public partial class grvt : Exchange
         object request = new Dictionary<string, object>() {
             { "to_eth_address", address },
             { "from_account_id", defaultFromAccountId },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "num_tokens", this.currencyToPrecision(((string)code), amount) },
             { "signature", this.defaultSignature() },
         };

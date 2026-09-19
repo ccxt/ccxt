@@ -406,7 +406,7 @@ public partial class btcbox : Exchange
         {
             string? code = ((string)codes[i]);
             Dictionary<string, object> currency = this.currency(((string)code));
-            object currencyId = getValue(currency, "id");
+            object currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
             object free = add(currencyId, "_balance");
             if (inOp(response, free))
             {

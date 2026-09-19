@@ -1838,7 +1838,7 @@ public partial class delta : Exchange
             object balance = balances[i];
             string? currencyId = this.safeString(balance, "asset_id");
             IDictionary<string, object> currency = this.safeDict(currenciesByNumericId, currencyId);
-            object code = ((bool) ((currency == null))) ? currencyId : getValue(currency, "code");
+            object code = ((bool) ((currency == null))) ? currencyId : (currency.ContainsKey("code") ? currency["code"] : null);
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_balance");
@@ -2652,7 +2652,7 @@ public partial class delta : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["asset_id"] = getValue(currency, "numericId");
+            ((IDictionary<string,object>)request)["asset_id"] = (currency.ContainsKey("numericId") ? currency["numericId"] : null);
         }
         if ((limit != null))
         {
@@ -2773,7 +2773,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_symbol", getValue(currency, "id") },
+            { "asset_symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? networkCode = this.safeStringUpper(parameters, "network");
         if ((networkCode != null))

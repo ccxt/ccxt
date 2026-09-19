@@ -3368,7 +3368,7 @@ public partial class bitstamp : Exchange
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["iban"] = address;
-            ((IDictionary<string,object>)request)["account_currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["account_currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privatePostWithdrawalOpen(this.extend(request, parameters));
         }
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
@@ -3397,7 +3397,7 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", this.parseToNumeric(this.currencyToPrecision(((string)code), amount)) },
-            { "currency", ((string)getValue(currency, "id")).ToUpper() },
+            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
         };
         Dictionary<string, object> response = null;
         if ((fromAccount == "main"))

@@ -1002,7 +1002,7 @@ public partial class blockchaincom : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostDepositsCurrency(this.extend(request, parameters));
         string? rawAddress = this.safeString(response, "address");
@@ -1015,7 +1015,7 @@ public partial class blockchaincom : Exchange
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
         }
-        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", getValue(currency, "code") },             { "network", null },             { "address", address },             { "tag", tag },         });
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", (currency.ContainsKey("code") ? currency["code"] : null) },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
     public virtual string? parseTransactionState(object state)
@@ -1130,7 +1130,7 @@ public partial class blockchaincom : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "beneficiary", address },
             { "sendMax", false },
         };

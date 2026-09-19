@@ -1101,7 +1101,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? network = this.safeStringUpper(parameters, "network");
         if (((network != null)) && ((code == "USDT")))
@@ -1140,7 +1140,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? network = this.safeStringUpper(parameters, "network");
         if (((network != null)) && ((code == "USDT")))
@@ -1606,7 +1606,7 @@ public partial class hitbtc : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currencies"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currencies"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -3043,7 +3043,7 @@ public partial class hitbtc : Exchange
             throw new BadRequest ((string)(this.id + " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", requestAmount },
             { "source", fromId },
             { "destination", toId },
@@ -3141,7 +3141,7 @@ public partial class hitbtc : Exchange
         this.checkAddress(address);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "address", address },
         };

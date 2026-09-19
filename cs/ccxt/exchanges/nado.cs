@@ -1490,7 +1490,7 @@ public partial class nado : Exchange
         };
         if ((currency != null))
         {
-            ((IDictionary<string,object>)eventsRequest)["product_ids"] = new List<object> {this.parseToInt(getValue(currency, "id"))};
+            ((IDictionary<string,object>)eventsRequest)["product_ids"] = new List<object> {this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null))};
         }
         IList<object> eventsRequestparametersVariable = (IList<object>)this.handleUntilOption("max_time", eventsRequest, parameters, 0.001);
         eventsRequest = (Dictionary<string, object>)((IList<object>)eventsRequestparametersVariable)[0];

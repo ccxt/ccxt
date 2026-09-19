@@ -2025,7 +2025,7 @@ public partial class alpaca : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.traderPrivateGetV2Wallets(this.extend(request, parameters));
         //
@@ -2092,7 +2092,7 @@ public partial class alpaca : Exchange
             addressVar = add(add(addressVar, ":"), tagVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
+            { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", addressVar },
             { "amount", this.numberToString(amount) },
         };

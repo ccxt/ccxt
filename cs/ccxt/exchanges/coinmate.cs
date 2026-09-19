@@ -787,7 +787,7 @@ public partial class coinmate : Exchange
         if ((code != null))
         {
             Dictionary<string, object> currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.privatePostTransferHistory(this.extend(request, parameters));
         List<object> items = this.safeList(response, "data", new List<object>() {});

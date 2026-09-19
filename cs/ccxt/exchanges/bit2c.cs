@@ -350,7 +350,7 @@ public partial class bit2c : Exchange
             string? code = ((string)codes[i]);
             Dictionary<string, object> account = this.account();
             Dictionary<string, object> currency = this.currency(((string)code));
-            string uppercase = ((string)getValue(currency, "id")).ToUpper();
+            string uppercase = ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper();
             if ((response != null && ((IDictionary<string, object>)response).ContainsKey(uppercase)))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, ("AVAILABLE_" + uppercase));
@@ -1148,7 +1148,7 @@ public partial class bit2c : Exchange
             throw new NotSupported ((string)(this.id + " fetchDepositAddress() does not support fiat currencies")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "Coin", getValue(currency, "id") },
+            { "Coin", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters));
         //

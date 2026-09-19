@@ -1471,7 +1471,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency_symbol", getValue(currency, "id") },
+            { "currency_symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         IList<object> networkCodeparamsOmitedVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodeparamsOmitedVariable)[0];
@@ -1785,7 +1785,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency_symbol", getValue(currency, "id") },
+            { "currency_symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.numberToString(amount) },
             { "destination_address", address },
         };
@@ -1848,7 +1848,7 @@ public partial class foxbit : Exchange
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(since);
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
+        ((IDictionary<string,object>)request)["symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
         Dictionary<string, object> response = await this.v3PrivateGetAccountsSymbolTransactions(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));

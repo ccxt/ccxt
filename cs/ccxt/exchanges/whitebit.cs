@@ -3256,7 +3256,7 @@ public partial class whitebit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -3319,7 +3319,7 @@ public partial class whitebit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((since != null))
         {
@@ -3385,7 +3385,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", getValue(currency, "id") },
+            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         object response = null;
         if (this.isFiat(code))
@@ -3466,7 +3466,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", getValue(currency, "id") },
+            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         Dictionary<string, object> response = await this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, parameters));
         //
@@ -3616,7 +3616,7 @@ public partial class whitebit : Exchange
         string? toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         string? amountString = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", getValue(currency, "id") },
+            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amountString },
             { "from", fromAccountId },
             { "to", toAccountId },
@@ -3667,7 +3667,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code)); // check if it has canDeposit
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", getValue(currency, "id") },
+            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "address", address },
         };
@@ -3816,7 +3816,7 @@ public partial class whitebit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         Dictionary<string, object> response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
         //
@@ -3888,7 +3888,7 @@ public partial class whitebit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limit != null))
         {
@@ -4309,7 +4309,7 @@ public partial class whitebit : Exchange
         if ((code != null))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         if ((limit != null))
         {
