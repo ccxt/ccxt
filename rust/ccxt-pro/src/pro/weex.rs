@@ -489,7 +489,7 @@ impl WeexCore {
 
     pub fn authenticate(&mut self, mut url: Value) {
         self.check_required_credentials(&[]);
-        if is_true(&(self.clients.clone() != Value::Null)) && (in_op(&self.clients, &url)) {
+        if (self.clients.clone() != Value::Null) && (in_op(&self.clients, &url)) {
             return;
         }
         let mut timestamp: Value = self.nonce();
@@ -759,7 +759,7 @@ impl WeexCore {
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "C", &[]);
         let mut close: Value = self.safe_string_k(ticker.clone(), "c", &[]);
-        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -1010,7 +1010,7 @@ impl WeexCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "T", &[]);
-        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
@@ -1663,7 +1663,7 @@ impl WeexCore {
     pub fn parse_ws_bid_ask(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -2295,7 +2295,7 @@ impl WeexCore {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
-        if is_true(&(fetchBalanceSnapshot.as_bool() == Some(true))) && is_true(&(awaitBalanceSnapshot.as_bool() == Some(true))) {
+        if (fetchBalanceSnapshot.as_bool() == Some(true)) && (awaitBalanceSnapshot.as_bool() == Some(true)) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".to_string())))])).await;
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".to_string()))), Value::Str("balance".to_string())));
@@ -2429,7 +2429,7 @@ impl WeexCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(entry.clone(), Value::Str("available".to_string()), Value::Str("amount".to_string()), &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(entry.clone(), "frozen", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(entry.clone(), Value::Str("equity".to_string()), Value::Str("legacyAmount".to_string()), &[])); }
-            if is_true(&(accountType != Value::Null)) && is_true(&(code != Value::Null)) {
+            if (accountType != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }
@@ -2477,7 +2477,7 @@ impl WeexCore {
         self.set_positions_cache(client.clone(), &[params.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
-        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(self.positions.clone() == Value::Null)) {
+        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".to_string())])).await;
             return self.filter_by_symbols_since_limit(snapshot.clone(), &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
@@ -2764,11 +2764,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.handle_ping(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("ticker")) {
             self.handle_ticker(client.clone(), message.clone());
-        }  else if is_true(&(event.as_deref() == Some("trade"))) || is_true(&(event.as_deref() == Some("tradeSnapshot"))) {
+        }  else if (event.as_deref() == Some("trade")) || (event.as_deref() == Some("tradeSnapshot")) {
             self.handle_trade(client.clone(), message.clone());
-        }  else if is_true(&(event.as_deref() == Some("kline"))) || is_true(&(event.as_deref() == Some("klineSnapshot"))) {
+        }  else if (event.as_deref() == Some("kline")) || (event.as_deref() == Some("klineSnapshot")) {
             self.handle_ohlcv(client.clone(), message.clone());
-        }  else if is_true(&(event.as_deref() == Some("depth"))) || is_true(&(event.as_deref() == Some("depthSnapshot"))) {
+        }  else if (event.as_deref() == Some("depth")) || (event.as_deref() == Some("depthSnapshot")) {
             self.handle_order_book(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("bookTicker")) {
             self.handle_bid_ask(client.clone(), message.clone());

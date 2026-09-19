@@ -1783,7 +1783,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_pong(client.clone(), message.clone());
         }  else {
             let mut m: Option<String> = self.safe_string_k(message.clone(), "m", &[]).as_str().map(str::to_owned);
-            if is_true(&(m.is_some())) && is_true(&(m.as_deref() != Some("Success"))) {
+            if (m.is_some()) && (m.as_deref() != Some("Success")) {
                 self.handle_error_message(client.clone(), message.clone());
             }
             let mut action: Option<String> = self.safe_string2(message.clone(), Value::Str("a".to_string()), Value::Str("action".to_string()), &[]).as_str().map(str::to_owned);

@@ -2134,7 +2134,7 @@ impl BitmexCore {
                 let mut size: Value = self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[]), &[]);
                 let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
                 let mut side: Value = self.safe_string_k(get_value(&data, &i), "side", &[]);
-                side = (if is_true(&(side.as_str() == Some("Buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+                side = (if (side.as_str() == Some("Buy")) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
                 bookside.store_array(Value::from(vec![price.clone(), size.clone(), id.clone()]));
@@ -2166,10 +2166,10 @@ impl BitmexCore {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 let mut price: Value = self.safe_number_k(get_value(&data, &i), "price", &[]);
-                let mut size: Value = (if is_true(&(action.as_deref() == Some("delete"))) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[Value::Str("0".to_string())]), &[]) });
+                let mut size: Value = (if (action.as_deref() == Some("delete")) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[Value::Str("0".to_string())]), &[]) });
                 let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
                 let mut side: Value = self.safe_string_k(get_value(&data, &i), "side", &[]);
-                side = (if is_true(&(side.as_str() == Some("Buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+                side = (if (side.as_str() == Some("Buy")) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
                 bookside.store_array(Value::from(vec![price.clone(), size.clone(), id.clone()]));

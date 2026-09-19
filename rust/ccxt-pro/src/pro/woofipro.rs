@@ -761,7 +761,7 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if is_true(&(timeframe.as_str() != Some("1m"))) && is_true(&(timeframe.as_str() != Some("5m"))) && is_true(&(timeframe.as_str() != Some("15m"))) && is_true(&(timeframe.as_str() != Some("30m"))) && is_true(&(timeframe.as_str() != Some("1h"))) && is_true(&(timeframe.as_str() != Some("1d"))) && is_true(&(timeframe.as_str() != Some("1w"))) && is_true(&(timeframe.as_str() != Some("1M"))) {
+        if (timeframe.as_str() != Some("1m")) && (timeframe.as_str() != Some("5m")) && (timeframe.as_str() != Some("15m")) && (timeframe.as_str() != Some("30m")) && (timeframe.as_str() != Some("1h")) && (timeframe.as_str() != Some("1d")) && (timeframe.as_str() != Some("1w")) && (timeframe.as_str() != Some("1M")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
@@ -822,7 +822,7 @@ impl WoofiproCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            if is_true(&(symbol != Value::Null)) && is_true(&(timeframe != Value::Null)) {
+            if (symbol != Value::Null) && (timeframe != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
         }
@@ -1119,7 +1119,7 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
+        let mut topic: Value = (if (trigger.as_bool() == Some(true)) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
@@ -1168,7 +1168,7 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
+        let mut topic: Value = (if (trigger.as_bool() == Some(true)) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
         params = self.omit(params.clone(), Value::Str("stop".to_string()), &[]);
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         if (symbol != Value::Null) {
@@ -1273,7 +1273,7 @@ impl WoofiproCore {
         let mut priceString: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut price: Value = self.safe_number_k(order.clone(), "price", &[]);
         let mut avgPrice: Value = self.safe_number_k(order.clone(), "avgPrice", &[]);
-        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".to_string()))) && is_true(&(avgPrice != Value::Null)) {
+        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".to_string()))) && (avgPrice != Value::Null) {
             price = avgPrice.clone();
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
@@ -1351,7 +1351,7 @@ impl WoofiproCore {
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut data: Value = self.safe_value_k(message, "data", &[]);
-        if is_true(&(matches!(&data, Value::Arr(_)))) {
+        if (matches!(&data, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_675: bool = true;
@@ -1504,7 +1504,7 @@ impl WoofiproCore {
         self.set_positions_cache(client.clone(), &[symbols.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
-        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(self.positions.clone() == Value::Null)) {
+        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".to_string())])).await;
             return self.filter_by_symbols_since_limit(snapshot.clone(), &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
@@ -1783,7 +1783,7 @@ impl WoofiproCore {
             let mut value: Value = get_value(&balances, &key);
             let mut code: Value = self.safe_currency_code(key.clone(), &[]);
             let mut account: Value = self.account();
-            if is_true(&(code != Value::Null)) && (in_op(&self.balance, &code)) {
+            if (code != Value::Null) && (in_op(&self.balance, &code)) {
                 account = get_value(&self.balance, &code);
             }
             let mut total: Value = self.safe_string_k(value.clone(), "holding", &[]);

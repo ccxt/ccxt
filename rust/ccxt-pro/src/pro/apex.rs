@@ -821,7 +821,7 @@ impl ApexCore {
         })]);
         let mut symbol: Value = Value::Null;
         let mut parsed: Value = self.parse_ticker(data.clone(), &[]);
-        if is_true(&(updateType.as_deref() == Some("snapshot"))) {
+        if (updateType.as_deref() == Some("snapshot")) {
             parsed = self.parse_ticker(data.clone(), &[]);
             symbol = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         }  else if (updateType.as_deref() == Some("delta")) {
@@ -1449,7 +1449,7 @@ impl ApexCore {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
-            if is_true(&(success != Value::Null)) && is_true(&(success.as_bool() != Some(true))) {
+            if (success != Value::Null) && (success.as_bool() != Some(true)) {
                 let mut ret_msg: Value = self.safe_string_k(message.clone(), "ret_msg", &[]);
                 let mut request: Value = self.safe_dict_k(message.clone(), "request", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1631,7 +1631,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
         let mut code: Option<i64> = self.safe_integer_k(message.clone(), "retCode", &[]).as_i64();
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        if is_true(&(success.as_bool() == Some(true))) || is_true(&(code == Some(0))) {
+        if (success.as_bool() == Some(true)) || (code == Some(0)) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

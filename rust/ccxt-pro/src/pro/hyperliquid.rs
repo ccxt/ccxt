@@ -632,7 +632,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("l2Book".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
     m
 }));
             m
@@ -674,7 +674,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("l2Book".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
     m
 }));
             m
@@ -769,7 +769,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("activeAssetCtx".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
     m
 }));
             m
@@ -808,7 +808,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("activeAssetCtx".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
     m
 }));
             m
@@ -1230,7 +1230,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("trades".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
     m
 }));
             m
@@ -1273,7 +1273,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("trades".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
     m
 }));
             m
@@ -1381,7 +1381,7 @@ impl HyperliquidCore {
         let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         if (side != Value::Null) {
-            side = (if is_true(&(side.as_str() == Some("A"))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if (side.as_str() == Some("A")) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         let mut fee: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         return self.safe_trade(Value::Map({
@@ -1442,7 +1442,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("candle".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
         m.insert("interval".to_string(), timeframe.clone());
     m
 }));
@@ -1487,7 +1487,7 @@ impl HyperliquidCore {
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("candle".to_string()));
-        m.insert("coin".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
+        m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("baseName")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
         m.insert("interval".to_string(), timeframe.clone());
     m
 }));
@@ -1590,7 +1590,7 @@ impl HyperliquidCore {
         isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
-        let mut isSpot: bool = (is_true(&(type_var.as_str() == Some("spot"))) || is_true(&(isUnifiedEnabled.as_bool() == Some(true)))) && is_true(&(dex == Value::Null));
+        let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex == Value::Null);
         let mut topic: Value = (if (isSpot) { Value::Str("spotState".to_string()) } else { Value::Str("clearinghouseState".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".to_string())));
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
@@ -1649,7 +1649,7 @@ impl HyperliquidCore {
         isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Option<String> = self.safe_string_k(params.clone(), "dex", &[]).as_str().map(str::to_owned);
-        let mut isSpot: bool = (is_true(&(type_var.as_str() == Some("spot"))) || is_true(&(isUnifiedEnabled.as_bool() == Some(true)))) && is_true(&(dex.is_none()));
+        let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
         let mut topic: Value = (if (isSpot) { Value::Str("spotState".to_string()) } else { Value::Str("clearinghouseState".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe".to_string()), Value::Str(":".to_string()))), topic));
         let mut request: Value = Value::Map({
@@ -1824,7 +1824,7 @@ impl HyperliquidCore {
     m
 }));
             }
-            if is_true(&(accountType != Value::Null)) && is_true(&(code != Value::Null)) {
+            if (accountType != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }  else {
@@ -1863,7 +1863,7 @@ impl HyperliquidCore {
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut topic: Value = Value::Str("clearinghouseState".to_string());
         let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::positions".to_string())));
-        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), join(&symbols, &Value::Str(",".to_string()))))));
         }
@@ -1972,7 +1972,7 @@ impl HyperliquidCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchPositions() does not support a symbol parameter, you must unwatch all orders".to_string()))));
         }
         let mut messageHash: Value = Value::Str("unsubscribe:clearinghouseState".to_string());
@@ -2454,7 +2454,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.handle_positions_unsubscription(client.clone(), subscription.clone());
             }  else if (type_var.as_deref() == Some("spotState")) {
                 self.handle_spot_balance_unsubscription(client.clone(), subscription.clone());
-            }  else if is_true(&(type_var.as_deref() == Some("activeAssetCtx"))) || is_true(&(type_var.as_deref() == Some("activeSpotAssetCtx"))) {
+            }  else if (type_var.as_deref() == Some("activeAssetCtx")) || (type_var.as_deref() == Some("activeSpotAssetCtx")) {
                 self.handle_ticker_unsubscription(client.clone(), subscription.clone());
             }  else if (type_var.as_deref() == Some("allMids")) {
                 self.handle_tickers_unsubscription(client.clone(), subscription.clone());

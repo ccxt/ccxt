@@ -1112,7 +1112,7 @@ impl BitbnsCore {
         //         "code":200
         //     }
         //
-        let mut parsed: Value = (if is_true(&(response == Value::Null)) { Value::Map({
+        let mut parsed: Value = (if (response == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { response.clone() });
@@ -1155,13 +1155,13 @@ impl BitbnsCore {
             m
         });
         let mut response: Value = Value::Null;
-        let mut tail: Value = (if is_true(&(isTrigger.as_bool() == Some(true))) { Value::Str("StopLossOrder".to_string()) } else { Value::Str("Order".to_string()) });
-        let mut quoteSide: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT"))) { Value::Str("usdtcancel".to_string()) } else { Value::Str("cancel".to_string()) });
+        let mut tail: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("StopLossOrder".to_string()) } else { Value::Str("Order".to_string()) });
+        let mut quoteSide: Value = (if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) { Value::Str("usdtcancel".to_string()) } else { Value::Str("cancel".to_string()) });
         quoteSide = Value::Str(format!("{}{}", quoteSide, tail));
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("side".to_string(), quoteSide.clone()); }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         response = self.v2_post_cancel(&[__ws_arg_3]).await;
-        let mut parsed: Value = (if is_true(&(response == Value::Null)) { Value::Map({
+        let mut parsed: Value = (if (response == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { response.clone() });
@@ -1270,12 +1270,12 @@ impl BitbnsCore {
         let mut market: Value = self.market(symbol.clone());
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
-        let mut quoteSide: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT"))) { Value::Str("usdtListOpen".to_string()) } else { Value::Str("listOpen".to_string()) });
+        let mut quoteSide: Value = (if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) { Value::Str("usdtListOpen".to_string()) } else { Value::Str("listOpen".to_string()) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("uppercaseId")).cloned().unwrap_or(Value::Null));
                 m.insert("page".to_string(), Value::Int(0));
-                m.insert("side".to_string(), (if is_true(&(isTrigger.as_bool() == Some(true))) { (Value::Str(format!("{}{}", quoteSide, Value::Str("StopOrders".to_string())))) } else { (Value::Str(format!("{}{}", quoteSide, Value::Str("Orders".to_string())))) }));
+                m.insert("side".to_string(), (if (isTrigger.as_bool() == Some(true)) { (Value::Str(format!("{}{}", quoteSide, Value::Str("StopOrders".to_string())))) } else { (Value::Str(format!("{}{}", quoteSide, Value::Str("Orders".to_string())))) }));
             m
         });
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
@@ -1831,7 +1831,7 @@ impl BitbnsCore {
             });
             let mut payload: Value = self.string_to_base64(json_stringify(&auth), &[]);
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]);
-            headers = (if is_true(&(headers == Value::Null)) { Value::Map({
+            headers = (if (headers == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { headers.clone() });
@@ -1861,8 +1861,8 @@ impl BitbnsCore {
         //
         let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
         let mut message: Value = self.safe_string_k(response.clone(), "msg", &[]);
-        let mut error: bool = is_true(&(code != Value::Null)) && is_true(&(code.as_str() != Some("200"))) && is_true(&(code.as_str() != Some("204")));
-        if error || is_true(&(message != Value::Null)) {
+        let mut error: bool = (code != Value::Null) && (code.as_str() != Some("200")) && (code.as_str() != Some("204"));
+        if error || (message != Value::Null) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());

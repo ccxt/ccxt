@@ -727,7 +727,7 @@ impl BydfiCore {
     m
 }));
         let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !is_true(&(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
+        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
         self.load_markets(&[]).await;
@@ -779,7 +779,7 @@ impl BydfiCore {
     m
 }));
         let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !is_true(&(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
+        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
         self.load_markets(&[]).await;
@@ -1431,7 +1431,7 @@ impl BydfiCore {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
-        if is_true(&(fetchBalanceSnapshot.as_bool() == Some(true))) && is_true(&(awaitBalanceSnapshot.as_bool() == Some(true))) {
+        if (fetchBalanceSnapshot.as_bool() == Some(true)) && (awaitBalanceSnapshot.as_bool() == Some(true)) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchBalanceSnapshot".to_string())])).await;
         }
         let mut messageHash: Value = Value::Str("balance".to_string());
@@ -1615,7 +1615,7 @@ impl BydfiCore {
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut code: Option<String> = self.safe_string_k(message.clone(), "code", &[]).as_str().map(str::to_owned);
-        if (code.is_some()) && is_true(&(code.as_deref() != Some("0"))) {
+        if (code.is_some()) && (code.as_deref() != Some("0")) {
             self.handle_error_message(client.clone(), message.clone());
         }
         let mut result: Option<String> = self.safe_string_k(message.clone(), "result", &[]).as_str().map(str::to_owned);

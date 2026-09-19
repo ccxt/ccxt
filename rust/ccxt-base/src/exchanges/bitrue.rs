@@ -1199,7 +1199,7 @@ impl BitrueCore {
         //
         let mut keys: Value = object_keys(&response);
         let mut keysLength: f64 = ((keys.len() as i64) as f64);
-        let mut formattedStatus: Value = (if is_true(&(keysLength > ((0i64) as f64))) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
+        let mut formattedStatus: Value = (if (keysLength > ((0i64) as f64)) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), formattedStatus.clone());
@@ -2359,7 +2359,7 @@ impl BitrueCore {
             side = (if is_true(&isBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }); // this is a true side
         }
         let mut fee: Value = Value::Null;
-        if is_true(&(matches!(&trade, Value::Dict(__d) if __d.contains_key("commission")))) {
+        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("commission"))) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_string2(trade.clone(), Value::Str("commission".to_string()), Value::Str("fee".to_string()), &[]));
@@ -2516,11 +2516,11 @@ impl BitrueCore {
         let mut filled: Value = self.safe_string_k(order.clone(), "executedQty", &[]);
         let mut timestamp: Value = Value::Null;
         let mut lastTradeTimestamp: Value = Value::Null;
-        if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("time")))) {
+        if (matches!(&order, Value::Dict(__d) if __d.contains_key("time"))) {
             timestamp = self.safe_integer_k(order.clone(), "time", &[]);
-        }  else if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime")))) {
+        }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime"))) {
             timestamp = self.safe_integer_k(order.clone(), "transactTime", &[]);
-        }  else if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime")))) {
+        }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))) {
             if (status.as_str() == Some("open")) {
                 if is_true(&crate::precise::Precise::stringGt(&filled, &Value::Str("0".to_string()))) {
                     lastTradeTimestamp = self.safe_integer_k(order.clone(), "updateTime", &[]);
@@ -2542,7 +2542,7 @@ impl BitrueCore {
         let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = Value::Bool(is_true(&(type_var.as_str() == Some("limit_maker"))) || is_true(&(timeInForce.as_str() == Some("GTX"))) || is_true(&(type_var.as_str() == Some("post_only"))));
+        let mut postOnly: Value = Value::Bool((type_var.as_str() == Some("limit_maker")) || (timeInForce.as_str() == Some("GTX")) || (type_var.as_str() == Some("post_only")));
         if (type_var.as_str() == Some("limit_maker")) {
             type_var = Value::Str("limit".to_string());
         }
@@ -2671,7 +2671,7 @@ impl BitrueCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("contractName".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if is_true(&isMarket) && is_true(&(side.as_str() == Some("buy"))) && is_true(&createMarketBuyOrderRequiresPrice) {
+            if is_true(&isMarket) && (side.as_str() == Some("buy")) && is_true(&createMarketBuyOrderRequiresPrice) {
                 let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                 if (price == Value::Null) && (cost == Value::Null) {
@@ -2680,7 +2680,7 @@ impl BitrueCore {
                     let mut amountString: Value = self.number_to_string(amount.clone());
                     let mut priceString: Value = self.number_to_string(price.clone());
                     let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-                    let mut requestAmount: Value = (if is_true(&(cost != Value::Null)) { cost.clone() } else { quoteAmount.clone() });
+                    let mut requestAmount: Value = (if (cost != Value::Null) { cost.clone() } else { quoteAmount.clone() });
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), self.cost_to_precision(symbol.clone(), requestAmount.clone())); }
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.cost_to_precision(symbol.clone(), requestAmount.clone())); }
                 }
@@ -2690,7 +2690,7 @@ impl BitrueCore {
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionType".to_string(), Value::Int(1)); }
             let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("open".to_string(), (if is_true(&(reduceOnly.as_bool() == Some(true))) { Value::Str("CLOSE".to_string()) } else { Value::Str("OPEN".to_string()) })); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("open".to_string(), (if (reduceOnly.as_bool() == Some(true)) { Value::Str("CLOSE".to_string()) } else { Value::Str("OPEN".to_string()) })); }
             let mut leverage: Value = self.safe_string_k(params.clone(), "leverage", &[Value::Str("1".to_string())]);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("leverage".to_string(), self.parse_to_numeric(leverage.clone())); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("leverage".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string())]), &[]);
@@ -3754,7 +3754,7 @@ impl BitrueCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
-        if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > ((125i64) as f64))) {
+        if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_f64().unwrap_or(f64::NAN) > ((125i64) as f64)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 125".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -3861,7 +3861,7 @@ impl BitrueCore {
         let mut version: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
         let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut url: Value = Value::Null;
-        if is_true(&((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline")))) || is_true(&((type_var.as_str() == Some("open")) && get_index_of(&path, &Value::Str("listenKey".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
+        if ((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))) || ((type_var.as_str() == Some("open")) && get_index_of(&path, &Value::Str("listenKey".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
             url = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var);
         }  else {
             url = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".to_string())), version));
@@ -3886,7 +3886,7 @@ impl BitrueCore {
                         m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                     m
                 });
-                if is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE"))) {
+                if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), query))));
                 }  else {
                     body = query.clone();
@@ -3954,7 +3954,7 @@ impl BitrueCore {
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_true(&(code.as_f64() == Some(418.0))) || is_true(&(code.as_f64() == Some(429.0))) {
+        if (code.as_f64() == Some(418.0)) || (code.as_f64() == Some(429.0)) {
             panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), to_string_val(&code))), Value::Str(" ".to_string()))), reason)), Value::Str(" ".to_string()))), body)));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
@@ -4003,13 +4003,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (error != Value::Null) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if is_true(&(error.as_str() == Some("200"))) || is_true(&crate::precise::Precise::stringEquals(&error, &Value::Str("0".to_string()))) {
+            if (error.as_str() == Some("200")) || is_true(&crate::precise::Precise::stringEquals(&error, &Value::Str("0".to_string()))) {
                 return Value::Null;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if is_true(&(error.as_str() == Some("-2015"))) && (is_equal(&self.options.as_map().and_then(|__m| __m.get("hasAlreadyAuthenticatedSuccessfully")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
+            if (error.as_str() == Some("-2015")) && (is_equal(&self.options.as_map().and_then(|__m| __m.get("hasAlreadyAuthenticatedSuccessfully")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
                 panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" temporary banned: ".to_string()))), body)));
             }
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
@@ -4029,9 +4029,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) {
+        if (matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))) && !(in_op(&params, &Value::Str("symbol".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit")))) && (in_op(&params, &Value::Str("limit".to_string()))) {
+        }  else if (matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))) && (in_op(&params, &Value::Str("limit".to_string()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
             let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::from(vec![])]);
             {

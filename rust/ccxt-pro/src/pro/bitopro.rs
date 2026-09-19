@@ -305,7 +305,7 @@ impl BitoproCore {
     m
 }));
         if (limit != Value::Null) {
-            if is_true(&(limit.as_f64() != Some(5.0))) && is_true(&(limit.as_f64() != Some(10.0))) && is_true(&(limit.as_f64() != Some(20.0))) && is_true(&(limit.as_f64() != Some(50.0))) && is_true(&(limit.as_f64() != Some(100.0))) && is_true(&(limit.as_f64() != Some(500.0))) && is_true(&(limit.as_f64() != Some(1000.0))) {
+            if (limit.as_f64() != Some(5.0)) && (limit.as_f64() != Some(10.0)) && (limit.as_f64() != Some(20.0)) && (limit.as_f64() != Some(50.0)) && (limit.as_f64() != Some(100.0)) && (limit.as_f64() != Some(500.0)) && (limit.as_f64() != Some(1000.0)) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000".to_string()))));
             }
         }
@@ -672,7 +672,7 @@ impl BitoproCore {
 }
 
     pub fn authenticate(&mut self, mut url: Value) {
-        if is_true(&(self.clients.clone() != Value::Null)) && (in_op(&self.clients, &url)) {
+        if (self.clients.clone() != Value::Null) && (in_op(&self.clients, &url)) {
             return;
         }
         self.check_required_credentials(&[]);

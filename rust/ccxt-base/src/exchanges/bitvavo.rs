@@ -1302,7 +1302,7 @@ impl BitvavoCore {
         let mut taker: Value = self.safe_bool_k(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (taker != Value::Null) {
-            takerOrMaker = (if is_true(&(taker.as_bool() == Some(true))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if (taker.as_bool() == Some(true)) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
@@ -1707,7 +1707,7 @@ impl BitvavoCore {
         let mut subaccountId: Value = self.safe_string_k(params.clone(), "subaccountId", &[]);
         params = self.omit(params.clone(), Value::Str("subaccountId".to_string()), &[]);
         let mut direction: Value = Value::Null;
-        if is_true(&(fromAccount.as_str() == Some("master"))) && is_true(&(toAccount.as_str() == Some("master"))) {
+        if (fromAccount.as_str() == Some("master")) && (toAccount.as_str() == Some("master")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".to_string()))));
         }  else if (fromAccount.as_str() == Some("master")) {
             direction = Value::Str("masterToSub".to_string());
@@ -1962,8 +1962,8 @@ impl BitvavoCore {
                 m.insert("orderType".to_string(), type_var.clone());
             m
         });
-        let mut isMarketOrder: Value = Value::Bool(is_true(&(type_var.as_str() == Some("market"))) || is_true(&(type_var.as_str() == Some("stopLoss"))) || is_true(&(type_var.as_str() == Some("takeProfit"))));
-        let mut isLimitOrder: bool = is_true(&(type_var.as_str() == Some("limit"))) || is_true(&(type_var.as_str() == Some("stopLossLimit"))) || is_true(&(type_var.as_str() == Some("takeProfitLimit")));
+        let mut isMarketOrder: Value = Value::Bool((type_var.as_str() == Some("market")) || (type_var.as_str() == Some("stopLoss")) || (type_var.as_str() == Some("takeProfit")));
+        let mut isLimitOrder: bool = (type_var.as_str() == Some("limit")) || (type_var.as_str() == Some("stopLossLimit")) || (type_var.as_str() == Some("takeProfitLimit"));
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerAmount".to_string())]), &[]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[params.clone()]);
@@ -1991,8 +1991,8 @@ impl BitvavoCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }
-        let mut isTakeProfit: bool = is_true(&(takeProfitPrice != Value::Null)) || is_true(&(type_var.as_str() == Some("takeProfit"))) || is_true(&(type_var.as_str() == Some("takeProfitLimit")));
-        let mut isStopLoss: bool = is_true(&(stopLossPrice != Value::Null)) || is_true(&(triggerPrice != Value::Null)) && (!isTakeProfit) || is_true(&(type_var.as_str() == Some("stopLoss"))) || is_true(&(type_var.as_str() == Some("stopLossLimit")));
+        let mut isTakeProfit: bool = (takeProfitPrice != Value::Null) || (type_var.as_str() == Some("takeProfit")) || (type_var.as_str() == Some("takeProfitLimit"));
+        let mut isStopLoss: bool = (stopLossPrice != Value::Null) || (triggerPrice != Value::Null) && (!isTakeProfit) || (type_var.as_str() == Some("stopLoss")) || (type_var.as_str() == Some("stopLossLimit"));
         if isStopLoss {
             if (stopLossPrice != Value::Null) {
                 triggerPrice = stopLossPrice.clone();
@@ -2009,7 +2009,7 @@ impl BitvavoCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerType".to_string(), Value::Str("price".to_string())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerReference".to_string(), Value::Str("lastTrade".to_string())); } // 'bestBid', 'bestAsk', 'midPrice'
         }
-        if is_true(&(timeInForce != Value::Null)) && is_true(&(timeInForce.as_str() != Some("PO"))) {
+        if (timeInForce != Value::Null) && (timeInForce.as_str() != Some("PO")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), timeInForce.clone()); }
         }
         if is_true(&postOnly) {
@@ -2274,7 +2274,7 @@ impl BitvavoCore {
         if timeout.as_f64().unwrap_or(f64::NAN) > ((300000i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds".to_string()))));
         }
-        if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) && is_true(&(timeout.as_f64().unwrap_or(f64::NAN) < ((10000i64) as f64))) {
+        if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (timeout.as_f64().unwrap_or(f64::NAN) < ((10000i64) as f64)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2285,7 +2285,7 @@ impl BitvavoCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("codGroupId".to_string(), codGroupId.clone());
-                m.insert("expiryAfterSeconds".to_string(), (if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
+                m.insert("expiryAfterSeconds".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_9 = self.extend(request, &[params.clone()]);
@@ -3029,7 +3029,7 @@ impl BitvavoCore {
             });
         }
         let mut type_var: Value = Value::Null;
-        if is_true(&(matches!(&transaction, Value::Dict(__d) if __d.contains_key("success")))) || is_true(&(matches!(&transaction, Value::Dict(__d) if __d.contains_key("address")))) {
+        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("success"))) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("address"))) {
             type_var = Value::Str("withdrawal".to_string());
         }  else {
             type_var = Value::Str("deposit".to_string());
@@ -3158,7 +3158,7 @@ impl BitvavoCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
-        let mut getOrDelete: bool = is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE")));
+        let mut getOrDelete: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
         if getOrDelete {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
@@ -3229,7 +3229,7 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket")))) && !(in_op(&params, &Value::Str("market".to_string()))) {
+        if (matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket"))) && !(in_op(&params, &Value::Str("market".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noMarket")).cloned().unwrap_or(Value::Null);
         }
         return self.safe_number_k(config, "cost", &[Value::Int(1)]);

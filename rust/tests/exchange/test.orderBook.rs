@@ -77,7 +77,7 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     }
     }
     if !(in_op(&skippedProperties, &Value::Str("spread".to_string()))) {
-        if is_true(&(bidsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(asksLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if (bidsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (asksLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
             let mut firstBid: Value = exchange.safe_string(bids.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
             let mut firstAsk: Value = exchange.safe_string(asks.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
             // check bid-ask spread

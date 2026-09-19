@@ -413,7 +413,7 @@ impl DeriveCore {
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
-            let mut subscription: Value = (if is_true(&(topic == Value::Null)) { Value::Null } else { get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic) });
+            let mut subscription: Value = (if (topic == Value::Null) { Value::Null } else { get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic) });
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1013,7 +1013,7 @@ impl DeriveCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
+                let mut order: Value = (if (orderId == Value::Null) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
                 if (order != Value::Null) {
                     let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                     if (fee != Value::Null) {
@@ -1125,7 +1125,7 @@ impl DeriveCore {
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if !is_true(&(matches!(&message, Value::Dict(__d) if __d.contains_key("error")))) {
+        if !(matches!(&message, Value::Dict(__d) if __d.contains_key("error"))) {
             return Value::Bool(false);
         }
         let mut errorMessage: Value = self.safe_dict_k(message.clone(), "error", &[]);
@@ -1174,7 +1174,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
             if (channel != Value::Null) {
                 let mut parsedChannel: Value = split(&channel, &Value::Str(".".to_string()));
-                if is_true(&(Value::Int(channel.as_str().and_then(|__s| __s.find("orders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                if (Value::Int(channel.as_str().and_then(|__s| __s.find("orders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]);
                     // {subaccounr_id}.trades
                     if (event.as_str() == Some("trades")) {
@@ -1185,22 +1185,22 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }
-        let mut method: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
+        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
-        if is_true(&(matches!(&message, Value::Dict(__d) if __d.contains_key("id")))) {
+        if (matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
             let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
-            let mut subscription: Value = (if is_true(&(id == Value::Null)) { Value::Map({
+            let mut subscription: Value = (if (id == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_dict(subscriptionsById.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-            if is_true(&(matches!(&subscription, Value::Dict(__d) if __d.contains_key("method")))) {
+            if (matches!(&subscription, Value::Dict(__d) if __d.contains_key("method"))) {
                 if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("public/login")) {
                     self.handle_auth(client.clone(), message.clone());
                 }  else if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("unsubscribe")) {

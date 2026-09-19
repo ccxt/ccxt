@@ -1527,7 +1527,7 @@ impl BtseCore {
             let mut rate: Value = get_value(&rates, &i);
             let mut rate: Value = get_value(&rates, &i);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "timestamp", &[]);
-            if is_true(&(timestamp == Value::Null)) || (is_less_than_or_equal(&timestamp, &until)) {
+            if (timestamp == Value::Null) || (is_less_than_or_equal(&timestamp, &until)) {
                 append_to_array(&mut result, rate.clone());
             }
         }
@@ -1965,7 +1965,7 @@ impl BtseCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "lastPrice", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "amount", &[]);
-        if is_true(&(baseVolume != Value::Null)) && is_true(&(market != Value::Null)) && is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
+        if (baseVolume != Value::Null) && (market != Value::Null) && (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
             let mut contractSizeString: Value = self.number_to_string(market.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null));
@@ -2216,7 +2216,7 @@ impl BtseCore {
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
-        if is_true(&(fundingIntervalMinutes != Value::Null)) && is_true(&(fundingIntervalMinutes.as_f64().unwrap_or(f64::NAN) >= ((60i64) as f64))) {
+        if (fundingIntervalMinutes != Value::Null) && (fundingIntervalMinutes.as_f64().unwrap_or(f64::NAN) >= ((60i64) as f64)) {
             let mut hours: Value = self.parse_to_int((match ((fundingIntervalMinutes).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             interval = Value::Str(format!("{}{}", to_string_val(&hours), Value::Str("h".to_string())));
         }
@@ -2311,7 +2311,7 @@ impl BtseCore {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-            if is_true(&(timestamp == Value::Null)) || (is_less_than_or_equal(&timestamp, &until)) {
+            if (timestamp == Value::Null) || (is_less_than_or_equal(&timestamp, &until)) {
                 append_to_array(&mut result, trade.clone());
             }
         }
@@ -2724,11 +2724,11 @@ impl BtseCore {
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        let mut isTriggerOrder: bool = is_true(&(triggerPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null));
+        let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (takeProfitPrice != Value::Null);
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
         let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (is_true(&isMarketOrder) || isLimitOrder);
         let mut isAlgoOrder: bool = isConditionalOrder || (!is_true(&isMarketOrder) && !isLimitOrder);
-        if isLimitOrder || is_true(&(type_var.as_str() == Some("PEG"))) || is_true(&(type_var.as_str() == Some("OCO"))) {
+        if isLimitOrder || (type_var.as_str() == Some("PEG")) || (type_var.as_str() == Some("OCO")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for ".to_string()))), type_var)), Value::Str(" orders".to_string()))));
             }
@@ -2736,7 +2736,7 @@ impl BtseCore {
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        let mut needsQuoteSize: bool = (is_true(&isMarketOrder) || is_true(&(type_var.as_str() == Some("TRAILING")))) && is_true(&(upperSide.as_str() == Some("BUY")));
+        let mut needsQuoteSize: bool = (is_true(&isMarketOrder) || (type_var.as_str() == Some("TRAILING"))) && (upperSide.as_str() == Some("BUY"));
         if needsQuoteSize {
             let mut quoteAmount: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
@@ -2957,11 +2957,11 @@ impl BtseCore {
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        let mut isTriggerOrder: bool = is_true(&(triggerPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null));
+        let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (takeProfitPrice != Value::Null);
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
         let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (is_true(&isMarketOrder) || isLimitOrder);
         let mut isAlgoOrder: bool = isConditionalOrder || (!is_true(&isMarketOrder) && !isLimitOrder);
-        if isLimitOrder || is_true(&(type_var.as_str() == Some("OCO"))) {
+        if isLimitOrder || (type_var.as_str() == Some("OCO")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for ".to_string()))), type_var)), Value::Str(" orders".to_string()))));
             }
@@ -2969,7 +2969,7 @@ impl BtseCore {
         // here we handling with attached take profit and stop loss orders
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
-        if is_true(&(takeProfit != Value::Null)) || is_true(&(stopLoss != Value::Null)) {
+        if (takeProfit != Value::Null) || (stopLoss != Value::Null) {
             let mut takeProfitTriggerPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
             let mut stopLossTriggerPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]);
             if (takeProfitTriggerPrice != Value::Null) {
@@ -3083,7 +3083,7 @@ impl BtseCore {
         // the normal futures endpoint responds with a single order dict, keep a
         // one element array guard in case a gateway wraps it
         let mut order: Value = response.clone();
-        if is_true(&(matches!(&response, Value::Arr(_)))) {
+        if (matches!(&response, Value::Arr(_))) {
             order = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3162,7 +3162,7 @@ impl BtseCore {
         }
         // accept a bare order dict, a data envelope and a one element array
         let mut order: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
-        if is_true(&(matches!(&order, Value::Arr(_)))) {
+        if (matches!(&order, Value::Arr(_))) {
             order = self.safe_dict(order.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3226,7 +3226,7 @@ impl BtseCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderPrice".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         let mut isSlide: Value = self.safe_bool_k(params.clone(), "slide", &[Value::Bool(false)]);
-        if is_true(&(amount == Value::Null)) && is_true(&(price == Value::Null)) && is_true(&(triggerPrice == Value::Null)) && is_true(&(isSlide.as_bool() != Some(true))) {
+        if (amount == Value::Null) && (price == Value::Null) && (triggerPrice == Value::Null) && (isSlide.as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, a price argument or a triggerPrice parameter".to_string()))));
         }
         let mut response: Value = Value::Null;
@@ -3239,11 +3239,11 @@ impl BtseCore {
             // which can change the price and size together or a single field
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), self.futures_request_id(market.clone())); }
             if (triggerPrice != Value::Null) {
-                if is_true(&(amount != Value::Null)) || is_true(&(price != Value::Null)) {
+                if (amount != Value::Null) || (price != Value::Null) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() can not amend the trigger price together with the price or the amount on contract markets".to_string()))));
                 }
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amendType".to_string(), Value::Str("TRIGGER_PRICE".to_string())); }
-            }  else if is_true(&(amount != Value::Null)) && is_true(&(price != Value::Null)) {
+            }  else if (amount != Value::Null) && (price != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amendType".to_string(), Value::Str("ALL".to_string())); }
             }  else if (amount != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amendType".to_string(), Value::Str("SIZE".to_string())); }
@@ -3364,7 +3364,7 @@ impl BtseCore {
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) {
             // the literal ALL value cancels every open order across all pairs
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), (if is_true(&(market != Value::Null)) { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) } else { Value::Str("ALL".to_string()) })); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) } else { Value::Str("ALL".to_string()) })); }
             let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_delete_spot_api_v4_trade_orders_all(&[__ws_arg_21]).await;
         }  else {
@@ -3549,7 +3549,7 @@ impl BtseCore {
         let mut rawType: Value = self.safe_string2(order.clone(), Value::Str("orderType".to_string()), Value::Str("type".to_string()), &[]);
         let mut status: Value = self.parse_order_status(rawStatus.clone());
         let mut orderType: Value = self.parse_order_type(rawType.clone());
-        if is_true(&(orderType.as_str() == Some("market"))) && is_true(&(status.as_str() == Some("open"))) {
+        if (orderType.as_str() == Some("market")) && (status.as_str() == Some("open")) {
             // market orders never rest on the book, the exchange reports the
             // partially filled code on them when a residual quote dust amount
             // cannot fill, observed live, such orders are finished
@@ -4356,7 +4356,7 @@ impl BtseCore {
         let mut marginType: Value = self.safe_string_k(position.clone(), "marginType", &[]);
         let mut side: Value = self.safe_string_lower2(position.clone(), Value::Str("positionDirection".to_string()), Value::Str("side".to_string()), &[]);
         let mut positionMode: Option<String> = self.safe_string_k(position.clone(), "positionMode", &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Bool(is_true(&(positionMode.as_deref() == Some("HEDGE"))) || is_true(&(positionMode.as_deref() == Some("ISOLATED"))));
+        let mut hedged: Value = Value::Bool((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
         let mut takeProfitOrder: Value = self.safe_dict_k(position.clone(), "takeProfitOrder", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4469,7 +4469,7 @@ impl BtseCore {
     m
 })]);
         let mut positionMode: Option<String> = self.safe_string_k(data.clone(), "positionMode", &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Bool(is_true(&(positionMode.as_deref() == Some("HEDGE"))) || is_true(&(positionMode.as_deref() == Some("ISOLATED"))));
+        let mut hedged: Value = Value::Bool((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
@@ -4609,17 +4609,17 @@ impl BtseCore {
         let mut market: Value = self.market(symbol.clone());
         marginMode = to_lower(&marginMode);
         let mut positionMode: Value = Value::Str("ONE_WAY".to_string());
-        if is_true(&(marginMode.as_str() != Some("cross"))) && is_true(&(marginMode.as_str() != Some("isolated"))) {
+        if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be either cross or isolated".to_string()))));
         }
         let mut hedged: Value = self.safe_bool_k(params.clone(), "hedged", &[]);
         if (marginMode.as_str() == Some("cross")) {
-            if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("hedged")))) {
+            if !(matches!(&params, Value::Dict(__d) if __d.contains_key("hedged"))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a hedged parameter for cross margin mode".to_string()))));
             }  else if (hedged.as_bool() == Some(true)) {
                 positionMode = Value::Str("HEDGE".to_string());
             }
-        }  else if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("hedged")))) && is_true(&(hedged.as_bool() != Some(true))) {
+        }  else if (matches!(&params, Value::Dict(__d) if __d.contains_key("hedged"))) && (hedged.as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() hedged parameter cannot be false for isolated margin mode".to_string()))));
         }  else {
             positionMode = Value::Str("ISOLATED".to_string());
@@ -4731,7 +4731,7 @@ impl BtseCore {
         //     ]
         //
         let mut safeResponse: Value = Value::from(vec![]);
-        if is_true(&(matches!(&response, Value::Arr(_)))) {
+        if (matches!(&response, Value::Arr(_))) {
             safeResponse = response.clone();
         }
         let mut result: Value = Value::Map({
@@ -4816,7 +4816,7 @@ impl BtseCore {
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_true(&(response == Value::Null)) || is_true(&(response == Value::Null)) {
+        if (response == Value::Null) || (response == Value::Null) {
             return Value::Null;
         }
         //
@@ -4861,7 +4861,7 @@ impl BtseCore {
         //
         let mut legacyErrorText: Option<String> = self.safe_string_k(response.clone(), "error", &[]).as_str().map(str::to_owned);
         let mut legacyEnumCode: Value = self.safe_string_k(response.clone(), "code", &[]);
-        if is_true(&(legacyErrorText.is_some())) && is_true(&(legacyEnumCode != Value::Null)) {
+        if (legacyErrorText.is_some()) && (legacyEnumCode != Value::Null) {
             let mut legacyMessage: Value = self.safe_string_k(response.clone(), "message", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), legacyEnumCode.clone(), feedback.clone());
@@ -4869,7 +4869,7 @@ impl BtseCore {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let mut rows: Value = Value::from(vec![]);
-        if is_true(&(matches!(&response, Value::Arr(_)))) {
+        if (matches!(&response, Value::Arr(_))) {
             rows = response.clone();
         }  else {
             rows = Value::from(vec![response.clone()]);
@@ -4914,9 +4914,9 @@ impl BtseCore {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        let mut isBodyDelete: bool = is_true(&(method.as_str() == Some("DELETE"))) && (is_equal(&Value::Bool(starts_with(&path, &Value::Str("futures/api/v3/".to_string()))), &Value::Bool(true)));
+        let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (is_equal(&Value::Bool(starts_with(&path, &Value::Str("futures/api/v3/".to_string()))), &Value::Bool(true)));
         let mut queryString: Value = Value::Str("".to_string());
-        if (is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE")))) && !isBodyDelete {
+        if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 queryString = self.urlencode(query.clone(), &[]);
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString))));
@@ -4926,7 +4926,7 @@ impl BtseCore {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
             let mut bodyString: Value = json_stringify(&query);
-            if (is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE")))) && !isBodyDelete {
+            if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
                 bodyString = Value::Str("".to_string());
             }  else {
                 body = bodyString.clone();

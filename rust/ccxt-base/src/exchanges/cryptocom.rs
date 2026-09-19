@@ -1663,7 +1663,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut marginBuyEnabled: Value = self.safe_bool_k(market.clone(), "margin_buy_enabled", &[]);
             let mut marginSellEnabled: Value = self.safe_bool_k(market.clone(), "margin_sell_enabled", &[]);
             let mut expiryString: Value = self.omit_zero(self.safe_string_k(market.clone(), "expiry_timestamp_ms", &[]));
-            let mut expiry: Value = (if is_true(&(expiryString != Value::Null)) { (match &expiryString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }) } else { Value::Null });
+            let mut expiry: Value = (if (expiryString != Value::Null) { (match &expiryString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }) } else { Value::Null });
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut type_var: Value = Value::Null;
             let mut contract: Value = Value::Null;
@@ -1680,12 +1680,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 contract = Value::Bool(true);
             }  else if (inst_type.as_deref() == Some("WARRANT")) {
                 type_var = Value::Str("option".to_string());
-                let mut symbolOptionType: Value = (if is_true(&(optionType.as_str() == Some("call"))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
+                let mut symbolOptionType: Value = (if (optionType.as_str() == Some("call")) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), symbolOptionType));
                 contract = Value::Bool(true);
             }
-            let mut isLinear: Value = (if is_true(&(contract.as_bool() == Some(true))) { Value::Bool(true) } else { Value::Null });
-            let mut isInverse: Value = (if is_true(&(contract.as_bool() == Some(true))) { Value::Bool(false) } else { Value::Null });
+            let mut isLinear: Value = (if (contract.as_bool() == Some(true)) { Value::Bool(true) } else { Value::Null });
+            let mut isInverse: Value = (if (contract.as_bool() == Some(true)) { Value::Bool(false) } else { Value::Null });
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -1698,7 +1698,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("settleId".to_string(), settleId.clone());
                     m.insert("type".to_string(), type_var.clone());
                     m.insert("spot".to_string(), spot.clone());
-                    m.insert("margin".to_string(), (Value::Bool(is_true(&(marginBuyEnabled.as_bool() == Some(true))) || is_true(&(marginSellEnabled.as_bool() == Some(true))))));
+                    m.insert("margin".to_string(), (Value::Bool((marginBuyEnabled.as_bool() == Some(true)) || (marginSellEnabled.as_bool() == Some(true)))));
                     m.insert("swap".to_string(), swap.clone());
                     m.insert("future".to_string(), future.clone());
                     m.insert("option".to_string(), option.clone());
@@ -1782,7 +1782,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (symbols != Value::Null) {
             let mut symbol: Value = Value::Null;
-            if is_true(&(matches!(&symbols, Value::Arr(_)))) {
+            if (matches!(&symbols, Value::Arr(_))) {
                 let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
                 if symbolsLength > ((1i64) as f64) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() symbols argument cannot contain more than 1 symbol".to_string()))));
@@ -2146,7 +2146,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if is_true(&(limit != Value::Null)) && is_true(&(limit.as_f64() != Some(0.0))) {
+        if (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("depth".to_string(), crate::runtime::Math::min(&limit, &Value::Int(50))); } // max 50
         }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
@@ -2329,7 +2329,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("STOP_LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT"))) {
+        if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP_LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         let mut broker: Value = self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".to_string())]);
@@ -2338,7 +2338,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("createOrder".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         { let __destr_tmp = self.custom_handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(marketType.as_str() == Some("margin"))) || is_true(&(marginMode != Value::Null)) {
+        if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("spot_margin".to_string(), Value::Str("MARGIN".to_string())); }
         }  else if (marketType.as_str() == Some("spot")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("spot_margin".to_string(), Value::Str("SPOT".to_string())); }
@@ -2356,7 +2356,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        if is_true(&(postOnly.as_bool() == Some(true))) || is_true(&(timeInForce.as_str() == Some("PO"))) {
+        if (postOnly.as_bool() == Some(true)) || (timeInForce.as_str() == Some("PO")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("exec_inst".to_string(), Value::from(vec![Value::Str("POST_ONLY".to_string())])); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time_in_force".to_string(), Value::Str("GOOD_TILL_CANCEL".to_string())); }
         }
@@ -2369,7 +2369,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isTrigger {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ref_price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             let mut priceString: Value = self.number_to_string(price.clone());
-            if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("STOP_LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT"))) {
+            if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP_LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
                 if (side.as_str() == Some("buy")) {
                     if is_true(&crate::precise::Precise::stringLt(&priceString, &triggerPrice)) {
                         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("TAKE_PROFIT_LIMIT".to_string())); }
@@ -2399,14 +2399,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
         }  else if isStopLossTrigger {
-            if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("STOP_LIMIT"))) {
+            if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP_LIMIT")) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("STOP_LIMIT".to_string())); }
             }  else {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("STOP_LOSS".to_string())); }
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ref_price".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.clone())); }
         }  else if isTakeProfitTrigger {
-            if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT"))) {
+            if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("TAKE_PROFIT_LIMIT".to_string())); }
             }  else {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("TAKE_PROFIT".to_string())); }
@@ -2598,7 +2598,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("side".to_string(), to_upper(&side));
             m
         });
-        if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("STOP_LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT"))) {
+        if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP_LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         let mut broker: Value = self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".to_string())]);
@@ -2616,7 +2616,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        if is_true(&(postOnly.as_bool() == Some(true))) || is_true(&(timeInForce.as_str() == Some("PO"))) {
+        if (postOnly.as_bool() == Some(true)) || (timeInForce.as_str() == Some("PO")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("exec_inst".to_string(), Value::from(vec![Value::Str("POST_ONLY".to_string())])); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time_in_force".to_string(), Value::Str("GOOD_TILL_CANCEL".to_string())); }
         }
@@ -2628,7 +2628,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isTakeProfitTrigger: bool = takeProfitPrice.is_some();
         if isTrigger {
             let mut priceString: Value = self.number_to_string(price.clone());
-            if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("STOP_LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT"))) {
+            if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP_LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
                 if (side.as_str() == Some("buy")) {
                     if is_true(&crate::precise::Precise::stringLt(&priceString, &triggerPrice)) {
                         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("TAKE_PROFIT_LIMIT".to_string())); }
@@ -2658,13 +2658,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
         }  else if isStopLossTrigger {
-            if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("STOP_LIMIT"))) {
+            if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP_LIMIT")) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("STOP_LIMIT".to_string())); }
             }  else {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("STOP_LOSS".to_string())); }
             }
         }  else if isTakeProfitTrigger {
-            if is_true(&(uppercaseType.as_str() == Some("LIMIT"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT"))) {
+            if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("TAKE_PROFIT_LIMIT".to_string())); }
             }  else {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("TAKE_PROFIT".to_string())); }
@@ -2672,7 +2672,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), uppercaseType.clone()); }
         }
-        if is_true(&(side.as_str() == Some("buy"))) && (is_true(&(uppercaseType.as_str() == Some("MARKET"))) || is_true(&(uppercaseType.as_str() == Some("STOP_LOSS"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT")))) {
+        if (side.as_str() == Some("buy")) && ((uppercaseType.as_str() == Some("MARKET")) || (uppercaseType.as_str() == Some("STOP_LOSS")) || (uppercaseType.as_str() == Some("TAKE_PROFIT"))) {
             // use createmarketBuy logic here
             let mut quoteAmount: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
@@ -2760,7 +2760,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 params = self.omit(params.clone(), Value::from(vec![Value::Str("orig_client_oid".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
             }
         }
-        if is_true(&(amount == Value::Null)) || is_true(&(price == Value::Null)) {
+        if (amount == Value::Null) || (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values".to_string()))));
         }
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
@@ -3543,7 +3543,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "c", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "v", &[]));
-        m.insert("quoteVolume".to_string(), (if is_true(&(market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("USD"))) { self.safe_string_k(ticker.clone(), "vv", &[]) } else { Value::Null }));
+        m.insert("quoteVolume".to_string(), (if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("USD")) { self.safe_string_k(ticker.clone(), "vv", &[]) } else { Value::Null }));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
@@ -3702,7 +3702,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut code: Option<i64> = self.safe_integer_k(order.clone(), "code", &[]).as_i64();
-        if is_true(&(code.is_some())) && is_true(&(code != Some(0))) {
+        if (code.is_some()) && (code != Some(0)) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
@@ -3845,7 +3845,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = Value::Null;
         let mut rawStatus: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut status: Value = Value::Null;
-        if is_true(&(matches!(&transaction, Value::Dict(__d) if __d.contains_key("client_wid")))) {
+        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("client_wid"))) {
             type_var = Value::Str("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.clone());
         }  else {
@@ -3919,7 +3919,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" only cross margin is supported".to_string()))));
             }
         }  else {
-            if is_true(&(defaultType.as_deref() == Some("margin"))) || is_true(&(isMargin.as_bool() == Some(true))) {
+            if (defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true)) {
                 marginMode = Value::Str("cross".to_string());
             }
         }
@@ -4688,7 +4688,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
             let mut symbol: Value = Value::Null;
-            if is_true(&(matches!(&symbols, Value::Arr(_)))) {
+            if (matches!(&symbols, Value::Arr(_))) {
                 let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
                 if symbolsLength > ((1i64) as f64) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string()))));
@@ -4815,7 +4815,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut returnString: Value = Value::Str("".to_string());
         let mut paramsKeys: Value = Value::Null;
-        if is_true(&(matches!(&object, Value::Arr(_)))) {
+        if (matches!(&object, Value::Arr(_))) {
             paramsKeys = object.clone();
         }  else {
             let mut objectKeys: Value = object_keys(&object);
@@ -4832,7 +4832,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut value: Value = get_value(&object, &key);
             if (value.as_str() == Some("undefined")) {
                 returnString = Value::Str(format!("{}{}", returnString, Value::Str("null".to_string())));
-            }  else if is_true(&(matches!(&value, Value::Arr(_)))) {
+            }  else if (matches!(&value, Value::Arr(_))) {
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_605: bool = true;
@@ -5020,8 +5020,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
-            let mut takerFeeKey: Value = (if is_true(&(isSwap.as_bool() == Some(true))) { Value::Str("effective_deriv_taker_rate_bps".to_string()) } else { Value::Str("effective_spot_taker_rate_bps".to_string()) });
-            let mut makerFeeKey: Value = (if is_true(&(isSwap.as_bool() == Some(true))) { Value::Str("effective_deriv_maker_rate_bps".to_string()) } else { Value::Str("effective_spot_maker_rate_bps".to_string()) });
+            let mut takerFeeKey: Value = (if (isSwap.as_bool() == Some(true)) { Value::Str("effective_deriv_taker_rate_bps".to_string()) } else { Value::Str("effective_spot_taker_rate_bps".to_string()) });
+            let mut makerFeeKey: Value = (if (isSwap.as_bool() == Some(true)) { Value::Str("effective_deriv_maker_rate_bps".to_string()) } else { Value::Str("effective_spot_maker_rate_bps".to_string()) });
             let mut tradingFee: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), response.clone());

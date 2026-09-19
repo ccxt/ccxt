@@ -417,7 +417,7 @@ impl WhitebitCore {
 }));
             }
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if !is_true(&(matches!(&get_value(&self.ohlcvs, &symbol), Value::Dict(__d) if __d.contains_key("unknown")))) {
+            if !(matches!(&get_value(&self.ohlcvs, &symbol), Value::Dict(__d) if __d.contains_key("unknown"))) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 let mut stored = ArrayCacheByTimestamp::new(limit.clone());
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &Value::Str("unknown".to_string()), stored.clone());
@@ -869,7 +869,7 @@ impl WhitebitCore {
         let mut feeCost: Value = self.safe_string(trade.clone(), Value::Int(6), &[]);
         if (feeCost != Value::Null) {
             let mut feeCurrencyId: Value = self.safe_string(trade.clone(), Value::Int(10), &[]);
-            let mut feeCurrencyCode: Value = (if is_true(&(feeCurrencyId != Value::Null)) { self.safe_currency_code(feeCurrencyId.clone(), &[]) } else { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
+            let mut feeCurrencyCode: Value = (if (feeCurrencyId != Value::Null) { self.safe_currency_code(feeCurrencyId.clone(), &[]) } else { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.clone());
@@ -1047,7 +1047,7 @@ impl WhitebitCore {
         let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("mtime".to_string()), &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut rawSide: Option<i64> = self.safe_integer_k(order.clone(), "side", &[]).as_i64();
-        let mut side: Value = (if is_true(&(rawSide == Some(1))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut side: Value = (if (rawSide == Some(1)) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut dealFee: Value = self.safe_string_k(order.clone(), "deal_fee", &[]);
         let mut fee: Value = Value::Null;
         if (dealFee != Value::Null) {
@@ -1059,7 +1059,7 @@ impl WhitebitCore {
             });
         }
         let mut unifiedStatus: Value = Value::Null;
-        if is_true(&(status == Some(1))) || is_true(&(status == Some(2))) {
+        if (status == Some(1)) || (status == Some(2)) {
             unifiedStatus = Value::Str("open".to_string());
         }  else {
             if is_true(&crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".to_string()))) {
@@ -1535,7 +1535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_instance(&e, &Value::Str("AuthenticationError".to_string())) {
                 client.reject(&[e.clone(), Value::Str("authenticated".to_string())]);
-                if is_true(&(matches!(&get_value(&client, &Value::Str("subscriptions".to_string())), Value::Dict(__d) if __d.contains_key("authenticated")))) {
+                if (matches!(&get_value(&client, &Value::Str("subscriptions".to_string())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()));
                 }
                 return Value::Bool(false);
@@ -1600,7 +1600,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut subscription: Value = get_value(&values, &i);
             if !is_equal(&subscription, &Value::Bool(true)) {
                 let mut subId: Value = self.safe_integer_k(subscription.clone(), "id", &[]);
-                if is_true(&(subId != Value::Null)) && (is_equal(&subId, &id)) {
+                if (subId != Value::Null) && (is_equal(&subId, &id)) {
                     let mut method: Value = self.safe_value_k(subscription, "method", &[]);
                     if (method != Value::Null) {
                         self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);

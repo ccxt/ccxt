@@ -1659,7 +1659,7 @@ impl BackpackCore {
                 limit = defaultLimit.clone();
             }
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
-            let mut endTime: Value = (if is_true(&((until != Value::Null) && (until != Value::Null) && (until.as_f64() != Some(0.0)))) { self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { self.seconds() });
+            let mut endTime: Value = (if ((until != Value::Null) && (until != Value::Null) && (until.as_f64() != Some(0.0))) { self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { self.seconds() });
             let mut startTime: Value = (match (&(endTime), &(((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), startTime.clone()); }
         }  else {
@@ -3320,7 +3320,7 @@ impl BackpackCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut endpoint: Value = add(&Value::Str("/".to_string()), &path);
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
-        let mut sortedParams: Value = (if is_true(&(matches!(&params, Value::Arr(_)))) { params.clone() } else { self.keysort(params.clone(), &[]) });
+        let mut sortedParams: Value = (if (matches!(&params, Value::Arr(_))) { params.clone() } else { self.keysort(params.clone(), &[]) });
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut ts: Value = to_string_val(&self.nonce());
@@ -3335,7 +3335,7 @@ impl BackpackCore {
 })]);
             let mut instruction: Value = self.safe_string(optionPathInstructions.clone(), method.clone(), &[Value::Str("".to_string())]);
             let mut payload: Value = Value::Str("".to_string());
-            if is_true(&(path.as_str() == Some("api/v1/orders"))) && is_true(&(method.as_str() == Some("POST"))) {
+            if (path.as_str() == Some("api/v1/orders")) && (method.as_str() == Some("POST")) {
                 payload = self.generate_batch_payload(sortedParams.clone(), ts.clone(), recvWindow.clone(), instruction.clone());
             }  else {
                 let mut queryString: Value = self.urlencode(sortedParams.clone(), &[]);

@@ -1157,13 +1157,13 @@ impl CryptomusCore {
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                 { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                 if is_true(&createMarketBuyOrderRequiresPrice) {
-                    if is_true(&(price == Value::Null)) && is_true(&(cost == Value::Null)) {
+                    if (price == Value::Null) && (cost == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument".to_string()))));
                     }  else if (cost == Value::Null) {
                         cost = crate::precise::Precise::stringMul(&amountToString, &priceToString);
                     }
                 }  else {
-                    cost = (if is_true(&((cost != Value::Null) && (cost.as_str() != Some("")))) { cost.clone() } else { amountToString.clone() });
+                    cost = (if ((cost != Value::Null) && (cost.as_str() != Some(""))) { cost.clone() } else { amountToString.clone() });
                 }
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("value".to_string(), cost.clone()); }
             }  else {

@@ -597,7 +597,7 @@ impl BitrueCore {
         let mut sideId: Option<i64> = self.safe_integer_k(order.clone(), "S", &[]).as_i64();
         // 1: buy
         // 2: sell
-        let mut side: Value = (if is_true(&(sideId == Some(1))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if (sideId == Some(1)) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut statusId: Value = self.safe_string_k(order.clone(), "X", &[]);
         let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "N", &[]);
         return self.safe_order(Value::Map({
@@ -1068,7 +1068,7 @@ impl BitrueCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut idSeconds: Value = self.safe_integer_k(tick.clone(), "id", &[]);
-        let mut timestamp: Value = (if is_true(&(idSeconds == Value::Null)) { Value::Null } else { (match (&(idSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
+        let mut timestamp: Value = (if (idSeconds == Value::Null) { Value::Null } else { (match (&(idSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
         let mut open: Value = self.safe_number_k(tick.clone(), "open", &[]);
         let mut high: Value = self.safe_number_k(tick.clone(), "high", &[]);
         let mut low: Value = self.safe_number_k(tick.clone(), "low", &[]);
@@ -1170,7 +1170,7 @@ impl BitrueCore {
         let mut quoteVolume: Value = self.convert_from_raw_quantity(symbol.clone(), rawAmount.clone());
         let mut close: Value = self.safe_number_k(tick.clone(), "close", &[]);
         let mut rose: Value = self.safe_number_k(tick.clone(), "rose", &[]);
-        let mut percentage: Value = (if is_true(&(rose == Value::Null)) { Value::Null } else { (match (&(rose), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
+        let mut percentage: Value = (if (rose == Value::Null) { Value::Null } else { (match (&(rose), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), tick.clone());

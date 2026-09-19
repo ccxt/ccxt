@@ -1550,8 +1550,8 @@ impl CoinbaseexchangeCore {
         let mut low: Value = Value::Null;
         let mut open: Value = Value::Null;
         let mut volume: Value = Value::Null;
-        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        if is_true(&(matches!(&ticker, Value::Arr(_)))) {
+        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        if (matches!(&ticker, Value::Arr(_))) {
             last = self.safe_string(ticker.clone(), Value::Int(4), &[]);
             timestamp = self.milliseconds();
         }  else {
@@ -1735,7 +1735,7 @@ impl CoinbaseexchangeCore {
             cost = self.safe_string(trade.clone(), costField.clone(), &[]);
             let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
             if (liquidity.is_some()) {
-                takerOrMaker = (if is_true(&(liquidity.as_deref() == Some("T"))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+                takerOrMaker = (if (liquidity.as_deref() == Some("T")) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
                 feeRate = self.safe_string(market.clone(), takerOrMaker.clone(), &[]);
             }
         }
@@ -1748,13 +1748,13 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut id: Value = self.safe_string_k(trade.clone(), "trade_id", &[]);
-        let mut side: Value = (if is_true(&(trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy"))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut side: Value = (if (trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy")) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut orderId: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         let mut makerOrderId: Option<String> = self.safe_string_k(trade.clone(), "maker_order_id", &[]).as_str().map(str::to_owned);
         let mut takerOrderId: Option<String> = self.safe_string_k(trade.clone(), "taker_order_id", &[]).as_str().map(str::to_owned);
-        if is_true(&(orderId != Value::Null)) || (is_true(&(makerOrderId.is_some())) && is_true(&(takerOrderId.is_some()))) {
-            side = (if is_true(&(trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        if (orderId != Value::Null) || ((makerOrderId.is_some()) && (takerOrderId.is_some())) {
+            side = (if (trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy")) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "size", &[]);
@@ -2064,7 +2064,7 @@ impl CoinbaseexchangeCore {
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut doneReason: Option<String> = self.safe_string_k(order.clone(), "done_reason", &[]).as_str().map(str::to_owned);
-        if is_true(&(status.as_str() == Some("closed"))) && is_true(&(doneReason.as_deref() == Some("canceled"))) {
+        if (status.as_str() == Some("closed")) && (doneReason.as_deref() == Some("canceled")) {
             status = Value::Str("canceled".to_string());
         }
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
@@ -2518,10 +2518,10 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut response: Value = Value::Null;
-        if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("payment_method_id")))) {
+        if (matches!(&params, Value::Dict(__d) if __d.contains_key("payment_method_id"))) {
             let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_withdrawals_payment_method(&[__ws_arg_22]).await;
-        }  else if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("coinbase_account_id")))) {
+        }  else if (matches!(&params, Value::Dict(__d) if __d.contains_key("coinbase_account_id"))) {
             let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_withdrawals_coinbase_account(&[__ws_arg_23]).await;
         }  else {
@@ -2897,14 +2897,14 @@ impl CoinbaseexchangeCore {
 
     pub fn parse_transaction_status(&self, mut transaction: Value) -> Value {
         let mut canceled: Value = self.safe_value_k(transaction.clone(), "canceled_at", &[]);
-        if is_true(&(canceled != Value::Null)) && is_true(&(canceled != Value::Null)) {
+        if (canceled != Value::Null) && (canceled != Value::Null) {
             return Value::Str("canceled".to_string());
         }
         let mut processed: Value = self.safe_value_k(transaction.clone(), "processed_at", &[]);
         let mut completed: Value = self.safe_value_k(transaction, "completed_at", &[]);
-        if is_true(&(completed != Value::Null)) && is_true(&(completed != Value::Null)) {
+        if (completed != Value::Null) && (completed != Value::Null) {
             return Value::Str("ok".to_string());
-        }  else if is_true(&(processed != Value::Null)) && is_true(&(processed != Value::Null)) {
+        }  else if (processed != Value::Null) && (processed != Value::Null) {
             return Value::Str("failed".to_string());
         }  else {
             return Value::Str("pending".to_string());
@@ -3114,7 +3114,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_true(&(code.as_f64() == Some(400.0))) || is_true(&(code.as_f64() == Some(404.0))) {
+        if (code.as_f64() == Some(400.0)) || (code.as_f64() == Some(404.0)) {
             if (get_value(&body, &Value::Int(0)).as_str() == Some("{")) {
                 let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message));

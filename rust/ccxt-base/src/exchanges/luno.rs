@@ -1096,7 +1096,7 @@ impl LunoCore {
             let mut balance: Value = self.safe_string_k(wallet.clone(), "balance", &[]);
             let mut reservedUnconfirmed: Value = crate::precise::Precise::stringAdd(&reserved, &unconfirmed);
             let mut balanceUnconfirmed: Value = crate::precise::Precise::stringAdd(&balance, &unconfirmed);
-            if is_true(&(code != Value::Null)) && (in_op(&result, &code)) {
+            if (code != Value::Null) && (in_op(&result, &code)) {
                 { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&result, &code), "used"), &reservedUnconfirmed); add_element_to_object(get_value_mut(&mut result, &code), &Value::Str("used".to_string()), __be_tmp); };
                 { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&result, &code), "total"), &balanceUnconfirmed); add_element_to_object(get_value_mut(&mut result, &code), &Value::Str("total".to_string()), __be_tmp); };
             }  else if (code != Value::Null) {
@@ -1206,12 +1206,12 @@ impl LunoCore {
         //
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "creation_timestamp", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
-        status = (if is_true(&(status.as_str() == Some("open"))) { status.clone() } else { status.clone() });
+        status = (if (status.as_str() == Some("open")) { status.clone() } else { status.clone() });
         let mut side: Value = Value::Null;
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        if is_true(&(orderType.as_deref() == Some("ASK"))) || is_true(&(orderType.as_deref() == Some("SELL"))) {
+        if (orderType.as_deref() == Some("ASK")) || (orderType.as_deref() == Some("SELL")) {
             side = Value::Str("sell".to_string());
-        }  else if is_true(&(orderType.as_deref() == Some("BID"))) || is_true(&(orderType.as_deref() == Some("BUY"))) {
+        }  else if (orderType.as_deref() == Some("BID")) || (orderType.as_deref() == Some("BUY")) {
             side = Value::Str("buy".to_string());
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
@@ -1560,14 +1560,14 @@ impl LunoCore {
         let mut side: Value = Value::Null;
         if (orderId != Value::Null) {
             let mut type_var: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
-            if is_true(&(type_var.as_deref() == Some("ASK"))) || is_true(&(type_var.as_deref() == Some("SELL"))) {
+            if (type_var.as_deref() == Some("ASK")) || (type_var.as_deref() == Some("SELL")) {
                 side = Value::Str("sell".to_string());
-            }  else if is_true(&(type_var.as_deref() == Some("BID"))) || is_true(&(type_var.as_deref() == Some("BUY"))) {
+            }  else if (type_var.as_deref() == Some("BID")) || (type_var.as_deref() == Some("BUY")) {
                 side = Value::Str("buy".to_string());
             }
-            if is_true(&(side.as_str() == Some("sell"))) && (is_equal(&trade.as_map().and_then(|__m| __m.get("is_buy")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
+            if (side.as_str() == Some("sell")) && (is_equal(&trade.as_map().and_then(|__m| __m.get("is_buy")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
                 takerOrMaker = Value::Str("maker".to_string());
-            }  else if is_true(&(side.as_str() == Some("buy"))) && (!is_equal(&trade.as_map().and_then(|__m| __m.get("is_buy")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
+            }  else if (side.as_str() == Some("buy")) && (!is_equal(&trade.as_map().and_then(|__m| __m.get("is_buy")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
                 takerOrMaker = Value::Str("maker".to_string());
             }  else {
                 takerOrMaker = Value::Str("taker".to_string());
@@ -1886,7 +1886,7 @@ impl LunoCore {
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount.clone())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price.clone())); }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("BID".to_string()) } else { Value::Str("ASK".to_string()) })); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("BID".to_string()) } else { Value::Str("ASK".to_string()) })); }
             let __ws_arg_10 = self.extend(request, &[params.clone()]);
             response = self.private_post_postorder(&[__ws_arg_10]).await;
         }
@@ -2058,10 +2058,10 @@ impl LunoCore {
         let mut thirdWord: Option<String> = self.safe_string(words.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut fourthWord: Option<String> = self.safe_string(words.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = self.safe_string(types.clone(), firstWord.clone(), &[]);
-        if is_true(&(type_var == Value::Null)) && is_true(&(thirdWord.as_deref() == Some("fee"))) {
+        if (type_var == Value::Null) && (thirdWord.as_deref() == Some("fee")) {
             type_var = Value::Str("fee".to_string());
         }
-        if is_true(&(type_var.as_str() == Some("reserved"))) && is_true(&(fourthWord.as_deref() == Some("order"))) {
+        if (type_var.as_str() == Some("reserved")) && (fourthWord.as_deref() == Some("order")) {
             referenceId = self.safe_string(words.clone(), Value::Int(4), &[]);
         }
         return Value::Map({
@@ -2291,7 +2291,7 @@ impl LunoCore {
         if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
         }
-        if is_true(&(api.as_str() == Some("private"))) || is_true(&(api.as_str() == Some("exchangePrivate"))) {
+        if (api.as_str() == Some("private")) || (api.as_str() == Some("exchangePrivate")) {
             self.check_required_credentials(&[]);
             let mut auth: Value = self.string_to_base64(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".to_string()))), self.secret.clone())), &[]);
             headers = Value::Map({

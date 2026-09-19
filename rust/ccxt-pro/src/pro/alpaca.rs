@@ -965,7 +965,7 @@ impl AlpacaCore {
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("type".to_string(), type_var.clone());
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
-        m.insert("takerOrMaker".to_string(), (if is_true(&(type_var.as_str() == Some("market"))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) }));
+        m.insert("takerOrMaker".to_string(), (if (type_var.as_str() == Some("market")) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) }));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "filled_avg_price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "filled_qty", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -1093,7 +1093,7 @@ impl AlpacaCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_true(&(matches!(&message, Value::Arr(_)))) {
+        if (matches!(&message, Value::Arr(_))) {
             self.handle_crypto_message(client.clone(), message.clone());
             return;
         }

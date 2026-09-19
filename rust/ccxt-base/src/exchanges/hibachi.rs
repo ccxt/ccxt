@@ -1103,7 +1103,7 @@ impl HibachiCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
-        let mut uppercaseStatus: Value = (if is_true(&(status == Value::Null)) { Value::Null } else { to_upper(&status) });
+        let mut uppercaseStatus: Value = (if (status == Value::Null) { Value::Null } else { to_upper(&status) });
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING".to_string(), Value::Str("open".to_string()));
@@ -1362,8 +1362,8 @@ impl HibachiCore {
         let mut market: Value = self.market(symbol.clone());
         let mut takerFee: Value = self.safe_number_k(market.clone(), "taker", &[self.safe_number(self.options.clone(), Value::Str("defaultTakerFee".to_string()), &[Value::Float(0.00045)])]);
         let mut makerFee: Value = self.safe_number_k(market.clone(), "maker", &[self.safe_number(self.options.clone(), Value::Str("defaultMakerFee".to_string()), &[Value::Float(0.00015)])]);
-        let mut takerFeeValue: Value = (if is_true(&(takerFee == Value::Null)) { Value::Int(0) } else { takerFee.clone() });
-        let mut makerFeeValue: Value = (if is_true(&(makerFee == Value::Null)) { Value::Int(0) } else { makerFee.clone() });
+        let mut takerFeeValue: Value = (if (takerFee == Value::Null) { Value::Int(0) } else { takerFee.clone() });
+        let mut makerFeeValue: Value = (if (makerFee == Value::Null) { Value::Int(0) } else { makerFee.clone() });
         let mut feeRate: Value = crate::runtime::Math::max(&takerFeeValue, &makerFeeValue);
         let mut sideInternal: Value = Value::Str("".to_string());
         if (side.as_str() == Some("sell")) {
@@ -1372,7 +1372,7 @@ impl HibachiCore {
             sideInternal = Value::Str("BID".to_string());
         }
         let mut priceInternal: Value = Value::Str("".to_string());
-        if is_true(&(price != Value::Null)) && is_true(&(price.as_f64() != Some(0.0))) {
+        if (price != Value::Null) && (price.as_f64() != Some(0.0)) {
             priceInternal = self.price_to_precision(symbol.clone(), price.clone());
         }
         let mut message: Value = self.order_message(market.clone(), nonce.clone(), feeRate.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone()]);
@@ -1533,8 +1533,8 @@ impl HibachiCore {
         let mut market: Value = self.market(symbol.clone());
         let mut takerFee: Value = self.safe_number_k(market.clone(), "taker", &[Value::Int(0)]);
         let mut makerFee: Value = self.safe_number_k(market.clone(), "maker", &[Value::Int(0)]);
-        let mut takerFeeValue: Value = (if is_true(&(takerFee == Value::Null)) { Value::Int(0) } else { takerFee.clone() });
-        let mut makerFeeValue: Value = (if is_true(&(makerFee == Value::Null)) { Value::Int(0) } else { makerFee.clone() });
+        let mut takerFeeValue: Value = (if (takerFee == Value::Null) { Value::Int(0) } else { takerFee.clone() });
+        let mut makerFeeValue: Value = (if (makerFee == Value::Null) { Value::Int(0) } else { makerFee.clone() });
         let mut feeRate: Value = crate::runtime::Math::max(&takerFeeValue, &makerFeeValue);
         let mut message: Value = self.order_message(market.clone(), nonce.clone(), feeRate.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone()]);
         let mut signature: Value = self.sign_message(message.clone(), self.privateKey.clone());
@@ -2548,7 +2548,7 @@ impl HibachiCore {
             // response from CapitalHistory
             timestamp = self.safe_integer_product(item.clone(), Value::Str("timestampSec".to_string()), Value::Int(1000), &[]);
             amount = self.safe_number_k(item.clone(), "quantity", &[]);
-            direction = (if is_true(&((transactionType.as_str() == Some("deposit")) || (transactionType.as_str() == Some("transfer-in")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
+            direction = (if ((transactionType.as_str() == Some("deposit")) || (transactionType.as_str() == Some("transfer-in"))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
             type_var = self.parse_transaction_type(transactionType.clone());
             status = self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[]));
             if (transactionType.as_str() == Some("transfer-in")) {

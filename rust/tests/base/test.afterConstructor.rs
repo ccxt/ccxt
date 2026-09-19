@@ -108,7 +108,7 @@ fn helperTestInitMarket() {
 }));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&(exchange2.prop(&&Value::Str("markets".to_string())) != Value::Null)) && is_true(&(exchange2.prop(&&Value::Str("markets".to_string())).as_map().and_then(|__m| __m.get("BTC/USD")).cloned().unwrap_or(Value::Null) != Value::Null))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool((exchange2.prop(&&Value::Str("markets".to_string())) != Value::Null) && (exchange2.prop(&&Value::Str("markets".to_string())).as_map().and_then(|__m| __m.get("BTC/USD")).cloned().unwrap_or(Value::Null) != Value::Null)))));
 }
 fn helperTestProperties() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

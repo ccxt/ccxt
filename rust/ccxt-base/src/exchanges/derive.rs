@@ -1906,7 +1906,7 @@ impl DeriveCore {
             let mut rawTrade: Value = get_value(&tradesArray, &i);
             let mut isFetchTrades: bool = !(in_op(&rawTrade, &Value::Str("order_id".to_string())));
             let mut liquidityRole: Option<String> = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]).as_str().map(str::to_owned);
-            if isFetchTrades && is_true(&(liquidityRole.as_deref() == Some("maker"))) {
+            if isFetchTrades && (liquidityRole.as_deref() == Some("maker")) {
                 continue;
             }
             let mut parsed: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
@@ -2132,7 +2132,7 @@ impl DeriveCore {
     pub fn hash_order_message(&self, mut order: Value) -> Value {
         let mut accountHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".to_string()), Value::Str("uint256".to_string()), Value::Str("uint256".to_string()), Value::Str("address".to_string()), Value::Str("bytes32".to_string()), Value::Str("uint256".to_string()), Value::Str("address".to_string()), Value::Str("address".to_string())]), order.clone()), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        let mut DOMAIN_SEPARATOR: Value = (if is_true(&(sandboxMode.as_bool() == Some(true))) { Value::Str("9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105".to_string()) } else { Value::Str("d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b".to_string()) });
+        let mut DOMAIN_SEPARATOR: Value = (if (sandboxMode.as_bool() == Some(true)) { Value::Str("9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105".to_string()) } else { Value::Str("d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b".to_string()) });
         let mut binaryDomainSeparator: Value = self.base16_to_binary(DOMAIN_SEPARATOR.clone(), &[]);
         let mut prefix: Value = self.base16_to_binary(Value::Str("1901".to_string()), &[]);
         return self.hash(self.binary_concat(prefix.clone(), &[binaryDomainSeparator.clone(), accountHash.clone()]), Value::Str("keccak".to_string()), &[Value::Str("hex".to_string())]);
@@ -2229,7 +2229,7 @@ impl DeriveCore {
         let mut signatureExpiry: Value = self.safe_integer_k(params.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".to_string()), &[]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        let mut TRADE_MODULE_ADDRESS: Value = (if is_true(&(sandboxMode.as_bool() == Some(true))) { Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".to_string()) } else { Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string()) });
+        let mut TRADE_MODULE_ADDRESS: Value = (if (sandboxMode.as_bool() == Some(true)) { Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".to_string()) } else { Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string()) });
         let mut priceString: Value = self.number_to_string(price.clone());
         let mut maxFee: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("max_fee".to_string()), &[]); maxFee = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2259,7 +2259,7 @@ impl DeriveCore {
         });
         if (reduceOnly != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reduce_only".to_string(), reduceOnly.clone()); }
-            if is_true(&reduceOnly) && is_true(&(postOnly.as_bool() == Some(true))) {
+            if is_true(&reduceOnly) && (postOnly.as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string()))));
             }
         }
@@ -2417,7 +2417,7 @@ impl DeriveCore {
         // TODO: subaccount id / trade module address
         let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".to_string()), &[]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        let mut TRADE_MODULE_ADDRESS: Value = (if is_true(&(sandboxMode.as_bool() == Some(true))) { Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".to_string()) } else { Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string()) });
+        let mut TRADE_MODULE_ADDRESS: Value = (if (sandboxMode.as_bool() == Some(true)) { Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".to_string()) } else { Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string()) });
         let mut priceString: Value = self.number_to_string(price.clone());
         let mut maxFeeString: Value = self.safe_string_k(params.clone(), "max_fee", &[Value::Str("0".to_string())]);
         let mut amountString: Value = self.number_to_string(amount.clone());
@@ -2442,7 +2442,7 @@ impl DeriveCore {
         });
         if (reduceOnly != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reduce_only".to_string(), reduceOnly.clone()); }
-            if is_true(&reduceOnly) && is_true(&(postOnly.as_bool() == Some(true))) {
+            if is_true(&reduceOnly) && (postOnly.as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string()))));
             }
         }
@@ -3875,7 +3875,7 @@ impl DeriveCore {
     pub fn handle_derive_subaccount_id(&self, mut methodName: Value, mut params: Value) -> Value {
         let mut derivesubAccountId: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("subaccount_id".to_string()), &[]); derivesubAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(derivesubAccountId != Value::Null)) && is_true(&(derivesubAccountId.as_str() != Some(""))) {
+        if (derivesubAccountId != Value::Null) && (derivesubAccountId.as_str() != Some("")) {
             if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".to_string(), derivesubAccountId.clone()); }; // saving in options
             return Value::from(vec![derivesubAccountId.clone(), params.clone()]);
         }
@@ -3891,7 +3891,7 @@ impl DeriveCore {
     pub fn handle_derive_wallet_address(&self, mut methodName: Value, mut params: Value) -> Value {
         let mut deriveWalletAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("deriveWalletAddress".to_string()), &[]); deriveWalletAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(deriveWalletAddress != Value::Null)) && is_true(&(deriveWalletAddress.as_str() != Some(""))) {
+        if (deriveWalletAddress != Value::Null) && (deriveWalletAddress.as_str() != Some("")) {
             if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".to_string(), deriveWalletAddress.clone()); }; // saving in options
             return Value::from(vec![deriveWalletAddress.clone(), params.clone()]);
         }

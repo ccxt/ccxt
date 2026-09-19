@@ -614,7 +614,7 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(limit != Value::Null)) && is_true(&(limit.as_f64() != Some(150.0))) {
+        if (limit != Value::Null) && (limit.as_f64() != Some(150.0)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit = 150 only".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -623,7 +623,7 @@ impl BittradeCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // only supports a limit of 150 at this time
-        limit = (if is_true(&(limit == Value::Null)) { Value::Int(150) } else { limit.clone() });
+        limit = (if (limit == Value::Null) { Value::Int(150) } else { limit.clone() });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".mbp.".to_string()))), to_string_val(&limit)));
         let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".to_string())]);
         let mut hostname: Value = Value::Map({
@@ -788,10 +788,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]);
         let mut seqNum: Value = self.safe_integer_k(tick.clone(), "seqNum", &[]);
         let mut prevSeqNum: Value = self.safe_integer_k(tick.clone(), "prevSeqNum", &[]);
-        if is_true(&(prevSeqNum == Value::Null)) || is_true(&(seqNum == Value::Null)) {
+        if (prevSeqNum == Value::Null) || (seqNum == Value::Null) {
             return orderbook;
         }
-        if (is_less_than_or_equal(&prevSeqNum, &crate::value::get_value_k(&orderbook, "nonce"))) && is_true(&(seqNum.as_f64().unwrap_or(f64::NAN) > crate::value::get_value_k(&orderbook, "nonce").as_f64().unwrap_or(f64::NAN))) {
+        if (is_less_than_or_equal(&prevSeqNum, &crate::value::get_value_k(&orderbook, "nonce"))) && (seqNum.as_f64().unwrap_or(f64::NAN) > crate::value::get_value_k(&orderbook, "nonce").as_f64().unwrap_or(f64::NAN)) {
             let mut asks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list_k(tick, "bids", &[Value::from(vec![])]);
             self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());

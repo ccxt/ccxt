@@ -23,7 +23,7 @@ pub async fn testWatchBidsAsksHelper(mut exchange: Value, mut skippedProperties:
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
-    while is_true(&(now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN))) && !is_true(&idle) {
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
         let mut success: Value = Value::Bool(true);
         let mut shouldReturn: Value = Value::Bool(false);
         let mut response: Value = Value::Map({
@@ -38,7 +38,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // for some exchanges, multi symbol methods might require symbols array to be present, so
             // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
             // because tests will make a second call of this method with symbols array
-            if (matches!(&e, Value::Str(__s) if __s.contains("[ArgumentsRequired]"))) && is_true(&((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0)))) {
+            if (matches!(&e, Value::Str(__s) if __s.contains("[ArgumentsRequired]"))) && ((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0))) {
                 // todo: provide random symbols to try
                 // return false;
                 shouldReturn = Value::Bool(true);

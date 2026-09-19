@@ -1072,8 +1072,8 @@ impl ApexCore {
         m.insert("taker".to_string(), takerFee.clone());
         m.insert("maker".to_string(), makerFee.clone());
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "minOrderSize", &[]));
-        m.insert("expiry".to_string(), (if is_true(&(expiry.as_f64() == Some(0.0))) { Value::Null } else { expiry.clone() }));
-        m.insert("expiryDatetime".to_string(), (if is_true(&(expiry.as_f64() == Some(0.0))) { Value::Null } else { self.iso8601(expiry.clone()) }));
+        m.insert("expiry".to_string(), (if (expiry.as_f64() == Some(0.0)) { Value::Null } else { expiry.clone() }));
+        m.insert("expiryDatetime".to_string(), (if (expiry.as_f64() == Some(0.0)) { Value::Null } else { self.iso8601(expiry.clone()) }));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -1802,13 +1802,13 @@ impl ApexCore {
         if (market == Value::Null) && (marketId != Value::Null) {
             let mut marketsMap: Value = self.markets.clone();
             let mut marketsById: Value = self.markets_by_id.clone();
-            if is_true(&(marketsMap != Value::Null)) && (in_op(&marketsMap, &marketId)) {
+            if (marketsMap != Value::Null) && (in_op(&marketsMap, &marketId)) {
                 market = get_value(&marketsMap, &marketId);
-            }  else if is_true(&(marketsById != Value::Null)) && (in_op(&marketsById, &marketId)) {
+            }  else if (marketsById != Value::Null) && (in_op(&marketsById, &marketId)) {
                 market = get_value(&marketsById, &marketId);
             }  else {
                 let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.clone());
-                if is_true(&(marketsById != Value::Null)) && (in_op(&marketsById, &newMarketId)) {
+                if (marketsById != Value::Null) && (in_op(&marketsById, &newMarketId)) {
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut numMarkets: Value = get_array_length(&markets);
@@ -1826,7 +1826,7 @@ impl ApexCore {
 }
 
     pub fn generate_random_client_id_omni(&self, mut _accountId: Value) -> Value {
-        let mut hasAccountId: bool = is_true(&(_accountId != Value::Null)) && is_true(&(_accountId.as_str() != Some("")));
+        let mut hasAccountId: bool = (_accountId != Value::Null) && (_accountId.as_str() != Some(""));
         let mut accountId: Value = (if hasAccountId { _accountId.clone() } else { to_string_val(&self.rand_number(Value::Int(12))) });
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".to_string()), accountId)), Value::Str("-".to_string()))), to_string_val(&self.milliseconds()))), Value::Str("-".to_string()))), to_string_val(&self.rand_number(Value::Int(6)))));
 
@@ -1918,14 +1918,14 @@ impl ApexCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         if (stopLossPrice != Value::Null) {
-            orderType = (if is_true(&(orderType.as_str() == Some("MARKET"))) { Value::Str("STOP_MARKET".to_string()) } else { Value::Str("STOP_LIMIT".to_string()) });
+            orderType = (if (orderType.as_str() == Some("MARKET")) { Value::Str("STOP_MARKET".to_string()) } else { Value::Str("STOP_LIMIT".to_string()) });
             triggerPrice = stopLossPrice.clone();
         }  else if (takeProfitPrice != Value::Null) {
-            orderType = (if is_true(&(orderType.as_str() == Some("MARKET"))) { Value::Str("TAKE_PROFIT_MARKET".to_string()) } else { Value::Str("TAKE_PROFIT_LIMIT".to_string()) });
+            orderType = (if (orderType.as_str() == Some("MARKET")) { Value::Str("TAKE_PROFIT_MARKET".to_string()) } else { Value::Str("TAKE_PROFIT_LIMIT".to_string()) });
             triggerPrice = takeProfitPrice.clone();
         }
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        if is_true(&isMarket) && is_true(&(price == Value::Null)) {
+        if is_true(&isMarket) && (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".to_string()))));
         }
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
@@ -2079,7 +2079,7 @@ impl ApexCore {
         }
         let mut tokenId: Value = self.safe_string_k(currency.clone(), "tokenId", &[Value::Str("".to_string())]);
         let mut decimalsNum: Value = self.safe_number_k(currency.clone(), "decimals", &[Value::Int(0)]);
-        let mut decimalsNumber: Value = (if is_true(&(decimalsNum == Value::Null)) { Value::Int(0) } else { decimalsNum.clone() });
+        let mut decimalsNumber: Value = (if (decimalsNum == Value::Null) { Value::Int(0) } else { decimalsNum.clone() });
         let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
         let mut amountNumber: Value = self.parse_to_int((match (&(amount), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         let mut timestampSeconds: Value = self.parse_to_int((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));

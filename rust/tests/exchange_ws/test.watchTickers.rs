@@ -23,7 +23,7 @@ pub async fn testWatchTickersHelper(mut exchange: Value, mut skippedProperties: 
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
-    while is_true(&(now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN))) && !is_true(&idle) {
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -39,7 +39,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // to "all tickers" itself, and it requires symbols to be set
             // so, in such case, if it's arguments-required exception, we don't
             // mark tests as failed, but just skip them
-            if (matches!(&e, Value::Str(__s) if __s.contains("[ArgumentsRequired]"))) && is_true(&((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0)))) {
+            if (matches!(&e, Value::Str(__s) if __s.contains("[ArgumentsRequired]"))) && ((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0))) {
                 // todo: provide random symbols to try
                 // return Value::Null;
                 // return false;
@@ -72,7 +72,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
                     let mut ohlcv: Value = Value::Null;
                     let mut tickerSymbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                    if is_true(&(tickerSymbol != Value::Null)) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
+                    if (tickerSymbol != Value::Null) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
                         ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.clone(), Value::Str("1d".to_string()), Value::Null, Value::Int(5)]).await;
                     }
                     crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone(), ohlcv.clone());

@@ -1016,14 +1016,14 @@ impl UpbitCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut cachedOrders: Value = self.orders.clone();
-        let mut orders: Value = (if is_true(&(symbol == Value::Null)) { Value::Map({
+        let mut orders: Value = (if (symbol == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_dict(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-        let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
+        let mut order: Value = (if (orderId == Value::Null) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
         if (order != Value::Null) {
             let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
             if (fee != Value::Null) {
@@ -1123,7 +1123,7 @@ impl UpbitCore {
             m
         });
         let mut methodName: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut method: Value = (if is_true(&(methodName == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), methodName.clone(), &[]) });
+        let mut method: Value = (if (methodName == Value::Null) { Value::Null } else { self.safe_value(methods.clone(), methodName.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }

@@ -638,7 +638,7 @@ impl PacificaCore {
             let mut orderId: Value = self.safe_string_k(order.clone(), "i", &[]);
             let mut clientOrderId: Value = self.safe_string_k(order.clone(), "I", &[]);
             let mut status: Value = Value::Null;
-            if is_true(&(error.is_some())) || is_true(&(success.as_bool() != Some(true))) {
+            if (error.is_some()) || (success.as_bool() != Some(true)) {
                 status = Value::Str("closed".to_string());
             }  else {
                 status = Value::Str("canceled".to_string());
@@ -920,7 +920,7 @@ impl PacificaCore {
         let mut timestamp: Value = self.safe_integer_k(entry.clone(), "t", &[]);
         let mut snapshot: Value = self.parse_order_book(result.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("p".to_string()), Value::Str("a".to_string())]);
         let mut nonce: Value = self.safe_integer_k(entry.clone(), "li", &[]);
-        if is_true(&(nonce != Value::Null)) && is_true(&(nonce.as_f64() != Some(0.0))) {
+        if (nonce != Value::Null) && (nonce.as_f64() != Some(0.0)) {
             add_element_to_object(&mut snapshot, &Value::Str("nonce".to_string()), nonce.clone());
         }
         if !(in_op(&self.orderbooks, &symbol)) {
@@ -1448,7 +1448,7 @@ impl PacificaCore {
         let mut eventType: Option<String> = self.safe_string_k(trade.clone(), "te", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         if (eventType.is_some()) {
-            takerOrMaker = (if is_true(&(eventType.as_deref() == Some("fulfill_maker"))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if (eventType.as_deref() == Some("fulfill_maker")) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
         // public trades have no orderId
@@ -1883,8 +1883,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
-        if is_true(&(symbol != Value::Null)) && (in_op(&self.ohlcvs, &symbol)) {
-            if is_true(&(timeframe != Value::Null)) && (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+        if (symbol != Value::Null) && (in_op(&self.ohlcvs, &symbol)) {
+            if (timeframe != Value::Null) && (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }

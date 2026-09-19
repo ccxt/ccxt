@@ -632,7 +632,7 @@ impl MexcCore {
         let mut marketIdIsUndefined: bool = marketId == Value::Null;
         let mut isSpot: Value = (if marketIdIsUndefined { channelStartsWithSpot.clone() } else { market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null) });
         let mut spotPrefix: Value = Value::Str("spot:".to_string());
-        let mut messageHashPrefix: Value = (if is_true(&(isSpot.as_bool() == Some(true))) { spotPrefix.clone() } else { Value::Str("".to_string()) });
+        let mut messageHashPrefix: Value = (if (isSpot.as_bool() == Some(true)) { spotPrefix.clone() } else { Value::Str("".to_string()) });
         let mut topic: Value = Value::Str(format!("{}{}", messageHashPrefix, Value::Str("ticker".to_string())));
         let mut result: Value = Value::from(vec![]);
         {
@@ -843,7 +843,7 @@ impl MexcCore {
         let mut unsubscribed: Value = self.safe_bool_k(params.clone(), "unsubscribed", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("unsubscribed".to_string())]), &[]);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
-        let mut method: Value = (if is_true(&(unsubscribed.as_bool() == Some(true))) { Value::Str("UNSUBSCRIPTION".to_string()) } else { Value::Str("SUBSCRIPTION".to_string()) });
+        let mut method: Value = (if (unsubscribed.as_bool() == Some(true)) { Value::Str("UNSUBSCRIPTION".to_string()) } else { Value::Str("SUBSCRIPTION".to_string()) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method.clone());
@@ -1138,7 +1138,7 @@ impl MexcCore {
         let mut volume: Value = self.safe_number2(ohlcv.clone(), Value::Str("v".to_string()), Value::Str("volume".to_string()), &[]);
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if is_true(&(market != Value::Null)) && is_true(&(self.safe_bool_k(market.clone(), "spot", &[]).as_bool() != Some(true))) && is_true(&(volume == Value::Null)) {
+        if (market != Value::Null) && (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() != Some(true)) && (volume == Value::Null) {
             volume = self.safe_number2(ohlcv.clone(), Value::Str("q".to_string()), Value::Str("v".to_string()), &[]);
         }
         return Value::from(vec![self.safe_timestamp2(ohlcv.clone(), Value::Str("t".to_string()), Value::Str("windowStart".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("o".to_string()), Value::Str("openingPrice".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("h".to_string()), Value::Str("highestPrice".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("l".to_string()), Value::Str("lowestPrice".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("c".to_string()), Value::Str("closingPrice".to_string()), &[]), volume.clone()]);
@@ -1210,7 +1210,7 @@ impl MexcCore {
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         let mut firstDelta: Value = self.safe_dict(cache.clone(), Value::Int(0), &[]);
         let mut firstDeltaNonce: Value = self.safe_integer_n(firstDelta.clone(), Value::from(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
-        if is_true(&(nonce == Value::Null)) || is_true(&(firstDeltaNonce == Value::Null)) {
+        if (nonce == Value::Null) || (firstDeltaNonce == Value::Null) {
             return Value::Int(-1);
         }
         if nonce.as_f64().unwrap_or(f64::NAN) < (match (&(firstDeltaNonce), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) {
@@ -1352,7 +1352,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_493 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_493 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&bidasks).as_f64().unwrap_or(f64::NAN) } {
             let mut bidask: Value = get_value(&bidasks, &i);
             let mut bidask: Value = get_value(&bidasks, &i);
-            if is_true(&(matches!(&bidask, Value::Arr(_)))) {
+            if (matches!(&bidask, Value::Arr(_))) {
                 bookside.store_array(bidask.clone());
             }  else {
                 let mut price: Value = self.safe_float2(bidask.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
@@ -1366,7 +1366,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut existingNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         let mut deltaNonce: Value = self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
-        if is_true(&(deltaNonce != Value::Null)) && is_true(&(existingNonce != Value::Null)) && is_true(&(deltaNonce.as_f64().unwrap_or(f64::NAN) < existingNonce.as_f64().unwrap_or(f64::NAN))) {
+        if (deltaNonce != Value::Null) && (existingNonce != Value::Null) && (deltaNonce.as_f64().unwrap_or(f64::NAN) < existingNonce.as_f64().unwrap_or(f64::NAN)) {
             return;
         }
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), deltaNonce.clone());
@@ -1677,7 +1677,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("v".to_string()), Value::Str("quantity".to_string()), &[]);
         let mut rawSide: Option<String> = self.safe_string2(trade.clone(), Value::Str("S".to_string()), Value::Str("tradeType".to_string()), &[]).as_str().map(str::to_owned);
-        let mut side: Value = (if is_true(&(rawSide.as_deref() == Some("1"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if (rawSide.as_deref() == Some("1")) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut isMaker: Option<i64> = self.safe_integer_k(trade.clone(), "m", &[]).as_i64();
         let mut feeAmount: Value = self.safe_string2(trade.clone(), Value::Str("n".to_string()), Value::Str("feeAmount".to_string()), &[]);
         let mut feeCurrencyId: Value = self.safe_string2(trade.clone(), Value::Str("N".to_string()), Value::Str("feeCurrency".to_string()), &[]);
@@ -1691,7 +1691,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
-        m.insert("takerOrMaker".to_string(), (if is_true(&((isMaker.is_some()) && (isMaker != Some(0)))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) }));
+        m.insert("takerOrMaker".to_string(), (if ((isMaker.is_some()) && (isMaker != Some(0))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) }));
         m.insert("price".to_string(), priceString.clone());
         m.insert("amount".to_string(), amountString.clone());
         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "amount", &[]));
@@ -1953,7 +1953,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), self.parse_ws_order_type(type_var.clone()));
         m.insert("timeInForce".to_string(), self.parse_ws_time_in_force(type_var.clone()));
-        m.insert("side".to_string(), (if is_true(&(side.as_deref() == Some("1"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if (side.as_deref() == Some("1")) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("stopPrice".to_string(), self.safe_string2(order.clone(), Value::Str("triggerPrice".to_string()), Value::Str("P".to_string()), &[]));
         m.insert("triggerPrice".to_string(), self.safe_string2(order.clone(), Value::Str("triggerPrice".to_string()), Value::Str("P".to_string()), &[]));
@@ -2094,7 +2094,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut channel: Option<String> = self.safe_string_k(message.clone(), "channel", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if is_true(&(channel.as_deref() == Some("spot@private.account.v3.api.pb"))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+        let mut type_var: Value = (if (channel.as_deref() == Some("spot@private.account.v3.api.pb")) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".to_string()), type_var));
         let mut data: Value = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("data".to_string()), Value::Str("privateAccount".to_string())]), &[]);
         let mut futuresTimestamp: Value = self.safe_integer2(message.clone(), Value::Str("ts".to_string()), Value::Str("createTime".to_string()), &[]);
@@ -2536,7 +2536,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if splitHashesLength > ((4i64) as f64) {
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), self.safe_string(splitHashes.clone(), Value::Int(3), &[])))));
                 }
-                if is_true(&(symbol != Value::Null)) && (in_op(&self.ohlcvs, &symbol)) {
+                if (symbol != Value::Null) && (in_op(&self.ohlcvs, &symbol)) {
                     remove(&mut self.ohlcvs, &symbol);
                 }
             }  else if Value::Int(messageHash.as_str().and_then(|__s| __s.find("orderbook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
@@ -2762,7 +2762,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("push.funding.rate".to_string(), Value::Str("handle_funding_rate".to_string()).clone());
             m
         });
-        if is_true(&(channel != Value::Null)) && (in_op(&methods, &channel)) {
+        if (channel != Value::Null) && (in_op(&methods, &channel)) {
             let mut method: Value = get_value(&methods, &channel);
             let mut method: Value = get_value(&methods, &channel);
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);

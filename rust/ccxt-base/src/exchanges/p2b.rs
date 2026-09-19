@@ -1811,7 +1811,7 @@ impl P2bCore {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             let mut codeAsString: Value = to_string_val(&code);
-            if is_true(&(code.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64))) || !(in_op(&self.httpExceptions, &codeAsString)) {
+            if (code.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64)) || !(in_op(&self.httpExceptions, &codeAsString)) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

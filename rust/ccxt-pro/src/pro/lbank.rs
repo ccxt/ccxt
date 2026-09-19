@@ -325,7 +325,7 @@ impl LbankCore {
     pub fn check_contract_market(&self, mut market: Value, mut methodName: Value) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if is_true(&(market != Value::Null)) && is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
+        if (market != Value::Null) && (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets yet".to_string()))));
         }
 }
@@ -856,7 +856,7 @@ impl LbankCore {
         //    }
         //
         let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Int(0), &[]);
-        let mut datetime: Value = (if is_true(&(timestamp != Value::Null)) { (self.iso8601(timestamp.clone())) } else { (self.safe_string_k(trade.clone(), "TS", &[])) });
+        let mut datetime: Value = (if (timestamp != Value::Null) { (self.iso8601(timestamp.clone())) } else { (self.safe_string_k(trade.clone(), "TS", &[])) });
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(datetime.clone());
         }
@@ -867,7 +867,7 @@ impl LbankCore {
         let mut side: Value = firstPart.clone();
         // reverse if it was 'maker'
         if (secondPart.is_some()) && (secondPart.as_deref() == Some("maker")) {
-            side = (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if (side.as_str() == Some("buy")) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1029,7 +1029,7 @@ impl LbankCore {
         let mut exchangeType: Option<String> = self.safe_string(typeParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         if (rawType.as_str() != Some("buy")) && (rawType.as_str() != Some("sell")) {
-            type_var = (if is_true(&(exchangeType.as_deref() == Some("market"))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
+            type_var = (if (exchangeType.as_deref() == Some("market")) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string())]);
@@ -1037,7 +1037,7 @@ impl LbankCore {
         let mut status: Value = self.safe_string_k(orderUpdate.clone(), "orderStatus", &[]);
         let mut orderAmount: Value = self.safe_string_k(orderUpdate.clone(), "orderAmt", &[]);
         let mut cost: Value = Value::Null;
-        if is_true(&(type_var.as_str() == Some("market"))) && is_true(&(side.as_str() == Some("buy"))) {
+        if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
             cost = orderAmount.clone();
         }
         return self.safe_order(Value::Map({

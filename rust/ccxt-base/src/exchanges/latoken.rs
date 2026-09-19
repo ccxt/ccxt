@@ -849,7 +849,7 @@ impl LatokenCore {
             if (baseCurrencyInfo != Value::Null) && (quoteCurrencyInfo != Value::Null) {
                 let mut base: Value = self.safe_currency_code(self.safe_string_k(baseCurrencyInfo.clone(), "tag", &[]), &[]);
                 let mut quote: Value = self.safe_currency_code(self.safe_string_k(quoteCurrencyInfo.clone(), "tag", &[]), &[]);
-                if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
+                if (base == Value::Null) || (quote == Value::Null) {
                     continue;
                 }
                 let mut lowercaseQuote: Value = to_lower(&quote);
@@ -1319,7 +1319,7 @@ impl LatokenCore {
         let mut makerBuyer: Value = self.safe_bool_k(trade.clone(), "makerBuyer", &[]);
         let mut side: Value = self.safe_string_k(trade.clone(), "direction", &[]);
         if (side == Value::Null) {
-            side = (if is_true(&(makerBuyer.as_bool() == Some(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if (makerBuyer.as_bool() == Some(true)) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }  else {
             if (side.as_str() == Some("TRADE_DIRECTION_BUY")) {
                 side = Value::Str("buy".to_string());
@@ -1328,14 +1328,14 @@ impl LatokenCore {
             }
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
-        let mut isMaker: bool = is_true(&(makerBuyer.as_bool() == Some(true))) && isBuy;
+        let mut isMaker: bool = (makerBuyer.as_bool() == Some(true)) && isBuy;
         let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         let mut baseId: Value = self.safe_string_k(trade.clone(), "baseCurrency", &[]);
         let mut quoteId: Value = self.safe_string_k(trade.clone(), "quoteCurrency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-        if is_true(&(self.markets.clone() != Value::Null)) && (in_op(&self.markets, &symbol)) {
+        if (self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbol)) {
             market = self.market(symbol.clone());
         }
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
@@ -1641,9 +1641,9 @@ impl LatokenCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = Value::Null;
-        if is_true(&(base != Value::Null)) && is_true(&(quote != Value::Null)) {
+        if (base != Value::Null) && (quote != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-            if is_true(&(self.markets.clone() != Value::Null)) && (in_op(&self.markets, &symbol)) {
+            if (self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbol)) {
                 market = self.market(symbol.clone());
             }
         }
@@ -2409,7 +2409,7 @@ impl LatokenCore {
         }
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
         let mut errorMessage: Option<String> = self.safe_string_k(error.clone(), "message", &[]).as_str().map(str::to_owned);
-        if is_true(&(error != Value::Null)) || is_true(&(errorMessage.is_some())) {
+        if (error != Value::Null) || (errorMessage.is_some()) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

@@ -1862,7 +1862,7 @@ impl WooCore {
         let mut order_id: Value = self.safe_string2(trade.clone(), Value::Str("order_id".to_string()), Value::Str("orderId".to_string()), &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(trade.clone(), Value::from(vec![Value::Str("fee_asset".to_string()), Value::Str("feeAsset".to_string())]), Value::from(vec![Value::Str("fee".to_string())]));
         let mut feeCost: Value = self.safe_string_k(fee.clone(), "cost", &[]);
-        if is_true(&(fee != Value::Null)) && is_true(&(feeCost != Value::Null)) {
+        if (fee != Value::Null) && (feeCost != Value::Null) {
             if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeCost.clone()); }
         }
         let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
@@ -2475,7 +2475,7 @@ impl WooCore {
         let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
         let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
-        let mut isConditional: bool = isTrailing || (triggerPrice != Value::Null) || hasStopLoss || hasTakeProfit || is_true(&(self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null));
+        let mut isConditional: bool = isTrailing || (triggerPrice != Value::Null) || hasStopLoss || hasTakeProfit || (self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null);
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
         let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
@@ -2501,7 +2501,7 @@ impl WooCore {
             let mut cost: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
             let mut isPriceProvided: bool = price != Value::Null;
-            if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && (isPriceProvided || is_true(&(cost != Value::Null))) {
+            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (isPriceProvided || (cost != Value::Null)) {
                 let mut quoteAmount: Value = Value::Null;
                 if (cost != Value::Null) {
                     quoteAmount = self.cost_to_precision(symbol.clone(), cost.clone());
@@ -2550,7 +2550,7 @@ impl WooCore {
                 m
             });
             let mut childOrders: Value = match &outterOrder { Value::Dict(__m15) => __m15.get("childOrders").cloned().unwrap_or(Value::Null), _ => Value::Null };
-            let mut closeSide: Value = (if is_true(&(orderSide.as_str() == Some("BUY"))) { Value::Str("SELL".to_string()) } else { Value::Str("BUY".to_string()) });
+            let mut closeSide: Value = (if (orderSide.as_str() == Some("BUY")) { Value::Str("SELL".to_string()) } else { Value::Str("BUY".to_string()) });
             if hasStopLoss {
                 let mut stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[stopLoss.clone()]);
                 let mut stopLossOrder: Value = Value::Map({
@@ -2681,7 +2681,7 @@ impl WooCore {
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
-        let mut isConditional: bool = is_true(&(isTrigger.as_bool() == Some(true))) || isTrailing || is_true(&(triggerPrice != Value::Null)) || is_true(&(self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null));
+        let mut isConditional: bool = (isTrigger.as_bool() == Some(true)) || isTrailing || (triggerPrice != Value::Null) || (self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null);
         let mut response: Value = Value::Null;
         if isConditional {
             if isByClientOrder {
@@ -2744,7 +2744,7 @@ impl WooCore {
 }));
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
-        if is_true(&(isTrigger.as_bool() != Some(true))) && is_true(&(symbol == Value::Null)) {
+        if (isTrigger.as_bool() != Some(true)) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2884,7 +2884,7 @@ impl WooCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("triggerAfter".to_string(), (if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) { crate::runtime::Math::min(&timeout, &Value::Int(900000)) } else { Value::Int(0) }));
+                m.insert("triggerAfter".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { crate::runtime::Math::min(&timeout, &Value::Int(900000)) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_9 = self.extend(request, &[params.clone()]);
@@ -3547,7 +3547,7 @@ impl WooCore {
             if (marketId == Value::Null) {
                 continue;
             }
-            if is_true(&(self.markets_by_id.clone() == Value::Null)) || !(in_op(&self.markets_by_id, &marketId)) {
+            if (self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId)) {
                 continue;
             }
             let mut ticker: Value = self.extend(Value::Map({
@@ -4016,7 +4016,7 @@ impl WooCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         networkCode = self.network_id_to_code(&[networkCode.clone(), crate::value::get_value_k(&currency, "code")]);
-        let mut networkEntry: Value = (if is_true(&(networkCode == Value::Null)) { Value::Null } else { self.safe_dict(crate::value::get_value_k(&currency, "networks"), networkCode.clone(), &[]) });
+        let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(crate::value::get_value_k(&currency, "networks"), networkCode.clone(), &[]) });
         if (networkEntry == Value::Null) {
             let mut supportedNetworks: Value = object_keys(&crate::value::get_value_k(&currency, "networks"));
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".to_string()))), json_stringify(&supportedNetworks))));
@@ -4183,7 +4183,7 @@ impl WooCore {
         currency = self.safe_currency(code.clone(), &[currency.clone()]);
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut side: Option<String> = self.safe_string_k(item.clone(), "tokenSide", &[]).as_str().map(str::to_owned);
-        let mut direction: Value = (if is_true(&(side.as_deref() == Some("DEPOSIT"))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
+        let mut direction: Value = (if (side.as_deref() == Some("DEPOSIT")) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
         let mut timestamp: Value = self.safe_timestamp(item.clone(), Value::Str("createdTime".to_string()), &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::from(vec![Value::Str("feeToken".to_string())]), Value::from(vec![Value::Str("feeAmount".to_string())]));
         return self.safe_ledger_entry(Value::Map({
@@ -4804,7 +4804,7 @@ impl WooCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            if (method.as_str() == Some("POST")) && is_true(&((path.as_str() == Some("trade/algoOrder")) || (path.as_str() == Some("trade/order")))) {
+            if (method.as_str() == Some("POST")) && ((path.as_str() == Some("trade/algoOrder")) || (path.as_str() == Some("trade/order"))) {
                 let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
                 if (isSandboxMode.as_bool() != Some(true)) {
                     let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string());
@@ -4910,7 +4910,7 @@ impl WooCore {
         let mut timestamp: Value = self.safe_integer_k(income.clone(), "updatedTime", &[]);
         let mut rate: Value = self.safe_number_k(income.clone(), "fundingRate", &[]);
         let mut paymentType: Option<String> = self.safe_string_k(income.clone(), "paymentType", &[]).as_str().map(str::to_owned);
-        amount = (if is_true(&(paymentType.as_deref() == Some("Pay"))) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
+        amount = (if (paymentType.as_deref() == Some("Pay")) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
@@ -5455,7 +5455,7 @@ impl WooCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        if is_true(&(symbol == Value::Null)) || is_true(&(self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true))) {
+        if (symbol == Value::Null) || (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true)) {
             let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
             return self.v3_private_post_spot_margin_leverage(&[__ws_arg_37]).await;
         }  else if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {

@@ -738,7 +738,7 @@ impl GeminiCore {
             let mut delta: Value = get_value(&changes, &i);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
-            let mut side: Value = (if is_true(&(get_value(&delta, &Value::Int(0)).as_str() == Some("buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+            let mut side: Value = (if (get_value(&delta, &Value::Int(0)).as_str() == Some("buy")) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
             let mut bookside: Value = get_value(&orderbook, &side);
             let mut bookside: Value = get_value(&orderbook, &side);
             bookside.store(price.clone(), size.clone());
@@ -880,7 +880,7 @@ impl GeminiCore {
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-        if is_true(&(firstMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) && is_true(&(firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) {
+        if (firstMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchMultiple supports only spot or linear-swap symbols".to_string()))));
         }
         let mut messageHashes: Value = Value::from(vec![]);
@@ -1293,9 +1293,9 @@ impl GeminiCore {
                 let mut event: Value = get_value(&events, &i);
                 let mut event: Value = get_value(&events, &i);
                 let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
-                let mut isOrderBook: bool = is_true(&(eventType.as_deref() == Some("change"))) && (in_op(&event, &Value::Str("side".to_string()))) && is_true(&self.in_array(crate::value::get_value_k(&event, "side"), Value::from(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())])));
+                let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (in_op(&event, &Value::Str("side".to_string()))) && is_true(&self.in_array(crate::value::get_value_k(&event, "side"), Value::from(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())])));
                 let mut eventReason: Option<String> = self.safe_string_k(event.clone(), "reason", &[]).as_str().map(str::to_owned);
-                let mut isBidAsk: bool = is_true(&(eventReason.as_deref() == Some("top-of-book"))) || is_true(&(isOrderBook && is_true(&(eventReason.as_deref() == Some("initial"))) && (eventsLength == 2.0)));
+                let mut isBidAsk: bool = (eventReason.as_deref() == Some("top-of-book")) || (isOrderBook && (eventReason.as_deref() == Some("initial")) && (eventsLength == 2.0));
                 if isBidAsk {
                     append_to_array(&mut bidaskItems, event.clone());
                 }  else if isOrderBook {
@@ -1329,14 +1329,14 @@ impl GeminiCore {
         if (url == Value::Null) {
             return Value::Null;
         }
-        if is_true(&(self.clients.clone() != Value::Null)) && (in_op(&self.clients, &url)) {
+        if (self.clients.clone() != Value::Null) && (in_op(&self.clients, &url)) {
             return Value::Null;
         }
         self.check_required_credentials(&[]);
         let mut startIndex: Value = get_array_length(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())));
         let mut urlParamsIndex: Value = Value::Int(url.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1));
         let mut urlLength: Value = Value::Int(url.len() as i64);
-        let mut endIndex: Value = (if is_true(&(urlParamsIndex.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) { urlParamsIndex.clone() } else { urlLength.clone() });
+        let mut endIndex: Value = (if (urlParamsIndex.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) { urlParamsIndex.clone() } else { urlLength.clone() });
         let mut request: Value = slice(&url, &startIndex, &endIndex);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

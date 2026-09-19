@@ -433,7 +433,7 @@ impl BackpackCore {
                 let mut splitHashes: Value = split(&messageHash, &Value::Str(":".to_string()));
                 let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
                 let mut timeframe: Value = self.safe_string(splitHashes.clone(), Value::Int(3), &[]);
-                if is_true(&(symbol != Value::Null)) && is_true(&(timeframe != Value::Null)) && (in_op(&self.ohlcvs, &symbol)) {
+                if (symbol != Value::Null) && (timeframe != Value::Null) && (in_op(&self.ohlcvs, &symbol)) {
                     if (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                     }
@@ -466,7 +466,7 @@ impl BackpackCore {
                 }  else {
                     let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:orders:".to_string()), &Value::Str("".to_string()));
                     let mut cache: Value = self.orders.clone();
-                    if is_true(&(cache != Value::Null)) && (in_op(&cache, &symbol)) {
+                    if (cache != Value::Null) && (in_op(&cache, &symbol)) {
                         remove(&mut cache, &symbol);
                     }
                 }
@@ -905,7 +905,7 @@ impl BackpackCore {
     m
 }));
         let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !is_true(&(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
+        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -955,7 +955,7 @@ impl BackpackCore {
     m
 }));
         let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !is_true(&(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
+        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1440,7 +1440,7 @@ impl BackpackCore {
             }
             crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".to_string()), data.clone());
             return;
-        }  else if is_true(&(deltaNonce != Value::Null)) && is_true(&(nonce.as_f64().unwrap_or(f64::NAN) > deltaNonce.as_f64().unwrap_or(f64::NAN))) {
+        }  else if (deltaNonce != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) > deltaNonce.as_f64().unwrap_or(f64::NAN)) {
             return;
         }
         self.handle_delta(storedOrderBook.clone(), data.clone());
@@ -1494,10 +1494,10 @@ impl BackpackCore {
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
             let mut deltaEnd: Value = self.safe_integer_k(delta.clone(), "u", &[]);
-            if is_true(&(deltaStart == Value::Null)) || is_true(&(deltaEnd == Value::Null)) {
+            if (deltaStart == Value::Null) || (deltaEnd == Value::Null) {
                 return get_array_length(&cache);
             }
-            if is_true(&(nonce.as_f64().unwrap_or(f64::NAN) >= (match (&(deltaStart), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN))) && is_true(&(nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN))) {
+            if (nonce.as_f64().unwrap_or(f64::NAN) >= (match (&(deltaStart), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) && (nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN)) {
                 return i;
             }
         }

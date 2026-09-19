@@ -640,8 +640,8 @@ impl RevolutxCore {
         let mut status: Option<String> = self.safe_string_k(currency.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = (Value::Bool(status.as_deref() == Some("active")));
         let mut assetType: Option<String> = self.safe_string_k(currency.clone(), "asset_type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if is_true(&(assetType.as_deref() == Some("crypto"))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
-        let mut precision: Value = (if is_true(&(scale != Value::Null)) { crate::runtime::Math::pow(&Value::Int(10), &negate(&scale)) } else { Value::Null });
+        let mut type_var: Value = (if (assetType.as_deref() == Some("crypto")) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
+        let mut precision: Value = (if (scale != Value::Null) { crate::runtime::Math::pow(&Value::Int(10), &negate(&scale)) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency.clone());
@@ -1227,7 +1227,7 @@ impl RevolutxCore {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        let mut data: Value = (if is_true(&(matches!(&response, Value::Arr(_)))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]) });
+        let mut data: Value = (if (matches!(&response, Value::Arr(_))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]) });
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1252,7 +1252,7 @@ impl RevolutxCore {
             let mut staked: Value = self.safe_string_k(balance.clone(), "staked", &[]);
             let mut used: Value = reserved.clone();
             if (staked != Value::Null) {
-                used = (if is_true(&(reserved == Value::Null)) { staked.clone() } else { crate::precise::Precise::stringAdd(&reserved, &staked) });
+                used = (if (reserved == Value::Null) { staked.clone() } else { crate::precise::Precise::stringAdd(&reserved, &staked) });
             }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "total", &[])); }
@@ -1464,7 +1464,7 @@ impl RevolutxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orderData: Value = (if is_true(&(matches!(&data, Value::Arr(_)))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+        let mut orderData: Value = (if (matches!(&data, Value::Arr(_))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { self.safe_dict_k(response, "data", &[Value::Map({
@@ -1726,7 +1726,7 @@ impl RevolutxCore {
         }  else if (since != Value::Null) {
             let mut now: Value = self.milliseconds();
             let mut defaultEnd: Value = (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("end_date".to_string(), (if is_true(&(defaultEnd.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN))) { defaultEnd.clone() } else { now.clone() })); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("end_date".to_string(), (if (defaultEnd.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN)) { defaultEnd.clone() } else { now.clone() })); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
@@ -1885,7 +1885,7 @@ impl RevolutxCore {
         }  else if (since != Value::Null) {
             let mut now: Value = self.milliseconds();
             let mut defaultEnd: Value = (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("end_date".to_string(), (if is_true(&(defaultEnd.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN))) { defaultEnd.clone() } else { now.clone() })); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("end_date".to_string(), (if (defaultEnd.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN)) { defaultEnd.clone() } else { now.clone() })); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
@@ -1991,7 +1991,7 @@ impl RevolutxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orderData: Value = (if is_true(&(matches!(&data, Value::Arr(_)))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+        let mut orderData: Value = (if (matches!(&data, Value::Arr(_))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { self.safe_dict_k(response, "data", &[Value::Map({

@@ -685,7 +685,7 @@ impl BitoproCore {
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("type".to_string(), (if is_true(&isFiat) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
         m.insert("name".to_string(), Value::Null);
-        m.insert("active".to_string(), (Value::Bool(is_true(&(deposit.as_bool() == Some(true))) && is_true(&(withdraw.as_bool() == Some(true))))));
+        m.insert("active".to_string(), (Value::Bool((deposit.as_bool() == Some(true)) && (withdraw.as_bool() == Some(true)))));
         m.insert("deposit".to_string(), deposit.clone());
         m.insert("withdraw".to_string(), withdraw.clone());
         m.insert("fee".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawFee", &[]));
@@ -1290,7 +1290,7 @@ impl BitoproCore {
         let mut i: Value = Value::Int(0);
         let mut candleLength: Value = get_array_length(&candles);
         let mut resultLength: Value = Value::Int(0);
-        while is_true(&(resultLength.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN))) && is_true(&(i.as_f64().unwrap_or(f64::NAN) < candleLength.as_f64().unwrap_or(f64::NAN))) {
+        while (resultLength.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (i.as_f64().unwrap_or(f64::NAN) < candleLength.as_f64().unwrap_or(f64::NAN)) {
             let mut candle: Value = get_value(&candles, &i);
             let mut candle: Value = get_value(&candles, &i);
             if is_equal(&get_value(&candle, &Value::Int(0)), &timestamp) {
@@ -1391,7 +1391,7 @@ impl BitoproCore {
                 m.insert("6".to_string(), Value::Str("canceled".to_string()));
             m
         });
-        return (if is_true(&(status == Value::Null)) { Value::Null } else { self.safe_string(statuses.clone(), status.clone(), &[]) });
+        return (if (status == Value::Null) { Value::Null } else { self.safe_string(statuses.clone(), status.clone(), &[]) });
 
     Value::Null
 }
@@ -2186,14 +2186,14 @@ impl BitoproCore {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("network")))) {
+        if (matches!(&params, Value::Dict(__d) if __d.contains_key("network"))) {
             let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut requestedNetwork: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("network".to_string())]), &[]);
-            let mut networkId: Value = (if is_true(&(requestedNetwork == Value::Null)) { Value::Null } else { self.safe_string(networks.clone(), requestedNetwork.clone(), &[]) });
+            let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks.clone(), requestedNetwork.clone(), &[]) });
             if (networkId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".to_string()))), requestedNetwork)));
             }
