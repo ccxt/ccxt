@@ -1339,7 +1339,7 @@ public partial class bitbank : Exchange
             };
             string? code = this.safeString(data, "code");
             string? message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, message);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, message);
             throw new ExchangeError ((string)((this.id + " ") + this.json(response))) ;
         }
         return null;

@@ -148,7 +148,7 @@ public partial class blofin : ccxt.blofin
         {
             object rawTrade = data[i];
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
-            string? symbol = ((string)getValue(trade, "symbol"));
+            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
             object stored = this.safeValue(this.trades, symbol);
             if ((stored == null))
             {
@@ -337,7 +337,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data[i]));
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             object messageHash = add(add(channelName, ":"), symbol);
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
             (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
@@ -402,7 +402,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(data[i]));
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             string messageHash = ("bidask:" + symbol);
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             (client as WebSocketClient).resolve(ticker, messageHash);
@@ -662,7 +662,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(data[i]));
-            string? symbol = ((string)getValue(order, "symbol"));
+            string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
             object messageHash = add(add(channelName, ":"), symbol);
             callDynamically(orders, "append", new object[] {order});
             (client as WebSocketClient).resolve(orders, messageHash);
@@ -726,7 +726,7 @@ public partial class blofin : ccxt.blofin
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(data[i]));
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
-            object messageHash = add(add(channelName, ":"), getValue(position, "symbol"));
+            object messageHash = add(add(channelName, ":"), (position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null));
             (client as WebSocketClient).resolve(position, messageHash);
         }
     }

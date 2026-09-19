@@ -1324,7 +1324,7 @@ public partial class digifinex : Exchange
                 { "date", date },
             }, tickers[i]);
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = ticker;
@@ -5205,7 +5205,7 @@ public partial class digifinex : Exchange
             throw new BadResponse ((string)feedback) ;
         }
         List<object> unknownError = new List<object>() {typeof(ExchangeError), feedback};
-        var ExceptionClassmessageVariable = this.safeValue(getValue(this.exceptions, "exact"), code, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, unknownError);
         var ExceptionClass = ((IList<object>) ExceptionClassmessageVariable)[0];
         var message = ((IList<object>) ExceptionClassmessageVariable)[1];
         throwDynamicException(ExceptionClass, message);return null;

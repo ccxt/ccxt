@@ -1231,7 +1231,7 @@ public partial class bitmex : ccxt.bitmex
                 }
                 Dictionary<string, object> order = this.parseOrder(rawOrder);
                 callDynamically(stored, "append", new object[] {order});
-                string? symbol = ((string)getValue(order, "symbol"));
+                string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
                 ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             }
             (client as WebSocketClient).resolve(this.orders, messageHash);
@@ -1838,7 +1838,7 @@ public partial class bitmex : ccxt.bitmex
             if (numArgs > 0)
             {
                 object messageHash = (args != null && 0 < args.Count ? args[0] : null);
-                object broad = getValue(getValue(this.exceptions, "ws"), "broad");
+                object broad = getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad");
                 string? broadKey = this.findBroadlyMatchedKey(broad, error);
                 object exception = null;
                 if ((broadKey == null))

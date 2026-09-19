@@ -13313,7 +13313,7 @@ public partial class kucoin : Exchange
     {
         if (((response == null)) || ((response == null)))
         {
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, body);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, body);
             return null;
         }
         //
@@ -13325,9 +13325,9 @@ public partial class kucoin : Exchange
         string? errorCode = this.safeString(response, "code");
         string? message = this.safeString2(response, "msg", "data", "");
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
+        this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+        this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+        this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
         if ((errorCode != "200000") && (errorCode != "200"))
         {
             throw new ExchangeError ((string)feedback) ;

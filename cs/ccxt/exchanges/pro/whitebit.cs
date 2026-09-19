@@ -530,7 +530,7 @@ public partial class whitebit : ccxt.whitebit
         object stored = this.myTrades;
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade));
         callDynamically(stored, "append", new object[] {parsed});
-        string? symbol = ((string)getValue(parsed, "symbol"));
+        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
@@ -683,7 +683,7 @@ public partial class whitebit : ccxt.whitebit
             { "status", status },
         }));
         callDynamically(stored, "append", new object[] {parsed});
-        string? symbol = ((string)getValue(parsed, "symbol"));
+        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string messageHash = ("orders:" + symbol);
         (client as WebSocketClient).resolve(this.orders, messageHash);
     }
@@ -1206,7 +1206,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), code, feedback);
+                this.throwExactlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, feedback);
             }
         } catch(Exception e)
         {

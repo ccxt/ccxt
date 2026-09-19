@@ -1330,7 +1330,7 @@ public partial class nado : ccxt.nado
                 Int64 id = ((Int64)this.requestId());
                 object requestParams = ((bool) ((subscriptionParams == null))) ? parameters : getValue(subscriptionParams, i);
                 Dictionary<string, object> request = this.createPublicSubscriptionRequest("subscribe", streamType, market, id, requestParams);
-                string subscribeHash = ("subscribe:" + this.json(getValue(request, "stream")));
+                string subscribeHash = ("subscribe:" + this.json((request != null && ((IDictionary<string, object>)request).ContainsKey("stream") ? ((IDictionary<string, object>)request)["stream"] : null)));
                 object streamSubscription = this.safeValue(((WebSocketClient)client).subscriptions, subscribeHash);
                 if ((streamSubscription == null))
                 {
@@ -1539,7 +1539,7 @@ public partial class nado : ccxt.nado
         }
         object trades = this.myTrades;
         callDynamically(trades, "append", new object[] {trade});
-        string? symbol = ((string)getValue(trade, "symbol"));
+        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         (client as WebSocketClient).resolve(trades, "myTrades");
         (client as WebSocketClient).resolve(trades, ("myTrades:" + symbol));
     }
@@ -1665,7 +1665,7 @@ public partial class nado : ccxt.nado
         }
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {order});
-        string? symbol = ((string)getValue(order, "symbol"));
+        string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
         (client as WebSocketClient).resolve(orders, "orders");
         (client as WebSocketClient).resolve(orders, ("orders:" + symbol));
     }
@@ -1763,7 +1763,7 @@ public partial class nado : ccxt.nado
         {
             callDynamically(positions, "append", new object[] {position});
         }
-        string? symbol = ((string)getValue(position, "symbol"));
+        string? symbol = ((string)(position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null));
         (client as WebSocketClient).resolve(positions, "positions");
         (client as WebSocketClient).resolve(positions, ("positions:" + symbol));
     }

@@ -987,7 +987,7 @@ public partial class gate : ccxt.gate
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
             Dictionary<string, object> parsedItem = this.parseTicker(rawTicker, market);
-            string? symbol = ((string)getValue(parsedItem, "symbol"));
+            string? symbol = ((string)(parsedItem != null && ((IDictionary<string, object>)parsedItem).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedItem)["symbol"] : null));
             if (isTicker)
             {
                 if ((symbol != null))
@@ -2182,10 +2182,10 @@ public partial class gate : ccxt.gate
             string? messageHash = this.safeString(((WebSocketClient)client).subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), code, this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, this.json(errs));
+                this.throwExactlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, this.json(message));
+                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, this.json(errs));
                 string? errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
-                this.throwBroadlyMatchedException(getValue(getValue(this.exceptions, "ws"), "broad"), errorMessage, this.json(message));
+                this.throwBroadlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad"), errorMessage, this.json(message));
                 throw new ExchangeError ((string)this.json(message)) ;
             } catch(Exception e)
             {

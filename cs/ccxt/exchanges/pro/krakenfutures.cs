@@ -878,7 +878,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)previousOrder)["trades"] = new List<object>() {};
                 }
                 ((IList<object>)getValue(previousOrder, "trades")).Add(trade);
-                ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = getValue(trade, "timestamp");
+                ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
                 string? totalCost = "0";
                 string? totalAmount = "0";
                 object trades = getValue(previousOrder, "trades");
@@ -893,7 +893,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)previousOrder)["average"] = Precise.stringDiv(totalCost, totalAmount);
                 }
                 ((IDictionary<string,object>)previousOrder)["cost"] = totalCost;
-                string? filledString = this.numberToString(getValue(trade, "amount"));
+                string? filledString = this.numberToString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null));
                 string? stringOrderFilled = this.safeString(previousOrder, "filled", "0");
                 string? totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
                 ((IDictionary<string,object>)previousOrder)["filled"] = totalFilled;
@@ -905,13 +905,13 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
                         { "rate", null },
                         { "cost", "0" },
-                        { "currency", this.numberToString(this.safeString(getValue(trade, "fee"), "currency")) },
+                        { "currency", this.numberToString(this.safeString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "currency")) },
                     };
                 }
-                if ((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber(getValue(trade, "fee"), "cost"), null)))
+                if ((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
                 {
                     string? stringOrderCost = this.numberToString(getValue(getValue(previousOrder, "fee"), "cost"));
-                    string? stringTradeCost = this.numberToString(this.safeNumber(getValue(trade, "fee"), "cost"));
+                    string? stringTradeCost = this.numberToString(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"));
                     ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
@@ -1027,7 +1027,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             object order = orders[i];
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order));
-            string? symbol = ((string)getValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)symbols)[(string)symbol] = true;
@@ -1169,7 +1169,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1201,7 +1201,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -1264,7 +1264,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         string? marketId = this.safeString(ticker, "product_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        string? symbol = ((string)getValue(marketResolved, "symbol"));
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1675,9 +1675,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             object trade = trades[i];
             Dictionary<string, object> parsedTrade = ((Dictionary<string, object>)this.parseWsMyTrade(trade));
-            if (!isEqual(getValue(parsedTrade, "symbol"), null))
+            if (!isEqual((parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null), null))
             {
-                ((IDictionary<string,object>)tradeSymbols)[(string)getValue(parsedTrade, "symbol")] = true;
+                ((IDictionary<string,object>)tradeSymbols)[(string)(parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null)] = true;
             }
             callDynamically(stored, "append", new object[] {parsedTrade});
         }

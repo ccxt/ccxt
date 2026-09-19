@@ -3626,10 +3626,10 @@ public partial class deepcoin : Exchange
         }
         if ((!isEqual(code, 200)) || ((messageCode != "0")) || ((sCode != null) && (sCode != "0")))
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), messageCode, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), sCode, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), msg, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), messageCode, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), sCode, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), msg, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
             throw new ExchangeError ((string)feedback) ;
         } else
         {

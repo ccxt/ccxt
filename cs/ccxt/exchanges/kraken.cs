@@ -4162,8 +4162,8 @@ public partial class kraken : Exchange
                         for (int i = 0; i < getArrayLength(getValue(response, "error")); i++)
                         {
                             object error = getValue(getValue(response, "error"), i);
-                            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
-                            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, message);
+                            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, message);
+                            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, message);
                         }
                         throw new ExchangeError ((string)message) ;
                     }
@@ -4181,8 +4181,8 @@ public partial class kraken : Exchange
                             string? error = this.safeString(order, "error");
                             if ((error != null))
                             {
-                                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
-                                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, message);
+                                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, message);
+                                this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, message);
                                 throw new ExchangeError ((string)message) ;
                             }
                         }

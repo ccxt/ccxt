@@ -1475,8 +1475,8 @@ public partial class deepcoin : ccxt.deepcoin
         string feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), messageText, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageText, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), messageText, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageText, feedback);
             throw new ExchangeError ((string)feedback) ;
         } catch(Exception e)
         {

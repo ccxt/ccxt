@@ -652,8 +652,8 @@ public partial class kalshi : PredictionExchange
         {
             string? errorCode = this.safeString(error, "code");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorCode, feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
@@ -911,7 +911,7 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
+        string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
         };
@@ -1008,7 +1008,7 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
+        string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
         };
@@ -1206,7 +1206,7 @@ public partial class kalshi : PredictionExchange
         for (int i = 0; i < (targets?.Count ?? 0); i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(targets[i]);
-            string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
+            string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
             if ((ticker == null))
             {
                 continue;
@@ -1282,8 +1282,8 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
-        bool isNo = isEqual(getValue(outcomeObj, "label"), "NO");
+        string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
+        bool isNo = isEqual((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("label") ? ((IDictionary<string, object>)outcomeObj)["label"] : null), "NO");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
         };
@@ -1385,8 +1385,8 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
-        string? seriesTicker = this.safeString(getValue(outcomeObj, "info"), "seriesTicker", ticker);
+        string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
+        string? seriesTicker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "seriesTicker", ticker);
         Int64? periodMin = this.safeInteger(this.timeframes, timeframeVar);
         if (isEqual(periodMin, null))
         {
@@ -1548,7 +1548,7 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
+        string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
         };
@@ -2316,8 +2316,8 @@ public partial class kalshi : PredictionExchange
         }
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
-        bool isNo = (isEqual(getValue(outcomeObj, "label"), "NO"));
+        string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
+        bool isNo = (isEqual((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("label") ? ((IDictionary<string, object>)outcomeObj)["label"] : null), "NO"));
         bool isBuy = (isEqual(side, "buy"));
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -2392,7 +2392,7 @@ public partial class kalshi : PredictionExchange
         {
             ((IDictionary<string,object>)order)["remaining"] = remainingCount;
         }
-        if (isEqual(getValue(order, "status"), null))
+        if (isEqual((order != null && ((IDictionary<string, object>)order).ContainsKey("status") ? ((IDictionary<string, object>)order)["status"] : null), null))
         {
             string resolvedStatus = "open";
             if ((!isEqual(remainingCount, null)) && (isEqual(remainingCount, 0)))
@@ -2464,11 +2464,11 @@ public partial class kalshi : PredictionExchange
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
         Dictionary<string, object> order = this.parsePredictionOrder(this.safeDict(response, "order", response), outcomeObj);
-        if (isEqual(getValue(order, "id"), null))
+        if (isEqual((order != null && ((IDictionary<string, object>)order).ContainsKey("id") ? ((IDictionary<string, object>)order)["id"] : null), null))
         {
             ((IDictionary<string,object>)order)["id"] = id;
         }
-        if (isEqual(getValue(order, "status"), null))
+        if (isEqual((order != null && ((IDictionary<string, object>)order).ContainsKey("status") ? ((IDictionary<string, object>)order)["status"] : null), null))
         {
             ((IDictionary<string,object>)order)["status"] = "canceled";
         }
@@ -2500,7 +2500,7 @@ public partial class kalshi : PredictionExchange
         if ((outcome != null))
         {
             IDictionary<string, object> outcomeObj = this.outcome(outcome);
-            ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
+            ((IDictionary<string,object>)request)["ticker"] = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
         }
         Dictionary<string, object> restingResponse = await this.kalshiPrivateGetPortfolioOrders(request);
         List<object> restingOrders = this.safeList(restingResponse, "orders", new List<object>() {});

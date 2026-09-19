@@ -1452,7 +1452,7 @@ public partial class bitflyer : Exchange
         Int64? statusCode = this.safeInteger(response, "status");
         if ((errorMessage != null))
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), statusCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

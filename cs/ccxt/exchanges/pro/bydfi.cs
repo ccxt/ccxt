@@ -322,7 +322,7 @@ public partial class bydfi : ccxt.bydfi
         //     }
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         string messageHash = ("ticker::" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
@@ -1177,9 +1177,9 @@ public partial class bydfi : ccxt.bydfi
         string? code = this.safeString(message, "code");
         string? msg = this.safeString(message, "msg");
         string feedback = ((this.id + " ") + this.json(message));
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), msg, feedback);
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), msg, feedback);
+        this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
+        this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
 

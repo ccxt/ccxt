@@ -5464,7 +5464,7 @@ public partial class mexc : Exchange
             if ((rawNetwork != null))
             {
                 parameters = this.omit(parameters, "network");
-                ((IDictionary<string,object>)request)["coin"] = add(add(getValue(request, "coin"), "-"), rawNetwork);
+                ((IDictionary<string,object>)request)["coin"] = add(add((request != null && ((IDictionary<string, object>)request).ContainsKey("coin") ? ((IDictionary<string, object>)request)["coin"] : null), "-"), rawNetwork);
             }
         }
         if (!isEqual(since, null))
@@ -6561,7 +6561,7 @@ public partial class mexc : Exchange
             object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("networks") ? ((IDictionary<string, object>)result)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", this.safeNumber(networkEntry, "withdrawFee") },
                         { "percentage", null },
@@ -6954,8 +6954,8 @@ public partial class mexc : Exchange
         if (((responseCode != null)) && ((responseCode != "200")) && ((responseCode != "0")))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), responseCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

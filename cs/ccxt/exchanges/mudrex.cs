@@ -308,9 +308,9 @@ public partial class mudrex : Exchange
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
             string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), text, ((this.id + " ") + text));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, ((this.id + " ") + text));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errCode, ((this.id + " ") + text));
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = ((string)text).ToLower();
             if (isEqual(code, 401) || ((string)low).IndexOf("auth", StringComparison.Ordinal) >= 0)
@@ -509,7 +509,7 @@ public partial class mudrex : Exchange
                 continue;
             }
             Dictionary<string, object> m = this.safeMarket(sym);
-            string? symbol = ((string)getValue(m, "symbol"));
+            string? symbol = ((string)(m != null && ((IDictionary<string, object>)m).ContainsKey("symbol") ? ((IDictionary<string, object>)m)["symbol"] : null));
             if ((symbols != null) && !this.inArray(symbol, symbols))
             {
                 continue;

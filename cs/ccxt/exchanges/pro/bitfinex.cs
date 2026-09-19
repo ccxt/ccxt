@@ -421,7 +421,7 @@ public partial class bitfinex : ccxt.bitfinex
         string name = "myTrade";
         object data = this.safeValue(message, 2);
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
-        string? symbol = ((string)getValue(trade, "symbol"));
+        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((this.myTrades == null))
@@ -1271,7 +1271,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 object value = data[i];
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(value));
-                object symbol = getValue(parsed, "symbol");
+                object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
                 ((IDictionary<string,object>)symbolIds)[(string)((string)symbol)] = true;
                 callDynamically(orders, "append", new object[] {parsed});
             }
@@ -1279,7 +1279,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(data));
             callDynamically(orders, "append", new object[] {parsed});
-            object symbol = getValue(parsed, "symbol");
+            object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
             ((IDictionary<string,object>)symbolIds)[(string)((string)symbol)] = true;
         }
         string name = "orders";

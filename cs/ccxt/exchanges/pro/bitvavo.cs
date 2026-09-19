@@ -189,7 +189,7 @@ public partial class bitvavo : ccxt.bitvavo
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             object messageHash = add(add(eventVar, "@"), marketId);
             Dictionary<string, object> ticker = this.parseTicker(data, market);
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
             ((IList<object>)result).Add(ticker);
             (client as WebSocketClient).resolve(ticker, messageHash);
@@ -228,7 +228,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             object data = tickers[i];
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(data));
-            string? symbol = ((string)getValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             ((IList<object>)result).Add(ticker);
             string messageHash = ((eventVar + ":") + symbol);

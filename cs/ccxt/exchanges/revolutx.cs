@@ -1615,7 +1615,7 @@ public partial class revolutx : Exchange
             }
             if ((errorMessage != null))
             {
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+                this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
             }
             return null;
         }

@@ -1351,7 +1351,7 @@ public partial class kraken : ccxt.kraken
                 IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade));
                 callDynamically(stored, "append", new object[] {parsed});
-                string symbol = ((string)getValue(parsed, "symbol"));
+                string symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
                 ((IDictionary<string,object>)symbols)[(string)symbol] = true;
             }
             string name = "myTrades";
@@ -1782,7 +1782,7 @@ public partial class kraken : ccxt.kraken
         if ((errorMessage != null))
         {
             string? requestId = this.safeString2(message, "reqid", "req_id");
-            object broad = getValue(getValue(this.exceptions, "ws"), "broad");
+            object broad = getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad");
             string? broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
             object exception = null;
             if ((broadKey == null))

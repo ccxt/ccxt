@@ -815,7 +815,7 @@ public partial class grvt : ccxt.grvt
         }
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsMyTrade(data));
         callDynamically(this.myTrades, "append", new object[] {trade});
-        (client as WebSocketClient).resolve(this.myTrades, ("myTrades::" + (getValue(trade, "symbol"))));
+        (client as WebSocketClient).resolve(this.myTrades, ("myTrades::" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null))));
         (client as WebSocketClient).resolve(this.myTrades, "myTrades");
     }
 
@@ -1043,7 +1043,7 @@ public partial class grvt : ccxt.grvt
         Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(data));
         callDynamically(this.orders, "append", new object[] {order});
         (client as WebSocketClient).resolve(this.orders, "orders");
-        (client as WebSocketClient).resolve(this.orders, ("order::" + (getValue(order, "symbol"))));
+        (client as WebSocketClient).resolve(this.orders, ("order::" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null))));
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -1072,9 +1072,9 @@ public partial class grvt : ccxt.grvt
             string body = this.json(response);
             string feedback = ((this.id + " ") + body);
             string? message = this.safeString(error, "message");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             throw new ExchangeError ((string)((this.id + " ") + body)) ;
         }
         return ((bool?)((object)(false)));

@@ -1614,7 +1614,7 @@ public partial class bingx : ccxt.bingx
             if ((code != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
             }
         } catch(Exception e)
         {
@@ -1837,7 +1837,7 @@ public partial class bingx : ccxt.bingx
         object stored = this.orders;
         Dictionary<string, object> parsedOrder = this.parseOrder(data);
         callDynamically(stored, "append", new object[] {parsedOrder});
-        string? symbol = ((string)getValue(parsedOrder, "symbol"));
+        string? symbol = ((string)(parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedOrder)["symbol"] : null));
         string spotHash = "spot:order";
         string swapHash = "swap:order";
         string messageHash = ((bool) (isSpot)) ? spotHash : swapHash;
@@ -1916,7 +1916,7 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(result, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
         Dictionary<string, object> parsed = this.parseTrade(result, market);
-        string? symbol = ((string)getValue(parsed, "symbol"));
+        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string spotHash = "spot:mytrades";
         string swapHash = "swap:mytrades";
         string messageHash = ((bool) isSpot) ? spotHash : swapHash;

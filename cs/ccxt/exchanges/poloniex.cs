@@ -3542,7 +3542,7 @@ public partial class poloniex : Exchange
     {
         Dictionary<string, object> depositWithdrawFee = this.depositWithdrawFee(new Dictionary<string, object>() {});
         string? currencyCode = this.safeString(currency, "code");
-        ((IDictionary<string,object>)getValue(depositWithdrawFee, "info"))[(string)((string)currencyCode)] = fee;
+        ((IDictionary<string,object>)(depositWithdrawFee != null && ((IDictionary<string, object>)depositWithdrawFee).ContainsKey("info") ? ((IDictionary<string, object>)depositWithdrawFee)["info"] : null))[(string)((string)currencyCode)] = fee;
         string? networkId = this.safeString(fee, "blockchain");
         double? withdrawFee = this.safeNumber(fee, "withdrawalFee");
         Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
@@ -3558,7 +3558,7 @@ public partial class poloniex : Exchange
         object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)getValue(depositWithdrawFee, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)(depositWithdrawFee != null && ((IDictionary<string, object>)depositWithdrawFee).ContainsKey("networks") ? ((IDictionary<string, object>)depositWithdrawFee)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                 { "withdraw", withdrawResult },
                 { "deposit", depositResult },
             };
@@ -4205,8 +4205,8 @@ public partial class poloniex : Exchange
         {
             string? message = this.safeString2(response, "message", "msg");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), responseCode, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

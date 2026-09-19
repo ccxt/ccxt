@@ -1259,10 +1259,10 @@ public partial class indodax : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         Dictionary<string, object> result = this.depositWithdrawFee(response);
-        ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(data, "withdraw_fee");
-        ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
-        ((IDictionary<string,object>)getValue(result, "deposit"))["fee"] = 0;
-        ((IDictionary<string,object>)getValue(result, "deposit"))["percentage"] = false;
+        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("withdraw") ? ((IDictionary<string, object>)result)["withdraw"] : null))["fee"] = this.safeNumber(data, "withdraw_fee");
+        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("withdraw") ? ((IDictionary<string, object>)result)["withdraw"] : null))["percentage"] = false;
+        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("deposit") ? ((IDictionary<string, object>)result)["deposit"] : null))["fee"] = 0;
+        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("deposit") ? ((IDictionary<string, object>)result)["deposit"] : null))["percentage"] = false;
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));
     }
 
@@ -1716,8 +1716,8 @@ public partial class indodax : Exchange
             }
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+        this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
+        this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
 }

@@ -2722,7 +2722,7 @@ public partial class woo : Exchange
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-                if (((getValue(firstMarket, "swap") as bool?) != true))
+                if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("swap") ? ((IDictionary<string, object>)firstMarket)["swap"] : null) as bool?) != true))
                 {
                     throw new NotSupported ((string)(this.id + " fetchTickers() supports swap markets only")) ;
                 }
@@ -3960,8 +3960,8 @@ public partial class woo : Exchange
         if ((success != true))
         {
             string feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
         }
         return null;
     }
@@ -5206,7 +5206,7 @@ public partial class woo : Exchange
     public virtual object defaultNetworkCodeForCurrency(object code)
     {
         Dictionary<string, object> currencyItem = this.currency(((string)code));
-        object networks = getValue(currencyItem, "networks");
+        object networks = (currencyItem != null && ((IDictionary<string, object>)currencyItem).ContainsKey("networks") ? ((IDictionary<string, object>)currencyItem)["networks"] : null);
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (int i = 0; i < networkKeys.Count; i++)
         {

@@ -4755,8 +4755,8 @@ public partial class hashkey : Exchange
         if ((!isEqual(code, 200)) || errorInArray)
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), responseCodeString, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCodeString, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), responseCodeString, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), responseCodeString, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

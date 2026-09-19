@@ -103,7 +103,7 @@ public partial class alpaca : ccxt.alpaca
         //    ]
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         string messageHash = ("ticker:" + symbol);
         if ((symbol != null))
         {
@@ -533,7 +533,7 @@ public partial class alpaca : ccxt.alpaca
         callDynamically(orders, "append", new object[] {order});
         string messageHash = "orders";
         (client as WebSocketClient).resolve(orders, messageHash);
-        messageHash = ("orders:" + (getValue(order, "symbol")));
+        messageHash = ("orders:" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null)));
         (client as WebSocketClient).resolve(orders, messageHash);
     }
 

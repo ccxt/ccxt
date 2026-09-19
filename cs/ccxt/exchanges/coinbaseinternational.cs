@@ -2776,8 +2776,8 @@ public partial class coinbaseinternational : Exchange
         string? errMsg = this.safeString(response, "title");
         if ((errMsg != null))
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errMsg, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errMsg, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errMsg, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errMsg, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

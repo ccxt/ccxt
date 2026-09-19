@@ -1436,7 +1436,7 @@ public partial class backpack : ccxt.backpack
         ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
         callDynamically(cache, "append", new object[] {parsedPosition});
-        string symbolSpecificMessageHash = ((messageHash + ":") + (getValue(parsedPosition, "symbol")));
+        string symbolSpecificMessageHash = ((messageHash + ":") + ((parsedPosition != null && ((IDictionary<string, object>)parsedPosition).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedPosition)["symbol"] : null)));
         (client as WebSocketClient).resolve(new List<object>() {parsedPosition}, messageHash);
         (client as WebSocketClient).resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);
     }
@@ -1467,7 +1467,7 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(position, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        string? symbol = ((string)getValue(marketResolved, "symbol"));
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? notional = this.safeString(position, "n");
         string? liquidationPrice = this.safeString(position, "l");
         string? entryPrice = this.safeString(position, "b");

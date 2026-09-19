@@ -3362,7 +3362,7 @@ public partial class bitmex : Exchange
         if (inOp(this.currencies, symbolVar))
         {
             Dictionary<string, object> code = this.currency(((string)symbolVar));
-            ((IDictionary<string,object>)request)["symbol"] = getValue(code, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (code != null && ((IDictionary<string, object>)code).ContainsKey("id") ? ((IDictionary<string, object>)code)["id"] : null);
         } else if ((symbolVar != null))
         {
             List<object> splitSymbol = ((string)symbolVar).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
@@ -3371,7 +3371,7 @@ public partial class bitmex : Exchange
             if ((splitSymbolLength > 1) && this.inArray((splitSymbol != null && 1 < splitSymbol.Count ? splitSymbol[1] : null), timeframes))
             {
                 Dictionary<string, object> code = this.currency(((string)(splitSymbol != null && 0 < splitSymbol.Count ? splitSymbol[0] : null)));
-                symbolVar = add(add(getValue(code, "id"), ":"), (splitSymbol != null && 1 < splitSymbol.Count ? splitSymbol[1] : null));
+                symbolVar = add(add((code != null && ((IDictionary<string, object>)code).ContainsKey("id") ? ((IDictionary<string, object>)code)["id"] : null), ":"), (splitSymbol != null && 1 < splitSymbol.Count ? splitSymbol[1] : null));
                 ((IDictionary<string,object>)request)["symbol"] = symbolVar;
             } else
             {
@@ -4279,8 +4279,8 @@ public partial class bitmex : Exchange
             IDictionary<string, object> error = this.safeDict(response, "error", new Dictionary<string, object>() {});
             string? message = this.safeString(error, "message");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             if (isEqual(code, 400))
             {
                 throw new BadRequest ((string)feedback) ;

@@ -959,9 +959,9 @@ public partial class extended : ccxt.extended
         }
         string feedback = ((this.id + " ") + this.json(message));
         string? errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+        this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
         string? errorMessage = this.safeString(error, "message");
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+        this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
 

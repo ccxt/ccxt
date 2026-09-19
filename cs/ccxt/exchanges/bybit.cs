@@ -7330,8 +7330,8 @@ public partial class bybit : Exchange
         List<object> chains = this.safeList(result, "chains", new List<object>() {});
         string? coin = this.safeString(result, "coin");
         Dictionary<string, object> currencyFromResponse = this.currency(((string)coin));
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currencyFromResponse, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currencyFromResponse, "code") },
+        object parsed = this.parseDepositAddresses(chains, new List<object>() {(currencyFromResponse != null && ((IDictionary<string, object>)currencyFromResponse).ContainsKey("code") ? ((IDictionary<string, object>)currencyFromResponse)["code"] : null)}, false, new Dictionary<string, object>() {
+            { "currency", (currencyFromResponse != null && ((IDictionary<string, object>)currencyFromResponse).ContainsKey("code") ? ((IDictionary<string, object>)currencyFromResponse)["code"] : null) },
         });
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
@@ -11871,8 +11871,8 @@ public partial class bybit : Exchange
             {
                 feedback = add(feedback, "; You might also need to ensure the address is whitelisted");
             }
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

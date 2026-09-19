@@ -686,7 +686,7 @@ public partial class woo : ccxt.woo
             }
             ((IDictionary<string,object>)ticker)["ts"] = timestamp;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsBidAsk(ticker));
-            string? symbol = ((string)getValue(parsedTicker, "symbol"));
+            string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
@@ -1425,7 +1425,7 @@ public partial class woo : ccxt.woo
         }
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
         callDynamically(myTrades, "append", new object[] {trade});
-        string messageHash = ("myTrades:" + (getValue(trade, "symbol")));
+        string messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
         (client as WebSocketClient).resolve(myTrades, messageHash);
         messageHash = "myTrades";
         (client as WebSocketClient).resolve(myTrades, messageHash);
@@ -1740,7 +1740,7 @@ public partial class woo : ccxt.woo
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
+                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
             }
             return ((bool?)((object)(false)));
         } catch(Exception error)
