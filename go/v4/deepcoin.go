@@ -690,7 +690,7 @@ func (this *Deepcoin) ParseMarket(market any) any {
 	if swap {
 		isLinear = (quoteId == nil || *quoteId != "USD")
 		settleId = func() any {
-			if EvalTruthy(isLinear) {
+			if isLinear == true {
 				return quoteId
 			}
 			return baseId
@@ -888,7 +888,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 		params = this.Extend(params, map[string]any{
 			"calculateUntil": true,
 		})
@@ -1329,7 +1329,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes102219 := (<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "code", nil, 1, 50))
 		PanicOnError(retRes102219)
@@ -1404,7 +1404,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes107019 := (<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "code", nil, 1, 50))
 		PanicOnError(retRes107019)
@@ -2229,7 +2229,7 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar any, params any) 
 	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "post_only")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		typeVar = "post_only"
 	}
 	var timeInForce any = this.HandleTimeInForce(params)
@@ -2510,7 +2510,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes196119 := (<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params))
 		PanicOnError(retRes196119)
@@ -2966,7 +2966,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	merged = GetValue(mergedparamsVariable, 0)
 	params = GetValue(mergedparamsVariable, 1)
 	var isMergedMode int = func() int {
-		if EvalTruthy(merged) {
+		if merged == true {
 			return 1
 		}
 		return 0
@@ -3830,7 +3830,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes297019 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
 		PanicOnError(retRes297019)

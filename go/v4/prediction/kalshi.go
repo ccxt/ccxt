@@ -875,12 +875,12 @@ func (this *Kalshi) ParseMarket(raw any) any {
 		if resolved && (result != nil) && (result == nil || *result != "") {
 			winnerRaw = (ccxt.IsEqual(ccxt.ToLower(label), result))
 			settleFractionRaw = func() int {
-				if ccxt.EvalTruthy((winnerRaw)) {
+				if winnerRaw == true {
 					return 1
 				}
 				return 0
 			}()
-			if ccxt.EvalTruthy(winnerRaw) {
+			if winnerRaw == true {
 				resolvedOutcome = outcomeHandle
 			}
 		}

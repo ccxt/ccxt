@@ -1096,7 +1096,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets := (<-this.base.LoadMarketsAsync(reload, params))
 	ccxt.PanicOnError(markets)
 	var marketsByWsName any = this.SafeDict(this.Options, "marketsByWsName")
-	if (ccxt.IsEqual(marketsByWsName, nil)) || ccxt.EvalTruthy(reload) {
+	if (ccxt.IsEqual(marketsByWsName, nil)) || (reload == true) {
 		marketsByWsName = map[string]any{}
 		var symbols any = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
 		if !ccxt.IsEqual(symbols, nil) {

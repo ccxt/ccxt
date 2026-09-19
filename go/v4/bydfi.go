@@ -1062,7 +1062,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
 		return nil
@@ -1634,7 +1634,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	hedged = GetValue(hedgedparamsVariable, 0)
 	params = GetValue(hedgedparamsVariable, 1)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
-	if EvalTruthy(hedged) {
+	if hedged == true {
 		params = this.Omit(params, "reduceOnly")
 		if IsEqual(side, "buy") {
 			request["positionSide"] = func() string {
@@ -1664,7 +1664,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (IsEqual(timeInForce, "POST_ONLY")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		timeInForce = "POST_ONLY"
 	}
 	if timeInForce != nil {
@@ -2016,7 +2016,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
 	params = GetValue(triggerparamsVariable, 1)
-	if !EvalTruthy(trigger) {
+	if !(trigger == true) {
 		//
 		//     {
 		//         "code": 200,
@@ -2117,7 +2117,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrder", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
 	params = GetValue(triggerparamsVariable, 1)
-	if !EvalTruthy(trigger) {
+	if !(trigger == true) {
 
 		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params)))
 		PanicOnError(response)

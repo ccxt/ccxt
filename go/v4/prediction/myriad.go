@@ -2908,12 +2908,12 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 		if hasResolution {
 			winnerRaw = (outcomeId == resolvedOutcomeId || (outcomeId != nil && resolvedOutcomeId != nil && *outcomeId == *resolvedOutcomeId))
 			settleFractionRaw = func() int {
-				if ccxt.EvalTruthy(winnerRaw) {
+				if winnerRaw == true {
 					return 1
 				}
 				return 0
 			}()
-			if ccxt.EvalTruthy(winnerRaw) {
+			if winnerRaw == true {
 				resolvedOutcome = outcomeHandle
 			}
 		} else if voided != nil && *voided == true {
@@ -4229,7 +4229,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan any, url any) any {
 		ch <- retRes322119
 		return nil
 	}
-	if ccxt.EvalTruthy(this.SafeBool(this.Options, "wsConnected", false)) {
+	if this.SafeBool(this.Options, "wsConnected", false) != nil && *this.SafeBool(this.Options, "wsConnected", false) {
 
 		// the connect reply already arrived on this connection — safe to subscribe immediately
 		return nil

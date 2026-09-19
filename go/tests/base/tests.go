@@ -559,7 +559,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 									return nil
 								}
 								// If public test faces authentication error, we don't break (see comments under `testSafe` method)
-								if EvalTruthy(isPublic) && isAuthError {
+								if (isPublic == true) && isAuthError {
 									if EvalTruthy(this.Info) {
 										// todo - turn into warning
 										Dump("[INFO]", exchange.GetId(), methodName, argsStringified, lastUrlMsg, "Authentication problem for public method", ExceptionMessage(e))
@@ -784,9 +784,9 @@ func (this *testMainClass) GetMarketsFromExchange(exchange ccxt.ICoreExchange, o
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var market any = GetValue(markets, key)
-		if EvalTruthy(spot) && (IsEqual(GetValue(market, "spot"), true)) {
+		if (spot == true) && (IsEqual(GetValue(market, "spot"), true)) {
 			AddElementToObject(res, GetValue(market, "symbol"), market)
-		} else if !EvalTruthy(spot) && (!IsEqual(GetValue(market, "spot"), true)) {
+		} else if !(spot == true) && (!IsEqual(GetValue(market, "spot"), true)) {
 			AddElementToObject(res, GetValue(market, "symbol"), market)
 		}
 	}
@@ -800,7 +800,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	var spotSymbols []any = []any{"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"}
 	var swapSymbols []any = []any{"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"}
 	var targetSymbols any = func() any {
-		if EvalTruthy(spot) {
+		if spot == true {
 			return spotSymbols
 		}
 		return swapSymbols
@@ -1821,7 +1821,7 @@ func (this *testMainClass) startTestBody(ch chan any, exchange ccxt.ICoreExchang
 
 			result := (<-this.LoadExchangeAsync(exchange))
 			PanicOnError(result)
-			if !EvalTruthy(result) {
+			if !(result == true) {
 				if !EvalTruthy(IsSync()) {
 
 					retRes143920 := (<-Close(exchange))
@@ -2060,7 +2060,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 	}
 	var newOutputIsEmpty any = this.IsEmptyOutputValue(exchange, newOutput)
 	var storedOutputIsEmpty any = this.IsEmptyOutputValue(exchange, storedOutput)
-	if EvalTruthy(newOutputIsEmpty) && EvalTruthy(storedOutputIsEmpty) {
+	if (newOutputIsEmpty == true) && (storedOutputIsEmpty == true) {
 		return true
 	}
 	if this.Lang == "C#" {
@@ -2152,7 +2152,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 			return "undefined"
 		}()
 		var messageError any = "output value mismatch:" + newOutputString + " != " + storedOutputString
-		if EvalTruthy(strictTypeCheck) && (this.Lang != "C#") {
+		if (strictTypeCheck == true) && (this.Lang != "C#") {
 			// upon building the request we want strict type check to make sure all the types are correct
 			// when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
 			this.AssertStaticError(IsEqual(sanitizedNewOutput, sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey)
@@ -2568,7 +2568,7 @@ func (this *testMainClass) injectWsMessagesBody(ch chan any, exchange ccxt.ICore
 
 	retRes20318 := (<-exchange.Sleep(50))
 	PanicOnError(retRes20318)
-	if EvalTruthy(sequential) {
+	if sequential == true {
 		// a watch call of a sequence can register its future after every
 		// frame was already consumed — keep rejecting until the watch side
 		// reports completion (the rejections force it to finish). the time
@@ -3230,7 +3230,7 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 		var exchangeName string = GetValue(exchanges, i).(string)
 		var exchangeData any = GetValue(staticData, exchangeName)
 		var disabled any = this.CheckIfExchangeIsDisabled(exchangeName, exchangeData)
-		if EvalTruthy(disabled) {
+		if disabled == true {
 			continue
 		}
 		var numberOfTests any = this.GetNumberOfTestsFromExchange(exchange, exchangeData, testName)

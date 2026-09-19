@@ -914,7 +914,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			settleId = feeCurrencyId
 			settle = DerefScalar(this.SafeCurrencyCode(settleId))
 			linear = ((quote != nil) && (IsEqual(quote, settle)))
-			inverse = !EvalTruthy(linear)
+			inverse = !(linear == true)
 			symbol = Add(Add(symbol, ":"), settle)
 			if future {
 				symbol = Add(Add(symbol, "-"), expiry)
@@ -2267,7 +2267,7 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes187519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
 		PanicOnError(retRes187519)
@@ -3692,7 +3692,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes296519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
 		PanicOnError(retRes296519)

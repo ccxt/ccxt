@@ -1601,7 +1601,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes117219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
 		PanicOnError(retRes117219)
@@ -1717,7 +1717,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes126619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
 		PanicOnError(retRes126619)
@@ -2295,7 +2295,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes172319 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", nil, since, limit, params, maxLimit))
 		PanicOnError(retRes172319)
@@ -2357,7 +2357,7 @@ func (this *Grvt) FilterTransfersByType(transfers any, transferType any, optiona
 	var nonMatchedResults []any = []any{}
 	for i := 0; i < GetArrayLength(transfers); i++ {
 		var transfer any = GetValue(transfers, i)
-		if (EvalTruthy(onlyMainAccount) && IsEqual(GetValue(transfer, "fromAccount"), "0") && IsEqual(GetValue(transfer, "toAccount"), "0")) || (!EvalTruthy(onlyMainAccount) && (!IsEqual(GetValue(transfer, "fromAccount"), "0") || !IsEqual(GetValue(transfer, "toAccount"), "0"))) {
+		if ((onlyMainAccount == true) && IsEqual(GetValue(transfer, "fromAccount"), "0") && IsEqual(GetValue(transfer, "toAccount"), "0")) || (!(onlyMainAccount == true) && (!IsEqual(GetValue(transfer, "fromAccount"), "0") || !IsEqual(GetValue(transfer, "toAccount"), "0"))) {
 			var metadata *string = this.SafeString(GetValue(transfer, "info"), "transfer_metadata")
 			var parsedMetadata any = this.ParseJson(metadata)
 			var direction *string = this.SafeString(parsedMetadata, "direction")
@@ -2968,7 +2968,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		"nonce":        GetValue(GetValue(order, "signature"), "nonce"),
 		"expiration":   GetValue(GetValue(order, "signature"), "expiration"),
 	}
-	if (IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE")) && EvalTruthy(this.SafeBool(this.Options, "builderFee", true)) {
+	if (IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE")) && (this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
 		returnValue["builder"] = GetValue(order, "builder")
 		returnValue["builderFee"] = this.ParseToInt(Multiply(this.ConvertToBigIntCustom(this.FeeAmountMultiplier()), ParseFloat(GetValue(order, "builder_fee")))) // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
 	}
@@ -3011,7 +3011,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes228519 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
 		PanicOnError(retRes228519)
@@ -3450,7 +3450,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes261519 := (<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, params, 1000))
 		PanicOnError(retRes261519)

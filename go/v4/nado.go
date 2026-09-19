@@ -3824,12 +3824,12 @@ func (this *Nado) PadHex(value any, length any, optionalArgs ...any) any {
 	}
 	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	var padded any = func() any {
-		if EvalTruthy(left) {
+		if left == true {
 			return (Add(zeros, value))
 		}
 		return (Add(value, zeros))
 	}()
-	if EvalTruthy(left) {
+	if left == true {
 		var start any = Subtract(GetLength(padded), length)
 		return Slice(padded, start, GetLength(padded))
 	}

@@ -6069,7 +6069,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes506919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
 		PanicOnError(retRes506919)

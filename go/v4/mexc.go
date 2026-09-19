@@ -2271,7 +2271,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if IsEqual(id, nil) && EvalTruthy(this.SafeBool(this.Options, "useCcxtTradeId", true)) {
+	if IsEqual(id, nil) && (this.SafeBool(this.Options, "useCcxtTradeId", true) != nil && *this.SafeBool(this.Options, "useCcxtTradeId", true)) {
 		id = this.CreateCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker)
 	}
 	return this.SafeTrade(map[string]any{
@@ -2340,7 +2340,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes185819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
 		PanicOnError(retRes185819)

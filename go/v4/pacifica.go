@@ -1644,7 +1644,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes124319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
 		PanicOnError(retRes124319)
@@ -1833,7 +1833,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var defaultLimit int = 100 // Default max limit
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes138819 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
 		PanicOnError(retRes138819)
@@ -2762,7 +2762,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var defaultLimit int = 100 // Default max limit
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes211019 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
 		PanicOnError(retRes211019)
@@ -3164,7 +3164,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var defaultLimit int = 100 // max default 100
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes237619 := (<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
 		PanicOnError(retRes237619)
@@ -4073,7 +4073,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var defaultLimit int = 100 // Default max limit
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes308419 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
 		PanicOnError(retRes308419)
@@ -4218,7 +4218,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 	var defaultLimit int = 100
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes320019 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
 		PanicOnError(retRes320019)
@@ -4651,7 +4651,7 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 		error = true
 	}
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
-	if EvalTruthy(error) || nonEmptyMessage {
+	if (error == true) || nonEmptyMessage {
 		var feedback any = Add(this.Id+" ", body)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback) // Try deeper catch first
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], inCode, feedback)
@@ -4673,7 +4673,7 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"

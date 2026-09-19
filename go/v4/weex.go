@@ -1988,7 +1988,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 		params = this.Extend(params, map[string]any{
 			"historical": true,
 		})
@@ -2016,7 +2016,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 	if limit != nil {
 		limit = mathMin(limit, 1000) // hardcap threshold
 	}
-	if EvalTruthy(historical) {
+	if historical == true {
 		if priceType != nil {
 			request["priceType"] = priceType
 		}
@@ -2660,7 +2660,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes212519 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params, maxLimit))
 		PanicOnError(retRes212519)
@@ -3483,7 +3483,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 100
-	if EvalTruthy(paginate) {
+	if paginate == true {
 		if isSpot {
 			panic(NotSupported(this.Id + " fetchOpenOrders() pagination is not supported for spot markets"))
 		}
@@ -3777,7 +3777,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes297219 := (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params, maxLimit))
 		PanicOnError(retRes297219)
@@ -3876,7 +3876,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 1000
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes304019 := (<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit))
 		PanicOnError(retRes304019)
@@ -4061,7 +4061,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 	var isReduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	// entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
 	// a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-	var isEntryTrigger bool = !EvalTruthy(this.SafeBool(order, "reduceOnly", true))
+	var isEntryTrigger bool = !(this.SafeBool(order, "reduceOnly", true) != nil && *this.SafeBool(order, "reduceOnly", true))
 	var takeProfitPrice any = nil
 	var stopLossPrice any = nil
 	if !isEntryTrigger {
@@ -4245,7 +4245,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 100
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes335219 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, maxLimit))
 		PanicOnError(retRes335219)
@@ -4361,7 +4361,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 100
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes343719 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, maxLimit))
 		PanicOnError(retRes343719)
@@ -4578,7 +4578,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes361019 := (<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, params, 100))
 		PanicOnError(retRes361019)

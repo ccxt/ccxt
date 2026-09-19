@@ -124,7 +124,7 @@ func (this *Weex) subscribePublicBody(ch chan any, messageHashes any, channels a
 		"id": id,
 	})
 	var typeVar string = func() string {
-		if ccxt.EvalTruthy(isContract) {
+		if isContract == true {
 			return "contract"
 		}
 		return "spot"
@@ -151,7 +151,7 @@ func (this *Weex) subscribePrivateBody(ch chan any, messageHash any, subscribeHa
 	subscription := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = subscription
 	var typeVar string = func() string {
-		if ccxt.EvalTruthy(isContract) {
+		if isContract == true {
 			return "contract"
 		}
 		return "spot"

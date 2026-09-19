@@ -987,7 +987,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes82819 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
 		PanicOnError(retRes82819)
@@ -1401,7 +1401,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes116319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
 		PanicOnError(retRes116319)
@@ -2449,7 +2449,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes194219 := (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))
 		PanicOnError(retRes194219)
@@ -2771,7 +2771,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes221419 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
 		PanicOnError(retRes221419)

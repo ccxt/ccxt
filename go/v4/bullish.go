@@ -1013,7 +1013,7 @@ func (this *Bullish) ParseMarket(market any) any {
 		contractSize = this.SafeNumber(market, "contractMultiplier")
 		symbol = Add(symbol, Add(":", settle))
 		linear = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
-		inverse = !EvalTruthy(linear)
+		inverse = !(linear == true)
 		if typeVar != nil && *typeVar == "swap" {
 			swap = true
 		} else {
@@ -1204,7 +1204,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 		params = this.HandlePaginationParams("fetchTrades", since, params)
 
 		retRes97919 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params, maxLimit))
@@ -1299,7 +1299,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
-		if EvalTruthy(paginate) {
+		if paginate == true {
 			params = this.HandlePaginationParams("fetchMyTrades", since, params)
 
 			retRes104323 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))
@@ -1751,7 +1751,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes136819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
 		PanicOnError(retRes136819)
@@ -1849,7 +1849,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 		params = this.HandlePaginationParams("fetchFundingRateHistory", since, params)
 
 		retRes144419 := (<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, params, maxLimit))
@@ -2353,7 +2353,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "POST_ONLY")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		typeVar = "POST_ONLY"
 	}
 	var timeInForce any = "GTC" // is mandatory
@@ -3438,7 +3438,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 		params = this.HandlePaginationParams("fetchTransfers", since, params)
 
 		retRes265719 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params, maxLimit))

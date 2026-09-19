@@ -2351,7 +2351,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		AddElementToObject(params, "postOnly", true)
 	}
 	var takeProfit any = this.SafeDict(params, "takeProfit")

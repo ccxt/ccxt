@@ -31,7 +31,7 @@ func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
 	var isSandboxModeEnabled any = ExchangeProp(exchange, "isSandboxModeEnabled")
-	if ccxt.EvalTruthy(expectEnabled) {
+	if expectEnabled == true {
 		Assert((isSandboxModeEnabled == true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://testnet.org"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "apiBackup"), "public"), "https://example.com"))

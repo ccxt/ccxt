@@ -3881,7 +3881,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes282819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
 		PanicOnError(retRes282819)
@@ -4204,7 +4204,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes308719 := (<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, params, 200))
 		PanicOnError(retRes308719)
@@ -5527,7 +5527,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var isStopLossOrder bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitOrder bool = (this.SafeString(params, "takeProfitPrice") != nil)
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount)
-	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || EvalTruthy(this.SafeBool(params, "tradingStopEndpoint", false))
+	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (this.SafeBool(params, "tradingStopEndpoint", false) != nil && *this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
 	if (isTrailingOrder || (switchToOco == true)) && (GetValue(market, "spot") != true) {
 		defaultMethod = "privatePostV5PositionTradingStop"
@@ -5602,7 +5602,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var isMarket bool = (lowerCaseType == "market")
 	var isLimit bool = (lowerCaseType == "limit")
 	var isBuy bool = (IsEqual(side, "buy"))
-	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || EvalTruthy(this.SafeBool(params, "tradingStopEndpoint", false))
+	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (this.SafeBool(params, "tradingStopEndpoint", false) != nil && *this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
 	if isTrailingOrder || (switchToOco == true) {
 		defaultMethod = "privatePostV5PositionTradingStop"
@@ -5732,7 +5732,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	// if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
 	var isMarketBuyAndCostInferable bool = (lowerCaseType == "market") && (IsEqual(side, "buy")) && ((price != nil) || (cost != nil))
 	var isMarketOrder bool = (lowerCaseType == "market")
-	if (GetValue(market, "spot") == true) && isMarketOrder && EvalTruthy(isUTA) && !isMarketBuyAndCostInferable {
+	if (GetValue(market, "spot") == true) && isMarketOrder && (isUTA == true) && !isMarketBuyAndCostInferable {
 		// UTA account can specify the cost of the order on both sides
 		if (cost != nil) || (price != nil) {
 			request["marketUnit"] = "quoteCoin"
@@ -5755,7 +5755,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice")
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-		if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+		if createMarketBuyOrderRequiresPrice == true {
 			if (price == nil) && (cost == nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
@@ -6868,7 +6868,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var acknowledgeparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrder", "acknowledged")
 	acknowledge = GetValue(acknowledgeparamsVariable, 0)
 	params = GetValue(acknowledgeparamsVariable, 1)
-	if !EvalTruthy(acknowledge) {
+	if !(acknowledge == true) {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -7003,7 +7003,7 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan any, optionalArgs ...any) any 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrdersClassic", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes540319 := (<-this.FetchPaginatedCallCursorAsync("fetchOrdersClassic", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
 		PanicOnError(retRes540319)
@@ -7259,7 +7259,7 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes558619 := (<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
 		PanicOnError(retRes558619)
@@ -7509,7 +7509,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes576519 := (<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
 		PanicOnError(retRes576519)
@@ -7698,7 +7698,7 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes590619 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
 		PanicOnError(retRes590619)
@@ -7945,7 +7945,7 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes608719 := (<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
 		PanicOnError(retRes608719)
@@ -8041,7 +8041,7 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes615819 := (<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
 		PanicOnError(retRes615819)
@@ -8255,7 +8255,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes634419 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
 		PanicOnError(retRes634419)
@@ -8743,7 +8743,7 @@ func (this *Bybit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes676319 := (<-this.FetchPaginatedCallCursorAsync("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))
 		PanicOnError(retRes676319)
@@ -8995,7 +8995,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 	if positionIdx != nil {
 		hedged = (positionIdx == nil || *positionIdx != "0")
 	}
-	if (hedged != nil) && EvalTruthy(hedged) {
+	if (hedged != nil) && (hedged == true) {
 		side = func() string {
 			if positionIdx != nil && *positionIdx == "1" {
 				return "long"
@@ -10090,7 +10090,7 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes781319 := (<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
 		PanicOnError(retRes781319)
@@ -11291,7 +11291,7 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes876019 := (<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
 		PanicOnError(retRes876019)
@@ -11443,7 +11443,7 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "getLeverageTiersPaginated", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes888519 := (<-this.FetchPaginatedCallCursorAsync("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))
 		PanicOnError(retRes888519)
@@ -11641,7 +11641,7 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes902519 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
 		PanicOnError(retRes902519)

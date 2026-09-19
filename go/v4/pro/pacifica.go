@@ -136,7 +136,7 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	params = this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "agentAddress", "originAddress"})
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -247,7 +247,7 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "clientOrderId"})
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -334,7 +334,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "clientOrderIds"})
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -443,7 +443,7 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "trigger", "stop", "clientOrderId"})
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -527,7 +527,7 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	params = this.Omit(params, []any{"excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow"})
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -592,7 +592,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -649,7 +649,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -787,7 +787,7 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "tickers"
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -843,7 +843,7 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "unsubscribe:" + subMessageHash
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -906,7 +906,7 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -968,7 +968,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var messageHash string = "unsubscribe:myTrades"
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -1129,7 +1129,7 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var messageHash any = ccxt.Add("trade:", symbol)
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -1184,7 +1184,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -1369,7 +1369,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var isTestnet any = this.IsSandboxModeEnabled
 	var parsedTf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -1427,7 +1427,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	symbol = market["symbol"]
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -1538,7 +1538,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"
@@ -1596,7 +1596,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "unsubscribe:order"
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if ccxt.EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "test"
 		}
 		return "api"

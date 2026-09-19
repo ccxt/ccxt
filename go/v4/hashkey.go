@@ -1790,7 +1790,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, methodName, "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes157219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
 		PanicOnError(retRes157219)
@@ -3174,7 +3174,7 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "LIMIT_MAKER")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if EvalTruthy(postOnly) && (IsEqual(typeVar, "LIMIT")) {
+	if (postOnly == true) && (IsEqual(typeVar, "LIMIT")) {
 		request["type"] = "LIMIT_MAKER"
 	}
 	var clientOrderId any = nil
@@ -3240,7 +3240,7 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (IsEqual(timeInForce, "LIMIT_MAKER")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		timeInForce = "LIMIT_MAKER"
 	}
 	if timeInForce != nil {

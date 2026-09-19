@@ -770,7 +770,7 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan any, optionalArgs ...any) any 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccounts", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes60019 := (<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, params, "next_starting_after", "starting_after", nil, 100))
 		PanicOnError(retRes60019)
@@ -861,7 +861,7 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan any, optionalArgs ...any) any 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccounts", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes67119 := (<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, params, "cursor", "cursor", nil, 250))
 		PanicOnError(retRes67119)
@@ -1916,7 +1916,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	usePrivate = GetValue(usePrivateparamsVariable, 0)
 	params = GetValue(usePrivateparamsVariable, 1)
 	var spotUnresolvedPromises []any = []any{}
-	if EvalTruthy(usePrivate) {
+	if usePrivate == true {
 		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PrivateGetBrokerageProducts(params))
 	} else {
 		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PublicGetBrokerageMarketProducts(params))
@@ -2763,7 +2763,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "usePrivate", false)
 	usePrivate = GetValue(usePrivateparamsVariable, 0)
 	params = GetValue(usePrivateparamsVariable, 1)
-	if EvalTruthy(usePrivate) {
+	if usePrivate == true {
 
 		response = (<-this.V3PrivateGetBrokerageProducts(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2938,7 +2938,7 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 	usePrivate = GetValue(usePrivateparamsVariable, 0)
 	params = GetValue(usePrivateparamsVariable, 1)
 	var response any = nil
-	if EvalTruthy(usePrivate) {
+	if usePrivate == true {
 
 		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3335,7 +3335,7 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes262819 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_starting_after", "starting_after", nil, 100))
 		PanicOnError(retRes262819)
@@ -4021,7 +4021,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			params = this.Omit(params, "cost")
 			if cost != nil {
 				total = this.CostToPrecision(symbol, cost)
-			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+			} else if createMarketBuyOrderRequiresPrice == true {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
@@ -4582,7 +4582,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes367619 := (<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))
 		PanicOnError(retRes367619)
@@ -4802,7 +4802,7 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes384919 := (<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
 		PanicOnError(retRes384919)
@@ -4854,7 +4854,7 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes387419 := (<-this.FetchPaginatedCallCursorAsync("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))
 		PanicOnError(retRes387419)
@@ -4950,7 +4950,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes391919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit-1))
 		PanicOnError(retRes391919)
@@ -4985,7 +4985,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "usePrivate", false)
 	usePrivate = GetValue(usePrivateparamsVariable, 0)
 	params = GetValue(usePrivateparamsVariable, 1)
-	if EvalTruthy(usePrivate) {
+	if usePrivate == true {
 
 		response = (<-this.V3PrivateGetBrokerageProductsProductIdCandles(this.Extend(request, params)))
 		PanicOnError(response)
@@ -5087,7 +5087,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "usePrivate", false)
 	usePrivate = GetValue(usePrivateparamsVariable, 0)
 	params = GetValue(usePrivateparamsVariable, 1)
-	if EvalTruthy(usePrivate) {
+	if usePrivate == true {
 
 		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params)))
 		PanicOnError(response)
@@ -5156,7 +5156,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes407519 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nil, 250))
 		PanicOnError(retRes407519)
@@ -5261,7 +5261,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "usePrivate", false)
 	usePrivate = GetValue(usePrivateparamsVariable, 0)
 	params = GetValue(usePrivateparamsVariable, 1)
-	if EvalTruthy(usePrivate) {
+	if usePrivate == true {
 
 		response = (<-this.V3PrivateGetBrokerageProductBook(this.Extend(request, params)))
 		PanicOnError(response)
@@ -6720,13 +6720,13 @@ func (this *Coinbase) CreateAuthToken(seconds any, optionalArgs ...any) any {
 	// eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
 	var nonce string = this.RandomBytes(16)
 	var aud string = func() string {
-		if EvalTruthy(useEddsa) {
+		if useEddsa == true {
 			return "cdp_service"
 		}
 		return "retail_rest_api_proxy"
 	}()
 	var iss string = func() string {
-		if EvalTruthy(useEddsa) {
+		if useEddsa == true {
 			return "cdp"
 		}
 		return "coinbase-cloud"
@@ -6740,13 +6740,13 @@ func (this *Coinbase) CreateAuthToken(seconds any, optionalArgs ...any) any {
 		"iat": seconds,
 	}
 	if uri != nil {
-		if !EvalTruthy(useEddsa) {
+		if !(useEddsa == true) {
 			request["uri"] = uri
 		} else {
 			request["uris"] = []any{uri}
 		}
 	}
-	if EvalTruthy(useEddsa) {
+	if useEddsa == true {
 		var byteArray []byte = this.Base64ToBinary(this.Secret)
 		var seed any = this.ArraySlice(byteArray, 0, 32)
 		return Jwt(request, seed, sha256, false, map[string]any{
@@ -6824,7 +6824,7 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
 			var isCloudAPiKey bool = (GetIndexOf(this.ApiKey, "organizations/") >= 0) || (StartsWith(this.Secret, "-----BEGIN"))
 			// using the size might be fragile, so we add an option to force v2 cloud api key if needed
-			var isV2CloudAPiKey bool = (GetLength(this.Secret) == 88) || EvalTruthy(this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
+			var isV2CloudAPiKey bool = (GetLength(this.Secret) == 88) || (this.SafeBool(this.Options, "v2CloudAPiKey", false) != nil && *this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
 			if isCloudAPiKey || isV2CloudAPiKey {
 				if isCloudAPiKey && StartsWith(this.ApiKey, "-----BEGIN") {
 					panic(ArgumentsRequired(this.Id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key"))

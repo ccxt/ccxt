@@ -1732,7 +1732,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes121419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
 		PanicOnError(retRes121419)
@@ -2530,7 +2530,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes187419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
 		PanicOnError(retRes187419)
@@ -2639,14 +2639,14 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		}
 		return (IsEqual(subType, "inverse"))
 	}()
-	if EvalTruthy(isInverse) {
+	if isInverse == true {
 		panic(NotSupported(this.Id + " fetchFundingHistory() is not supported for inverse swap markets"))
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes195319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", params))
 		PanicOnError(retRes195319)
@@ -3318,7 +3318,7 @@ func (this *Bingx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketTypemarketTypeQueryVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType := GetValue(marketTypemarketTypeQueryVariable, 0)
 	marketTypeQuery := GetValue(marketTypemarketTypeQueryVariable, 1)
-	if EvalTruthy(standard) {
+	if standard == true {
 
 		response = (<-this.ContractV1PrivateGetBalance(marketTypeQuery))
 		PanicOnError(response)
@@ -3587,7 +3587,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	standard = GetValue(standardparamsVariable, 0)
 	params = GetValue(standardparamsVariable, 1)
 	var response any = nil
-	if EvalTruthy(standard) {
+	if standard == true {
 
 		response = (<-this.ContractV1PrivateGetAllPosition(params))
 		PanicOnError(response)
@@ -5897,7 +5897,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var standardparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "standard", false)
 	standard = GetValue(standardparamsVariable, 0)
 	params = GetValue(standardparamsVariable, 1)
-	if EvalTruthy(standard) {
+	if standard == true {
 
 		response = (<-this.ContractV1PrivateGetAllOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -6095,7 +6095,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes539019 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params, maxLimit))
 		PanicOnError(retRes539019)

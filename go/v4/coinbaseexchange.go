@@ -1447,7 +1447,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes113619 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))
 		PanicOnError(retRes113619)
@@ -1644,7 +1644,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes127619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
 		PanicOnError(retRes127619)
@@ -1985,7 +1985,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes151819 := (<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, 100))
 		PanicOnError(retRes151819)

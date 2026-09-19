@@ -121,7 +121,7 @@ func (this *Deepcoin) CreatePublicRequest(market any, requestId any, topicID any
 		marketId = ccxt.Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")) // swap markets use symbol without slash
 	}
 	var action string = "1" // subscribe
-	if ccxt.EvalTruthy(unWatch) {
+	if unWatch == true {
 		action = "0" // unsubscribe
 	}
 	var request map[string]any = map[string]any{

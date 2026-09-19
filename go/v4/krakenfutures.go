@@ -564,7 +564,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var expiry any = nil
 		if !index {
 			linear = (GetIndexOf(marketType, "_vanilla") >= 0)
-			inverse = !EvalTruthy(linear)
+			inverse = !(linear == true)
 			var settleTime *string = this.SafeString(market, "lastTradingTime")
 			typeVar = func() string {
 				if settleTime == nil {
@@ -604,7 +604,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 				settleId = quoteId
 				inverse = false
 			}
-			linear = !EvalTruthy(inverse)
+			linear = !(inverse == true)
 			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 			if future {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
@@ -1125,7 +1125,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes91419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))
 		PanicOnError(retRes91419)
@@ -1237,7 +1237,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes100719 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
 		PanicOnError(retRes100719)
@@ -1550,7 +1550,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "post")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		typeVar = "post"
 	} else if timeInForce != nil && *timeInForce == "ioc" {
 		typeVar = "ioc"

@@ -152,7 +152,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 		retRes11812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes11812)
 	}
-	if ccxt.EvalTruthy(this.SafeBool(this.Options, "unSubscriptionPending", false)) {
+	if this.SafeBool(this.Options, "unSubscriptionPending", false) != nil && *this.SafeBool(this.Options, "unSubscriptionPending", false) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
 	this.Options.Store("unSubscriptionPending", true)
@@ -282,7 +282,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.EvalTruthy(this.SafeBool(this.Options, "unSubscriptionPending", false)) {
+	if this.SafeBool(this.Options, "unSubscriptionPending", false) != nil && *this.SafeBool(this.Options, "unSubscriptionPending", false) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
 	this.Options.Store("unSubscriptionPending", true)

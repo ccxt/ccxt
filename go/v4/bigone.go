@@ -1896,7 +1896,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
-			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+			if createMarketBuyOrderRequiresPrice == true {
 				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {

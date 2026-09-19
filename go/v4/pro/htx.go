@@ -3315,10 +3315,10 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var hostnameURL any = nil
 	var url any = nil
 	if ccxt.IsEqual(typeVar, "spot") {
-		if ccxt.EvalTruthy(isPrivate) {
+		if isPrivate == true {
 			hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "spot"), "private")
 		} else {
-			if ccxt.EvalTruthy(isFeed) {
+			if isFeed == true {
 				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "spot"), "feed")
 			} else {
 				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "spot"), "public")
@@ -3328,13 +3328,13 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	} else {
 		var baseUrl any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), typeVar)
 		var subTypeUrl any = func() any {
-			if ccxt.EvalTruthy(isLinear) {
+			if isLinear == true {
 				return ccxt.GetValue(baseUrl, "linear")
 			}
 			return ccxt.GetValue(baseUrl, "inverse")
 		}()
-		if ccxt.EvalTruthy(isPrivate) {
-			if ccxt.EvalTruthy(isV5) && ccxt.EvalTruthy(isLinear) {
+		if isPrivate == true {
+			if (isV5 == true) && (isLinear == true) {
 				url = ccxt.DerefScalar(this.SafeString(subTypeUrl, "privateV5", ccxt.GetValue(subTypeUrl, "private")))
 			} else {
 				url = ccxt.GetValue(subTypeUrl, "private")

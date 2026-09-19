@@ -418,7 +418,7 @@ func (this *PredictionExchange) loadEventsHelperBody(ch chan any, optionalArgs .
 	_ = reload
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !EvalTruthy(reload) && (!IsEqual(this.Events, nil) && !IsEqual(this.Events, nil)) {
+	if !(reload == true) && (!IsEqual(this.Events, nil) && !IsEqual(this.Events, nil)) {
 
 		ch <- this.Events
 		return nil
@@ -783,14 +783,14 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 	if outcomes != nil {
 		var missing []any = []any{}
 		for i := 0; i < GetArrayLength(outcomes); i++ {
-			if EvalTruthy(reload) || !EvalTruthy(this.HasOutcome(GetValue(outcomes, i))) {
+			if (reload == true) || !EvalTruthy(this.HasOutcome(GetValue(outcomes, i))) {
 				missing = append(missing, GetValue(outcomes, i))
 			}
 		}
 		var missingLength int = len(missing)
 		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes)
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
-		if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !EvalTruthy(reload) {
+		if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !(reload == true) {
 
 			retRes71716 := (<-this.LoadOutcomesAsync())
 			PanicOnError(retRes71716)
@@ -812,7 +812,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 		ch <- this.Outcomes
 		return nil
 	}
-	if !EvalTruthy(reload) && (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes) {
+	if !(reload == true) && (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes) {
 
 		ch <- this.Outcomes
 		return nil
@@ -871,7 +871,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 	if outcomeSymbol == nil {
 		panic(ArgumentsRequired(this.Id + " loadOutcome() requires an outcomeSymbol argument"))
 	}
-	if !EvalTruthy(reload) {
+	if !(reload == true) {
 		if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 
 			ch <- this.SafeOutcome(outcomeSymbol)
@@ -976,7 +976,7 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
 	// re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
 	// token id) override this with a cheaper single fetch and fall back to super on a miss.
 	var searchQuery any = this.OutcomeSearchQuery(outcomeSymbol)
-	if (searchQuery != nil) && EvalTruthy(this.SafeBool(this.Has, "fetchEvents", false)) {
+	if (searchQuery != nil) && (this.SafeBool(this.Has, "fetchEvents", false) != nil && *this.SafeBool(this.Has, "fetchEvents", false)) {
 		var searchLimit *int64 = this.SafeInteger(this.Options, "fetchOutcomeSearchLimit", 10)
 
 		{
@@ -1567,7 +1567,7 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
 	// when the option is undeclared (it is for every prediction exchange)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if EvalTruthy(this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || EvalTruthy(this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false)) {
+	if (this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false)) {
 
 		retRes116319 := <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "buy", cost, 1, params)
 		PanicOnError(retRes116319)
@@ -1596,7 +1596,7 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, o
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if EvalTruthy(this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || EvalTruthy(this.SafeBool(this.Has, "createMarketSellOrderWithCost", false)) {
+	if (this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketSellOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketSellOrderWithCost", false)) {
 
 		retRes117919 := <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "sell", cost, 1, params)
 		PanicOnError(retRes117919)

@@ -2253,7 +2253,7 @@ func (this *Nado) ParseWsPosition(position any, optionalArgs ...any) any {
 func (this *Nado) HandlePosition(client any, message any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market any = this.SafeMarket(marketId)
-	if !ccxt.EvalTruthy(this.SafeBool(market, "contract", false)) {
+	if !(this.SafeBool(market, "contract", false) != nil && *this.SafeBool(market, "contract", false)) {
 		return
 	}
 	var position any = this.ParseWsPosition(message, market)

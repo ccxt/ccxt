@@ -1129,7 +1129,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	request["base_amount"] = this.ParseToInt(Precise.StringMul(amountStr, amountScale))
 	request["avg_execution_price"] = this.ParseToInt(Precise.StringMul(priceStr, priceScale))
 	request["trigger_price"] = this.ParseToInt(Precise.StringMul(triggerPriceStr, priceScale))
-	if EvalTruthy(this.SafeBool(this.Options, "builderFee", true)) {
+	if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
 		request["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
 		request["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
 		request["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
@@ -1200,7 +1200,7 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 	var skipNonceparamsVariable []any = this.HandleOptionAndParams(params, "fetchNonce", "skipNonce", true)
 	skipNonce = GetValue(skipNonceparamsVariable, 0)
 	params = GetValue(skipNonceparamsVariable, 1)
-	if EvalTruthy(skipNonce) {
+	if skipNonce == true {
 
 		ch <- this.Milliseconds()
 		return nil
@@ -1273,7 +1273,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method any, symbol any,
 			"api_key_index": apiKeyIndex,
 			"account_index": accountIndex,
 		}
-		if EvalTruthy(this.SafeBool(this.Options, "builderFee", true)) {
+		if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
 			signingPayload["integrator_account_index"] = GetValue(order, "integrator_account_index")
 			signingPayload["integrator_taker_fee"] = GetValue(order, "integrator_taker_fee")
 			signingPayload["integrator_maker_fee"] = GetValue(order, "integrator_maker_fee")
@@ -1419,7 +1419,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		"api_key_index": apiKeyIndex,
 		"account_index": accountIndex,
 	}
-	if EvalTruthy(this.SafeBool(this.Options, "builderFee", true)) {
+	if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
 		signRaw["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
 		signRaw["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
 		signRaw["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
@@ -3339,7 +3339,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes257119 := (<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
 		PanicOnError(retRes257119)
@@ -3479,7 +3479,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes267719 := (<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))
 		PanicOnError(retRes267719)
@@ -3578,7 +3578,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes274319 := (<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))
 		PanicOnError(retRes274319)
@@ -3825,7 +3825,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes292819 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))
 		PanicOnError(retRes292819)
@@ -3968,7 +3968,7 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
 			return !(isMakerAsk != nil && *isMakerAsk)
 		}()
 		takerOrMaker = func() string {
-			if EvalTruthy(isMaker) {
+			if isMaker == true {
 				return "maker"
 			}
 			return "taker"

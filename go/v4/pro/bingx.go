@@ -382,7 +382,7 @@ func (this *Bingx) ParseWsTicker(message any, optionalArgs ...any) any {
 		return isInverse
 	}()
 	var baseVolumeKey string = func() string {
-		if ccxt.EvalTruthy(inverse) {
+		if inverse == true {
 			return "m"
 		}
 		return "v"
@@ -1480,7 +1480,7 @@ func (this *Bingx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "awaitBalanceSnapshot", false)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
-	if ccxt.EvalTruthy(fetchBalanceSnapshot) && ccxt.EvalTruthy(awaitBalanceSnapshot) {
+	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
 		retRes116512 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
 		ccxt.PanicOnError(retRes116512)
@@ -1503,7 +1503,7 @@ func (this *Bingx) SetBalanceCache(client any, typeVar any, subType any, subscri
 	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
-	if ccxt.EvalTruthy(fetchBalanceSnapshot) {
+	if fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1612,7 +1612,7 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"unsubscribe": false,
 		"id":          uuid,
 	}
-	if ccxt.EvalTruthy(fetchPositionsSnapshot) && ccxt.EvalTruthy(awaitPositionsSnapshot) && ccxt.IsEqual(this.Positions, nil) {
+	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && ccxt.IsEqual(this.Positions, nil) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
 		ccxt.PanicOnError(snapshot)

@@ -1079,7 +1079,7 @@ func (this *Cex) ParseTradingFees(response any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var market any = nil
-		if EvalTruthy(useKeyAsId) {
+		if useKeyAsId == true {
 			market = this.SafeMarket(key)
 		}
 		var parsed any = this.ParseTradingFee(GetValue(response, key), market)

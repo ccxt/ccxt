@@ -970,7 +970,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
 		return nil
@@ -2434,7 +2434,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, postOnly, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1) // this will remove PO from params.timeInForce if present
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		request["postOnly"] = true
 	}
 	var timeInForce any = this.HandleTimeInForce(params)
@@ -2467,7 +2467,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 		params = this.Omit(params, "cost")
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
-		} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+		} else if createMarketBuyOrderRequiresPrice == true {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
@@ -2665,11 +2665,11 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
 		if IsEqual(marginMode, "isolated") {
-			if EvalTruthy(hedged) {
+			if hedged == true {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
 			}
 			request["positionMode"] = "ISOLATED"
-		} else if EvalTruthy(hedged) {
+		} else if hedged == true {
 			request["positionMode"] = "HEDGE"
 		}
 	}
@@ -2680,7 +2680,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, postOnly, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1) // this will remove PO from params.timeInForce if present
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		request["postOnly"] = true
 	}
 	var timeInForce any = this.HandleTimeInForce(params)

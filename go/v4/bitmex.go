@@ -1560,7 +1560,7 @@ func (this *Bitmex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes119219 := (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params, 100))
 		PanicOnError(retRes119219)
@@ -1711,7 +1711,7 @@ func (this *Bitmex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes127819 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))
 		PanicOnError(retRes127819)
@@ -2315,7 +2315,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes178919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params))
 		PanicOnError(retRes178919)
@@ -2350,7 +2350,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	// if since is not set, they will return candles starting from 2017-01-01
 	if since != nil {
 		var timestamp any = since
-		if EvalTruthy(useOpenTimestamp) {
+		if useOpenTimestamp == true {
 			timestamp = this.Sum(timestamp, duration)
 		}
 		var startTime *string = this.Iso8601(timestamp)
@@ -2369,7 +2369,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//     ]
 	//
 	var result any = this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
-	if EvalTruthy(useOpenTimestamp) {
+	if useOpenTimestamp == true {
 		// bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
 		// we can emulate the open timestamp by shifting all the timestamps one place
 		// so the previous close becomes the current open, and we drop the first candle
@@ -2678,7 +2678,7 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes211019 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
 		PanicOnError(retRes211019)
@@ -4235,7 +4235,7 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes328819 := (<-this.FetchPaginatedCallDynamicAsync("fetchLiquidations", symbol, since, limit, params))
 		PanicOnError(retRes328819)

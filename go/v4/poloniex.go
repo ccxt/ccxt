@@ -883,7 +883,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes69219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
 		PanicOnError(retRes69219)
@@ -990,7 +990,7 @@ func (this *Poloniex) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets := (<-this.Exchange.LoadMarketsAsync(reload, params))
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
-	if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
+	if (IsEqual(currenciesByNumericId, nil)) || (reload == true) {
 		this.Options.Store("currenciesByNumericId", this.IndexBy(this.Currencies, "numericId"))
 	}
 
@@ -1948,7 +1948,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes156419 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
 		PanicOnError(retRes156419)
@@ -2642,7 +2642,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			params = this.Omit(params, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
-			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) && (GetValue(market, "spot") == true) {
+			} else if (createMarketBuyOrderRequiresPrice == true) && (GetValue(market, "spot") == true) {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 				} else {

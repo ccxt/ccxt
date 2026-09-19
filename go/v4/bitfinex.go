@@ -1950,7 +1950,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes153019 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params, 10000))
 		PanicOnError(retRes153019)
@@ -2038,7 +2038,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes158719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))
 		PanicOnError(retRes158719)
@@ -2935,7 +2935,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes228919 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
 		PanicOnError(retRes228919)
@@ -4124,7 +4124,7 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes322019 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 2500))
 		PanicOnError(retRes322019)
@@ -4293,7 +4293,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes333919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 5000))
 		PanicOnError(retRes333919)
@@ -4648,7 +4648,7 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes363119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, "8h", params, 5000))
 		PanicOnError(retRes363119)
@@ -4820,7 +4820,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes377019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchLiquidations", symbol, since, limit, "8h", params, 500))
 		PanicOnError(retRes377019)

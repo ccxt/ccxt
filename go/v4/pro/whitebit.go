@@ -938,7 +938,7 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "awaitBalanceSnapshot", true)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
-	if ccxt.EvalTruthy(fetchBalanceSnapshot) && ccxt.EvalTruthy(awaitBalanceSnapshot) {
+	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
 		retRes77012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
 		ccxt.PanicOnError(retRes77012)
@@ -1132,7 +1132,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 			ccxt.AddElementToObject(subscription, marketId, true)
 		}
 		marketIds = []any{marketId}
-		if ccxt.EvalTruthy(isNested) {
+		if isNested == true {
 			marketIds = []any{marketIds}
 		}
 		request = map[string]any{
@@ -1169,7 +1169,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 			// resubscribe
 			var marketIdsNew any = []any{}
 			marketIdsNew = ccxt.ObjectKeys(subscription)
-			if ccxt.EvalTruthy(isNested) {
+			if isNested == true {
 				marketIdsNew = []any{marketIdsNew}
 			}
 			var resubRequest map[string]any = map[string]any{

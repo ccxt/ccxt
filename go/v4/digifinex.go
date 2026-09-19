@@ -2429,7 +2429,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			params = this.Omit(params, "cost")
 			if cost != nil {
 				quantity = this.CostToPrecision(symbol, cost)
-			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+			} else if createMarketBuyOrderRequiresPrice == true {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {

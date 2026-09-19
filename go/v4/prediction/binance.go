@@ -685,7 +685,7 @@ func (this *Binance) ParseEvent(rawTopic any) any {
 	for i := 0; i < rawMarketsLength; i++ {
 		var parsed any = this.ParseTopicMarket(ccxt.GetValue(rawMarkets, i), rawTopic)
 		marketsList = append(marketsList, parsed)
-		if ccxt.EvalTruthy(this.SafeBool(parsed, "active", false)) {
+		if this.SafeBool(parsed, "active", false) != nil && *this.SafeBool(parsed, "active", false) {
 			anyActive = true
 		}
 	}
@@ -798,12 +798,12 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 		if resolved && (price != nil) {
 			winnerRaw = ccxt.Precise.StringEq(price, "1")
 			settleFractionRaw = func() int {
-				if ccxt.EvalTruthy((winnerRaw)) {
+				if winnerRaw == true {
 					return 1
 				}
 				return 0
 			}()
-			if ccxt.EvalTruthy(winnerRaw) {
+			if winnerRaw == true {
 				resolvedOutcomeRaw = outcomeHandle
 			}
 		}
@@ -1315,7 +1315,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if ccxt.EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes106719 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
 		ccxt.PanicOnError(retRes106719)
@@ -1429,7 +1429,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if ccxt.EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes115019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
 		ccxt.PanicOnError(retRes115019)
@@ -1771,7 +1771,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if ccxt.EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes141519 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
 		ccxt.PanicOnError(retRes141519)

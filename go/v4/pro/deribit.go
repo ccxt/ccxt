@@ -754,7 +754,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var useDepthEndpointparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "useDepthEndpoint", false)
 	useDepthEndpoint = ccxt.GetValue(useDepthEndpointparamsVariable, 0)
 	params = ccxt.GetValue(useDepthEndpointparamsVariable, 1)
-	if ccxt.EvalTruthy(useDepthEndpoint) {
+	if useDepthEndpoint == true {
 		var depth any = nil
 		var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", "20")
 		depth = ccxt.GetValue(depthparamsVariable, 0)
