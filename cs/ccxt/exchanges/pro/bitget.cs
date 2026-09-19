@@ -228,7 +228,7 @@ public partial class bitget : ccxt.bitget
             string topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
             string symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
             ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
-            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(marketInner, "id");
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(("ticker:" + (symbol)));
         }
@@ -301,7 +301,7 @@ public partial class bitget : ccxt.bitget
         //
         this.handleBidAsk(client as WebSocketClient, message);
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -487,7 +487,7 @@ public partial class bitget : ccxt.bitget
             string topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
             string symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
             ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
-            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(marketInner, "id");
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(("bidask:" + (symbol)));
         }
@@ -504,7 +504,7 @@ public partial class bitget : ccxt.bitget
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(message));
-        string? symbol = ((string)getValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -1989,7 +1989,7 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order, market));
             callDynamically(stored, "append", new object[] {parsed});
-            string? symbol = ((string)getValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
@@ -2527,7 +2527,7 @@ public partial class bitget : ccxt.bitget
             }
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
             callDynamically(stored, "append", new object[] {parsed});
-            string? symbol = ((string)getValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             string symbolSpecificMessageHash = ("myTrades:" + symbol);
             (client as WebSocketClient).resolve(stored, symbolSpecificMessageHash);
         }
@@ -2927,9 +2927,9 @@ public partial class bitget : ccxt.bitget
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), code, feedback);
+                this.throwExactlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, feedback);
                 string? msg = this.safeString(message, "msg", "");
-                this.throwBroadlyMatchedException(getValue(getValue(this.exceptions, "ws"), "broad"), msg, feedback);
+                this.throwBroadlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad"), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
             return ((bool?)((object)(false)));

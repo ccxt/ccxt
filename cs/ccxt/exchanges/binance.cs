@@ -6622,7 +6622,7 @@ public partial class binance : Exchange
             string? marketId = this.safeString(getValue(response, i), "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, "spot");
             Dictionary<string, object> parsedTicker = this.parseTicker(getValue(response, i));
-            ((IDictionary<string,object>)parsedTicker)["symbol"] = getValue(tickerMarket, "symbol");
+            ((IDictionary<string,object>)parsedTicker)["symbol"] = (tickerMarket != null && ((IDictionary<string, object>)tickerMarket).ContainsKey("symbol") ? ((IDictionary<string, object>)tickerMarket)["symbol"] : null);
             ((IList<object>)results).Add(parsedTicker);
         }
         return this.filterByArray(results, "symbol", symbols);
@@ -11466,7 +11466,7 @@ public partial class binance : Exchange
         string? currencyId = this.safeString(trade, "fromAsset");
         object tradedCurrency = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> bnb = this.currency("BNB");
-        object earnedCurrency = getValue(bnb, "code");
+        object earnedCurrency = (bnb != null && ((IDictionary<string, object>)bnb).ContainsKey("code") ? ((IDictionary<string, object>)bnb)["code"] : null);
         object applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
         bool tradedCurrencyIsQuote = false;
         if (((this.markets != null)) && (inOp(this.markets, applicantSymbol)))
@@ -12068,7 +12068,7 @@ public partial class binance : Exchange
         };
         ((IDictionary<string,object>)request)["type"] = this.safeString(parameters, "type");
         parameters = this.omit(parameters, "type");
-        if (isEqual(getValue(request, "type"), null))
+        if (isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("type") ? ((IDictionary<string, object>)request)["type"] : null), null))
         {
             string? symbol = this.safeString(parameters, "symbol");
             IDictionary<string, object> market = null;
@@ -12585,7 +12585,7 @@ public partial class binance : Exchange
             }
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("networks") ? ((IDictionary<string, object>)result)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", withdrawFee },
                         { "percentage", null },
@@ -15797,9 +15797,9 @@ public partial class binance : Exchange
         if ((message != null))
         {
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), message, ((this.id + " ") + message));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException(this.getExceptionsByUrl(url, "broad"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, ((this.id + " ") + message));
         }
         // checks against error codes
         string? error = this.safeString(response, "code");
@@ -15824,7 +15824,7 @@ public partial class binance : Exchange
                 throw new MarginModeAlreadySet ((string)feedback) ;
             }
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), error, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         if ((success != true))
@@ -15842,7 +15842,7 @@ public partial class binance : Exchange
                 if ((errorCode != null))
                 {
                     this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), errorCode, ((this.id + " ") + (body)));
-                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, ((this.id + " ") + (body)));
+                    this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, ((this.id + " ") + (body)));
                 }
             }
         }
@@ -17930,7 +17930,7 @@ public partial class binance : Exchange
             response = await this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, parameters));
         } else
         {
-            if (isGreaterThan((subtract(getValue(request, "endTime"), getValue(request, "startTime"))), msInThirtyDays))
+            if (isGreaterThan((subtract((request != null && ((IDictionary<string, object>)request).ContainsKey("endTime") ? ((IDictionary<string, object>)request)["endTime"] : null), (request != null && ((IDictionary<string, object>)request).ContainsKey("startTime") ? ((IDictionary<string, object>)request)["startTime"] : null))), msInThirtyDays))
             {
                 throw new BadRequest ((string)(this.id + " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
             }

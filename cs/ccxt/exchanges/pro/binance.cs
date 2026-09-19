@@ -805,13 +805,13 @@ public partial class binance : ccxt.binance
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-        string? type = ((string)getValue(firstMarket, "type"));
-        if (((getValue(firstMarket, "option") as bool?) == true))
+        string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
+        if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null) as bool?) == true))
         {
             type = "option";
-        } else if (((getValue(firstMarket, "contract") as bool?) == true))
+        } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
+            type = ((bool) ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -896,13 +896,13 @@ public partial class binance : ccxt.binance
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-        string? type = ((string)getValue(firstMarket, "type"));
-        if (((getValue(firstMarket, "option") as bool?) == true))
+        string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
+        if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null) as bool?) == true))
         {
             type = "option";
-        } else if (((getValue(firstMarket, "contract") as bool?) == true))
+        } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
+            type = ((bool) ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -1387,14 +1387,14 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)nameparametersVariable)[1];
         parameters = this.omit(parameters, "callerMethodName");
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-        string? type = ((string)getValue(firstMarket, "type"));
-        object isOption = getValue(firstMarket, "option");
+        string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
+        object isOption = (firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null);
         if (isEqual(isOption, true))
         {
             type = "option";
-        } else if (((getValue(firstMarket, "contract") as bool?) == true))
+        } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
+            type = ((bool) ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
         }
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1487,14 +1487,14 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)nameparametersVariable)[1];
         parameters = this.omit(parameters, "callerMethodName");
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-        string? type = ((string)getValue(firstMarket, "type"));
-        object isOption = getValue(firstMarket, "option");
+        string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
+        object isOption = (firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null);
         if (isEqual(isOption, true))
         {
             type = "option";
-        } else if (((getValue(firstMarket, "contract") as bool?) == true))
+        } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
+            type = ((bool) ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
         }
         List<object> subMessageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1879,7 +1879,7 @@ public partial class binance : ccxt.binance
                     throw new BadRequest ((string)(this.id + " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
                 }
                 ((IList<object>)stockStreams).Add(((stockTickerString + "@kline_") + stockInterval));
-                ((IList<object>)stockMessageHashes).Add(((("ohlcv::" + (getValue(stockMarket, "symbol"))) + "::") + (stockTimeframeString)));
+                ((IList<object>)stockMessageHashes).Add(((("ohlcv::" + ((stockMarket != null && ((IDictionary<string, object>)stockMarket).ContainsKey("symbol") ? ((IDictionary<string, object>)stockMarket)["symbol"] : null))) + "::") + (stockTimeframeString)));
             }
             object stockRes = await this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters);
             var stockSymbolstockTimeframestockCandlesVariable = stockRes;
@@ -1900,15 +1900,15 @@ public partial class binance : ccxt.binance
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, false, true);
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
-        string? type = ((string)getValue(firstMarket, "type"));
+        string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         string? wsUrlType = type;
-        if (((getValue(firstMarket, "option") as bool?) == true))
+        if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null) as bool?) == true))
         {
             type = "option";
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-        } else if (((getValue(firstMarket, "contract") as bool?) == true))
+        } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
+            type = ((bool) ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
             wsUrlType = type;
         }
         bool isSpot = ((type == "spot"));
@@ -1992,15 +1992,15 @@ public partial class binance : ccxt.binance
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, false, true);
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
-        string? type = ((string)getValue(firstMarket, "type"));
+        string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         string? wsUrlType = type;
-        if (((getValue(firstMarket, "option") as bool?) == true))
+        if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null) as bool?) == true))
         {
             type = "option";
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-        } else if (((getValue(firstMarket, "contract") as bool?) == true))
+        } else if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
         {
-            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
+            type = ((bool) ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) == true))) ? "future" : "delivery";
             wsUrlType = type;
         }
         bool isSpot = ((type == "spot"));
@@ -3106,7 +3106,7 @@ public partial class binance : ccxt.binance
             string tickerFallbackType = ((bool) isSpot) ? "spot" : "contract";
             object tickerMarketType = ((bool) ((tickerMarketById != null))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsTicker(ticker, tickerMarketType));
-            string? symbol = ((string)getValue(parsedTicker, "symbol"));
+            string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;

@@ -14070,14 +14070,14 @@ public partial class bitget : Exchange
         bool nonEmptyMessage = (((message != null)) && ((message != "")) && ((message != "success")));
         if (nonEmptyMessage)
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
         }
         string? errorCode = this.safeString2(response, "code", "err_code");
         bool nonZeroErrorCode = ((errorCode != null)) && ((errorCode != "00000"));
         if (nonZeroErrorCode)
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
         }
         if (nonZeroErrorCode || nonEmptyMessage)
         {
