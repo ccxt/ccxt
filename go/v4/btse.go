@@ -4617,7 +4617,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	return nil
 }
 func (this *Btse) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (response == nil) {
+	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	//

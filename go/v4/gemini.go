@@ -667,9 +667,9 @@ func (this *Gemini) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes44615 := (<-this.FetchCurrenciesFromWebAsync(params))
-	PanicOnError(retRes44615)
-	ch <- retRes44615
+	retRes44715 := (<-this.FetchCurrenciesFromWebAsync(params))
+	PanicOnError(retRes44715)
+	ch <- retRes44715
 	return nil
 }
 
@@ -821,9 +821,9 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	retRes56415 := (<-this.FetchMarketsFromAPIAsync(params))
-	PanicOnError(retRes56415)
-	ch <- retRes56415
+	retRes56515 := (<-this.FetchMarketsFromAPIAsync(params))
+	PanicOnError(retRes56515)
+	ch <- retRes56515
 	return nil
 }
 func (this *Gemini) FetchMarketsFromWebAsync(optionalArgs ...any) <-chan any {
@@ -1267,8 +1267,8 @@ func (this *Gemini) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes93912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes93912)
+		retRes94012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes94012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1297,8 +1297,8 @@ func (this *Gemini) fetchTickerV1Body(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes95512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes95512)
+		retRes95612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes95612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1335,8 +1335,8 @@ func (this *Gemini) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes97912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes97912)
+		retRes98012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes98012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1414,22 +1414,22 @@ func (this *Gemini) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "fetchTickerV1")
 	if method != nil && *method == "fetchTickerV1" {
 
-		retRes103119 := (<-this.FetchTickerV1Async(symbol, params))
-		PanicOnError(retRes103119)
-		ch <- retRes103119
+		retRes103219 := (<-this.FetchTickerV1Async(symbol, params))
+		PanicOnError(retRes103219)
+		ch <- retRes103219
 		return nil
 	}
 	if method != nil && *method == "fetchTickerV2" {
 
-		retRes103419 := (<-this.FetchTickerV2Async(symbol, params))
-		PanicOnError(retRes103419)
-		ch <- retRes103419
+		retRes103519 := (<-this.FetchTickerV2Async(symbol, params))
+		PanicOnError(retRes103519)
+		ch <- retRes103519
 		return nil
 	}
 
-	retRes103615 := (<-this.FetchTickerV1AndV2Async(symbol, params))
-	PanicOnError(retRes103615)
-	ch <- retRes103615
+	retRes103715 := (<-this.FetchTickerV1AndV2Async(symbol, params))
+	PanicOnError(retRes103715)
+	ch <- retRes103715
 	return nil
 }
 func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1575,8 +1575,8 @@ func (this *Gemini) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes114412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes114412)
+		retRes114512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes114512)
 	}
 
 	response := (<-this.PublicGetV1Pricefeed(params))
@@ -1694,8 +1694,8 @@ func (this *Gemini) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		retRes124312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes124312)
+		retRes124412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes124412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1765,8 +1765,8 @@ func (this *Gemini) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes129812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes129812)
+		retRes129912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes129912)
 	}
 
 	response := (<-this.PrivatePostV1Notionalvolume(params))
@@ -1843,8 +1843,8 @@ func (this *Gemini) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes136112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes136112)
+		retRes136212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes136212)
 	}
 
 	response := (<-this.PrivatePostV1Balances(params))
@@ -2044,8 +2044,8 @@ func (this *Gemini) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes154412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes154412)
+		retRes154512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes154512)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -2110,8 +2110,8 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes158912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes158912)
+		retRes159012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes159012)
 	}
 
 	response := (<-this.PrivatePostV1Orders(params))
@@ -2177,8 +2177,8 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	_ = params
 	if this.Markets == nil {
 
-		retRes163912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes163912)
+		retRes164012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes164012)
 	}
 	if !IsEqual(typeVar, "limit") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
@@ -2288,8 +2288,8 @@ func (this *Gemini) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes173412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes173412)
+		retRes173512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes173512)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -2358,8 +2358,8 @@ func (this *Gemini) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		retRes178312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes178312)
+		retRes178412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes178412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2409,8 +2409,8 @@ func (this *Gemini) withdrawBody(ch chan any, code any, amount any, address any,
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes181512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes181512)
+		retRes181612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes181612)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2489,8 +2489,8 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes187512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes187512)
+		retRes187612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes187612)
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
@@ -2615,8 +2615,8 @@ func (this *Gemini) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		retRes198512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes198512)
+		retRes198612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes198612)
 	}
 
 	indexedByNetwork := (<-this.FetchDepositAddressesByNetworkAsync(code, params))
@@ -2652,8 +2652,8 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 	_ = params
 	if this.Markets == nil {
 
-		retRes200512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes200512)
+		retRes200612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes200612)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	code = currency["code"]
@@ -2780,8 +2780,8 @@ func (this *Gemini) createDepositAddressBody(ch chan any, code any, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		retRes210012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes210012)
+		retRes210112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes210112)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2833,8 +2833,8 @@ func (this *Gemini) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		retRes213212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes213212)
+		retRes213312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes213312)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var timeframeId *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -2882,8 +2882,8 @@ func (this *Gemini) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		retRes216612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes216612)
+		retRes216712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes216712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{

@@ -4318,7 +4318,7 @@ func (this *Grvt) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	var isPrivate bool = StartsWith(api, "private")
-	if IsEqual(isPrivate, true) {
+	if isPrivate == true {
 		this.CheckRequiredCredentials()
 		if queryString != "" {
 			path = Add(Add(path, "?"), queryString)

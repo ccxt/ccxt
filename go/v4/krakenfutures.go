@@ -5235,7 +5235,7 @@ func (this *Krakenfutures) TransferOut(code string, amount float64, options ...T
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
+func (this *Krakenfutures) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (map[string]any, error) {
 
 	opts := TransferOptionsStruct{}
 
@@ -5244,9 +5244,9 @@ func (this *Krakenfutures) Transfer(code string, amount float64, fromAccount str
 	}
 	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
 	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return NewTransferEntry(res), nil
+	return res.(map[string]any), nil
 }
 
 /**

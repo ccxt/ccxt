@@ -1354,7 +1354,7 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if response == nil {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	//

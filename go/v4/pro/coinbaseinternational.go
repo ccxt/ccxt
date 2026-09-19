@@ -962,7 +962,7 @@ func (this *Coinbaseinternational) HandleSubscriptionStatus(client any, message 
 	//
 	return message
 }
-func (this *Coinbaseinternational) HandleFundingRate(client any, message map[string]any) {
+func (this *Coinbaseinternational) HandleFundingRate(client any, message any) {
 	//
 	// snapshot
 	//    {

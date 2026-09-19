@@ -3935,7 +3935,7 @@ func (this *Toobit) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Toobit) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if response == nil {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	var errorCode *string = this.SafeString(response, "code")

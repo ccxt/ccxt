@@ -3863,12 +3863,12 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	// Every spot endpoint ends with ".do"
-	if IsEqual(GetValue(api, 0), "spot") {
+	if GetValue(api, 0) == "spot" {
 		url = Add(url, ".do")
 	} else {
 		url = Add(Add(GetValue(GetValue(this.Urls, "api"), "contract"), "/"), this.ImplodeParams(path, params))
 	}
-	if IsEqual(GetValue(api, 1), "public") {
+	if GetValue(api, 1) == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(this.Keysort(query)))
 		}

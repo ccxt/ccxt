@@ -2909,7 +2909,7 @@ func (this *Alpaca) Sign(path any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	if IsEqual(GetValue(api, 1), "private") {
+	if GetValue(api, 1) == "private" {
 		this.CheckRequiredCredentials()
 		AddElementToObject(headers, "APCA-API-KEY-ID", this.ApiKey)
 		AddElementToObject(headers, "APCA-API-SECRET-KEY", this.Secret)
