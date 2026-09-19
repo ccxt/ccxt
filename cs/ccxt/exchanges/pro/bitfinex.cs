@@ -558,11 +558,11 @@ public partial class bitfinex : ccxt.bitfinex
         //
         int numFields = getArrayLength(trade);
         bool isPublic = numFields <= 8;
-        object marketId = ((bool) (!isPublic)) ? this.safeString(trade, 1) : null;
+        object marketId = ((!isPublic)) ? this.safeString(trade, 1) : null;
         market = this.safeMarket(marketId, market);
-        int createdKey = ((bool) isPublic) ? 1 : 2;
-        int priceKey = ((bool) isPublic) ? 3 : 5;
-        int amountKey = ((bool) isPublic) ? 2 : 4;
+        int createdKey = (isPublic) ? 1 : 2;
+        int priceKey = (isPublic) ? 3 : 5;
+        int amountKey = (isPublic) ? 2 : 4;
         marketId = getValue(market, "id");
         string? type = this.safeString(trade, 6);
         if ((type != null))
@@ -575,7 +575,7 @@ public partial class bitfinex : ccxt.bitfinex
                 type = "market";
             }
         }
-        string? orderId = ((bool) (!isPublic)) ? this.safeString(trade, 3) : null;
+        string? orderId = ((!isPublic)) ? this.safeString(trade, 3) : null;
         string? id = this.safeString(trade, 0);
         Int64? timestamp = this.safeInteger(trade, createdKey);
         string? price = this.safeString(trade, priceKey);
@@ -584,7 +584,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? side = null;
         if (!isEqual(amount, null))
         {
-            side = ((bool) Precise.stringGt(amountString, "0")) ? "buy" : "sell";
+            side = (Precise.stringGt(amountString, "0")) ? "buy" : "sell";
         }
         string? symbol = this.safeSymbol(marketId, market);
         string? feeValue = this.safeString(trade, 9);
@@ -602,7 +602,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? takerOrMaker = null;
         if (!isEqual(maker, null))
         {
-            takerOrMaker = ((bool) (isEqual(maker, -1))) ? "taker" : "maker";
+            takerOrMaker = ((isEqual(maker, -1))) ? "taker" : "maker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -784,8 +784,8 @@ public partial class bitfinex : ccxt.bitfinex
                 {
                     object delta = getValue(deltas, i);
                     object delta2 = getValue(delta, 2);
-                    object size = ((bool) (isLessThan(delta2, 0))) ? prefixUnaryNeg(ref delta2) : delta2;
-                    string side = ((bool) (isLessThan(delta2, 0))) ? "asks" : "bids";
+                    object size = ((isLessThan(delta2, 0))) ? prefixUnaryNeg(ref delta2) : delta2;
+                    string side = ((isLessThan(delta2, 0))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
                     string? idString = this.safeString(delta, 0);
                     double? price = this.safeFloat(delta, 1);
@@ -804,8 +804,8 @@ public partial class bitfinex : ccxt.bitfinex
                     }
                     double? counter = this.safeNumber(delta, 1);
                     double? price = this.safeNumber(delta, 0);
-                    object size = ((bool) (isLessThan(amount, 0))) ? prefixUnaryNeg(ref amount) : amount;
-                    string side = ((bool) (isLessThan(amount, 0))) ? "asks" : "bids";
+                    object size = ((isLessThan(amount, 0))) ? prefixUnaryNeg(ref amount) : amount;
+                    string side = ((isLessThan(amount, 0))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
@@ -821,11 +821,11 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 string? price = this.safeString(deltas, 1);
                 object deltas2 = getValue(deltas, 2);
-                object size = ((bool) (isLessThan(deltas2, 0))) ? prefixUnaryNeg(ref deltas2) : deltas2;
-                string side = ((bool) (isLessThan(deltas2, 0))) ? "asks" : "bids";
+                object size = ((isLessThan(deltas2, 0))) ? prefixUnaryNeg(ref deltas2) : deltas2;
+                string side = ((isLessThan(deltas2, 0))) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
-                object amount = ((bool) Precise.stringGt(price, "0")) ? size : "0";
+                object amount = (Precise.stringGt(price, "0")) ? size : "0";
                 string? idString = this.safeString(deltas, 0);
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), idString});
             } else
@@ -833,8 +833,8 @@ public partial class bitfinex : ccxt.bitfinex
                 string? amount = this.safeString(deltas, 2);
                 string? counter = this.safeString(deltas, 1);
                 string? price = this.safeString(deltas, 0);
-                string? size = ((bool) Precise.stringLt(amount, "0")) ? Precise.stringNeg(amount) : amount;
-                string side = ((bool) Precise.stringLt(amount, "0")) ? "asks" : "bids";
+                string? size = (Precise.stringLt(amount, "0")) ? Precise.stringNeg(amount) : amount;
+                string side = (Precise.stringLt(amount, "0")) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
@@ -862,7 +862,7 @@ public partial class bitfinex : ccxt.bitfinex
         object asks = (book != null && book.ContainsKey("asks") ? book["asks"] : null);
         string? prec = this.safeString(subscription, "prec", "P0");
         bool isRaw = ((prec == "R0"));
-        int idToCheck = ((bool) isRaw) ? 2 : 0;
+        int idToCheck = (isRaw) ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (int i = 0; i < depth; i++)
         {

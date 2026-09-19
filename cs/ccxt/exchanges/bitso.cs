@@ -615,7 +615,7 @@ public partial class bitso : Exchange
                 double? makerFee = this.safeNumber(tier, "maker");
                 ((IList<object>)takerFees).Add(new List<object>() {volume, takerFee});
                 ((IList<object>)makerFees).Add(new List<object>() {volume, makerFee});
-                if ((j == 0))
+                if (isEqual(j, 0))
                 {
                     ((IDictionary<string,object>)fee)["taker"] = takerFee;
                     ((IDictionary<string,object>)fee)["maker"] = makerFee;
@@ -972,13 +972,13 @@ public partial class bitso : Exchange
             if ((limit != null))
             {
                 int duration = this.parseTimeframe(timeframeVar);
-                ((IDictionary<string,object>)request)["end"] = this.sum(since, ((duration * limit) * 1000));
+                ((IDictionary<string,object>)request)["end"] = this.sum(since, multiply(multiply(duration, limit), 1000));
             }
         } else if ((limit != null))
         {
             Int64 now = this.milliseconds();
             ((IDictionary<string,object>)request)["end"] = now;
-            ((IDictionary<string,object>)request)["start"] = subtract(now, (multiply(this.parseTimeframe(timeframeVar), 1000) * limit));
+            ((IDictionary<string,object>)request)["start"] = subtract(now, multiply(multiply(this.parseTimeframe(timeframeVar), 1000), limit));
         }
         Dictionary<string, object> response = await this.publicGetOhlc(this.extend(request, parameters));
         //
@@ -1577,7 +1577,7 @@ public partial class bitso : Exchange
                 return ccxt.BaseExchange.ToOrder(this.parseOrder((payload != null && 0 < payload.Count ? payload[0] : null)));
             }
         }
-        throw new OrderNotFound ((string)(((this.id + ": The order ") + id) + " not found.")) ;
+        throw new OrderNotFound ((string)(((this.id + ": The order ") + (id)) + " not found.")) ;
     }
 
     /**
@@ -2035,10 +2035,10 @@ public partial class bitso : Exchange
             { "LTC", "Litecoin" },
         };
         Dictionary<string, object> currency = this.currency(((string)code));
-        object method = ((bool) (methods.ContainsKey(code))) ? (methods != null && methods.ContainsKey(code) ? methods[code] : null) : null;
+        object method = ((methods.ContainsKey(code))) ? getValue(methods, code) : null;
         if ((method == null))
         {
-            throw new ExchangeError ((string)((this.id + " not valid withdraw coin: ") + code)) ;
+            throw new ExchangeError ((string)((this.id + " not valid withdraw coin: ") + (code))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
@@ -2119,7 +2119,7 @@ public partial class bitso : Exchange
         string? status = this.safeString(transaction, "status");
         string? withdrawId = this.safeString(transaction, "wid");
         object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
-        string? networkCodeUpper = ((bool) ((networkCode != null))) ? ((string)networkCode).ToUpper() : null;
+        string? networkCodeUpper = (((networkCode != null))) ? ((string)networkCode).ToUpper() : null;
         return new Dictionary<string, object>() {
             { "id", this.safeString2(transaction, "wid", "fid") },
             { "txid", this.safeString(details, "tx_hash") },
@@ -2127,10 +2127,10 @@ public partial class bitso : Exchange
             { "datetime", datetime },
             { "network", networkCodeUpper },
             { "addressFrom", receivingAddress },
-            { "address", ((bool) ((withdrawalAddress != null))) ? withdrawalAddress : receivingAddress },
+            { "address", (((withdrawalAddress != null))) ? withdrawalAddress : receivingAddress },
             { "addressTo", withdrawalAddress },
             { "amount", this.safeNumber(transaction, "amount") },
-            { "type", ((bool) ((withdrawId == null))) ? "deposit" : "withdrawal" },
+            { "type", (((withdrawId == null))) ? "deposit" : "withdrawal" },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
@@ -2226,7 +2226,7 @@ public partial class bitso : Exchange
                     success = false;
                 }
             }
-            if ((success != true))
+            if (!isEqual(success, true))
             {
                 string feedback = ((this.id + " ") + this.json(response));
                 IDictionary<string, object> error = this.safeDict(response, "error");

@@ -832,22 +832,22 @@ public partial class btse : Exchange
             { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", ((bool) isSpot) ? null : quote },
+            { "settle", (isSpot) ? null : quote },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", ((bool) isSpot) ? null : quoteId },
+            { "settleId", (isSpot) ? null : quoteId },
             { "type", type },
             { "spot", isSpot },
-            { "margin", ((bool) isSpot) ? false : null },
+            { "margin", (isSpot) ? false : null },
             { "swap", isSwap },
             { "future", isFuture },
             { "option", false },
             { "active", active },
             { "contract", isSwap || isFuture },
-            { "linear", ((bool) isSpot) ? null : true },
-            { "inverse", ((bool) isSpot) ? null : false },
-            { "taker", (fees != null && fees.ContainsKey("taker") ? fees["taker"] : null) },
-            { "maker", (fees != null && fees.ContainsKey("maker") ? fees["maker"] : null) },
+            { "linear", (isSpot) ? null : true },
+            { "inverse", (isSpot) ? null : false },
+            { "taker", getValue(fees, "taker") },
+            { "maker", getValue(fees, "maker") },
             { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -926,7 +926,7 @@ public partial class btse : Exchange
         if ((since != null))
         {
             // the endpoint accepts timestamps in seconds
-            ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
+            ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
@@ -1531,7 +1531,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterest() symbol does not support market ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2843,7 +2843,7 @@ public partial class btse : Exchange
         if (isEqual(marketType, "spot"))
         {
             // the literal ALL value cancels every open order across all pairs
-            ((IDictionary<string,object>)request)["symbol"] = ((bool) ((market != null))) ? (market.ContainsKey("id") ? market["id"] : null) : "ALL";
+            ((IDictionary<string,object>)request)["symbol"] = (((market != null))) ? (market.ContainsKey("id") ? market["id"] : null) : "ALL";
             response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, parameters));
         } else
         {

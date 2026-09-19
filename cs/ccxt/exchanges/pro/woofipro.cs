@@ -612,7 +612,7 @@ public partial class woofipro : ccxt.woofipro
         bool? maker = this.safeBool(trade, "maker");
         if (!isEqual(maker, null))
         {
-            takerOrMaker = ((bool) (maker == true)) ? "maker" : "taker";
+            takerOrMaker = ((maker == true)) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeValue = this.safeString(trade, "fee");
@@ -752,7 +752,7 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((bool) ((trigger == true))) ? "algoexecutionreport" : "executionreport";
+        string topic = (((trigger == true))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
         if ((symbolVar != null))
@@ -797,7 +797,7 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((bool) ((trigger == true))) ? "algoexecutionreport" : "executionreport";
+        string topic = (((trigger == true))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, "stop");
         string messageHash = "myTrades";
         if ((symbolVar != null))

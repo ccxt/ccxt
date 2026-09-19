@@ -2134,7 +2134,7 @@ public partial class alpaca : Exchange
         {
             currency = this.currency(((string)code));
         }
-        bool sandboxMode = this.isSandboxModeEnabled || isTrue(this.safeBool(this.options, "sandboxMode", false));
+        bool sandboxMode = this.isSandboxModeEnabled || (this.safeBool(this.options, "sandboxMode", false) == true);
         if ((sandboxMode == true))
         {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
@@ -2167,7 +2167,7 @@ public partial class alpaca : Exchange
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(amount, "0"));
-                string entryDirection = ((bool) isIncoming) ? "INCOMING" : "OUTGOING";
+                string entryDirection = (isIncoming) ? "INCOMING" : "OUTGOING";
                 if ((isEqual(type, "BOTH")) || (isEqual(entryDirection, type)))
                 {
                     ((IList<object>)filtered).Add(entry);
@@ -2317,7 +2317,7 @@ public partial class alpaca : Exchange
             bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(netAmount, "0"));
             timestamp = this.parse8601((this.safeString(transaction, "date") + "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
-            type = ((bool) isIncoming) ? "deposit" : "withdrawal";
+            type = (isIncoming) ? "deposit" : "withdrawal";
             amount = this.parseNumber(Precise.stringAbs(netAmount));
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
@@ -2566,7 +2566,7 @@ public partial class alpaca : Exchange
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
         object url = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(api, 0)));
-        headers = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
+        headers = (((headers != null))) ? headers : new Dictionary<string, object>() {};
         if (isEqual(getValue(api, 1), "private"))
         {
             this.checkRequiredCredentials();

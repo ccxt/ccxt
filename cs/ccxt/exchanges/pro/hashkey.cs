@@ -653,10 +653,10 @@ public partial class hashkey : ccxt.hashkey
             if (isPublicTrade)
             {
                 takerOrMaker = "taker";
-                side = ((bool) (isBuyerMaker == true)) ? "sell" : "buy";
+                side = ((isBuyerMaker == true)) ? "sell" : "buy";
             } else
             {
-                takerOrMaker = ((bool) (isBuyerMaker == true)) ? "maker" : "taker";
+                takerOrMaker = ((isBuyerMaker == true)) ? "maker" : "taker";
                 side = this.safeStringLower(trade, "S");
             }
         }
@@ -889,7 +889,7 @@ public partial class hashkey : ccxt.hashkey
         List<object> data = this.safeList(message, "B", new List<object>() {});
         IDictionary<string, object> balanceUpdate = this.safeDict(data, 0);
         bool isSpot = (eventVar == "outboundAccountInfo");
-        string type = ((bool) isSpot) ? "spot" : "swap";
+        string type = (isSpot) ? "spot" : "swap";
         if (!(inOp(this.balance, type)))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};

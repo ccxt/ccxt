@@ -762,7 +762,7 @@ public partial class foxbit : Exchange
         int defaultLimit = 20;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
-            { "depth", ((bool) ((limit == null))) ? defaultLimit : limit },
+            { "depth", (((limit == null))) ? defaultLimit : limit },
         };
         Dictionary<string, object> response = await this.v3PublicGetMarketsMarketOrderbook(this.extend(request, parameters));
         //  {

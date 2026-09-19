@@ -974,7 +974,7 @@ public partial class btcmarkets : Exchange
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? marketId = this.safeString(trade, "marketId");
         market = this.safeMarket(marketId, market, "-");
-        object feeCurrencyCode = ((bool) (isEqual(getValue(market, "quote"), "AUD"))) ? getValue(market, "quote") : getValue(market, "base");
+        object feeCurrencyCode = ((isEqual(getValue(market, "quote"), "AUD"))) ? getValue(market, "quote") : getValue(market, "base");
         string? side = this.safeString(trade, "side");
         if ((side == "Bid"))
         {
@@ -1072,7 +1072,7 @@ public partial class btcmarkets : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", this.amountToPrecision(symbol, amount) },
-            { "side", ((bool) ((side == "buy"))) ? "Bid" : "Ask" },
+            { "side", (((side == "buy"))) ? "Bid" : "Ask" },
         };
         string lowercaseType = ((string)type).ToLower();
         IDictionary<string, object> orderTypes = this.safeDict(this.options, "orderTypes", new Dictionary<string, object>() {

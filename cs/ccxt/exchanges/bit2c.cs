@@ -1067,8 +1067,8 @@ public partial class bit2c : Exchange
             market = this.safeMarket(marketId, market);
             market = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), market);
             bool? isMaker = this.safeBool(trade, "isMaker");
-            makerOrTaker = ((bool) ((isMaker == true))) ? "maker" : "taker";
-            orderId = ((bool) ((isMaker == true))) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
+            makerOrTaker = (((isMaker == true))) ? "maker" : "taker";
+            orderId = (((isMaker == true))) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
             Int64? action = this.safeInteger(trade, "action");
             if ((action == 0))
             {

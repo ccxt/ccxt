@@ -1072,7 +1072,7 @@ public partial class coinmate : Exchange
             };
         }
         string? takerOrMaker = this.safeString(trade, "feeType");
-        takerOrMaker = ((bool) ((takerOrMaker == "MAKER"))) ? "maker" : "taker";
+        takerOrMaker = (((takerOrMaker == "MAKER"))) ? "maker" : "taker";
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },

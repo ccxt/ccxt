@@ -603,11 +603,11 @@ public partial class onetrading : Exchange
             { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", ((bool) isPerp) ? quote : null },
+            { "settle", (isPerp) ? quote : null },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", ((bool) isPerp) ? quoteId : null },
-            { "type", ((bool) isPerp) ? "swap" : "spot" },
+            { "settleId", (isPerp) ? quoteId : null },
+            { "type", (isPerp) ? "swap" : "spot" },
             { "spot", !isPerp },
             { "margin", false },
             { "swap", isPerp },
@@ -615,9 +615,9 @@ public partial class onetrading : Exchange
             { "option", false },
             { "active", ((state == "ACTIVE")) },
             { "contract", isPerp },
-            { "linear", ((bool) isPerp) ? true : null },
-            { "inverse", ((bool) isPerp) ? false : null },
-            { "contractSize", ((bool) isPerp) ? this.parseNumber("1") : null },
+            { "linear", (isPerp) ? true : null },
+            { "inverse", (isPerp) ? false : null },
+            { "contractSize", (isPerp) ? this.parseNumber("1") : null },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -745,7 +745,7 @@ public partial class onetrading : Exchange
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            IDictionary<string, object> tierObject = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? firstSpotTier : firstFuturesTier;
+            IDictionary<string, object> tierObject = (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", spotFees },
                 { "symbol", symbol },
@@ -817,8 +817,8 @@ public partial class onetrading : Exchange
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            string? makerFee = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? spotMakerFee : futuresMakerFee;
-            string? takerFee = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? spotTakerFee : futuresTakerFee;
+            string? makerFee = (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? spotMakerFee : futuresMakerFee;
+            string? takerFee = (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? spotTakerFee : futuresTakerFee;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

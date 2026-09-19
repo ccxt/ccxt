@@ -861,7 +861,7 @@ public partial class cryptomus : Exchange
                     }
                 } else
                 {
-                    cost = ((bool) ((cost != null) && !isEqual(cost, ""))) ? cost : amountToString;
+                    cost = (((cost != null) && !isEqual(cost, ""))) ? cost : amountToString;
                 }
                 ((IDictionary<string,object>)request)["value"] = cost;
             } else

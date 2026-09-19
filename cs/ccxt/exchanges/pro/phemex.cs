@@ -347,7 +347,7 @@ public partial class phemex : ccxt.phemex
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool usePerpetualApi = (this.safeString(parameters, "settle") == "USDT");
         object messageHash = ":balance";
-        messageHash = ((bool) usePerpetualApi) ? ("perpetual" + (messageHash)) : add(type, messageHash);
+        messageHash = (usePerpetualApi) ? ("perpetual" + (messageHash)) : add(type, messageHash);
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, parameters));
     }
 
@@ -570,7 +570,7 @@ public partial class phemex : ccxt.phemex
         string name = "spot_market24h";
         if (isEqual(isSwap, true))
         {
-            name = ((bool) settleIsUSDT) ? "perp_market24h_pack_p" : "market24h";
+            name = (settleIsUSDT) ? "perp_market24h_pack_p" : "market24h";
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId());
@@ -612,7 +612,7 @@ public partial class phemex : ccxt.phemex
         string name = "spot_market24h";
         if (isEqual(isSwap, true))
         {
-            name = ((bool) settleIsUSDT) ? "perp_market24h_pack_p" : "market24h";
+            name = (settleIsUSDT) ? "perp_market24h_pack_p" : "market24h";
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId());
@@ -667,7 +667,7 @@ public partial class phemex : ccxt.phemex
         object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
-        string name = ((bool) isUsdtSwap) ? "trade_p" : "trade";
+        string name = (isUsdtSwap) ? "trade_p" : "trade";
         string messageHash = ("trade:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -712,7 +712,7 @@ public partial class phemex : ccxt.phemex
         object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
-        string name = ((bool) isUsdtSwap) ? "orderbook_p" : "orderbook";
+        string name = (isUsdtSwap) ? "orderbook_p" : "orderbook";
         string messageHash = ("orderbook:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -757,7 +757,7 @@ public partial class phemex : ccxt.phemex
         object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
-        string name = ((bool) isUsdtSwap) ? "kline_p" : "kline";
+        string name = (isUsdtSwap) ? "kline_p" : "kline";
         string messageHash = ((("kline:" + (timeframeVar)) + ":") + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -908,7 +908,7 @@ public partial class phemex : ccxt.phemex
         if ((symbolVar == null))
         {
             string? settle = this.safeString(parameters, "settle");
-            messageHash = ((bool) ((settle == "USDT"))) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
+            messageHash = (((settle == "USDT"))) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
         }
         object trades = await this.subscribePrivate(type, messageHash, parameters);
         if (this.newUpdates)
@@ -1037,7 +1037,7 @@ public partial class phemex : ccxt.phemex
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((type == null))
             {
-                type = ((bool) ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"))) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
+                type = (((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"))) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
             }
             if ((symbol != null))
             {
@@ -1095,7 +1095,7 @@ public partial class phemex : ccxt.phemex
         bool isUSDTSettled = (this.safeString(parameters, "settle") == "USDT");
         if ((symbolVar == null))
         {
-            messageHash = ((bool) (isUSDTSettled)) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
+            messageHash = ((isUSDTSettled)) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
         }
         object orders = await this.subscribePrivate(type, messageHash, parameters);
         if (this.newUpdates)
@@ -1322,7 +1322,7 @@ public partial class phemex : ccxt.phemex
             if ((type == null))
             {
                 bool isUsdt = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
-                type = ((bool) isUsdt) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
+                type = (isUsdt) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
             }
             ((IDictionary<string,object>)marketIds)[(string)symbol] = true;
         }
@@ -1647,7 +1647,7 @@ public partial class phemex : ccxt.phemex
         }
         if (((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("wallets"))))
         {
-            string type = ((bool) ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts")))) ? "swap" : "spot";
+            string type = (((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts")))) ? "swap" : "spot";
             if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p")))
             {
                 type = "perpetual";

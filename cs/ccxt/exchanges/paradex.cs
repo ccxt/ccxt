@@ -731,7 +731,7 @@ public partial class paradex : Exchange
         //     }
         //
         string? status = this.safeString(response, "status");
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) ((status == "ok"))) ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (((status == "ok"))) ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -865,7 +865,7 @@ public partial class paradex : Exchange
         bool isOptionPerpetual = ((assetKind == "PERP_OPTION"));
         bool isOptionDelivery = ((assetKind == "OPTION"));
         bool isOption = isOptionPerpetual || isOptionDelivery;
-        string type = ((bool) (isOption)) ? "option" : "swap";
+        string type = ((isOption)) ? "option" : "swap";
         bool isSwap = ((type == "swap"));
         string? marketId = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quote_currency");
@@ -882,15 +882,15 @@ public partial class paradex : Exchange
         double? makerFee = this.parseNumber("-0.00005");
         if (isOption)
         {
-            string optionTypeSuffix = ((bool) ((optionType == "CALL"))) ? "C" : "P";
-            string deliveryValue = ((bool) ((expiry == 0))) ? "" : (this.yymmdd(expiry) + "-");
+            string optionTypeSuffix = (((optionType == "CALL"))) ? "C" : "P";
+            string deliveryValue = ((isEqual(expiry, 0))) ? "" : (this.yymmdd(expiry) + "-");
             symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {
             expiry = null;
         }
-        string? expireDatetime = ((bool) ((expiry == 0))) ? null : this.iso8601(expiry);
+        string? expireDatetime = ((isEqual(expiry, 0))) ? null : this.iso8601(expiry);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1118,7 +1118,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["start_at"] = since;
             if ((limit != null))
             {
-                ((IDictionary<string,object>)request)["end_at"] = subtract(this.sum(since, ((duration * ((limit + 1))) * 1000)), 1);
+                ((IDictionary<string,object>)request)["end_at"] = subtract(this.sum(since, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
             } else
             {
                 ((IDictionary<string,object>)request)["end_at"] = until;
@@ -1128,7 +1128,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["end_at"] = until;
             if ((limit != null))
             {
-                ((IDictionary<string,object>)request)["start_at"] = add(subtract(until, ((duration * ((limit + 1))) * 1000)), 1);
+                ((IDictionary<string,object>)request)["start_at"] = add(subtract(until, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
             } else
             {
                 ((IDictionary<string,object>)request)["start_at"] = add(subtract(until, multiply(multiply(duration, 101), 1000)), 1);
@@ -1373,7 +1373,7 @@ public partial class paradex : Exchange
         IDictionary<string, object> rate = this.safeDict(rates, (market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((rate == null))
         {
-            throw new BadSymbol ((string)((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
+            throw new BadSymbol ((string)((this.id + " fetchFundingRate() could not find a funding rate for ") + (symbol))) ;
         }
         return ccxt.BaseExchange.ToFundingRate(rate);
     }
@@ -1417,7 +1417,7 @@ public partial class paradex : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", contract },
-            { "symbol", ((bool) funds) ? getValue(market, "symbol") : null },
+            { "symbol", (funds) ? getValue(market, "symbol") : null },
             { "markPrice", this.safeNumber(contract, "mark_price") },
             { "indexPrice", this.safeNumber(contract, "underlying_price") },
             { "interestRate", null },
@@ -1599,7 +1599,7 @@ public partial class paradex : Exchange
         string? side = this.safeStringLower(trade, "side");
         string? liability = this.safeStringLower(trade, "liquidity", "taker");
         bool isTaker = (liability == "taker");
-        string takerOrMaker = ((bool) (isTaker)) ? "taker" : "maker";
+        string takerOrMaker = ((isTaker)) ? "taker" : "maker";
         string? currencyId = this.safeString(trade, "fee_currency");
         string? code = this.safeCurrencyCode(currencyId);
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1828,7 +1828,7 @@ public partial class paradex : Exchange
 }} },
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, getValue(account, "address"));
-        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
+        object signature = this.starknetSign(msg, getValue(account, "privateKey"));
         ((IDictionary<string,object>)parameters)["signature"] = signature;
         ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
         ((IDictionary<string,object>)parameters)["public_key"] = getValue(account, "publicKey");
@@ -1883,7 +1883,7 @@ public partial class paradex : Exchange
 }} },
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, getValue(account, "address"));
-        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
+        object signature = this.starknetSign(msg, getValue(account, "privateKey"));
         ((IDictionary<string,object>)parameters)["signature"] = signature;
         ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
         ((IDictionary<string,object>)parameters)["timestamp"] = ((IDictionary<string,object>)req)["timestamp"];
@@ -2135,7 +2135,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["trigger_price"] = stopPrice;
         }
         ((IDictionary<string,object>)request)["size"] = sizeString;
-        if ((reduceOnly == true))
+        if (isEqual(reduceOnly, true))
         {
             ((IDictionary<string,object>)request)["flags"] = new List<object>() {"REDUCE_ONLY"};
         }
@@ -2157,10 +2157,10 @@ public partial class paradex : Exchange
         Dictionary<string, object> orderReq = new Dictionary<string, object>() {
             { "timestamp", (now * 1000) },
             { "market", this.stringToBase16(getValue(request, "market")) },
-            { "side", ((bool) (isEqual(getValue(request, "side"), "BUY"))) ? "1" : "2" },
+            { "side", ((isEqual(getValue(request, "side"), "BUY"))) ? "1" : "2" },
             { "orderType", this.stringToBase16(getValue(request, "type")) },
             { "size", this.scaleNumber(getValue(request, "size")) },
-            { "price", ((bool) (isMarket)) ? "0" : this.scaleNumber(getValue(request, "price")) },
+            { "price", ((isMarket)) ? "0" : this.scaleNumber(getValue(request, "price")) },
         };
         List<object> orderFields = new List<object>() {new Dictionary<string, object>() {
     { "name", "timestamp" },
@@ -2200,7 +2200,7 @@ public partial class paradex : Exchange
         }
         object domain = await this.prepareParadexDomain();
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, getValue(account, "address"));
-        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
+        object signature = this.starknetSign(msg, getValue(account, "privateKey"));
         ((IDictionary<string,object>)request)["signature"] = signature;
         ((IDictionary<string,object>)request)["signature_timestamp"] = ((IDictionary<string,object>)orderReq)["timestamp"];
         return request;
@@ -3428,7 +3428,7 @@ public partial class paradex : Exchange
         Int64? timestamp = this.safeInteger(transaction, "created_at");
         Int64? updated = this.safeInteger(transaction, "last_updated_at");
         string? type = this.safeString(transaction, "kind");
-        type = ((bool) ((type == "DEPOSIT"))) ? "deposit" : "withdrawal";
+        type = (((type == "DEPOSIT"))) ? "deposit" : "withdrawal";
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         double? amount = this.safeNumber(transaction, "amount");
         return new Dictionary<string, object>() {

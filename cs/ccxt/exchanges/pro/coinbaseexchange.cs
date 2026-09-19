@@ -594,7 +594,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 { "sell", "buy" },
             }, currentSide, currentSide);
         }
-        string idKey = ((bool) isMaker) ? "maker_order_id" : "taker_order_id";
+        string idKey = (isMaker) ? "maker_order_id" : "taker_order_id";
         ((IDictionary<string,object>)parsed)["order"] = this.safeString(trade, idKey);
         market = this.market(getValue(parsed, "symbol"));
         object feeCurrency = getValue(market, "quote");

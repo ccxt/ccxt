@@ -447,7 +447,7 @@ public partial class delta : Exchange
         string? strike = this.safeString(optionParts, 2);
         string? datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
-        string optionTypeUnified = ((bool) (isEqual(optionType, "C"))) ? "call" : "put";
+        string optionTypeUnified = ((isEqual(optionType, "C"))) ? "call" : "put";
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(optionType, "-"), bs), "-"), strike), "-"), expiry) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
@@ -587,7 +587,7 @@ public partial class delta : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         string? underMaintenance = this.safeString(result, "under_maintenance");
-        string status = ((bool) ((underMaintenance == "true"))) ? "maintenance" : "ok";
+        string status = (((underMaintenance == "true"))) ? "maintenance" : "ok";
         Int64? updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", updated },             { "eta", null },             { "url", null },             { "info", response },         });
     }
@@ -1043,11 +1043,11 @@ public partial class delta : Exchange
                 { "option", option },
                 { "active", ((state == "live")) },
                 { "contract", !spot },
-                { "linear", ((bool) spot) ? null : linear },
-                { "inverse", ((bool) spot) ? null : !linear },
+                { "linear", (spot) ? null : linear },
+                { "inverse", (spot) ? null : !linear },
                 { "taker", this.safeNumber(market, "taker_commission_rate") },
                 { "maker", this.safeNumber(market, "maker_commission_rate") },
-                { "contractSize", ((bool) spot) ? null : contractSize },
+                { "contractSize", (spot) ? null : contractSize },
                 { "expiry", expiry },
                 { "expiryDatetime", this.iso8601(expiry) },
                 { "strike", this.parseNumber(strike) },
@@ -1209,7 +1209,7 @@ public partial class delta : Exchange
         string? turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
         string? quoteId = this.safeStringUpper(market, "quoteId");
         bool baseDenominated = ((turnoverSymbol != null)) && ((quoteId != null)) && ((turnoverSymbol != quoteId));
-        double? quoteVolume = ((bool) baseDenominated) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
+        double? quoteVolume = (baseDenominated) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1777,7 +1777,7 @@ public partial class delta : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
-        limitVar = ((bool) ((limitVar != null) && (limitVar != null) && !isEqual(limitVar, 0))) ? limitVar : 2000; // max 2000
+        limitVar = (((limitVar != null) && (limitVar != null) && !isEqual(limitVar, 0))) ? limitVar : 2000; // max 2000
         Int64? until = this.safeIntegerProduct(parameters, "until", 0.001);
         bool untilIsDefined = (!isEqual(until, null));
         if (untilIsDefined)
@@ -1786,7 +1786,7 @@ public partial class delta : Exchange
         }
         if ((since == null))
         {
-            Int64? end = ((bool) untilIsDefined) ? until : this.seconds();
+            Int64? end = (untilIsDefined) ? until : this.seconds();
             ((IDictionary<string,object>)request)["end"] = end;
             if (isEqual(end, null))
             {
@@ -1797,7 +1797,7 @@ public partial class delta : Exchange
         {
             Int64? start = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["start"] = start;
-            ((IDictionary<string,object>)request)["end"] = ((bool) untilIsDefined) ? until : this.sum(start, multiply(limitVar, duration));
+            ((IDictionary<string,object>)request)["end"] = (untilIsDefined) ? until : this.sum(start, multiply(limitVar, duration));
         }
         string? price = this.safeString(parameters, "price");
         if ((price == "mark"))
@@ -1838,7 +1838,7 @@ public partial class delta : Exchange
             object balance = balances[i];
             string? currencyId = this.safeString(balance, "asset_id");
             IDictionary<string, object> currency = this.safeDict(currenciesByNumericId, currencyId);
-            object code = ((bool) ((currency == null))) ? currencyId : (currency.ContainsKey("code") ? currency["code"] : null);
+            object code = (((currency == null))) ? currencyId : (currency.ContainsKey("code") ? currency["code"] : null);
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_balance");
@@ -2116,7 +2116,7 @@ public partial class delta : Exchange
         string? marketId = this.safeString(order, "product_id");
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
         market = this.safeValue(marketsByNumericId, marketId, market);
-        object symbol = ((bool) ((market == null))) ? marketId : getValue(market, "symbol");
+        object symbol = (((market == null))) ? marketId : getValue(market, "symbol");
         string? status = this.parseOrderStatus(this.safeString(order, "state"));
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "order_type");
@@ -2733,7 +2733,7 @@ public partial class delta : Exchange
         string? currencyId = this.safeString(item, "asset_id");
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         currency = this.safeValue(currenciesByNumericId, currencyId, currency);
-        object code = ((bool) ((currency == null))) ? null : getValue(currency, "code");
+        object code = (((currency == null))) ? null : getValue(currency, "code");
         string? amount = this.safeString(item, "amount");
         Int64? timestamp = this.parse8601(this.safeString(item, "created_at"));
         string? after = this.safeString(item, "balance");

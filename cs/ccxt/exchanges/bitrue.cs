@@ -756,7 +756,7 @@ public partial class bitrue : Exchange
         //
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         int keysLength = keys.Count;
-        string formattedStatus = ((bool) (keysLength > 0)) ? "maintenance" : "ok";
+        string formattedStatus = ((keysLength > 0)) ? "maintenance" : "ok";
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", formattedStatus },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -1880,11 +1880,11 @@ public partial class bitrue : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (!isEqual(buyerMaker, null))
         {
-            side = ((bool) (buyerMaker == true)) ? "sell" : "buy";
+            side = ((buyerMaker == true)) ? "sell" : "buy";
         }
         if (!isEqual(isBuyer, null))
         {
-            side = ((bool) (isBuyer == true)) ? "buy" : "sell"; // this is a true side
+            side = ((isBuyer == true)) ? "buy" : "sell"; // this is a true side
         }
         Dictionary<string, object> fee = null;
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
@@ -1898,7 +1898,7 @@ public partial class bitrue : Exchange
         bool? isMaker = this.safeBool(trade, "isMaker");
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -2215,7 +2215,7 @@ public partial class bitrue : Exchange
                     string? amountString = this.numberToString(amount);
                     string? priceString = this.numberToString(price);
                     string? quoteAmount = Precise.stringMul(amountString, priceString);
-                    string? requestAmount = ((bool) ((cost != null))) ? cost : quoteAmount;
+                    string? requestAmount = (((cost != null))) ? cost : quoteAmount;
                     ((IDictionary<string,object>)request)["amount"] = this.costToPrecision(symbol, requestAmount);
                     ((IDictionary<string,object>)request)["volume"] = this.costToPrecision(symbol, requestAmount);
                 }
@@ -2226,7 +2226,7 @@ public partial class bitrue : Exchange
             }
             ((IDictionary<string,object>)request)["positionType"] = 1;
             bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            ((IDictionary<string,object>)request)["open"] = ((bool) ((reduceOnly == true))) ? "CLOSE" : "OPEN";
+            ((IDictionary<string,object>)request)["open"] = (((reduceOnly == true))) ? "CLOSE" : "OPEN";
             string? leverage = this.safeString(parameters, "leverage", "1");
             ((IDictionary<string,object>)request)["leverage"] = this.parseToNumeric(leverage);
             parameters = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "reduce_only", "timeInForce"});
@@ -3044,7 +3044,7 @@ public partial class bitrue : Exchange
         Int64? updated = this.safeInteger(transaction, "updatedAt");
         bool payAmount = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("payAmount")));
         bool ctime = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("ctime")));
-        string type = ((bool) (payAmount || ctime)) ? "withdrawal" : "deposit";
+        string type = ((payAmount || ctime)) ? "withdrawal" : "deposit";
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         double? amount = this.safeNumber(transaction, "amount");
         string? network = null;

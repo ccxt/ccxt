@@ -564,7 +564,7 @@ public partial class whitebit : ccxt.whitebit
         if ((feeCost != null))
         {
             string? feeCurrencyId = this.safeString(trade, 10);
-            object feeCurrencyCode = ((bool) ((feeCurrencyId != null))) ? this.safeCurrencyCode(feeCurrencyId) : getValue(market, "quote");
+            object feeCurrencyCode = (((feeCurrencyId != null))) ? this.safeCurrencyCode(feeCurrencyId) : getValue(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurrencyCode },
@@ -738,7 +738,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         object symbol = getValue(market, "symbol");
         Int64? rawSide = this.safeInteger(order, "side");
-        string side = ((bool) ((rawSide == 1))) ? "sell" : "buy";
+        string side = (((rawSide == 1))) ? "sell" : "buy";
         string? dealFee = this.safeString(order, "deal_fee");
         Dictionary<string, object> fee = null;
         if ((dealFee != null))

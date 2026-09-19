@@ -626,7 +626,7 @@ public partial class blockchaincom : Exchange
         string? marketId = this.safeString(order, "symbol");
         string? symbol = this.safeSymbol(marketId, market, "-");
         string? exchangeOrderId = this.safeString(order, "exOrdId");
-        string? price = ((bool) ((type != "market"))) ? this.safeString(order, "price") : null;
+        string? price = (((type != "market"))) ? this.safeString(order, "price") : null;
         double? average = this.safeNumber(order, "avgPx");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         string? datetime = this.iso8601(timestamp);
@@ -1073,7 +1073,7 @@ public partial class blockchaincom : Exchange
             type = "withdrawal";
             id = this.safeString(transaction, "withdrawalId");
         }
-        double? feeCost = ((bool) ((type == "withdrawal"))) ? this.safeNumber(transaction, "fee") : null;
+        double? feeCost = (((type == "withdrawal"))) ? this.safeNumber(transaction, "fee") : null;
         Dictionary<string, object> fee = null;
         if (!isEqual(feeCost, null))
         {

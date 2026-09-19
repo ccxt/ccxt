@@ -498,7 +498,7 @@ public partial class mudrex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.privateGetFutures(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rows = ((bool) ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? data : this.safeList(data, "items", new List<object>() {});
+        object rows = (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) ? data : this.safeList(data, "items", new List<object>() {});
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rows); i++)
         {
@@ -894,8 +894,8 @@ public partial class mudrex : Exchange
             { "leverage", this.numberToString(lev) },
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "order_price", this.priceToPrecision(symbol, price) },
-            { "order_type", ((bool) ((side == "buy"))) ? "LONG" : "SHORT" },
-            { "trigger_type", ((bool) ((type == "market"))) ? "MARKET" : "LIMIT" },
+            { "order_type", (((side == "buy"))) ? "LONG" : "SHORT" },
+            { "trigger_type", (((type == "market"))) ? "MARKET" : "LIMIT" },
             { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
         };
         // mudrex only supports take-profit / stop-loss orders attached to the position-opening order

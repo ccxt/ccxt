@@ -98,7 +98,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             Int64 timestamp = this.milliseconds();
             string? timestampString = this.numberToString(timestamp);
-            string? timestampEncoded = ((bool) ((timestampString == null))) ? "" : timestampString;
+            string? timestampEncoded = (((timestampString == null))) ? "" : timestampString;
             string signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "method", "login" },
@@ -275,7 +275,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         IDictionary<string, object> snapshot = this.safeDict(message, "snapshot");
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        string type = ((bool) ((snapshot != null) && (snapshot != null))) ? "snapshot" : "update";
+        string type = (((snapshot != null) && (snapshot != null))) ? "snapshot" : "update";
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
@@ -606,7 +606,7 @@ public partial class hitbtc : ccxt.hitbtc
     public virtual object parseWsBidAsk(object ticker, object market = null)
     {
         Int64? timestamp = this.safeInteger(ticker, "t");
-        object bidAskSymbol = ((bool) ((market != null))) ? getValue(market, "symbol") : null;
+        object bidAskSymbol = (((market != null))) ? getValue(market, "symbol") : null;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
@@ -1505,7 +1505,7 @@ public partial class hitbtc : ccxt.hitbtc
                 { "spot_balance", this.handleBalance },
                 { "futures_balance", this.handleBalance },
             };
-            object method = ((bool) ((channel == null))) ? null : this.safeValue(methods, channel);
+            object method = (((channel == null))) ? null : this.safeValue(methods, channel);
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

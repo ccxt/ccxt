@@ -1050,12 +1050,12 @@ public partial class lighter : Exchange
         ((IDictionary<string,object>)request)["order_expiry"] = orderExpiry;
         ((IDictionary<string,object>)request)["order_type"] = orderTypeNum;
         ((IDictionary<string,object>)request)["time_in_force"] = timeInForceNum;
-        ((IDictionary<string,object>)request)["reduce_only"] = ((bool) ((reduceOnly == true))) ? 1 : 0;
+        ((IDictionary<string,object>)request)["reduce_only"] = (((reduceOnly == true))) ? 1 : 0;
         ((IDictionary<string,object>)request)["client_order_index"] = clientOrderId;
         ((IDictionary<string,object>)request)["base_amount"] = this.parseToInt(Precise.stringMul(amountStr, amountScale));
         ((IDictionary<string,object>)request)["avg_execution_price"] = this.parseToInt(Precise.stringMul(priceStr, priceScale));
         ((IDictionary<string,object>)request)["trigger_price"] = this.parseToInt(Precise.stringMul(triggerPriceStr, priceScale));
-        if (isTrue(this.safeBool(this.options, "builderFee", true)))
+        if ((this.safeBool(this.options, "builderFee", true) == true))
         {
             ((IDictionary<string,object>)request)["integrator_account_index"] = (this.options.ContainsKey("integratorAccountIndex") ? this.options["integratorAccountIndex"] : null);
             ((IDictionary<string,object>)request)["integrator_taker_fee"] = (this.options.ContainsKey("integratorTakerFee") ? this.options["integratorTakerFee"] : null);
@@ -1186,7 +1186,7 @@ public partial class lighter : Exchange
                 { "api_key_index", apiKeyIndex },
                 { "account_index", accountIndex },
             };
-            if (isTrue(this.safeBool(this.options, "builderFee", true)))
+            if ((this.safeBool(this.options, "builderFee", true) == true))
             {
                 ((IDictionary<string,object>)signingPayload)["integrator_account_index"] = getValue(order, "integrator_account_index");
                 ((IDictionary<string,object>)signingPayload)["integrator_taker_fee"] = getValue(order, "integrator_taker_fee");
@@ -1304,7 +1304,7 @@ public partial class lighter : Exchange
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
         };
-        if (isTrue(this.safeBool(this.options, "builderFee", true)))
+        if ((this.safeBool(this.options, "builderFee", true) == true))
         {
             ((IDictionary<string,object>)signRaw)["integrator_account_index"] = (this.options.ContainsKey("integratorAccountIndex") ? this.options["integratorAccountIndex"] : null);
             ((IDictionary<string,object>)signRaw)["integrator_taker_fee"] = (this.options.ContainsKey("integratorTakerFee") ? this.options["integratorTakerFee"] : null);
@@ -1341,7 +1341,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? status = this.safeString(response, "status");
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) ((status == "200"))) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (((status == "200"))) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -1467,14 +1467,14 @@ public partial class lighter : Exchange
             object market = markets[i];
             string? id = this.safeString(market, "market_id");
             string? type = this.safeString(market, "market_type");
-            type = ((bool) ((type == "perp"))) ? "swap" : type;
+            type = (((type == "perp"))) ? "swap" : type;
             object baseId = this.safeString(market, "symbol");
             if ((baseId != null) && (((string)baseId).IndexOf("/", StringComparison.Ordinal) != -1))
             {
                 baseId = getValue(((string)baseId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>(), 0);
             }
             string quoteId = "USDC";
-            string? settleId = ((bool) ((type == "swap"))) ? "USDC" : null;
+            string? settleId = (((type == "swap"))) ? "USDC" : null;
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
@@ -1485,8 +1485,8 @@ public partial class lighter : Exchange
             }
             string? amountDecimals = this.safeString2(market, "size_decimals", "supported_size_decimals");
             string? priceDecimals = this.safeString2(market, "price_decimals", "supported_price_decimals");
-            double? amountPrecision = ((bool) ((amountDecimals == null))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
-            double? pricePrecision = ((bool) ((priceDecimals == null))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
+            double? amountPrecision = (((amountDecimals == null))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
+            double? pricePrecision = (((priceDecimals == null))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
             double? quoteMultiplier = this.safeNumber(market, "quote_multiplier");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
@@ -1505,8 +1505,8 @@ public partial class lighter : Exchange
                 { "option", false },
                 { "active", (this.safeString(market, "status") == "active") },
                 { "contract", (type == "swap") },
-                { "linear", ((bool) ((type == "swap"))) ? true : null },
-                { "inverse", ((bool) ((type == "swap"))) ? false : null },
+                { "linear", (((type == "swap"))) ? true : null },
+                { "inverse", (((type == "swap"))) ? false : null },
                 { "taker", this.safeNumber(market, "taker_fee") },
                 { "maker", this.safeNumber(market, "maker_fee") },
                 { "contractSize", quoteMultiplier },
@@ -1951,7 +1951,7 @@ public partial class lighter : Exchange
             }
         } else
         {
-            endTs = ((bool) (!isEqual(until, null))) ? until : now;
+            endTs = ((!isEqual(until, null))) ? until : now;
             int defaultLimit = 100;
             if ((limit != null))
             {
@@ -2317,13 +2317,13 @@ public partial class lighter : Exchange
         string? side = null;
         if (!isEqual(sign, null))
         {
-            side = ((bool) ((sign == 1))) ? "long" : "short";
+            side = (((sign == 1))) ? "long" : "short";
         }
         Int64? marginModeId = this.safeInteger(position, "margin_mode");
         string? marginMode = null;
         if (!isEqual(marginModeId, null))
         {
-            marginMode = ((bool) ((marginModeId == 0))) ? "cross" : "isolated";
+            marginMode = (((marginModeId == 0))) ? "cross" : "isolated";
         }
         string? imfStr = this.safeString(position, "initial_margin_fraction");
         object leverage = null;
@@ -2453,7 +2453,7 @@ public partial class lighter : Exchange
         string? accountType = this.safeString(account, "account_type");
         return new Dictionary<string, object>() {
             { "id", this.safeString(account, "account_index") },
-            { "type", ((bool) ((accountType == "0"))) ? "main" : "subaccount" },
+            { "type", (((accountType == "0"))) ? "main" : "subaccount" },
             { "code", null },
             { "info", account },
         };
@@ -2690,7 +2690,7 @@ public partial class lighter : Exchange
         string? side = null;
         if (!isEqual(isAsk, null))
         {
-            side = ((bool) (isAsk == true)) ? "sell" : "buy";
+            side = ((isAsk == true)) ? "sell" : "buy";
         }
         string? type = this.safeString(order, "type");
         if ((type == null))
@@ -2890,8 +2890,8 @@ public partial class lighter : Exchange
         {
             throw new ExchangeError ((string)(this.id + " transfer() only supports USDC and ETH transfers")) ;
         }
-        int fromRouteType = ((bool) ((fromAccount == "perp"))) ? 0 : 1; // 0: perp, 1: spot
-        int toRouteType = ((bool) ((toAccount == "perp"))) ? 0 : 1;
+        int fromRouteType = (((fromAccount == "perp"))) ? 0 : 1; // 0: perp, 1: spot
+        int toRouteType = (((toAccount == "perp"))) ? 0 : 1;
         string? memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
         parameters = this.omit(parameters, new List<object>() {"memo"});
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
@@ -3492,8 +3492,8 @@ public partial class lighter : Exchange
         string? takerOrMaker = null;
         if ((side != null) && !isEqual(isMakerAsk, null))
         {
-            bool? isMaker = ((bool) ((side == "sell"))) ? isMakerAsk : !(isMakerAsk == true);
-            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
+            bool? isMaker = (((side == "sell"))) ? isMakerAsk : !(isMakerAsk == true);
+            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -3603,7 +3603,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
-            { "margin_mode", ((bool) (isEqual(marginMode, "cross"))) ? 0 : 1 },
+            { "margin_mode", ((isEqual(marginMode, "cross"))) ? 0 : 1 },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },

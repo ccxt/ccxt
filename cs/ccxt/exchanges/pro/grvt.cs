@@ -604,7 +604,7 @@ public partial class grvt : ccxt.grvt
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
-        string extraPart = ((bool) isSnapshot) ? (((((object)interval).ToString() + "-") + ((object)limitVar).ToString())) : ((object)interval).ToString();
+        string extraPart = (isSnapshot) ? (((((object)interval).ToString() + "-") + ((object)limitVar).ToString())) : ((object)interval).ToString();
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)

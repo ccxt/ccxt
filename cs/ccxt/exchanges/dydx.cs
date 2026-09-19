@@ -1624,7 +1624,7 @@ public partial class dydx : Exchange
             }
             goodTillBlockTime = add(this.seconds(), goodTillBlockTimeInSeconds);
         }
-        int sideNumber = ((bool) ((orderSide == "BUY"))) ? 1 : 2;
+        int sideNumber = (((orderSide == "BUY"))) ? 1 : 2;
         object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Int64? clientOrderId = this.safeInteger(parameters, "clientOrderId", defaultClientOrderId);
         Dictionary<string, object> orderPayload = new Dictionary<string, object>() {
@@ -1658,10 +1658,10 @@ public partial class dydx : Exchange
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"});
         object walletAddress = this.getWalletAddress();
         Int64? clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
-        object subaccountIdValue = ((bool) (isEqual(subaccountId, null))) ? 0 : subaccountId;
-        Int64? clientOrderIdValue = ((bool) (isEqual(clientOrderId, null))) ? 0 : clientOrderId;
-        int? orderFlagValue = ((bool) (isEqual(orderFlag, null))) ? 0 : orderFlag;
-        Int64? clobPairIdValue = ((bool) (isEqual(clobPairId, null))) ? 0 : clobPairId;
+        object subaccountIdValue = ((isEqual(subaccountId, null))) ? 0 : subaccountId;
+        Int64? clientOrderIdValue = ((isEqual(clientOrderId, null))) ? 0 : clientOrderId;
+        int? orderFlagValue = ((isEqual(orderFlag, null))) ? 0 : orderFlag;
+        Int64? clobPairIdValue = ((isEqual(clobPairId, null))) ? 0 : clobPairId;
         object orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new List<object>() {orderId, this.extend(signingPayload, parameters)};
     }
@@ -1812,7 +1812,7 @@ public partial class dydx : Exchange
         goodTillBlockTimeInSeconds = ((IList<object>)goodTillBlockTimeInSecondsparametersVariable)[0];
         parameters = ((IList<object>)goodTillBlockTimeInSecondsparametersVariable)[1]; // default is 30 days
         object goodTillBlockTime = null;
-        int defaultOrderFlags = ((bool) ((isTrigger == true))) ? 32 : 64;
+        int defaultOrderFlags = (((isTrigger == true))) ? 32 : 64;
         Int64? orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
         object subAccountId = 0;
         IList<object> subAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);

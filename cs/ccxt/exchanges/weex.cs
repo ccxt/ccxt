@@ -1059,7 +1059,7 @@ public partial class weex : Exchange
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networksLength = networkKeys.Count;
         bool emptyChains = (networksLength == 0); // non-functional coins
-        bool? valueForEmpty = ((bool) emptyChains) ? false : null;
+        bool? valueForEmpty = (emptyChains) ? false : null;
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
             { "code", code },
@@ -1211,7 +1211,7 @@ public partial class weex : Exchange
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
-        IDictionary<string, object> fees = this.safeDict(this.fees, ((bool) isSpot) ? "spot" : "contract", new Dictionary<string, object>() {});
+        IDictionary<string, object> fees = this.safeDict(this.fees, (isSpot) ? "spot" : "contract", new Dictionary<string, object>() {});
         if ((id == null))
         {
             throw new ExchangeError ((string)(this.id + " method() missing id")) ;
@@ -1227,7 +1227,7 @@ public partial class weex : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", ((bool) isSpot) ? "spot" : "swap" },
+            { "type", (isSpot) ? "spot" : "swap" },
             { "spot", isSpot },
             { "margin", false },
             { "swap", !isSpot },
@@ -1850,7 +1850,7 @@ public partial class weex : Exchange
             {
                 Int64 now = this.milliseconds();
                 Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-                object numberOfCandles = ((bool) ((limitVar != null) && (limitVar != null) && !isEqual(limitVar, 0))) ? limitVar : maxHistoricalLimit;
+                object numberOfCandles = (((limitVar != null) && (limitVar != null) && !isEqual(limitVar, 0))) ? limitVar : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
                 if (((since == null)) && (isEqual(until, null)))
                 {
@@ -2003,17 +2003,17 @@ public partial class weex : Exchange
         bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (!isEqual(isBuyer, null))
         {
-            side = ((bool) (isBuyer == true)) ? "buy" : "sell";
+            side = ((isBuyer == true)) ? "buy" : "sell";
         } else if (!isEqual(isBuyerMaker, null))
         {
-            side = ((bool) (isBuyerMaker == true)) ? "sell" : "buy";
+            side = ((isBuyerMaker == true)) ? "sell" : "buy";
         }
         object isSpot = true;
         if ((market == null))
         {
             string? marketId = this.safeString(trade, "symbol");
             string? realizedPnl = this.safeString(trade, "realizedPnl");
-            string marketType = ((bool) ((realizedPnl != null))) ? "swap" : "spot";
+            string marketType = (((realizedPnl != null))) ? "swap" : "spot";
             market = this.safeMarket(marketId, null, null, marketType);
             isSpot = (marketType == "spot");
         } else
@@ -2045,7 +2045,7 @@ public partial class weex : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
         } else if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
@@ -3672,7 +3672,7 @@ public partial class weex : Exchange
         {
             object marketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
             string? positionSide = this.safeString(order, "positionSide");
-            string marketType = ((bool) ((positionSide == null))) ? "spot" : "swap";
+            string marketType = (((positionSide == null))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
         }
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
@@ -3682,7 +3682,7 @@ public partial class weex : Exchange
         bool? isReduceOnly = this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-        bool isEntryTrigger = !isTrue(this.safeBool(order, "reduceOnly", true));
+        bool isEntryTrigger = !(this.safeBool(order, "reduceOnly", true) == true);
         object takeProfitPrice = null;
         object stopLossPrice = null;
         if (!isEntryTrigger)
@@ -4889,7 +4889,7 @@ public partial class weex : Exchange
             { "amount", this.costToPrecision(symbol, amount) },
             { "type", type },
         };
-        string parsedType = ((bool) (isEqual(type, 1))) ? "add" : "reduce";
+        string parsedType = ((isEqual(type, 1))) ? "add" : "reduce";
         Dictionary<string, object> response = await this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters));
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
@@ -4907,7 +4907,7 @@ public partial class weex : Exchange
         //     }
         //
         string? msg = this.safeString(data, "msg");
-        string status = ((bool) ((msg == "success"))) ? "ok" : "failed";
+        string status = (((msg == "success"))) ? "ok" : "failed";
         Int64? timestamp = this.safeInteger(data, "requestTime");
         return new Dictionary<string, object>() {
             { "info", data },

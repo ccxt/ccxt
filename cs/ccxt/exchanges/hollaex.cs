@@ -561,7 +561,7 @@ public partial class hollaex : Exchange
         string? code = this.safeCurrencyCode(id);
         List<object> withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new List<object>() {});
         string? rawType = this.safeString(rawCurrency, "type");
-        string type = ((bool) ((rawType == "blockchain"))) ? "crypto" : "other";
+        string type = (((rawType == "blockchain"))) ? "crypto" : "other";
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
@@ -1740,7 +1740,7 @@ public partial class hollaex : Exchange
         //     }
         //
         List<object> wallet = this.safeList(response, "wallet", new List<object>() {});
-        List<object> addresses = ((bool) ((network == null))) ? wallet : this.filterBy(wallet, "network", network);
+        List<object> addresses = (((network == null))) ? wallet : this.filterBy(wallet, "network", network);
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
 

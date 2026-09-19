@@ -1092,7 +1092,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string orderType = this.capitalize(type);
-        orderType = orderType + (((bool) ((side == "sell"))) ? "Offer" : "Bid");
+        orderType = orderType + ((((side == "sell"))) ? "Offer" : "Bid");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },

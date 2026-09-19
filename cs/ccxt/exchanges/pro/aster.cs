@@ -346,7 +346,7 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string suffix = ((bool) ((use1sFreq == true))) ? "@1s" : "";
+            string suffix = (((use1sFreq == true))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@markPrice") + suffix));
             ((IList<object>)messageHashes).Add(("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
@@ -407,14 +407,14 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string suffix = ((bool) ((use1sFreq == true))) ? "@1s" : "";
+            string suffix = (((use1sFreq == true))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@markPrice") + suffix));
             ((IList<object>)messageHashes).Add(("unsubscribe:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
         //     {
@@ -605,7 +605,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         //
         //     {
@@ -637,7 +637,7 @@ public partial class aster : ccxt.aster
     public virtual object parseWsBidAsk(object message, object market = null)
     {
         Int64? timestamp = this.safeInteger(message, "T");
-        object bidAskSymbol = ((bool) ((market != null))) ? getValue(market, "symbol") : null;
+        object bidAskSymbol = (((market != null))) ? getValue(market, "symbol") : null;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
@@ -795,7 +795,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTrade(WebSocketClient client, object message)
     {
         //
         //     {
@@ -946,7 +946,7 @@ public partial class aster : ccxt.aster
             }
         }
         string? marketId = this.safeString(trade, "s");
-        object defaultType = ((bool) ((market == null))) ? this.safeString(this.options, "defaultType", "spot") : getValue(market, "type");
+        object defaultType = (((market == null))) ? this.safeString(this.options, "defaultType", "spot") : getValue(market, "type");
         string? symbol = this.safeSymbol(marketId, market, null, defaultType);
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
@@ -955,9 +955,9 @@ public partial class aster : ccxt.aster
         {
             if ((side == null))
             {
-                side = ((bool) (isEqual(((IDictionary<string,object>)trade)["m"], true))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((isEqual(((IDictionary<string,object>)trade)["m"], true))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((bool) (isEqual(((IDictionary<string,object>)trade)["m"], true))) ? "maker" : "taker";
+            takerOrMaker = ((isEqual(((IDictionary<string,object>)trade)["m"], true))) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -1140,7 +1140,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderBook(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1283,7 +1283,7 @@ public partial class aster : ccxt.aster
             Dictionary<string, object> market = this.market(symbolString);
             symbolString = (market.ContainsKey("symbol") ? market["symbol"] : null);
             string? unfiedTimeframe = this.safeString(data, 1);
-            string? timeframeId = ((bool) ((unfiedTimeframe == null))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? timeframeId = (((unfiedTimeframe == null))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));
             ((IList<object>)messageHashes).Add(((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + unfiedTimeframe));
         }
@@ -1348,14 +1348,14 @@ public partial class aster : ccxt.aster
             Dictionary<string, object> market = this.market(symbolString);
             symbolString = (market.ContainsKey("symbol") ? market["symbol"] : null);
             string? unfiedTimeframe = this.safeString(data, 1);
-            string? timeframeId = ((bool) ((unfiedTimeframe == null))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? timeframeId = (((unfiedTimeframe == null))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));
             ((IList<object>)messageHashes).Add(((("unsubscribe:ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + unfiedTimeframe));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOHLCV(WebSocketClient client, object message)
     {
         //
         //     {
@@ -2035,7 +2035,7 @@ public partial class aster : ccxt.aster
         if ((executionType == "TRADE"))
         {
             bool isSwap = ((string)client.url).IndexOf("fstream", StringComparison.Ordinal) >= 0;
-            string type = ((bool) isSwap) ? "swap" : "spot";
+            string type = (isSwap) ? "swap" : "spot";
             Dictionary<string, object> fakeMarket = this.safeMarketStructure(new Dictionary<string, object>() {
                 { "type", type },
             });
@@ -2062,27 +2062,27 @@ public partial class aster : ccxt.aster
                             for (int i = 0; i < fees.Count; i++)
                             {
                                 object orderFee = fees[i];
-                                if (isEqual(getValue(orderFee, "currency"), (tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)))
+                                if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))
                                 {
-                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
-                                    string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((bool) ((feeCostString == null))) ? null : parseFloat(feeCostString);
+                                    object feeCost = this.sum(getValue(tradeFee, "cost"), getValue(orderFee, "cost"));
+                                    string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
+                                    ((IDictionary<string,object>)getValue(getValue(order, "fees"), i))["cost"] = (((feeCostString == null))) ? null : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
+                                ((IList<object>)getValue(order, "fees")).Add(tradeFee);
                             }
                         } else if ((fee != null))
                         {
-                            if (isEqual((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null), (tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)))
+                            if (isEqual(getValue(fee, "currency"), getValue(tradeFee, "currency")))
                             {
-                                object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
-                                string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = ((bool) ((feeCostString == null))) ? null : parseFloat(feeCostString);
-                            } else if (isEqual((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null), null))
+                                object feeCost = this.sum(getValue(fee, "cost"), getValue(tradeFee, "cost"));
+                                string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
+                                ((IDictionary<string,object>)getValue(order, "fee"))["cost"] = (((feeCostString == null))) ? null : parseFloat(feeCostString);
+                            } else if (isEqual(getValue(fee, "currency"), null))
                             {
                                 ((IDictionary<string,object>)order)["fee"] = tradeFee;
                             } else
@@ -2289,7 +2289,7 @@ public partial class aster : ccxt.aster
         return ((Dictionary<string, object>)((object)(this.safeMarket(marketId, null, null, marketType))));
     }
 
-    public virtual void handleBalanceAndPosition(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleBalanceAndPosition(WebSocketClient client, object message)
     {
         this.handleBalance(client as WebSocketClient, message);
         this.handlePositions(client as WebSocketClient, message);
@@ -2311,7 +2311,7 @@ public partial class aster : ccxt.aster
             { "executionReport", this.handleOrderUpdate },
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
         };
-        object method = ((bool) ((eventVar == null))) ? null : this.safeValue(methods, eventVar);
+        object method = (((eventVar == null))) ? null : this.safeValue(methods, eventVar);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, messageInner});

@@ -179,7 +179,7 @@ public partial class testMainClass
                 object fullKey = add(add(exchangeId, "_"), credential);
                 string credentialEnvName = ((string)fullKey).ToUpper(); // example: KRAKEN_APIKEY
                 object envVars = getEnvVars();
-                object credentialValue = ((bool) (inOp(envVars, credentialEnvName))) ? getValue(envVars, credentialEnvName) : null;
+                object credentialValue = ((inOp(envVars, credentialEnvName))) ? getValue(envVars, credentialEnvName) : null;
                 if ((credentialValue != null) && !isEqual(credentialValue, ""))
                 {
                     setExchangeProp(exchange, credential, credentialValue);
@@ -477,7 +477,7 @@ public partial class testMainClass
                             }
                         }
                         // output the message
-                        string failType = ((bool) (shouldFail == true)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
+                        string failType = ((shouldFail == true)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
                         dump(failType, exchange.id, methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", exceptionMessage(e));
                         return retSuccess;
                     } else
@@ -806,7 +806,7 @@ public partial class testMainClass
         // an explicit per-exchange pin is a deliberate maintainer choice (it usually
         // works around a venue-specific quirk), so never rank around it
         object isSpot = exchange.safeBool(defaultMarket, "spot", false);
-        string preferredKey = ((bool) (isEqual(isSpot, true))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
+        string preferredKey = ((isEqual(isSpot, true))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
         object preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
         if ((preferredSymbol != null))
         {
@@ -1907,8 +1907,8 @@ public partial class testMainClass
             // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
             // typed core hits constantly (its Num fields are real doubles, so an unset
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
-            string newOutputString = ((bool) ((sanitizedNewOutput != null))) ? ((object)sanitizedNewOutput).ToString() : "undefined";
-            string storedOutputString = ((bool) ((sanitizedStoredOutput != null))) ? ((object)sanitizedStoredOutput).ToString() : "undefined";
+            string newOutputString = (((sanitizedNewOutput != null))) ? ((object)sanitizedNewOutput).ToString() : "undefined";
+            string storedOutputString = (((sanitizedStoredOutput != null))) ? ((object)sanitizedStoredOutput).ToString() : "undefined";
             string messageError = ((("output value mismatch:" + newOutputString) + " != ") + storedOutputString);
             if (isTrue(strictTypeCheck) && (!isEqual(this.lang, "C#")))
             {
@@ -2172,7 +2172,7 @@ public partial class testMainClass
             object storedHeaders = exchange.safeDict(data, "headers");
             if ((storedHeaders != null))
             {
-                object sentHeaders = ((bool) (!isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+                object sentHeaders = ((!isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
                 List<object> storedHeaderKeys = new List<object>(((IDictionary<string,object>)storedHeaders).Keys);
                 for (int i = 0; i < storedHeaderKeys.Count; i++)
                 {
@@ -2384,8 +2384,8 @@ public partial class testMainClass
 
     public async virtual Task<object> testExchangeWsStatically(object exchangeName, object exchangeData, object testName = null)
     {
-        object globalOptions = ((bool) isEqual(getValue(exchangeData, "options"), null)) ? new Dictionary<string, object>() {} : getValue(exchangeData, "options");
-        object methods = ((bool) isEqual(getValue(exchangeData, "methods"), null)) ? new Dictionary<string, object>() {} : getValue(exchangeData, "methods");
+        object globalOptions = (isEqual(getValue(exchangeData, "options"), null)) ? new Dictionary<string, object>() {} : getValue(exchangeData, "options");
+        object methods = (isEqual(getValue(exchangeData, "methods"), null)) ? new Dictionary<string, object>() {} : getValue(exchangeData, "methods");
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < methodsNames.Count; i++)
         {
@@ -3127,7 +3127,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), (("bybit - id: " + id) + " not in headers."));
         if (!isTrue(isSync()))
@@ -3149,7 +3149,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), (("bithumb - id: " + id) + " not in headers (v2 endpoints)."));
         reqHeaders = new Dictionary<string, object>() {};
@@ -3161,7 +3161,7 @@ public partial class testMainClass
             });
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), (("bithumb - id: " + id) + " not in headers (legacy endpoints)."));
         reqHeaders = new Dictionary<string, object>() {};
@@ -3171,7 +3171,7 @@ public partial class testMainClass
             await exchange.FetchTicker("BTC/KRW");
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), (("bithumb - id: " + id) + " not in headers (public endpoints)."));
         if (!isTrue(isSync()))
@@ -3200,7 +3200,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         string id = "ccxt";
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), (("kucoin - id: " + id) + " not in headers for spot orders."));
@@ -3211,7 +3211,7 @@ public partial class testMainClass
             });
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), (("kucoin - id: " + id) + " not in headers for spot uta orders."));
         id = "ccxtfutures";
@@ -3220,7 +3220,7 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), (("kucoin - id: " + id) + " not in headers for swap orders."));
         try
@@ -3230,7 +3230,7 @@ public partial class testMainClass
             });
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), (("kucoin - id: " + id) + " not in headers for swap uta orders."));
         if (!isTrue(isSync()))
@@ -3255,7 +3255,7 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), (("kucoinfutures - id: " + id) + " not in headers."));
         try
@@ -3264,7 +3264,7 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), (("kucoinfutures - id: " + id) + " not in headers for uta orders."));
         if (!isTrue(isSync()))
@@ -3285,7 +3285,7 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), (("bitget - id: " + id) + " not in headers."));
         if (!isTrue(isSync()))
@@ -3307,7 +3307,7 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "source"), id), (("mexc - id: " + id) + " not in headers."));
         if (!isTrue(isSync()))
@@ -3432,7 +3432,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), (("bingx - id: " + id) + " not in headers."));
         if (!isTrue(isSync()))
@@ -3648,7 +3648,7 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USD:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "PARADEX-PARTNER"), id), (("paradex - id: " + id) + " not in headers"));
         if (!isTrue(isSync()))
@@ -3669,7 +3669,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "INPUT-SOURCE"), id), (("hashkey - id: " + id) + " not in headers."));
         if (!isTrue(isSync()))
@@ -3771,7 +3771,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-Broker-Id"), id), (("backpack - id: " + id) + " not in headers."));
         if (!isTrue(isSync()))
@@ -3792,7 +3792,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-BB-API-PLATFORM"), id), (("toobit - id: " + id) + " not in headers."));
         if (!isTrue(isSync()))
@@ -3839,7 +3839,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = ((bool) (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+            reqHeaders = ((!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "X-FB-CLIENT"), id), (("foxbit - id: " + id) + " not in headers."));
         object version = exchange.getCcxtVersion();

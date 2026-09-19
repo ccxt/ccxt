@@ -1117,7 +1117,7 @@ public partial class bithumb : Exchange
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             List<object> marketIds = new List<object>() {};
-            object symbolsForMarketIds = ((bool) ((symbols == null))) ? this.symbols : symbols;
+            object symbolsForMarketIds = (((symbols == null))) ? this.symbols : symbols;
             int symbolsForMarketIdsLength = getArrayLength(symbolsForMarketIds);
             for (int i = 0; i < symbolsForMarketIdsLength; i++)
             {
@@ -1940,7 +1940,7 @@ public partial class bithumb : Exchange
                     }
                 } else
                 {
-                    cost = ((bool) ((cost == null))) ? this.numberToString(amount) : cost;
+                    cost = (((cost == null))) ? this.numberToString(amount) : cost;
                 }
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, cost);
             } else
@@ -3733,7 +3733,7 @@ public partial class bithumb : Exchange
                 }
                 if (hasQuery)
                 {
-                    object authString = ((bool) ((auth == null))) ? "" : auth;
+                    object authString = (((auth == null))) ? "" : auth;
                     ((IDictionary<string,object>)request)["query_hash"] = this.hash(this.encode(authString), sha512);
                     ((IDictionary<string,object>)request)["query_hash_alg"] = "SHA512";
                 }

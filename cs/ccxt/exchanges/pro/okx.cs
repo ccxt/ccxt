@@ -102,7 +102,7 @@ public partial class okx : ccxt.okx
             throw new ArgumentsRequired ((string)(this.id + " getUrl() requires a channel argument")) ;
         }
         object isSandbox = (this.options.ContainsKey("sandboxMode") ? this.options["sandboxMode"] : null);
-        string sandboxSuffix = ((bool) (isEqual(isSandbox, true))) ? "?brokerId=9999" : "";
+        string sandboxSuffix = ((isEqual(isSandbox, true))) ? "?brokerId=9999" : "";
         bool isBusiness = (isEqual(access, "business"));
         bool isPublic = (isEqual(access, "public"));
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
@@ -985,7 +985,7 @@ public partial class okx : ccxt.okx
         }
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        string accessType = ((bool) ((isTrigger == true))) ? "business" : "private";
+        string accessType = (((isTrigger == true))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -1968,7 +1968,7 @@ public partial class okx : ccxt.okx
             { "id", this.safeString(info, "tradeId") },
             { "order", this.safeString(order, "id") },
             { "type", this.safeString(order, "type") },
-            { "takerOrMaker", ((bool) (isTaker)) ? "taker" : "maker" },
+            { "takerOrMaker", ((isTaker)) ? "taker" : "maker" },
             { "side", this.safeString(order, "side") },
             { "price", this.safeNumber(info, "fillPx") },
             { "amount", this.safeNumber(info, "fillSz") },
@@ -2010,11 +2010,11 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        string access = ((bool) ((isTrigger == true))) ? "business" : "private";
+        string access = (((isTrigger == true))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", access },
         });
-        string channel = ((bool) ((isTrigger == true))) ? "orders-algo" : "orders";
+        string channel = (((isTrigger == true))) ? "orders-algo" : "orders";
         object messageHash = (channel + "::myTrades");
         IDictionary<string, object> market = null;
         if ((symbolVar != null))
@@ -2099,7 +2099,7 @@ public partial class okx : ccxt.okx
         }
         if (this.newUpdates)
         {
-            return ccxt.BaseExchange.ToPositionList(((bool) ((newPositions == null))) ? new List<object>() {} : newPositions);
+            return ccxt.BaseExchange.ToPositionList((((newPositions == null))) ? new List<object>() {} : newPositions);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
     }
@@ -2237,7 +2237,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        string accessType = ((bool) ((isTrigger == true))) ? "business" : "private";
+        string accessType = (((isTrigger == true))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -2271,7 +2271,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", uppercaseType },
         };
-        string channel = ((bool) ((isTrigger == true))) ? "orders-algo" : "orders";
+        string channel = (((isTrigger == true))) ? "orders-algo" : "orders";
         object orders = await this.subscribe("private", channel, channel, symbolVar, this.extend(request, parameters));
         if (this.newUpdates)
         {
@@ -2349,7 +2349,7 @@ public partial class okx : ccxt.okx
                 this.orders = new ArrayCacheBySymbolById(limit);
                 this.triggerOrders = new ArrayCacheBySymbolById(limit);
             }
-            object stored = ((bool) (isEqual(channel, "orders-algo"))) ? this.triggerOrders : this.orders;
+            object stored = ((isEqual(channel, "orders-algo"))) ? this.triggerOrders : this.orders;
             List<object> marketIds = new List<object>() {};
             IList<object> parsed = this.parseOrders(orders);
             for (int i = 0; i < (parsed?.Count ?? 0); i++)

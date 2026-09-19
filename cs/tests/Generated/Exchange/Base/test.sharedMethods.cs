@@ -12,9 +12,9 @@ public partial class testMainClass : BaseTest
         public object logTemplate(BaseExchange exchange, object method, object entry)
         {
             // there are cases when exchange is undefined (eg. base tests)
-            object id = ((bool) ((exchange != null))) ? exchange.id : "undefined";
-            object methodString = ((bool) ((method != null))) ? method : "undefined";
-            string? entryString = ((bool) ((exchange != null) && (entry != null))) ? exchange.json(entry) : "";
+            object id = (((exchange != null))) ? exchange.id : "undefined";
+            object methodString = (((method != null))) ? method : "undefined";
+            string? entryString = (((exchange != null) && (entry != null))) ? exchange.json(entry) : "";
             return ((((((" <<< " + (id)) + " ") + (methodString)) + " ::: ") + entryString) + " >>> ");
         }
         public object isTemporaryFailure(object e)

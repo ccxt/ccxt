@@ -854,10 +854,10 @@ public partial class digifinex : Exchange
             // const active = (status === 'TRADING');
             //
             object isAllowed = this.safeInteger(market, "is_allow", 1);
-            string type = ((bool) ((defaultType == "margin"))) ? "margin" : "spot";
+            string type = (((defaultType == "margin"))) ? "margin" : "spot";
             bool spot = (settle == null);
             bool swap = !spot;
-            bool? margin = ((bool) ((marginMode != null))) ? true : null;
+            bool? margin = (((marginMode != null))) ? true : null;
             object symbol = add(add(bs, "/"), quote);
             bool? isInverse = null;
             bool? isLinear = null;
@@ -866,7 +866,7 @@ public partial class digifinex : Exchange
                 type = "swap";
                 symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
                 isInverse = this.safeBool(market, "is_inverse");
-                isLinear = ((bool) ((isInverse != true))) ? true : false;
+                isLinear = ((!isEqual(isInverse, true))) ? true : false;
                 bool? isTrading = this.safeBool(market, "isTrading");
                 if ((isTrading == true))
                 {
@@ -1136,7 +1136,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        string balanceRequest = ((bool) ((marketType == "swap"))) ? "data" : "list";
+        string balanceRequest = (((marketType == "swap"))) ? "data" : "list";
         List<object> balances = this.safeList(response, balanceRequest, new List<object>() {});
         return ccxt.BaseExchange.ToBalances(this.parseBalance(balances));
     }
@@ -1470,7 +1470,7 @@ public partial class digifinex : Exchange
         //     }
         //
         double? indexPrice = this.safeNumber(ticker, "index_price");
-        string marketType = ((bool) (!isEqual(indexPrice, null))) ? "contract" : "spot";
+        string marketType = ((!isEqual(indexPrice, null))) ? "contract" : "spot";
         string? marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         market = this.safeMarket(marketId, market, null, marketType);
@@ -1591,7 +1591,7 @@ public partial class digifinex : Exchange
             string? direction = this.safeString(trade, "direction");
             if ((orderType != null))
             {
-                type = ((bool) ((orderType == "0"))) ? "limit" : null;
+                type = (((orderType == "0"))) ? "limit" : null;
             }
             if ((tradeRole == "1"))
             {
@@ -1634,7 +1634,7 @@ public partial class digifinex : Exchange
                 type = "limit";
             }
             bool? isMaker = this.safeBool(trade, "is_maker");
-            takerOrMaker = ((bool) ((isMaker == true))) ? "maker" : "taker";
+            takerOrMaker = (((isMaker == true))) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
@@ -1708,7 +1708,7 @@ public partial class digifinex : Exchange
         //     }
         //
         Int64? code = this.safeInteger(response, "code");
-        string status = ((bool) ((code == 0))) ? "ok" : "maintenance";
+        string status = (((code == 0))) ? "ok" : "maintenance";
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -1735,7 +1735,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = ((bool) ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))) ? mathMin(limit, 100) : limit;
+            ((IDictionary<string,object>)request)["limit"] = (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))) ? mathMin(limit, 100) : limit;
         }
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
@@ -1859,8 +1859,8 @@ public partial class digifinex : Exchange
             {
                 if (((limit != null)) || (!isEqual(until, null)))
                 {
-                    Int64? endTime = ((bool) (!isEqual(until, null))) ? until : this.milliseconds();
-                    object startLimit = ((bool) ((limit != null))) ? limit : 200;
+                    Int64? endTime = ((!isEqual(until, null))) ? until : this.milliseconds();
+                    object startLimit = (((limit != null))) ? limit : 200;
                     startTime = subtract(endTime, (multiply(multiply(startLimit, duration), 1000)));
                 }
             }
@@ -1875,7 +1875,7 @@ public partial class digifinex : Exchange
                         Int64? endByUntil = this.parseToInt((until / 1000));
                         if ((limit != null))
                         {
-                            object endByLimit = this.sum(startTime, (limit * duration));
+                            object endByLimit = this.sum(startTime, multiply(limit, duration));
                             ((IDictionary<string,object>)request)["end_time"] = mathMin(endByLimit, endByUntil);
                         } else
                         {
@@ -1887,7 +1887,7 @@ public partial class digifinex : Exchange
                         {
                             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a limit argument")) ;
                         }
-                        ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, (limit * duration));
+                        ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, multiply(limit, duration));
                     }
                 }
             }
@@ -2070,7 +2070,7 @@ public partial class digifinex : Exchange
             response = await this.privateSwapPostTradeBatchOrder(ordersRequests);
         } else
         {
-            ((IDictionary<string,object>)request)["market"] = ((bool) ((marginMode != null))) ? "margin" : "spot";
+            ((IDictionary<string,object>)request)["market"] = (((marginMode != null))) ? "margin" : "spot";
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)request)["list"] = this.json(ordersRequests);
             response = await this.privateSpotPostMarketOrderBatchNew(request);
@@ -2159,7 +2159,7 @@ public partial class digifinex : Exchange
         bool swap = ((marketType == "swap"));
         bool isMarketOrder = (isEqual(type, "market"));
         bool isLimitOrder = (isEqual(type, "limit"));
-        string marketIdRequest = ((bool) swap) ? "instrument_id" : "symbol";
+        string marketIdRequest = (swap) ? "instrument_id" : "symbol";
         ((IDictionary<string,object>)request)[(string)marketIdRequest] = (market.ContainsKey("id") ? market["id"] : null);
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         int? postOnlyParsed = null;
@@ -2170,11 +2170,11 @@ public partial class digifinex : Exchange
             int? orderType = null;
             if (isEqual(side, "buy"))
             {
-                int requestType = ((bool) ((reduceOnly == true))) ? 4 : 1;
+                int requestType = (((reduceOnly == true))) ? 4 : 1;
                 ((IDictionary<string,object>)request)["type"] = requestType;
             } else
             {
-                int requestType = ((bool) ((reduceOnly == true))) ? 3 : 2;
+                int requestType = (((reduceOnly == true))) ? 3 : 2;
                 ((IDictionary<string,object>)request)["type"] = requestType;
             }
             if (isLimitOrder)
@@ -2183,10 +2183,10 @@ public partial class digifinex : Exchange
             }
             if ((timeInForce == "FOK"))
             {
-                orderType = ((bool) isMarketOrder) ? 15 : 9;
+                orderType = (isMarketOrder) ? 15 : 9;
             } else if ((timeInForce == "IOC"))
             {
-                orderType = ((bool) isMarketOrder) ? 13 : 4;
+                orderType = (isMarketOrder) ? 13 : 4;
             } else if (((timeInForce == "GTC")) || (isMarketOrder))
             {
                 orderType = 14;
@@ -2203,7 +2203,7 @@ public partial class digifinex : Exchange
             parameters = this.omit(parameters, new List<object>() {"reduceOnly", "timeInForce"});
         } else
         {
-            postOnlyParsed = ((bool) ((postOnly == true))) ? 1 : 2;
+            postOnlyParsed = ((isEqual(postOnly, true))) ? 1 : 2;
             ((IDictionary<string,object>)request)["market"] = marketType;
             string suffix = "";
             if (isEqual(type, "market"))
@@ -2251,7 +2251,7 @@ public partial class digifinex : Exchange
         }
         if (postOnly)
         {
-            if ((!isEqual(postOnlyParsed, null)) && ((postOnlyParsed != 0)))
+            if ((!isEqual(postOnlyParsed, null)) && (!isEqual(postOnlyParsed, 0)))
             {
                 ((IDictionary<string,object>)request)["post_only"] = postOnlyParsed;
             } else
@@ -2671,7 +2671,7 @@ public partial class digifinex : Exchange
         }
         if ((market != null))
         {
-            string marketIdRequest = ((bool) swap) ? "instrument_id" : "symbol";
+            string marketIdRequest = (swap) ? "instrument_id" : "symbol";
             ((IDictionary<string,object>)request)[(string)marketIdRequest] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
@@ -2787,12 +2787,12 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["market"] = marketType;
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
+                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
             }
         }
         if ((market != null))
         {
-            string marketIdRequest = ((bool) ((marketType == "swap"))) ? "instrument_id" : "symbol";
+            string marketIdRequest = (((marketType == "swap"))) ? "instrument_id" : "symbol";
             ((IDictionary<string,object>)request)[(string)marketIdRequest] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if ((limit != null))
@@ -2976,7 +2976,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data");
-        object order = ((bool) ((marketType == "swap"))) ? data : this.safeValue(data, 0);
+        object order = (((marketType == "swap"))) ? data : this.safeValue(data, 0);
         if ((order == null))
         {
             throw new OrderNotFound ((string)(((this.id + " fetchOrder() order ") + ((object)id).ToString()) + " not found")) ;
@@ -3027,10 +3027,10 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["market"] = marketType;
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
+                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
             }
         }
-        string marketIdRequest = ((bool) ((marketType == "swap"))) ? "instrument_id" : "symbol";
+        string marketIdRequest = (((marketType == "swap"))) ? "instrument_id" : "symbol";
         if ((symbol != null))
         {
             ((IDictionary<string,object>)request)[(string)marketIdRequest] = this.safeString(market, "id");
@@ -3099,7 +3099,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        string responseRequest = ((bool) ((marketType == "swap"))) ? "data" : "list";
+        string responseRequest = (((marketType == "swap"))) ? "data" : "list";
         List<object> data = this.safeList(response, responseRequest, new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
     }
@@ -3200,10 +3200,10 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["market"] = marketType;
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
+                ((IDictionary<string,object>)request)["start_time"] = this.parseToInt(divide(since, 1000)); // default 3 days from now, max 30 days
             }
         }
-        string currencyIdRequest = ((bool) ((marketType == "swap"))) ? "currency" : "currency_mark";
+        string currencyIdRequest = (((marketType == "swap"))) ? "currency" : "currency_mark";
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3336,7 +3336,7 @@ public partial class digifinex : Exchange
         IDictionary<string, object> address = this.safeDict(addresses, code);
         if ((address == null))
         {
-            throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() did not return an address for ") + code) + " - create the deposit address in the user settings on the exchange website first.")) ;
+            throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() did not return an address for ") + (code)) + " - create the deposit address in the user settings on the exchange website first.")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(address);
     }
@@ -3609,7 +3609,7 @@ public partial class digifinex : Exchange
             {
                 throw new ExchangeError ((string)(this.id + " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")) ;
             }
-            ((IDictionary<string,object>)request)["type"] = ((bool) toSwap) ? 1 : 2; // 1 = spot to swap, 2 = swap to spot
+            ((IDictionary<string,object>)request)["type"] = (toSwap) ? 1 : 2; // 1 = spot to swap, 2 = swap to spot
             ((IDictionary<string,object>)request)["currency"] = currencyId;
             ((IDictionary<string,object>)request)["transfer_amount"] = amountString;
             //
@@ -3747,7 +3747,7 @@ public partial class digifinex : Exchange
         string? leverageString = this.safeString(info, "leverage_ratio");
         string? amountInvested = Precise.stringDiv(amountString, leverageString);
         string? amountBorrowed = Precise.stringSub(amountString, amountInvested);
-        object currency = ((bool) ((market == null))) ? null : getValue(market, "base");
+        object currency = (((market == null))) ? null : getValue(market, "base");
         string? symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", info },
@@ -4187,7 +4187,7 @@ public partial class digifinex : Exchange
         }
         if ((market != null))
         {
-            string marketIdRequest = ((bool) ((marketType == "swap"))) ? "instrument_id" : "symbol";
+            string marketIdRequest = (((marketType == "swap"))) ? "instrument_id" : "symbol";
             ((IDictionary<string,object>)request)[(string)marketIdRequest] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
@@ -4254,7 +4254,7 @@ public partial class digifinex : Exchange
         //         "unrealized_pnl": "-0.10681600018999979"
         //     }
         //
-        string positionRequest = ((bool) ((marketType == "swap"))) ? "data" : "positions";
+        string positionRequest = (((marketType == "swap"))) ? "data" : "positions";
         List<object> positions = this.safeList(response, positionRequest, new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
@@ -4294,7 +4294,7 @@ public partial class digifinex : Exchange
         {
             marketType = "margin";
         }
-        string marketIdRequest = ((bool) ((marketType == "swap"))) ? "instrument_id" : "symbol";
+        string marketIdRequest = (((marketType == "swap"))) ? "instrument_id" : "symbol";
         ((IDictionary<string,object>)request)[(string)marketIdRequest] = (market.ContainsKey("id") ? market["id"] : null);
         Dictionary<string, object> response = null;
         if ((marketType == "spot") || (marketType == "margin"))
@@ -4358,7 +4358,7 @@ public partial class digifinex : Exchange
         //         "unrealized_pnl": "-0.10681600018999979"
         //     }
         //
-        string dataRequest = ((bool) ((marketType == "swap"))) ? "data" : "positions";
+        string dataRequest = (((marketType == "swap"))) ? "data" : "positions";
         List<object> data = this.safeList(response, dataRequest, new List<object>() {});
         Dictionary<string, object> position = this.parsePosition((data != null && 0 < data.Count ? data[0] : null), market);
         if ((marketType == "swap"))
@@ -4418,7 +4418,7 @@ public partial class digifinex : Exchange
         string? marginMode = this.safeString(position, "margin_mode");
         if ((marginMode != null))
         {
-            marginMode = ((bool) ((marginMode == "crossed"))) ? "cross" : "isolated";
+            marginMode = (((marginMode == "crossed"))) ? "cross" : "isolated";
         } else
         {
             marginMode = "crossed";
@@ -4501,7 +4501,7 @@ public partial class digifinex : Exchange
         string? marginMode = this.safeStringLower2(parameters, "marginMode", "defaultMarginMode", defaultMarginMode);
         if ((marginMode != null))
         {
-            marginMode = ((bool) ((marginMode == "cross"))) ? "crossed" : "isolated";
+            marginMode = (((marginMode == "cross"))) ? "crossed" : "isolated";
             ((IDictionary<string,object>)request)["margin_mode"] = marginMode;
             parameters = this.omit(parameters, new List<object>() {"marginMode", "defaultMarginMode"});
         }
@@ -4862,7 +4862,7 @@ public partial class digifinex : Exchange
                 object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
-                    { "percentage", ((bool) ((withdrawFee != null))) ? false : null },
+                    { "percentage", (((withdrawFee != null))) ? false : null },
                 };
                 Dictionary<string, object> depositResult = new Dictionary<string, object>() {
                     { "fee", null },
@@ -4961,7 +4961,7 @@ public partial class digifinex : Exchange
         //     }
         //
         Int64? code = this.safeInteger(response, "code");
-        string status = ((bool) ((code == 0))) ? "ok" : "failed";
+        string status = (((code == 0))) ? "ok" : "failed";
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "status", status },
@@ -4983,7 +4983,7 @@ public partial class digifinex : Exchange
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
-            { "type", ((bool) ((rawType == 1))) ? "add" : "reduce" },
+            { "type", (((rawType == 1))) ? "add" : "reduce" },
             { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
             { "total", null },
@@ -5115,7 +5115,7 @@ public partial class digifinex : Exchange
         parameters ??= new Dictionary<string, object>();
         bool signed = isEqual(getValue(api, 0), "private");
         object endpoint = getValue(api, 1);
-        string pathPart = ((bool) (isEqual(endpoint, "spot"))) ? "/v3" : "/swap/v2";
+        string pathPart = ((isEqual(endpoint, "spot"))) ? "/v3" : "/swap/v2";
         string request = ("/" + this.implodeParams(path, parameters));
         string payload = (pathPart + request);
         object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), payload);

@@ -1328,7 +1328,7 @@ public partial class nado : ccxt.nado
             {
                 object market = getValue(markets, i);
                 Int64 id = ((Int64)this.requestId());
-                object requestParams = ((bool) ((subscriptionParams == null))) ? parameters : getValue(subscriptionParams, i);
+                object requestParams = (((subscriptionParams == null))) ? parameters : getValue(subscriptionParams, i);
                 Dictionary<string, object> request = this.createPublicSubscriptionRequest("subscribe", streamType, market, id, requestParams);
                 string subscribeHash = ("subscribe:" + this.json((request != null && ((IDictionary<string, object>)request).ContainsKey("stream") ? ((IDictionary<string, object>)request)["stream"] : null)));
                 object streamSubscription = this.safeValue(((WebSocketClient)client).subscriptions, subscribeHash);
@@ -1378,7 +1378,7 @@ public partial class nado : ccxt.nado
             object messageHash = getValue(messageHashes, i);
             Int64 id = ((Int64)this.requestId());
             string unsubscribeHash = ("unsubscribe:" + (messageHash));
-            object requestParams = ((bool) ((subscriptionParams == null))) ? parameters : getValue(subscriptionParams, i);
+            object requestParams = (((subscriptionParams == null))) ? parameters : getValue(subscriptionParams, i);
             Dictionary<string, object> request = this.createPublicSubscriptionRequest("unsubscribe", streamType, getValue(markets, i), id, requestParams);
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
                 { "id", id },
@@ -1430,7 +1430,7 @@ public partial class nado : ccxt.nado
         string? side = null;
         if (!isEqual(isTakerBuyer, null))
         {
-            side = ((bool) (isTakerBuyer == true)) ? "buy" : "sell";
+            side = ((isTakerBuyer == true)) ? "buy" : "sell";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1477,13 +1477,13 @@ public partial class nado : ccxt.nado
         string? side = null;
         if (!isEqual(isBid, null))
         {
-            side = ((bool) (isBid == true)) ? "buy" : "sell";
+            side = ((isBid == true)) ? "buy" : "sell";
         }
         bool? isTaker = this.safeBool(trade, "is_taker");
         string? takerOrMaker = null;
         if (!isEqual(isTaker, null))
         {
-            takerOrMaker = ((bool) (isTaker == true)) ? "taker" : "maker";
+            takerOrMaker = ((isTaker == true)) ? "taker" : "maker";
         }
         double? feeCost = this.parseX18(this.safeString(trade, "fee"));
         Dictionary<string, object> fee = null;
@@ -1634,7 +1634,7 @@ public partial class nado : ccxt.nado
             { "clientOrderId", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimestamp", ((bool) (isEqual(filled, null))) ? null : timestamp },
+            { "lastTradeTimestamp", ((isEqual(filled, null))) ? null : timestamp },
             { "lastUpdateTimestamp", timestamp },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
@@ -1740,7 +1740,7 @@ public partial class nado : ccxt.nado
     {
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        if (!isTrue(this.safeBool(market, "contract", false)))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             return;
         }

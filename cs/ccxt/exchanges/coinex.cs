@@ -1452,7 +1452,7 @@ public partial class coinex : Exchange
             string? quoteId = this.safeString(entry, "quote_ccy");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? settleId = ((bool) ((subType == "linear"))) ? "USDT" : baseId;
+            string? settleId = (((subType == "linear"))) ? "USDT" : baseId;
             string? settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             int leveragesLength = leverages.Count;
@@ -1548,13 +1548,13 @@ public partial class coinex : Exchange
         //         "volume_sell": "6.1249"
         //     }
         //
-        string marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("mark_price")))) ? "swap" : "spot";
+        string marketType = (((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("mark_price")))) ? "swap" : "spot";
         string? marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        string? quoteVolume = ((bool) (isEqual(getValue(market, "inverse"), true))) ? null : this.safeString(ticker, "value");
+        string? quoteVolume = ((isEqual(getValue(market, "inverse"), true))) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -2585,7 +2585,7 @@ public partial class coinex : Exchange
         {
             orderType = "swap";
         }
-        string marketType = ((bool) ((orderType == "swap"))) ? "swap" : "spot";
+        string marketType = (((orderType == "swap"))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? feeCurrencyId = this.safeString(order, "fee_ccy");
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -2785,7 +2785,7 @@ public partial class coinex : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                        object costRequest = ((bool) (!isEqual(cost, null))) ? cost : quoteAmount;
+                        object costRequest = ((!isEqual(cost, null))) ? cost : quoteAmount;
                         ((IDictionary<string,object>)request)["amount"] = this.costToPrecision(symbol, costRequest);
                     }
                 } else
@@ -4211,7 +4211,7 @@ public partial class coinex : Exchange
             string? marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             double? maxNotional = this.safeNumber(tier, "amount");
-            object curr = ((bool) (isEqual(getValue(market, "linear"), true))) ? getValue(market, "base") : getValue(market, "quote");
+            object curr = ((isEqual(getValue(market, "linear"), true))) ? getValue(market, "base") : getValue(market, "quote");
             object notional = minNotional;
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
@@ -4288,7 +4288,7 @@ public partial class coinex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? status = this.safeStringLower(response, "message");
-        string type = ((bool) (isEqual(addOrReduce, "reduce"))) ? "reduce" : "add";
+        string type = ((isEqual(addOrReduce, "reduce"))) ? "reduce" : "add";
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "type", type },
             { "amount", this.parseNumber(amount) },
@@ -4903,7 +4903,7 @@ public partial class coinex : Exchange
         string? currencyId = this.safeString(transaction, "ccy");
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "created_at");
-        string type = ((bool) ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdraw_id")))) ? "withdrawal" : "deposit";
+        string type = (((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdraw_id")))) ? "withdrawal" : "deposit";
         string? networkId = this.safeString(transaction, "chain");
         string? feeCost = this.safeString(transaction, "tx_fee");
         string? transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
