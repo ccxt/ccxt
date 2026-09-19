@@ -698,9 +698,9 @@ func (this *Hibachi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes60512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes60512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketDataTrades(this.Extend(request, params)))
@@ -752,9 +752,9 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes64412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var rawPromises []any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
 
@@ -1041,7 +1041,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var takerFee *float64 = this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045))
 	var makerFee *float64 = this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015))
 	var takerFeeValue any = func() any {
@@ -1221,7 +1221,7 @@ func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var takerFee *float64 = this.SafeNumber(market, "taker", 0)
 	var makerFee *float64 = this.SafeNumber(market, "maker", 0)
 	var takerFeeValue any = func() any {
@@ -1506,7 +1506,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"signature": signature,
 	}
 	if symbol != nil {
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		request["contractId"] = this.SafeInteger(market, "numericId")
 	}
 
@@ -1682,9 +1682,9 @@ func (this *Hibachi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes136712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes136712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketDataOrderbook(this.Extend(request, params)))
@@ -2103,10 +2103,10 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes166812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	timeframe = DerefScalar(this.SafeString(this.Timeframes, timeframe, timeframe))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": timeframe,
 	}
 	if !IsEqual(since, nil) {
@@ -2923,9 +2923,9 @@ func (this *Hibachi) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 		retRes230212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes230212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketDataOpenInterest(this.Extend(request, params)))
@@ -2970,9 +2970,9 @@ func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 		retRes233412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketDataPrices(this.Extend(request, params)))
@@ -2997,7 +2997,7 @@ func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 
 	ch <- map[string]any{
 		"info":                     funding,
-		"symbol":                   GetValue(market, "symbol"),
+		"symbol":                   market["symbol"],
 		"markPrice":                nil,
 		"indexPrice":               nil,
 		"interestRate":             this.ParseNumber("0"),
@@ -3050,9 +3050,9 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		retRes239312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes239312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketDataFundingRates(this.Extend(request, params)))

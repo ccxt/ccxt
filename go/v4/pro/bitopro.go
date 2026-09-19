@@ -142,8 +142,8 @@ func (this *Bitopro) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var symbol any = market["symbol"]
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -186,11 +186,11 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes13812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes13812)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("TRADE"+":", symbol)
 
-	trades := (<-this.WatchPublicAsync("trades", messageHash, ccxt.GetValue(market, "id")))
+	trades := (<-this.WatchPublicAsync("trades", messageHash, market["id"]))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
@@ -273,8 +273,8 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "USER_TRADE"
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
 	this.Authenticate(url)
@@ -430,11 +430,11 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes34712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes34712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("TICKER"+":", symbol)
 
-	retRes35215 := (<-this.WatchPublicAsync("tickers", messageHash, ccxt.GetValue(market, "id")))
+	retRes35215 := (<-this.WatchPublicAsync("tickers", messageHash, market["id"]))
 	ccxt.PanicOnError(retRes35215)
 	ch <- retRes35215
 	return nil

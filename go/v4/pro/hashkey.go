@@ -138,8 +138,8 @@ func (this *Hashkey) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes8912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes8912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var topic any = "kline_" + *interval
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
@@ -246,8 +246,8 @@ func (this *Hashkey) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes18912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes18912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var topic string = "realtimes"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 
@@ -324,8 +324,8 @@ func (this *Hashkey) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes24912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes24912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var topic string = "trade"
 	var messageHash any = ccxt.Add("trades:", symbol)
 
@@ -411,8 +411,8 @@ func (this *Hashkey) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes32012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes32012)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var topic string = "depth"
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 

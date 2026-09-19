@@ -289,8 +289,8 @@ func (this *Woo) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var topic *string = this.SafeString(message, "topic")
 	if topic == nil {
 		return
@@ -975,8 +975,8 @@ func (this *Woo) HandleOHLCV(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var topic any = this.SafeValue(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(data, "type")
 	var timeframe any = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeFloat(data, "open"), this.SafeFloat(data, "high"), this.SafeFloat(data, "low"), this.SafeFloat(data, "close"), this.SafeFloat(data, "volume")}
@@ -1337,8 +1337,8 @@ func (this *Woo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -1401,8 +1401,8 @@ func (this *Woo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = "myTrades"
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 	var request map[string]any = map[string]any{

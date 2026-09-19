@@ -185,8 +185,8 @@ func (this *Krakenfutures) subscribePublicBody(ch chan any, name any, symbols an
 	}
 	var length int = ccxt.GetArrayLength(symbols)
 	if length == 1 {
-		var market any = this.Market(ccxt.GetValue(marketIds, 0))
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(marketIds, 0)))
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
 	subscribe["product_ids"] = marketIds
 	var request map[string]any = this.Extend(subscribe, params)
@@ -674,8 +674,8 @@ func (this *Krakenfutures) watchOrdersBody(ch chan any, optionalArgs ...any) any
 		}
 	}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "symbol")))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 	}
 
 	orders := (<-this.SubscribePrivateAsync(name, messageHash, params))
@@ -723,8 +723,8 @@ func (this *Krakenfutures) watchMyTradesBody(ch chan any, optionalArgs ...any) a
 	var name string = "fills"
 	var messageHash any = "myTrades"
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "symbol")))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 	}
 
 	trades := (<-this.SubscribePrivateAsync(name, messageHash, params))
@@ -819,8 +819,8 @@ func (this *Krakenfutures) HandleTrade(client any, message any) {
 	var channel *string = this.SafeString(message, "feed")
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
-		var market any = this.Market(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+		var symbol any = market["symbol"]
 		var messageHash any = this.GetMessageHash("trade", nil, symbol)
 		if ccxt.IsEqual(this.SafeList(this.Trades, symbol), nil) {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1473,8 +1473,8 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message any) {
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "product_id")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
@@ -1521,8 +1521,8 @@ func (this *Krakenfutures) HandleOrderBook(client any, message any) {
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "product_id")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var side *string = this.SafeString(message, "side")
@@ -1891,9 +1891,9 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName any, ch
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var messageHash any = this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbols, i)))
 		messageHashes = append(messageHashes, messageHash)
-		var market any = this.Market(ccxt.GetValue(symbols, i))
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
 		if !ccxt.EvalTruthy(this.SubscriptionExistsForHash(url, messageHash)) {
-			rawSubs = append(rawSubs, ccxt.GetValue(market, "id"))
+			rawSubs = append(rawSubs, market["id"])
 		}
 	}
 	var request map[string]any = map[string]any{}

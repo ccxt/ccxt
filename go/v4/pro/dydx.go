@@ -75,12 +75,12 @@ func (this *Dydx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		ccxt.PanicOnError(retRes5012)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("trade:", market["symbol"])
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": "v4_trades",
-		"id":      ccxt.GetValue(market, "id"),
+		"id":      market["id"],
 	}
 
 	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -118,12 +118,12 @@ func (this *Dydx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		ccxt.PanicOnError(retRes7812)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("trade:", market["symbol"])
 	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
 		"channel": "v4_trades",
-		"id":      ccxt.GetValue(market, "id"),
+		"id":      market["id"],
 	}
 
 	retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -233,12 +233,12 @@ func (this *Dydx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.PanicOnError(retRes17612)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": "v4_orderbook",
-		"id":      ccxt.GetValue(market, "id"),
+		"id":      market["id"],
 	}
 
 	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -273,12 +273,12 @@ func (this *Dydx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		ccxt.PanicOnError(retRes20112)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
 		"channel": "v4_orderbook",
-		"id":      ccxt.GetValue(market, "id"),
+		"id":      market["id"],
 	}
 
 	retRes21115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -311,8 +311,8 @@ func (this *Dydx) HandleOrderBook(client any, message any) {
 	// }
 	//
 	var marketId *string = this.SafeString(message, "id")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {

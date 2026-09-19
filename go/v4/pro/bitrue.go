@@ -248,8 +248,8 @@ func (this *Bitrue) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes20112)
 	}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 	}
 
 	url := (<-this.AuthenticateAsync())

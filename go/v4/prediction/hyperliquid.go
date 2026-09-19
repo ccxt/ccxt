@@ -1015,7 +1015,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	ccxt.PanicOnError(retRes8448)
 	var outcomeObj any = this.Outcome(outcome)
 	// markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
-	var market any = this.Market(this.SafeString(outcomeObj, "market"))
+	var market map[string]any = ccxt.MapTyped(this.Market(this.SafeString(outcomeObj, "market")))
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var startTime any = since
@@ -1485,7 +1485,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
-	var market any = this.Market(marketSymbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(marketSymbol))
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var nonce int64 = this.Milliseconds()
 	var isBuy bool = (ccxt.ToUpper(side) == "BUY")
@@ -2585,7 +2585,7 @@ func (this *Hyperliquid) ParseEvent(raw any) any {
 	})
 }
 func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) any {
-	var market any = this.Market(outcome)
+	var market map[string]any = ccxt.MapTyped(this.Market(outcome))
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.0001)
 	// Convert precision to decimal places
 	var decimals int = 4
@@ -2598,7 +2598,7 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) any {
 	return this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
 }
 func (this *Hyperliquid) PriceToPrecision(outcome any, price any) any {
-	var market any = this.Market(outcome)
+	var market map[string]any = ccxt.MapTyped(this.Market(outcome))
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
 	if prec == nil {

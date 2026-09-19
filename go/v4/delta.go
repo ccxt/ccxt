@@ -1337,9 +1337,9 @@ func (this *Delta) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 
 	retRes11418 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes11418)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
@@ -1676,9 +1676,9 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 
 	retRes14478 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes14478)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["depth"] = limit
@@ -1706,7 +1706,7 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 
-	ch <- this.ParseOrderBook(result, GetValue(market, "symbol"), nil, "buy", "sell", "price", "size")
+	ch <- this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size")
 	return nil
 }
 func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1839,9 +1839,9 @@ func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 
 	retRes15908 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes15908)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTradesSymbol(this.Extend(request, params)))
@@ -1914,7 +1914,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	retRes16508 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes16508)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -1954,11 +1954,11 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var price *string = this.SafeString(params, "price")
 	if price != nil && *price == "mark" {
-		request["symbol"] = Add("MARK:", GetValue(market, "id"))
+		request["symbol"] = Add("MARK:", market["id"])
 	} else if price != nil && *price == "index" {
-		request["symbol"] = GetValue(GetValue(GetValue(market, "info"), "spot_index"), "symbol")
+		request["symbol"] = GetValue(GetValue(market["info"], "spot_index"), "symbol")
 	} else {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	params = this.Omit(params, []any{"price", "until"})
 
@@ -2075,9 +2075,9 @@ func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 
 	retRes17608 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes17608)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "numericId"),
+		"product_id": market["numericId"],
 	}
 
 	response := (<-this.PrivateGetPositions(this.Extend(request, params)))
@@ -2392,15 +2392,15 @@ func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	retRes20318 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes20318)
 	var orderType any = Add(typeVar, "_order")
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "numericId"),
-		"size":       this.AmountToPrecision(GetValue(market, "symbol"), amount),
+		"product_id": market["numericId"],
+		"size":       this.AmountToPrecision(market["symbol"], amount),
 		"side":       side,
 		"order_type": orderType,
 	}
 	if IsEqual(typeVar, "limit") {
-		request["limit_price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
+		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
 	params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
@@ -2488,10 +2488,10 @@ func (this *Delta) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 
 	retRes21148 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes21148)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id":         ParseInt(id),
-		"product_id": GetValue(market, "numericId"),
+		"product_id": market["numericId"],
 	}
 	if !IsEqual(amount, nil) {
 		var sizeString any = this.AmountToPrecision(symbol, amount)
@@ -2557,10 +2557,10 @@ func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 	retRes21688 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes21688)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id":         ParseInt(id),
-		"product_id": GetValue(market, "numericId"),
+		"product_id": market["numericId"],
 	}
 
 	response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
@@ -2634,9 +2634,9 @@ func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes22288 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes22288)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "numericId"),
+		"product_id": market["numericId"],
 	}
 	var response any = this.PrivateDeleteOrdersAll(this.Extend(request, params))
 
@@ -3495,13 +3495,13 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, t
 
 	retRes29068 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes29068)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	amount = ToString(amount)
 	if IsEqual(typeVar, "reduce") {
 		amount = Precise.StringMul(amount, "-1")
 	}
 	var request map[string]any = map[string]any{
-		"product_id":   GetValue(market, "numericId"),
+		"product_id":   market["numericId"],
 		"delta_margin": amount,
 	}
 
@@ -3751,9 +3751,9 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 
 	retRes31308 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes31308)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "numericId"),
+		"product_id": market["numericId"],
 	}
 
 	response := (<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params)))
@@ -3818,9 +3818,9 @@ func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 
 	retRes31798 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes31798)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "numericId"),
+		"product_id": market["numericId"],
 		"leverage":   leverage,
 	}
 
@@ -4043,9 +4043,9 @@ func (this *Delta) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any)
 
 	retRes33708 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes33708)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
@@ -4394,9 +4394,9 @@ func (this *Delta) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any)
 
 	retRes36608 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes36608)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))

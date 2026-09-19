@@ -207,7 +207,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes17812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes17812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	params = this.Omit(params, "interval")
@@ -221,12 +221,12 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes18812 := (<-this.AuthenticateAsync())
 		ccxt.PanicOnError(retRes18812)
 	}
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval)
+	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval)
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
 		"params": map[string]any{
-			"channels": []any{ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval)},
+			"channels": []any{ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval)},
 		},
 		"id": this.RequestId(),
 	}
@@ -281,8 +281,8 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market any = this.Market(ccxt.GetValue(symbols, i))
-		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval))
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	}
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -377,8 +377,8 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market any = this.Market(ccxt.GetValue(symbols, i))
-		channels = append(channels, ccxt.Add("quote.", ccxt.GetValue(market, "id")))
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+		channels = append(channels, ccxt.Add("quote.", market["id"]))
 	}
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",

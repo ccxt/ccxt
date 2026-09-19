@@ -492,15 +492,15 @@ func (this *Zaif) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		retRes38712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes38712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetDepthPair(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
+	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
 }
 func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -570,9 +570,9 @@ func (this *Zaif) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes44912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes44912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	ticker := (<-this.PublicGetTickerPair(this.Extend(request, params)))
@@ -667,9 +667,9 @@ func (this *Zaif) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes52112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTradesPair(this.Extend(request, params)))
@@ -732,9 +732,9 @@ func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	if !IsEqual(typeVar, "limit") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency_pair": GetValue(market, "id"),
+		"currency_pair": market["id"],
 		"action": func() string {
 			if IsEqual(side, "buy") {
 				return "bid"

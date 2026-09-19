@@ -1245,9 +1245,9 @@ func (this *Gemini) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes93912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit_bids"] = limit
@@ -1257,7 +1257,7 @@ func (this *Gemini) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	response := (<-this.PublicGetV1BookSymbol(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "amount")
+	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
 }
 func (this *Gemini) FetchTickerV1Async(symbol any, optionalArgs ...any) <-chan any {
@@ -1275,9 +1275,9 @@ func (this *Gemini) fetchTickerV1Body(ch chan any, symbol any, optionalArgs ...a
 		retRes95512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes95512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetV1PubtickerSymbol(this.Extend(request, params)))
@@ -1313,9 +1313,9 @@ func (this *Gemini) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ...a
 		retRes97912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes97912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetV2TickerSymbol(this.Extend(request, params)))
@@ -1672,9 +1672,9 @@ func (this *Gemini) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes124312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes124312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit_trades"] = mathMin(limit, 500)
@@ -2163,12 +2163,12 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if IsEqual(clientOrderId, nil) {
 		clientOrderId = ToString(this.Milliseconds())
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var priceString any = this.PriceToPrecision(symbol, price)
 	var request map[string]any = map[string]any{
 		"client_order_id": clientOrderId,
-		"symbol":          GetValue(market, "id"),
+		"symbol":          market["id"],
 		"amount":          amountString,
 		"price":           priceString,
 		"side":            side,
@@ -2336,9 +2336,9 @@ func (this *Gemini) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes178312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes178312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit_trades"] = limit
@@ -2811,11 +2811,11 @@ func (this *Gemini) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes213212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes213212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var timeframeId *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"timeframe": timeframeId,
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 	}
 
 	response := (<-this.PublicGetV2CandlesSymbolTimeframe(this.Extend(request, params)))
@@ -2860,9 +2860,9 @@ func (this *Gemini) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 		retRes216612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes216612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetV1RiskstatsSymbol(this.Extend(request, params)))

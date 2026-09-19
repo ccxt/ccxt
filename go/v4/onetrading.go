@@ -1042,9 +1042,9 @@ func (this *Onetrading) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		retRes85912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes85912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_code": GetValue(market, "id"),
+		"instrument_code": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketTickerInstrumentCode(this.Extend(request, params)))
@@ -1163,9 +1163,9 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		retRes94612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes94612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_code": GetValue(market, "id"),
+		"instrument_code": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["depth"] = limit
@@ -1230,7 +1230,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	//
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "time"))
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
+	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "amount")
 	return nil
 }
 func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1310,7 +1310,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		retRes108412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var periodUnit *string = this.SafeString(this.Timeframes, timeframe)
 	if periodUnit == nil {
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing periodUnit"))
@@ -1324,7 +1324,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		limit = 1500
 	}
 	var request map[string]any = map[string]any{
-		"instrument_code": GetValue(market, "id"),
+		"instrument_code": market["id"],
 		"period":          period,
 		"unit":            unit,
 	}
@@ -1664,13 +1664,13 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 		retRes140612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes140612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var uppercaseType string = ToUpper(typeVar)
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
-		"instrument_code": GetValue(market, "id"),
+		"instrument_code": market["id"],
 		"type":            uppercaseType,
 		"side":            ToUpper(side),
 		"amount":          this.AmountToPrecision(symbol, amount),
@@ -1808,8 +1808,8 @@ func (this *Onetrading) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["instrument_code"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["instrument_code"] = market["id"]
 	}
 
 	response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params)))

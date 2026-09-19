@@ -91,10 +91,10 @@ func (this *Bitstamp) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes6812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6812)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
+	var channel any = ccxt.Add("diff_order_book_", market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -135,9 +135,9 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 		retRes9712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes9712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var channel any = ccxt.Add("diff_order_book_", market["id"])
 	var subHash any = ccxt.Add("orderbook:", symbol)
 
 	retRes10315 := (<-this.UnWatchChannelAsync(channel, subHash, "orderbook", []any{symbol}, params))
@@ -309,11 +309,11 @@ func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes24312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes24312)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
+	var channel any = ccxt.Add("live_trades_", market["id"])
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
@@ -356,9 +356,9 @@ func (this *Bitstamp) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 		retRes27512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes27512)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var channel any = ccxt.Add("live_trades_", market["id"])
 	var subHash any = ccxt.Add("trades:", symbol)
 
 	retRes28115 := (<-this.UnWatchChannelAsync(channel, subHash, "trades", []any{symbol}, params))
@@ -481,11 +481,11 @@ func (this *Bitstamp) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 		retRes38012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes38012)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var channel any = ccxt.Add("funding_rate_", ccxt.GetValue(market, "id"))
+	var channel any = ccxt.Add("funding_rate_", market["id"])
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
@@ -562,10 +562,10 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes44112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes44112)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var channel string = "private-my_orders"
-	var messageHash any = ccxt.Add(channel+"_", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(channel+"_", market["id"])
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
@@ -612,12 +612,12 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes47412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes47412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 
 	retRes4788 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes4788)
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", ccxt.GetValue(market, "id")), "-"), ccxt.GetValue(this.Options, "userId"))
+	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId"))
 
 	retRes48015 := (<-this.UnWatchChannelAsync(channel, channel, "orders", []any{symbol}, params))
 	ccxt.PanicOnError(retRes48015)
@@ -660,10 +660,10 @@ func (this *Bitstamp) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes49912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes49912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var channel string = "private-my_trades"
-	var messageHash any = ccxt.Add(channel+"_", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(channel+"_", market["id"])
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
@@ -710,12 +710,12 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		retRes53212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes53212)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 
 	retRes5368 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes5368)
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", ccxt.GetValue(market, "id")), "-"), ccxt.GetValue(this.Options, "userId"))
+	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId"))
 
 	retRes53815 := (<-this.UnWatchChannelAsync(channel, channel, "myTrades", []any{symbol}, params))
 	ccxt.PanicOnError(retRes53815)
@@ -755,7 +755,7 @@ func (this *Bitstamp) HandleMyTrades(client any, message any) {
 		// the symbol from - drop the message instead of throwing
 		return
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -859,7 +859,7 @@ func (this *Bitstamp) HandleOrders(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored any = this.Orders
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	ccxt.AddElementToObject(order, "event", this.SafeString(message, "event"))
 	var parsed any = this.ParseWsOrder(order, market)
 	stored.(ccxt.Appender).Append(parsed)

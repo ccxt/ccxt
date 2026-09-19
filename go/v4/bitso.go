@@ -895,9 +895,9 @@ func (this *Bitso) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes74012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes74012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"book": GetValue(market, "id"),
+		"book": market["id"],
 	}
 
 	response := (<-this.PublicGetOrderBook(this.Extend(request, params)))
@@ -905,7 +905,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var orderbook any = this.SafeDict(response, "payload")
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "updated_at"))
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount")
 	return nil
 }
 func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -979,9 +979,9 @@ func (this *Bitso) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes80812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"book": GetValue(market, "id"),
+		"book": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -1041,9 +1041,9 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes84912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes84912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"book":        GetValue(market, "id"),
+		"book":        market["id"],
 		"time_bucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if !IsEqual(since, nil) {
@@ -1241,9 +1241,9 @@ func (this *Bitso) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes103512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes103512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"book": GetValue(market, "id"),
+		"book": market["id"],
 	}
 
 	response := (<-this.PublicGetTrades(this.Extend(request, params)))
@@ -1376,7 +1376,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes113412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes113412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1394,7 +1394,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 	var request map[string]any = map[string]any{
-		"book":  GetValue(market, "id"),
+		"book":  market["id"],
 		"limit": limit,
 	}
 
@@ -1436,15 +1436,15 @@ func (this *Bitso) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		retRes117912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes117912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"book":  GetValue(market, "id"),
+		"book":  market["id"],
 		"side":  side,
 		"type":  typeVar,
-		"major": this.AmountToPrecision(GetValue(market, "symbol"), amount),
+		"major": this.AmountToPrecision(market["symbol"], amount),
 	}
 	if IsEqual(typeVar, "limit") {
-		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
+		request["price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 
 	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
@@ -1694,7 +1694,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes136912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes136912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1712,7 +1712,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 	var request map[string]any = map[string]any{
-		"book":  GetValue(market, "id"),
+		"book":  market["id"],
 		"limit": limit,
 	}
 
@@ -1802,7 +1802,7 @@ func (this *Bitso) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any
 		retRes144112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes144112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"oid": id,
 	}

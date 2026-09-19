@@ -183,12 +183,12 @@ func (this *Bullish) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes13212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes13212)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("trades::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("trades::", market["symbol"])
 	var url string = "/trading-api/v1/market-data/trades"
 	var request map[string]any = map[string]any{
 		"topic":  "anonymousTrades",
-		"symbol": ccxt.GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	trades := (<-this.WatchPublicAsync(url, messageHash, request, params))
@@ -228,7 +228,7 @@ func (this *Bullish) HandleTrades(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var rawTrades any = this.SafeList(data, "trades", []any{})
 	var trades any = this.ParseTrades(rawTrades, market)
 	if !(ccxt.InOp(this.Trades, symbol)) {
@@ -241,7 +241,7 @@ func (this *Bullish) HandleTrades(client any, message any) {
 		tradesArray.(ccxt.Appender).Append(ccxt.GetValue(trades, i))
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
-	var messageHash any = ccxt.Add("trades::", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("trades::", market["symbol"])
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
 
@@ -269,9 +269,9 @@ func (this *Bullish) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes20412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes20412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), ccxt.GetValue(market, "id"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), market["id"])
 	var messageHash any = ccxt.Add("ticker::", symbol)
 
 	retRes21015 := (<-this.Watch(url, messageHash, params, messageHash))
@@ -368,12 +368,12 @@ func (this *Bullish) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes28712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes28712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url string = "/trading-api/v1/market-data/orderbook"
-	var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("orderbook::", market["symbol"])
 	var request map[string]any = map[string]any{
 		"topic":  "l2Orderbook",
-		"symbol": ccxt.GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	orderbook := (<-this.WatchPublicAsync(url, messageHash, request, params))

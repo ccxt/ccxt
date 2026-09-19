@@ -771,8 +771,8 @@ func (this *Bybit) HandleTicker(client any, message any) {
 		var topicParts []string = ccxt.Split(topic, ".")
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
-		var market any = this.SafeMarket(marketId, nil, nil, typeVar)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, typeVar))
+		symbol = market["symbol"]
 		// update the info in place
 		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
@@ -941,11 +941,11 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market any = this.Market(ccxt.GetValue(data, 0))
-		var symbolString any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(data, 0)))
+		var symbolString any = market["symbol"]
 		var unfiedTimeframe any = ccxt.GetValue(data, 1)
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
-		rawHashes = append(rawHashes, ccxt.Add("kline."+*timeframeId+".", ccxt.GetValue(market, "id")))
+		rawHashes = append(rawHashes, ccxt.Add("kline."+*timeframeId+".", market["id"]))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unfiedTimeframe))
 	}
 	symboltimeframestoredVariable := (<-this.WatchTopicsAsync(url, messageHashes, rawHashes, params))
@@ -997,11 +997,11 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market any = this.Market(ccxt.GetValue(data, 0))
-		var symbolString any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(data, 0)))
+		var symbolString any = market["symbol"]
 		var unfiedTimeframe any = ccxt.GetValue(data, 1)
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
-		rawHashes = append(rawHashes, ccxt.Add("kline."+*timeframeId+".", ccxt.GetValue(market, "id")))
+		rawHashes = append(rawHashes, ccxt.Add("kline."+*timeframeId+".", market["id"]))
 		subMessageHashes = append(subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unfiedTimeframe))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe))
 	}
@@ -1277,8 +1277,8 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var marketId any = ccxt.GetValue(market, "id")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var marketId any = market["id"]
 		var topic any = ccxt.Add(ccxt.Add(channel, "."), marketId)
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:orderbook:", symbol))
 		subMessageHashes = append(subMessageHashes, ccxt.Add("orderbook:", symbol))
@@ -1482,8 +1482,8 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var topic any = ccxt.Add("publicTrade.", ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var topic any = ccxt.Add("publicTrade.", market["id"])
 		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("trade:", symbol)
 		messageHashes = append(messageHashes, messageHash)
@@ -1534,8 +1534,8 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	var subMessageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var topic any = ccxt.Add("publicTrade.", ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var topic any = ccxt.Add("publicTrade.", market["id"])
 		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("unsubscribe:trade:", symbol)
 		messageHashes = append(messageHashes, messageHash)
@@ -2272,8 +2272,8 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 		retRes173612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes173612)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 
 	url := (<-this.GetUrlByMarketTypeAsync(symbol, false, "watchLiquidations", params))
 	ccxt.PanicOnError(url)
@@ -2283,7 +2283,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var messageHash any = ccxt.Add("liquidations::", symbol)
-	var topic any = ccxt.Add(ccxt.Add(method, "."), ccxt.GetValue(market, "id"))
+	var topic any = ccxt.Add(ccxt.Add(method, "."), market["id"])
 
 	newLiquidation := (<-this.WatchTopicsAsync(url, []any{messageHash}, []any{topic}, params))
 	ccxt.PanicOnError(newLiquidation)

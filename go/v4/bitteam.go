@@ -858,10 +858,10 @@ func (this *Bitteam) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes76412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes76412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
-		"pairName":   GetValue(market, "id"),
+		"pairName":   market["id"],
 		"resolution": resolution,
 	}
 
@@ -943,9 +943,9 @@ func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes83812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes83812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params)))
@@ -1357,7 +1357,7 @@ func (this *Bitteam) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes113412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes113412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"pairId": this.SafeString(market, "numericId"),
 		"type":   typeVar,
@@ -1773,9 +1773,9 @@ func (this *Bitteam) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes148612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes148612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"name": GetValue(market, "id"),
+		"name": market["id"],
 	}
 
 	response := (<-this.PublicGetTradeApiPairName(this.Extend(request, params)))
@@ -2129,9 +2129,9 @@ func (this *Bitteam) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes182212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes182212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params)))

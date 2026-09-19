@@ -647,9 +647,9 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optio
 		ch <- retRes48119
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument":  GetValue(market, "id"),
+		"instrument":  market["id"],
 		"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if !IsEqual(since, nil) {
@@ -752,11 +752,11 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 		ch <- retRes56319
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
 	var offSet *int64 = this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest))
 	var request map[string]any = map[string]any{
-		"instrument":    GetValue(market, "id"),
+		"instrument":    market["id"],
 		"result_offset": offSet,
 	}
 	if !IsEqual(limit, nil) {
@@ -2116,7 +2116,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan any, symbol any, opti
 		retRes162912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes162912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"instrument": this.MarketId(symbol),
 	}
@@ -2357,7 +2357,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 		retRes181612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes181612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeId string = ToUpper(typeVar)
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var clientOrderIdprefix *string = this.SafeString(this.Options, "brokerId", "nfqkvdjp")
@@ -2369,8 +2369,8 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 	var request map[string]any = map[string]any{
 		"client_order_id": clientOrderId,
 		"side":            ToUpper(side),
-		"instrument":      GetValue(market, "id"),
-		"size":            this.AmountToPrecision(GetValue(market, "symbol"), amount),
+		"instrument":      market["id"],
+		"size":            this.AmountToPrecision(market["symbol"], amount),
 	}
 	if triggerPrice != nil {
 		if IsEqual(typeVar, "limit") {
@@ -2682,7 +2682,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan any, id any, symbol any
 		retRes208012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes208012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id": id,
 	}

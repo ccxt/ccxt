@@ -1134,9 +1134,9 @@ func (this *Bullish) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes92612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes92612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetV1MarketsSymbolOrderbookHybrid(this.Extend(request, params)))
@@ -1212,9 +1212,9 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- retRes97919
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	params = this.HandleSinceAndUntil(since, params)
 	if !IsEqual(limit, nil) {
@@ -1504,9 +1504,9 @@ func (this *Bullish) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes119812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes119812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params)))
@@ -1745,7 +1745,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes136112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes136112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var maxLimit int = 100
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -1759,7 +1759,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		return nil
 	}
 	var request any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"timeBucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"_pageSize":  maxLimit,
 	}
@@ -2340,10 +2340,10 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"commandType":      "V3CreateOrder",
-		"symbol":           GetValue(market, "id"),
+		"symbol":           market["id"],
 		"side":             ToUpper(side),
 		"quantity":         this.AmountToPrecision(symbol, amount),
 		"tradingAccountId": tradingAccountId,
@@ -2427,10 +2427,10 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"commandType":      "V1AmendOrder",
-		"symbol":           GetValue(market, "id"),
+		"symbol":           market["id"],
 		"tradingAccountId": tradingAccountId,
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -2492,9 +2492,9 @@ func (this *Bullish) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":           GetValue(market, "id"),
+		"symbol":           market["id"],
 		"tradingAccountId": tradingAccountId,
 		"commandType":      this.SafeString(params, "commandType", "V3CancelOrder"),
 		"orderId":          id,
@@ -3722,9 +3722,9 @@ func (this *Bullish) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 		retRes287812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes287812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params)))

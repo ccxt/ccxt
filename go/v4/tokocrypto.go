@@ -1018,7 +1018,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		retRes90612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.GetMarketIdByType(market),
 	}
@@ -1271,7 +1271,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		retRes111712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes111712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	// the venue routes market data by the symbol type reported by fetchMarkets,
 	// not by the quote currency: type 1 markets are served by the binance host
@@ -1563,7 +1563,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		retRes137312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes137312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if EvalTruthy(this.IsNativeMarket(market)) {
 		panic(NotSupported(Add(Add(this.Id+" fetchTicker() does not support ", symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")))
 	}
@@ -1692,7 +1692,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		retRes146812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes146812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	// binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
 	// the reality is that the time range wider than 500 candles won't work right
 	var defaultLimit int = 500
@@ -1711,7 +1711,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"limit":    limit,
 	}
 	if price != nil && *price == "index" {
-		request["pair"] = GetValue(market, "id") // Index price takes this argument instead of symbol
+		request["pair"] = market["id"] // Index price takes this argument instead of symbol
 	} else {
 		request["symbol"] = this.GetMarketIdByType(market)
 	}
@@ -2354,9 +2354,9 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes205112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes205112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
@@ -2577,9 +2577,9 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		retRes220312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes220312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var endTime *int64 = this.SafeInteger2(params, "until", "endTime")
 	if !IsEqual(since, nil) {

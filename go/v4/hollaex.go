@@ -719,9 +719,9 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes59912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes59912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
@@ -745,10 +745,10 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         // ...
 	//     }
 	//
-	var orderbook any = this.SafeDict(response, GetValue(market, "id"))
+	var orderbook any = this.SafeDict(response, market["id"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp)
 	return nil
 }
 
@@ -776,9 +776,9 @@ func (this *Hollaex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes64112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -953,9 +953,9 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes77812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes77812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTrades(this.Extend(request, params)))
@@ -973,7 +973,7 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var trades any = this.SafeList(response, GetValue(market, "id"), []any{})
+	var trades any = this.SafeList(response, market["id"], []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1099,9 +1099,9 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
-		var market any = this.Market(symbol)
-		var makerString *string = this.SafeString(makerFees, GetValue(market, "id"))
-		var takerString *string = this.SafeString(takerFees, GetValue(market, "id"))
+		var market map[string]any = MapTyped(this.Market(symbol))
+		var makerString *string = this.SafeString(makerFees, market["id"])
+		var takerString *string = this.SafeString(takerFees, market["id"])
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fees,
 			"symbol":     symbol,
@@ -1150,9 +1150,9 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes93812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var paginate any = false
@@ -1674,9 +1674,9 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes134912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes134912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   side,
 		"size":   this.AmountToPrecision(symbol, amount),
 		"type":   typeVar,

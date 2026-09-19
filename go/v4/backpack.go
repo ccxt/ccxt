@@ -1042,9 +1042,9 @@ func (this *Backpack) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes85412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes85412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetApiV1Ticker(this.Extend(request, params)))
@@ -1142,9 +1142,9 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes93612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetApiV1Depth(this.Extend(request, params)))
@@ -1208,10 +1208,10 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes98112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": interval,
 	}
 	var until any = nil
@@ -1448,9 +1448,9 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		retRes116712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
@@ -1475,7 +1475,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		var timestamp *int64 = this.Parse8601(datetime)
 		rates = append(rates, map[string]any{
 			"info":        rate,
-			"symbol":      GetValue(market, "symbol"),
+			"symbol":      market["symbol"],
 			"fundingRate": this.SafeNumber(rate, "fundingRate"),
 			"timestamp":   timestamp,
 			"datetime":    datetime,
@@ -1483,7 +1483,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 
@@ -1519,9 +1519,9 @@ func (this *Backpack) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes121912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes121912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
@@ -2240,7 +2240,7 @@ func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes176712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes176712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostApiV1Order(orderRequest))
@@ -2305,9 +2305,9 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 		"side":      this.EncodeOrderSide(side),
 		"orderType": this.Capitalize(typeVar),
 	}
@@ -2472,9 +2472,9 @@ func (this *Backpack) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrder() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":  GetValue(market, "id"),
+		"symbol":  market["id"],
 		"orderId": id,
 	}
 
@@ -2515,10 +2515,10 @@ func (this *Backpack) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"orderId": id,
-		"symbol":  GetValue(market, "id"),
+		"symbol":  market["id"],
 	}
 
 	response := (<-this.PrivateDeleteApiV1Order(this.Extend(request, params)))
@@ -2557,9 +2557,9 @@ func (this *Backpack) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PrivateDeleteApiV1Orders(this.Extend(request, params)))

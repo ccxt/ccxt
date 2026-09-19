@@ -873,9 +873,9 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		retRes75512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	var response any = nil
 	if !IsEqual(limit, nil) && IsLessThanOrEqual(limit, 100) {
@@ -889,7 +889,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume")
+	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "volume")
 	return nil
 }
 func (this *Luno) ParseOrderStatus(status any) *string {
@@ -1266,9 +1266,9 @@ func (this *Luno) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes101512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes101512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -1413,9 +1413,9 @@ func (this *Luno) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes113812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes113812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["since"] = since
@@ -1475,10 +1475,10 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes117912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes117912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"duration": this.SafeValue(this.Timeframes, timeframe, timeframe),
-		"pair":     GetValue(market, "id"),
+		"pair":     market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["since"] = this.ParseToInt(since)
@@ -1559,9 +1559,9 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes124812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes124812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["since"] = since
@@ -1623,9 +1623,9 @@ func (this *Luno) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		retRes129712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes129712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PrivateGetFeeInfo(this.Extend(request, params)))
@@ -1680,9 +1680,9 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		retRes133712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes133712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	var response any = nil
 	if side == nil {
@@ -1692,16 +1692,16 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		request["type"] = ToUpper(side)
 		// todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
 		if IsEqual(side, "buy") {
-			request["counter_volume"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
+			request["counter_volume"] = this.AmountToPrecision(market["symbol"], amount)
 		} else {
-			request["base_volume"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
+			request["base_volume"] = this.AmountToPrecision(market["symbol"], amount)
 		}
 
 		response = (<-this.PrivatePostMarketorder(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		request["volume"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
-		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
+		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
+		request["price"] = this.PriceToPrecision(market["symbol"], price)
 		request["type"] = func() string {
 			if IsEqual(side, "buy") {
 				return "BID"

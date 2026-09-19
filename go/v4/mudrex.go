@@ -501,9 +501,9 @@ func (this *Mudrex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes37112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes37112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"asset_id":  GetValue(market, "id"),
+		"asset_id":  market["id"],
 		"is_symbol": 1,
 	}
 
@@ -845,9 +845,9 @@ func (this *Mudrex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		retRes63812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes63812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"asset_id":  GetValue(market, "id"),
+		"asset_id":  market["id"],
 		"is_symbol": 1,
 	}
 
@@ -896,10 +896,10 @@ func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		retRes67212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes67212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marginType *string = this.SafeString(params, "marginType", "ISOLATED")
 	var request map[string]any = map[string]any{
-		"asset_id":    GetValue(market, "id"),
+		"asset_id":    market["id"],
 		"is_symbol":   1,
 		"margin_type": marginType,
 		"leverage":    leverage,
@@ -953,7 +953,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes71212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes71212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	// standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
 	// an existing position through the riskorder endpoint, so a positionId is required
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -988,7 +988,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var request map[string]any = map[string]any{
-		"asset_id":    GetValue(market, "id"),
+		"asset_id":    market["id"],
 		"is_symbol":   1,
 		"leverage":    this.NumberToString(lev),
 		"quantity":    this.AmountToPrecision(symbol, amount),
@@ -1631,7 +1631,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	var positionId *string = this.SafeString(params, "position_id")
 	var amount any = this.SafeValue(params, "amount")
 	if positionId == nil {
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 
 		positions := (<-this.FetchPositionsAsync([]any{symbol}, params))
 		PanicOnError(positions)
@@ -1640,7 +1640,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
 				continue
 			}
-			if IsEqual(GetValue(p, "symbol"), GetValue(market, "symbol")) {
+			if IsEqual(GetValue(p, "symbol"), market["symbol"]) {
 				positionId = this.SafeString(p, "id")
 				break
 			}

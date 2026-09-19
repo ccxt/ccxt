@@ -599,20 +599,20 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan any, symbol any, option
 		retRes38312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes38312)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var messageHash any = ccxt.Add(name+":", market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
-		"product_ids": []any{ccxt.GetValue(market, "id")},
+		"product_ids": []any{market["id"]},
 		"channels":    []any{name},
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 	var subscription map[string]any = map[string]any{
 		"messageHash": messageHash,
 		"symbol":      symbol,
-		"marketId":    ccxt.GetValue(market, "id"),
+		"marketId":    market["id"],
 		"limit":       limit,
 	}
 	var authentication any = this.Authenticate()
@@ -1132,8 +1132,8 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message any) {
 	//
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "product_id")
-	var market any = this.SafeMarket(marketId, nil, "-")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
+	var symbol any = market["symbol"]
 	var name string = "level2"
 	var messageHash any = ccxt.Add(name+":", marketId)
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

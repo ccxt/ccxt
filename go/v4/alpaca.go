@@ -869,8 +869,8 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes65312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes65312)
 	}
-	var market any = this.Market(symbol)
-	var marketId any = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var marketId any = market["id"]
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
 	var request map[string]any = map[string]any{
@@ -967,8 +967,8 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes73212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73212)
 	}
-	var market any = this.Market(symbol)
-	var id any = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var id any = market["id"]
 	var loc *string = this.SafeString(params, "loc", "us")
 	var request map[string]any = map[string]any{
 		"symbols": id,
@@ -1018,7 +1018,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
-	ch <- this.ParseOrderBook(rawOrderbook, GetValue(market, "symbol"), timestamp, "b", "a", "p", "s")
+	ch <- this.ParseOrderBook(rawOrderbook, market["symbol"], timestamp, "b", "a", "p", "s")
 	return nil
 }
 
@@ -1061,8 +1061,8 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes80512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80512)
 	}
-	var market any = this.Market(symbol)
-	var marketId any = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var marketId any = market["id"]
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
 	var paginate any = false
@@ -1518,8 +1518,8 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes116612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116612)
 	}
-	var market any = this.Market(symbol)
-	var id any = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var id any = market["id"]
 	var request map[string]any = map[string]any{
 		"symbol": id,
 		"side":   side,

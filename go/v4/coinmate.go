@@ -662,9 +662,9 @@ func (this *Coinmate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes49512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes49512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair":      GetValue(market, "id"),
+		"currencyPair":      market["id"],
 		"groupByPriceLimit": "False",
 	}
 
@@ -673,7 +673,7 @@ func (this *Coinmate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var orderbook any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(orderbook, "timestamp")
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount")
 	return nil
 }
 
@@ -701,9 +701,9 @@ func (this *Coinmate) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes51912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes51912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair": GetValue(market, "id"),
+		"currencyPair": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -784,9 +784,9 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(data)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var market any = this.Market(GetValue(keys, i))
+		var market map[string]any = MapTyped(this.Market(GetValue(keys, i)))
 		var ticker any = this.ParseTicker(this.SafeDict(data, GetValue(keys, i)), market)
-		AddElementToObject(result, GetValue(market, "symbol"), ticker)
+		AddElementToObject(result, market["symbol"], ticker)
 	}
 
 	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
@@ -1131,8 +1131,8 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"limit": limit,
 	}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["currencyPair"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["currencyPair"] = market["id"]
 	}
 	if !IsEqual(since, nil) {
 		request["timestampFrom"] = since
@@ -1246,9 +1246,9 @@ func (this *Coinmate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes94412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes94412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair":       GetValue(market, "id"),
+		"currencyPair":       market["id"],
 		"minutesIntoHistory": 10,
 	}
 
@@ -1300,9 +1300,9 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		retRes98312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair": GetValue(market, "id"),
+		"currencyPair": market["id"],
 	}
 
 	response := (<-this.PrivatePostTraderFees(this.Extend(request, params)))
@@ -1322,7 +1322,7 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 	ch <- map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     market["symbol"],
 		"maker":      maker,
 		"taker":      taker,
 		"percentage": true,
@@ -1405,9 +1405,9 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes104612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes104612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair": GetValue(market, "id"),
+		"currencyPair": market["id"],
 	}
 	// offset param that appears in other parts of the API doesn't appear to be supported here
 	if !IsEqual(limit, nil) {
@@ -1560,9 +1560,9 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side
 		PanicOnError(retRes118412)
 	}
 	var method any = "privatePost" + this.Capitalize(side)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair": GetValue(market, "id"),
+		"currencyPair": market["id"],
 	}
 	if IsEqual(typeVar, "market") {
 		if IsEqual(side, "buy") {

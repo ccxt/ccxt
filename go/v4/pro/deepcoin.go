@@ -341,8 +341,8 @@ func (this *Deepcoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes25312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes25312)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ticker"+"::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("ticker"+"::", market["symbol"])
 
 	retRes25715 := (<-this.WatchPublicAsync(market, messageHash, "7", params))
 	ccxt.PanicOnError(retRes25715)
@@ -374,8 +374,8 @@ func (this *Deepcoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ..
 		retRes27112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes27112)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ticker"+"::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("ticker"+"::", market["symbol"])
 	var subscription map[string]any = map[string]any{
 		"topic": "ticker",
 	}
@@ -520,8 +520,8 @@ func (this *Deepcoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes39812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39812)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("trades"+"::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("trades"+"::", market["symbol"])
 
 	trades := (<-this.WatchPublicAsync(market, messageHash, "2", params))
 	ccxt.PanicOnError(trades)
@@ -557,8 +557,8 @@ func (this *Deepcoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 		retRes42012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes42012)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("trades"+"::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("trades"+"::", market["symbol"])
 	var subscription map[string]any = map[string]any{
 		"topic": "trades",
 	}
@@ -718,8 +718,8 @@ func (this *Deepcoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes56212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56212)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv"+"::", symbol), "::"), timeframe)
@@ -762,8 +762,8 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		retRes58912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes58912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv"+"::", symbol), "::"), timeframe)
@@ -872,8 +872,8 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes68912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes68912)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook"+"::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("orderbook"+"::", market["symbol"])
 	var suffix any = nil
 	suffixparamsVariable := this.OrderBookSuffix(market, "watchOrderBook", params)
 	suffix = ccxt.GetValue(suffixparamsVariable, 0)
@@ -911,8 +911,8 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 		retRes71112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes71112)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook"+"::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("orderbook"+"::", market["symbol"])
 	var suffix any = nil
 	suffixparamsVariable := this.OrderBookSuffix(market, "unWatchOrderBook", params)
 	suffix = ccxt.GetValue(suffixparamsVariable, 0)

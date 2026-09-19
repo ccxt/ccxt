@@ -201,9 +201,9 @@ func (this *Okx) subscribeBody(ch chan any, access any, messageHash any, channel
 		"channel": channel,
 	}
 	if !ccxt.IsEqual(symbol, nil) {
-		var market any = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
-		firstArgument["instId"] = ccxt.GetValue(market, "id")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
+		firstArgument["instId"] = market["id"]
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -617,8 +617,8 @@ func (this *Okx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	ccxt.AddElementToObject(params, "channel", channel)
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 
 	ticker := (<-this.WatchTickersAsync([]any{symbol}, params))
 	ccxt.PanicOnError(ticker)
@@ -724,8 +724,8 @@ func (this *Okx) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	ccxt.AddElementToObject(params, "channel", channel)
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 
 	ticker := (<-this.WatchMarkPricesAsync([]any{symbol}, params))
 	ccxt.PanicOnError(ticker)
@@ -863,8 +863,8 @@ func (this *Okx) HandleTicker(client any, message any) {
 	this.HandleBidAsk(client, message)
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId, nil, "-")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
+	var symbol any = market["symbol"]
 	var channel *string = this.SafeString(arg, "channel")
 	var data any = this.SafeList(message, "data", []any{})
 	var newTickers map[string]any = map[string]any{}
@@ -2498,8 +2498,8 @@ func (this *Okx) HandlePositions(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId, nil, "-")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
+	var symbol any = market["symbol"]
 	var channel *string = this.SafeString(arg, "channel", "")
 	var data any = this.SafeList(message, "data", []any{})
 	if ccxt.IsEqual(this.Positions, nil) {
@@ -2699,8 +2699,8 @@ func (this *Okx) HandleOrders(client any, message any) {
 			var order any = ccxt.GetValue(parsed, i)
 			stored.(ccxt.Appender).Append(order)
 			var symbol any = ccxt.GetValue(order, "symbol")
-			var market any = this.Market(symbol)
-			marketIds = append(marketIds, ccxt.GetValue(market, "id"))
+			var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+			marketIds = append(marketIds, market["id"])
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, channel)
 		for i := 0; i < len(marketIds); i++ {
@@ -2852,7 +2852,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	op = ccxt.GetValue(opparamsVariable, 0)
 	params = ccxt.GetValue(opparamsVariable, 1)
 	var args any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
 		ccxt.Remove(args, "instId")
@@ -2954,7 +2954,7 @@ func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 	op = ccxt.GetValue(opparamsVariable, 0)
 	params = ccxt.GetValue(opparamsVariable, 1)
 	var args any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
 		ccxt.Remove(args, "instId")
@@ -3010,7 +3010,7 @@ func (this *Okx) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 	var messageHash any = this.RequestId()
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	params = this.Omit(params, []any{"clientOrderId", "clOrdId"})
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	var arg map[string]any = map[string]any{
 		"instIdCode": instIdCode,
@@ -3072,7 +3072,7 @@ func (this *Okx) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 	var url any = this.GetUrl("private", "private")
 	var messageHash any = this.RequestId()
 	var args []any = []any{}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	var instParams map[string]any = map[string]any{
 		"instIdCode": instIdCode,

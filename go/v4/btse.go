@@ -975,10 +975,10 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"resolution": interval,
 	}
 	if !IsEqual(limit, nil) {
@@ -1077,9 +1077,9 @@ func (this *Btse) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 	retRes9138 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9138)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["depth"] = mathMin(limit, 50) // the endpoint supports a maximum depth of 50
@@ -1107,7 +1107,7 @@ func (this *Btse) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
-	ch <- this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks")
+	ch <- this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks")
 	return nil
 }
 
@@ -1553,9 +1553,9 @@ func (this *Btse) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	retRes12948 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes12948)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params)))
@@ -1927,9 +1927,9 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	retRes15848 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes15848)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = mathMin(limit, 500) // the endpoint supports a maximum of 500 trades
@@ -2395,11 +2395,11 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 
 	retRes19538 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes19538)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	typeVar = ToUpper(typeVar)
 	var upperSide string = ToUpper(side)
 	var request map[string]any = map[string]any{
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 		"orderSide": upperSide,
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -2620,7 +2620,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 
 	retRes21568 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes21568)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	typeVar = ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"symbol":    this.FuturesRequestId(market),
@@ -3442,8 +3442,8 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(responseList); i++ {
 		var feeInfo any = GetValue(responseList, i)
 		var marketId *string = this.SafeString(feeInfo, "symbol")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
 		var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
 		AddElementToObject(result, symbol, map[string]any{
@@ -4051,7 +4051,7 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
 
 	retRes32848 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes32848)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	params = this.Extend(map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}, params)
@@ -4196,7 +4196,7 @@ func (this *Btse) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 
 	retRes34138 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes34138)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}
@@ -4255,7 +4255,7 @@ func (this *Btse) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 
 	retRes34558 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes34558)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var positionMode string = func() string {
 		if EvalTruthy(hedged) {
 			return "HEDGE"
@@ -4295,7 +4295,7 @@ func (this *Btse) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
 
 	retRes34758 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes34758)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}
@@ -4367,7 +4367,7 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 
 	retRes35298 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes35298)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	marginMode = ToLower(marginMode)
 	var positionMode string = "ONE_WAY"
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
@@ -4426,7 +4426,7 @@ func (this *Btse) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 
 	retRes35718 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes35718)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var positionId *string = this.SafeString(params, "positionId")
 	if positionId == nil {
 		panic(ArgumentsRequired(this.Id + " closePosition() requires a positionId parameter"))
@@ -4482,7 +4482,7 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 
 	retRes36108 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes36108)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}
@@ -4569,7 +4569,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 
 	retRes36808 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes36808)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol":   this.FuturesRequestId(market),
 		"leverage": leverage,

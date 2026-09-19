@@ -2343,9 +2343,9 @@ func (this *Htx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...an
 		retRes142212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes142212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbols": GetValue(market, "id"),
+		"symbols": market["id"],
 	}
 
 	response := (<-this.SpotPrivateGetV2ReferenceTransactFeeRate(this.Extend(request, params)))
@@ -6621,21 +6621,21 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 
 	retRes50938 := (<-this.LoadAccountsAsync())
 	PanicOnError(retRes50938)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 
-	accountId := (<-this.FetchAccountIdByTypeAsync(GetValue(market, "type"), marginMode, symbol))
+	accountId := (<-this.FetchAccountIdByTypeAsync(market["type"], marginMode, symbol))
 	PanicOnError(accountId)
 	var request map[string]any = map[string]any{
 		"account-id": accountId,
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 	}
 	var orderType any = Replace(typeVar, "buy-", "")
 	orderType = Replace(orderType, "sell-", "")
-	var options any = this.SafeDict(this.Options, GetValue(market, "type"), map[string]any{})
+	var options any = this.SafeDict(this.Options, market["type"], map[string]any{})
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop-price"})
 	if triggerPrice == nil {
 		var stopOrderTypes map[string]any = SafeMapTyped(options, "stopOrderTypes")
@@ -6762,9 +6762,9 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 	 * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
 	 * @returns {object} request to be sent to the exchange
 	 */
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"contract_code": GetValue(market, "id"),
+		"contract_code": market["id"],
 		"volume":        this.AmountToPrecision(symbol, amount),
 	}
 	var postOnly any = false
@@ -9289,8 +9289,8 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(subTypeparamsVariable, 1)
 	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
-		var market any = this.Market(firstSymbol)
-		var isLinear any = GetValue(market, "linear")
+		var market map[string]any = MapTyped(this.Market(firstSymbol))
+		var isLinear any = market["linear"]
 		subType = func() string {
 			if isLinear == true {
 				return "linear"
@@ -10969,11 +10969,11 @@ func (this *Htx) borrowIsolatedMarginBody(ch chan any, symbol any, code any, amo
 		PanicOnError(retRes904312)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   this.CurrencyToPrecision(code, amount),
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 	}
 
 	response := (<-this.PrivatePostMarginOrders(this.Extend(request, params)))

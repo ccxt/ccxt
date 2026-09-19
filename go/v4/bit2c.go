@@ -465,9 +465,9 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes38412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes38412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	orderbook := (<-this.PublicGetExchangesPairOrderbook(this.Extend(request, params)))
@@ -560,9 +560,9 @@ func (this *Bit2c) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes46012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes46012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetExchangesPairTicker(this.Extend(request, params)))
@@ -603,11 +603,11 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes48412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes48412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod") // kept here for backward compatibility #29154
 	var method any = this.HandleOption("fetchTrades", "method", optionValue)     // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["date"] = this.ParseToInt(since)
@@ -742,10 +742,10 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		retRes58912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes58912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"Amount": amount,
-		"Pair":   GetValue(market, "id"),
+		"Pair":   market["id"],
 	}
 	var response any = nil
 	if IsEqual(typeVar, "market") {
@@ -841,14 +841,14 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes64812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PrivateGetOrderMyOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var orders map[string]any = SafeMapTyped(response, GetValue(market, "id"))
+	var orders map[string]any = SafeMapTyped(response, market["id"])
 	var asks any = this.SafeList(orders, "ask", []any{})
 	var bids any = this.SafeList(orders, "bid", []any{})
 
@@ -883,7 +883,7 @@ func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		retRes67312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes67312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id": id,
 	}

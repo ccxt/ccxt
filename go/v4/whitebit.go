@@ -1373,15 +1373,15 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var fee any = this.SafeDict(response, GetValue(market, "baseId"), map[string]any{})
+		var market map[string]any = MapTyped(this.Market(symbol))
+		var fee any = this.SafeDict(response, market["baseId"], map[string]any{})
 		var makerFee *string = this.SafeString(fee, "maker_fee")
 		var takerFee *string = this.SafeString(fee, "taker_fee")
 		makerFee = Precise.StringDiv(makerFee, "100")
 		takerFee = Precise.StringDiv(takerFee, "100")
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fee,
-			"symbol":     GetValue(market, "symbol"),
+			"symbol":     market["symbol"],
 			"percentage": true,
 			"tierBased":  false,
 			"maker":      this.ParseNumber(makerFee),
@@ -1715,9 +1715,9 @@ func (this *Whitebit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes130012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes130012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V1PublicGetTicker(this.Extend(request, params)))
@@ -2171,9 +2171,9 @@ func (this *Whitebit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes164912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes164912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit // default = 100, maximum = 100
@@ -2236,9 +2236,9 @@ func (this *Whitebit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes169512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes169512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V4PublicGetTradesMarket(this.Extend(request, params)))
@@ -2481,9 +2481,9 @@ func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes189012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes189012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":   GetValue(market, "id"),
+		"market":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if !IsEqual(since, nil) {
@@ -2705,9 +2705,9 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes204612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes204612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 		"side":   side,
 	}
 	var cost any = nil
@@ -2854,9 +2854,9 @@ func (this *Whitebit) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		retRes215812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes215812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	// Handle clientOrderId vs orderId (clientOrderId takes priority)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -2936,9 +2936,9 @@ func (this *Whitebit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		retRes222312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes222312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":  GetValue(market, "id"),
+		"market":  market["id"],
 		"orderId": ParseInt(id),
 	}
 
@@ -3115,14 +3115,14 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan any, timeout any, optiona
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrdersAfter() requires a symbol argument in params"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	params = this.Omit(params, "symbol")
 	if IsEqual(timeout, nil) {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
 	var isBiggerThanZero bool = (IsGreaterThan(timeout, 0))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if isBiggerThanZero {
 		request["timeout"] = this.NumberToString(Divide(timeout, 1000))
@@ -4768,9 +4768,9 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startDate", since)
@@ -5228,9 +5228,9 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 		retRes399512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes399512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startDate", since)
@@ -5353,9 +5353,9 @@ func (this *Whitebit) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 		retRes408612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes408612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params)))
@@ -5520,9 +5520,9 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		retRes422612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes422612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startDate", MathRound(Divide(since, 1000)))

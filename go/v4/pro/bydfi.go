@@ -202,8 +202,8 @@ func (this *Bydfi) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes15712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15712)
 	}
-	var market any = this.Market(symbol)
-	var marketId any = ccxt.GetValue(market, "id")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var marketId any = market["id"]
 	var messageHash any = ccxt.Add("ticker::", symbol)
 	var channel any = ccxt.Add(marketId, "@ticker")
 
@@ -580,8 +580,8 @@ func (this *Bydfi) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "s")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(message, "i")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe any = this.FindTimeframe(interval, timeframes)

@@ -142,9 +142,9 @@ func (this *P2b) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	if channel == nil {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id+" watchOHLCV cannot take a timeframe of ", timeframe)))
 	}
-	var market any = this.Market(symbol)
-	var request []any = []any{ccxt.GetValue(market, "id"), channel}
-	var messageHash any = ccxt.Add("kline::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var request []any = []any{market["id"], channel}
+	var messageHash any = ccxt.Add("kline::", market["symbol"])
 
 	ohlcv := (<-this.SubscribeAsync("kline.subscribe", messageHash, request, params))
 	ccxt.PanicOnError(ohlcv)
@@ -187,12 +187,12 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "tickerSubs"), ccxt.GetValue(market, "id"), true) // we need to re-subscribe to all tickers upon watching a new ticker
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "tickerSubs"), market["id"], true) // we need to re-subscribe to all tickers upon watching a new ticker
 	var tickerSubs any = ccxt.GetValue(this.Options, "tickerSubs")
 	var request []string = ccxt.ObjectKeys(tickerSubs)
-	var messageHash any = ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add(ccxt.Add(name, "::"), market["symbol"])
 
 	retRes14215 := (<-this.SubscribeAsync(ccxt.Add(name, ".subscribe"), messageHash, request, params))
 	ccxt.PanicOnError(retRes14215)
@@ -237,9 +237,9 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market any = this.Market(ccxt.GetValue(symbols, i))
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol")))
-		args = append(args, ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), market["symbol"]))
+		args = append(args, market["id"])
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
@@ -373,14 +373,14 @@ func (this *P2b) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		retRes24812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes24812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var name string = "depth.subscribe"
-	var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("orderbook::", market["symbol"])
 	var interval *string = this.SafeString(params, "interval", "0.001")
 	if ccxt.IsEqual(limit, nil) {
 		limit = 100
 	}
-	var request []any = []any{ccxt.GetValue(market, "id"), limit, interval}
+	var request []any = []any{market["id"], limit, interval}
 
 	orderbook := (<-this.SubscribeAsync(name, messageHash, request, params))
 	ccxt.PanicOnError(orderbook)
@@ -554,9 +554,9 @@ func (this *P2b) HandleOrderBook(client any, message any) {
 	var asks any = this.SafeList(data, "asks")
 	var bids any = this.SafeList(data, "bids")
 	var marketId *string = this.SafeString(params, 2)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
+	var messageHash any = ccxt.Add("orderbook::", market["symbol"])
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)

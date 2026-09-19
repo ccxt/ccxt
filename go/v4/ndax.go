@@ -1033,7 +1033,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		retRes73612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	limit = func() any {
 		if IsEqual(limit, nil) {
 			return 100
@@ -1042,7 +1042,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}() // default 100
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
-		"InstrumentId": GetValue(market, "id"),
+		"InstrumentId": market["id"],
 		"Depth":        limit,
 	}
 
@@ -1236,10 +1236,10 @@ func (this *Ndax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes90112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
-		"InstrumentId": GetValue(market, "id"),
+		"InstrumentId": market["id"],
 	}
 
 	response := (<-this.PublicGetGetLevel1(this.Extend(request, params)))
@@ -1331,10 +1331,10 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes98112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
-		"InstrumentId": GetValue(market, "id"),
+		"InstrumentId": market["id"],
 		"Interval":     this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
@@ -1574,10 +1574,10 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes120412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes120412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
-		"InstrumentId": GetValue(market, "id"),
+		"InstrumentId": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["Count"] = limit
@@ -2054,7 +2054,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		}
 	}
 	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderSide int = func() int {
 		if IsEqual(side, "buy") {
 			return 0
@@ -2063,7 +2063,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}()
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
-		"InstrumentId": this.ParseToInt(GetValue(market, "id")),
+		"InstrumentId": this.ParseToInt(market["id"]),
 		"omsId":        omsId,
 		"AccountId":    accountId,
 		"TimeInForce":  1,
@@ -2146,7 +2146,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
 	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderSide int = func() int {
 		if IsEqual(side, "buy") {
 			return 0
@@ -2156,7 +2156,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"OrderIdToReplace": ParseInt(id),
-		"InstrumentId":     this.ParseToInt(GetValue(market, "id")),
+		"InstrumentId":     this.ParseToInt(market["id"]),
 		"omsId":            omsId,
 		"AccountId":        accountId,
 		"TimeInForce":      1,
@@ -2339,8 +2339,8 @@ func (this *Ndax) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["IntrumentId"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["IntrumentId"] = market["id"]
 	}
 
 	response := (<-this.PrivatePostCancelAllOrders(this.Extend(request, params)))

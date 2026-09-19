@@ -705,15 +705,15 @@ func (this *Coinspot) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes37612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes37612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"cointype": GetValue(market, "id"),
+		"cointype": market["id"],
 	}
 
 	orderbook := (<-this.PrivatePostOrders(this.Extend(request, params)))
 	PanicOnError(orderbook)
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), nil, "buyorders", "sellorders", "rate", "amount")
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "buyorders", "sellorders", "rate", "amount")
 	return nil
 }
 func (this *Coinspot) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -778,7 +778,7 @@ func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes43312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes43312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	response := (<-this.PublicGetLatest(params))
 	PanicOnError(response)
@@ -896,9 +896,9 @@ func (this *Coinspot) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes51512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes51512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"cointype": GetValue(market, "id"),
+		"cointype": market["id"],
 	}
 
 	response := (<-this.PrivatePostOrdersHistory(this.Extend(request, params)))
@@ -1108,9 +1108,9 @@ func (this *Coinspot) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if IsEqual(typeVar, "market") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"cointype": GetValue(market, "id"),
+		"cointype": market["id"],
 		"amount":   amount,
 		"rate":     price,
 	}

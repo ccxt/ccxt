@@ -289,7 +289,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 
 	retRes2188 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes2188)
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var uppercaseType string = ccxt.ToUpper(typeVar)
 	if side == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
@@ -300,7 +300,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		uppercaseType = "LIMIT_MAKER"
 	}
 	var request map[string]any = map[string]any{
-		"symbol": ccxt.GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ccxt.ToUpper(side),
 		"type":   ccxt.ToUpper(typeVar),
 	}
@@ -328,7 +328,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		}
 		request["amount"] = quoteAmount
 	} else {
-		request["quantity"] = this.AmountToPrecision(ccxt.GetValue(market, "symbol"), amount)
+		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 		if !ccxt.IsEqual(price, nil) {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
@@ -1248,8 +1248,8 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
-		var market any = this.Market(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+		var symbol any = market["symbol"]
 		var messageHash any = ccxt.Add("orders::", symbol)
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	}
@@ -1436,8 +1436,8 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var item any = ccxt.GetValue(data, i)
 		var marketId *string = this.SafeString(item, "symbol")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var name string = "book_lv2"
 		var messageHash any = ccxt.Add(name+"::", symbol)
 		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

@@ -101,11 +101,11 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes8012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes8012)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("ticker:", market["symbol"])
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
-		"quotes": []any{ccxt.GetValue(market, "id")},
+		"quotes": []any{market["id"]},
 	}
 
 	retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -210,11 +210,11 @@ func (this *Alpaca) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes16612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes16612)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
-		"bars":   []any{ccxt.GetValue(market, "id")},
+		"bars":   []any{market["id"]},
 	}
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
 
@@ -287,12 +287,12 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes22512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes22512)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	var request map[string]any = map[string]any{
 		"action":     "subscribe",
-		"orderbooks": []any{ccxt.GetValue(market, "id")},
+		"orderbooks": []any{market["id"]},
 	}
 
 	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -391,12 +391,12 @@ func (this *Alpaca) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes31112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes31112)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("trade:", symbol)
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
-		"trades": []any{ccxt.GetValue(market, "id")},
+		"trades": []any{market["id"]},
 	}
 
 	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -530,8 +530,8 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "orders"
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 		messageHash = ccxt.Add("orders:", symbol)
 	}
 	var request map[string]any = map[string]any{

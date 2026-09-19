@@ -3057,13 +3057,13 @@ func (this *Bingx) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...a
 		retRes226712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes226712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	if IsEqual(subType, "inverse") {
@@ -6722,10 +6722,10 @@ func (this *Bingx) setMarginBody(ch chan any, symbol any, amount any, optionalAr
 		retRes585912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes585912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
-		"amount": this.AmountToPrecision(GetValue(market, "symbol"), amount),
+		"symbol": market["id"],
+		"amount": this.AmountToPrecision(market["symbol"], amount),
 		"type":   typeVar,
 	}
 
@@ -7724,9 +7724,9 @@ func (this *Bingx) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 		retRes687912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes687912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var subType any = nil
 	var response any = nil

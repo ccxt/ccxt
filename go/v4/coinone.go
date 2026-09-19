@@ -712,10 +712,10 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes52612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"quote_currency":  GetValue(market, "quote"),
-		"target_currency": GetValue(market, "base"),
+		"quote_currency":  market["quote"],
+		"target_currency": market["base"],
 	}
 	if !IsEqual(limit, nil) {
 		request["size"] = limit // only support 5, 10, 15, 16
@@ -748,7 +748,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "qty")
+	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "qty")
 	return nil
 }
 
@@ -861,10 +861,10 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes64112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"quote_currency":  GetValue(market, "quote"),
-		"target_currency": GetValue(market, "base"),
+		"quote_currency":  market["quote"],
+		"target_currency": market["base"],
 	}
 
 	response := (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params)))
@@ -1074,10 +1074,10 @@ func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes82312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes82312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"quote_currency":  GetValue(market, "quote"),
-		"target_currency": GetValue(market, "base"),
+		"quote_currency":  market["quote"],
+		"target_currency": market["base"],
 	}
 	if !IsEqual(limit, nil) {
 		request["size"] = mathMin(limit, 200)
@@ -1147,13 +1147,13 @@ func (this *Coinone) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes87912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes87912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	// the v1 order/limit_buy and order/limit_sell endpoints were retired by
 	// the exchange and return 404, the v2.1 order endpoint replaces them,
 	// see https://github.com/ccxt/ccxt/issues/23174
 	var request map[string]any = map[string]any{
-		"quote_currency":  GetValue(market, "quoteId"),
-		"target_currency": GetValue(market, "baseId"),
+		"quote_currency":  market["quoteId"],
+		"target_currency": market["baseId"],
 		"type":            orderType,
 		"side":            orderSide,
 		"price":           this.PriceToPrecision(symbol, price),
@@ -1203,10 +1203,10 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes91812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes91812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"order_id": id,
-		"currency": GetValue(market, "id"),
+		"currency": market["id"],
 	}
 
 	response := (<-this.V2PrivatePostOrderQueryOrder(this.Extend(request, params)))
@@ -1410,10 +1410,10 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes109912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes109912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"quote_currency":  GetValue(market, "quoteId"),
-		"target_currency": GetValue(market, "baseId"),
+		"quote_currency":  market["quoteId"],
+		"target_currency": market["baseId"],
 	}
 
 	response := (<-this.V2_1PrivatePostOrderOpenOrders(this.Extend(request, params)))
@@ -1475,9 +1475,9 @@ func (this *Coinone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes114312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes114312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency": GetValue(market, "id"),
+		"currency": market["id"],
 	}
 
 	response := (<-this.V2PrivatePostOrderCompleteOrders(this.Extend(request, params)))

@@ -614,15 +614,15 @@ func (this *Indodax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes52212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	orderbook := (<-this.PublicGetApiDepthPair(this.Extend(request, params)))
 	PanicOnError(orderbook)
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), nil, "buy", "sell")
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "buy", "sell")
 	return nil
 }
 func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -693,9 +693,9 @@ func (this *Indodax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes58512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes58512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetApiTickerPair(this.Extend(request, params)))
@@ -831,9 +831,9 @@ func (this *Indodax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes68612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes68612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetApiTradesPair(this.Extend(request, params)))
@@ -891,7 +891,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes73112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var selectedTimeframe *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var now int64 = this.Seconds()
 	var until *int64 = this.SafeInteger(params, "until", now)
@@ -899,7 +899,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"to":     until,
 		"tf":     selectedTimeframe,
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if IsEqual(limit, nil) {
 		limit = 1000
@@ -1069,9 +1069,9 @@ func (this *Indodax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes89212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes89212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":     GetValue(market, "id"),
+		"pair":     market["id"],
 		"order_id": id,
 	}
 
@@ -1192,9 +1192,9 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes96712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes96712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PrivatePostOrderHistory(this.Extend(request, params)))
@@ -1237,9 +1237,9 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes99512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes99512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":  GetValue(market, "id"),
+		"pair":  market["id"],
 		"type":  side,
 		"price": price,
 	}
@@ -1261,7 +1261,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 				var costRequest *string = Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
-			AddElementToObject(request, GetValue(market, "quoteId"), quoteAmount)
+			AddElementToObject(request, market["quoteId"], quoteAmount)
 		} else {
 			quantityIsRequired = true
 		}
@@ -1269,7 +1269,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		priceIsRequired = true
 		quantityIsRequired = true
 		if IsEqual(side, "buy") {
-			AddElementToObject(request, GetValue(market, "quoteId"), this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))))
+			AddElementToObject(request, market["quoteId"], this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))))
 		}
 	}
 	if priceIsRequired {
@@ -1279,7 +1279,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		request["price"] = price
 	}
 	if quantityIsRequired {
-		AddElementToObject(request, GetValue(market, "baseId"), this.AmountToPrecision(symbol, amount))
+		AddElementToObject(request, market["baseId"], this.AmountToPrecision(symbol, amount))
 	}
 
 	result := (<-this.PrivatePostTrade(this.Extend(request, params)))
@@ -1328,10 +1328,10 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		retRes106912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"order_id": id,
-		"pair":     GetValue(market, "id"),
+		"pair":     market["id"],
 		"type":     side,
 	}
 

@@ -593,15 +593,15 @@ func (this *Coincheck) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		retRes44112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes44112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetOrderBooks(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
+	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
 }
 func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -672,9 +672,9 @@ func (this *Coincheck) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 		retRes50412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes50412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	ticker := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -809,7 +809,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes61912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes61912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -875,9 +875,9 @@ func (this *Coincheck) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		retRes66612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes66612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -956,8 +956,8 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	}
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var fee any = this.SafeDict(fees, GetValue(market, "id"), map[string]any{})
+		var market map[string]any = MapTyped(this.Market(symbol))
+		var fee any = this.SafeDict(fees, market["id"], map[string]any{})
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fee,
 			"symbol":     symbol,
@@ -1002,9 +1002,9 @@ func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		retRes75912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if IsEqual(typeVar, "market") {
 		request["order_type"] = Add(Add(typeVar, "_"), side)

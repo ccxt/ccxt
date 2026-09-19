@@ -1101,8 +1101,8 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var ids []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var market any = this.Market(GetValue(symbols, i))
-			var id any = GetValue(market, "id")
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, i)))
+			var id any = market["id"]
 			ids = append(ids, id)
 		}
 		request["symbols"] = ids
@@ -1155,9 +1155,9 @@ func (this *Coinsph) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes93212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
 	var options any = this.SafeDict(this.Options, "fetchTicker", map[string]any{})
@@ -1288,9 +1288,9 @@ func (this *Coinsph) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes104312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes104312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1352,11 +1352,11 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes108612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 	var until *int64 = this.SafeInteger(params, "until")
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": interval,
 	}
 	if IsEqual(limit, nil) {
@@ -1442,9 +1442,9 @@ func (this *Coinsph) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes116312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		// since work properly only when it is "younger" than last 'limit' trade
@@ -1510,9 +1510,9 @@ func (this *Coinsph) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes121012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes121012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
@@ -1773,7 +1773,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes141212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes141212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	params = this.Omit(params, "test")
 	var orderType any = DerefScalar(this.SafeString(params, "type", typeVar))
@@ -1781,7 +1781,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	params = this.Omit(params, "type")
 	var orderSide any = this.EncodeOrderSide(side)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"type":   orderType,
 		"side":   orderSide,
 	}
@@ -2002,9 +2002,9 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes157912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes157912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
@@ -2310,9 +2310,9 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		retRes184312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes184312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params)))

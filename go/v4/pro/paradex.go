@@ -141,8 +141,8 @@ func (this *Paradex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var messageHash any = "trades."
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		messageHash = ccxt.Add(messageHash, market["id"])
 	} else {
 		messageHash = ccxt.Add(messageHash, "ALL")
 	}
@@ -225,8 +225,8 @@ func (this *Paradex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes17212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes17212)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add(ccxt.Add("order_book.", ccxt.GetValue(market, "id")), ".snapshot@15@100ms")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add(ccxt.Add("order_book.", market["id"]), ".snapshot@15@100ms")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -275,9 +275,9 @@ func (this *Paradex) HandleOrderBook(client any, message any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var marketId *string = this.SafeString(data, "market")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol any = market["symbol"]
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
@@ -447,9 +447,9 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "orders"
 	var channel any = "orders."
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		channel = ccxt.Add(channel, ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
+		channel = ccxt.Add(channel, market["id"])
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	} else {
 		channel = ccxt.Add(channel, "ALL")

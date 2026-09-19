@@ -628,9 +628,9 @@ func (this *Bitopro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes55812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes55812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersPair(this.Extend(request, params)))
@@ -731,9 +731,9 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes62712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes62712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -762,7 +762,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "amount")
+	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
 }
 func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
@@ -884,9 +884,9 @@ func (this *Bitopro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes76012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes76012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTradesPair(this.Extend(request, params)))
@@ -1056,10 +1056,10 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes90212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
-		"pair":       GetValue(market, "id"),
+		"pair":       market["id"],
 		"resolution": resolution,
 	}
 	// we need to have a limit argument because "to" and "from" are required
@@ -1357,10 +1357,10 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes116812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"type":      typeVar,
-		"pair":      GetValue(market, "id"),
+		"pair":      market["id"],
 		"action":    side,
 		"amount":    this.AmountToPrecision(symbol, amount),
 		"timestamp": this.Milliseconds(),
@@ -1437,10 +1437,10 @@ func (this *Bitopro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		retRes123112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes123112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id":   id,
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PrivateDeleteOrdersPairId(this.Extend(request, params)))
@@ -1505,8 +1505,8 @@ func (this *Bitopro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		retRes128312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes128312)
 	}
-	var market any = this.Market(symbol)
-	var id any = GetValue(market, "uppercaseId")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var id any = market["uppercaseId"]
 	var request map[string]any = map[string]any{}
 	if id != nil {
 		AddElementToObject(request, id, ids)
@@ -1559,8 +1559,8 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["pair"] = market["id"]
 
 		response = (<-this.PrivateDeleteOrdersPair(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1615,10 +1615,10 @@ func (this *Bitopro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes135912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes135912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"orderId": id,
-		"pair":    GetValue(market, "id"),
+		"pair":    market["id"],
 	}
 
 	response := (<-this.PrivateGetOrdersPairOrderId(this.Extend(request, params)))
@@ -1686,9 +1686,9 @@ func (this *Bitopro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes140912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes140912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["startTimestamp"] = since
@@ -1851,9 +1851,9 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes151912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes151912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PrivateGetOrdersTradesPair(this.Extend(request, params)))

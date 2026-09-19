@@ -980,14 +980,14 @@ func (this *Bigone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes88812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes88812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
 		var request map[string]any = map[string]any{
-			"asset_pair_name": GetValue(market, "id"),
+			"asset_pair_name": market["id"],
 		}
 
 		response := (<-this.PublicGetAssetPairsAssetPairNameTicker(this.Extend(request, params)))
@@ -1840,7 +1840,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes160512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes160512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var isBuy bool = (IsEqual(side, "buy"))
 	var requestSide string = func() string {
 		if isBuy {
@@ -1857,7 +1857,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	params = GetValue(postOnlyparamsVariable, 1)
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var request map[string]any = map[string]any{
-		"asset_pair_name": GetValue(market, "id"),
+		"asset_pair_name": market["id"],
 		"side":            requestSide,
 		"amount":          this.AmountToPrecision(symbol, amount),
 	}
@@ -2023,9 +2023,9 @@ func (this *Bigone) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes173712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes173712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"asset_pair_name": GetValue(market, "id"),
+		"asset_pair_name": market["id"],
 	}
 
 	response := (<-this.PrivatePostOrdersCancel(this.Extend(request, params)))
@@ -2141,9 +2141,9 @@ func (this *Bigone) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes181512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes181512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"asset_pair_name": GetValue(market, "id"),
+		"asset_pair_name": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit // default 20, max 200
@@ -2212,9 +2212,9 @@ func (this *Bigone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes186912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes186912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"asset_pair_name": GetValue(market, "id"),
+		"asset_pair_name": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit // default 20, max 200

@@ -244,9 +244,9 @@ func (this *Backpack) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes18612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes18612)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var topic any = ccxt.Add("ticker"+".", ccxt.GetValue(market, "id"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var topic any = ccxt.Add("ticker"+".", market["id"])
 	var messageHash any = ccxt.Add("ticker"+":", symbol)
 
 	retRes19215 := (<-this.WatchPublicAsync([]any{topic}, []any{messageHash}, params))
@@ -689,11 +689,11 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
-		var market any = this.Market(marketId)
+		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
-		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), ccxt.GetValue(market, "id")))
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("candles:", ccxt.GetValue(market, "symbol")), ":"), interval))
+		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), market["id"]))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("candles:", market["symbol"]), ":"), interval))
 	}
 	symboltimeframecandlesVariable := (<-this.WatchPublicAsync(topics, messageHashes, params))
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
@@ -741,11 +741,11 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
-		var market any = this.Market(marketId)
+		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
-		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), ccxt.GetValue(market, "id")))
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:candles:", ccxt.GetValue(market, "symbol")), ":"), interval))
+		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), market["id"]))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:candles:", market["symbol"]), ":"), interval))
 	}
 
 	retRes54115 := (<-this.WatchPublicAsync(topics, messageHashes, params, true))
@@ -775,8 +775,8 @@ func (this *Backpack) HandleOHLCV(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market any = this.Market(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+	var symbol any = market["symbol"]
 	var stream *string = this.SafeString(message, "stream", "")
 	var parts []string = ccxt.Split(stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
@@ -994,8 +994,8 @@ func (this *Backpack) HandleTrades(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market any = this.Market(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+	var symbol any = market["symbol"]
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)

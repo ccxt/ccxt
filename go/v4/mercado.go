@@ -460,15 +460,15 @@ func (this *Mercado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes38812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes38812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin": GetValue(market, "base"),
+		"coin": market["base"],
 	}
 
 	response := (<-this.PublicGetCoinOrderbook(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
+	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
 }
 func (this *Mercado) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -536,9 +536,9 @@ func (this *Mercado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes44812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes44812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin": GetValue(market, "base"),
+		"coin": market["base"],
 	}
 
 	response := (<-this.PublicGetCoinTicker(this.Extend(request, params)))
@@ -626,9 +626,9 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes51812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes51812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin": GetValue(market, "base"),
+		"coin": market["base"],
 	}
 	if !IsEqual(since, nil) {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
@@ -734,14 +734,14 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes58912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes58912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin_pair": GetValue(market, "id"),
+		"coin_pair": market["id"],
 	}
 	var response any = nil
 	if IsEqual(typeVar, "limit") {
-		request["limit_price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
-		request["quantity"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
+		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
+		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 		if IsEqual(side, "buy") {
 
 			response = (<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params)))
@@ -759,12 +759,12 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			var amountString *string = this.NumberToString(amount)
 			var priceString *string = this.NumberToString(price)
 			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
-			request["cost"] = this.PriceToPrecision(GetValue(market, "symbol"), cost)
+			request["cost"] = this.PriceToPrecision(market["symbol"], cost)
 
 			response = (<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			request["quantity"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
+			request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 
 			response = (<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -808,9 +808,9 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		retRes64012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin_pair": GetValue(market, "id"),
+		"coin_pair": market["id"],
 		"order_id":  id,
 	}
 
@@ -962,9 +962,9 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes77212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes77212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin_pair": GetValue(market, "id"),
+		"coin_pair": market["id"],
 		"order_id":  ParseInt(id),
 	}
 
@@ -1200,9 +1200,9 @@ func (this *Mercado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes95412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes95412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin_pair": GetValue(market, "id"),
+		"coin_pair": market["id"],
 	}
 
 	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
@@ -1248,9 +1248,9 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes98112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin_pair":   GetValue(market, "id"),
+		"coin_pair":   market["id"],
 		"status_list": "[2]",
 	}
 
@@ -1297,9 +1297,9 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes100912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes100912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin_pair": GetValue(market, "id"),
+		"coin_pair": market["id"],
 		"has_fills": true,
 	}
 
@@ -1310,7 +1310,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 
-	ch <- this.FilterBySymbolSinceLimit(trades, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(trades, market["symbol"], since, limit)
 	return nil
 }
 func (this *Mercado) OrdersToTrades(orders any) any {

@@ -237,8 +237,8 @@ func (this *Coinbase) subscribeMultipleBody(ch chan any, name any, isPrivate any
 	symbols = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var marketId any = ccxt.GetValue(market, "id")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var marketId any = market["id"]
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 	}
@@ -297,8 +297,8 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 	symbols = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var marketId any = ccxt.GetValue(market, "id")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var marketId any = market["id"]
 		productIds = append(productIds, marketId)
 		watchMessageHashes = append(watchMessageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 		unWatchMessageHashes = append(unWatchMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", name), "::"), symbol))
@@ -925,8 +925,8 @@ func (this *Coinbase) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		ccxt.PanicOnError(retRes66812)
 	}
 	var name string = "level2"
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 
 	orderbook := (<-this.SubscribeAsync(name, false, symbol, params))
 	ccxt.PanicOnError(orderbook)
@@ -1227,8 +1227,8 @@ func (this *Coinbase) HandleOrderBook(client any, message any) {
 		var updates any = this.SafeList(event, "updates", []any{})
 		var marketId *string = this.SafeString(event, "product_id")
 		// sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var messageHash any = ccxt.Add("level2::", symbol)
 		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")

@@ -796,9 +796,9 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes65712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes65712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["fromDateISO"] = this.Iso8601(since)
@@ -898,9 +898,9 @@ func (this *Cex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		retRes73912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicPostGetOrderBook(this.Extend(request, params)))
@@ -926,7 +926,7 @@ func (this *Cex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var orderBook any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(orderBook, "timestamp")
 
-	ch <- this.ParseOrderBook(orderBook, GetValue(market, "symbol"), timestamp)
+	ch <- this.ParseOrderBook(orderBook, market["symbol"], timestamp)
 	return nil
 }
 
@@ -971,9 +971,9 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		retRes78912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes78912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":       GetValue(market, "id"),
+		"pair":       market["id"],
 		"resolution": GetValue(this.Timeframes, timeframe),
 		"dataType":   dataType,
 	}
@@ -1641,14 +1641,14 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		retRes130112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes130112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
 		"clientOrderId": this.Uuid(),
-		"currency1":     GetValue(market, "baseId"),
-		"currency2":     GetValue(market, "quoteId"),
+		"currency1":     market["baseId"],
+		"currency2":     market["quoteId"],
 		"accountId":     accountId,
 		"orderType":     this.Capitalize(ToLower(typeVar)),
 		"side":          ToUpper(side),

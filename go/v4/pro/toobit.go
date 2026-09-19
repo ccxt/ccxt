@@ -243,9 +243,9 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var subParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		messageHashes = append(messageHashes, ccxt.Add("trade::", symbol))
-		var rawHash any = ccxt.GetValue(market, "id")
+		var rawHash any = market["id"]
 		subParams = append(subParams, rawHash)
 	}
 	var marketIds any = this.MarketIds(symbols)
@@ -392,8 +392,8 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var symbolStr *string = this.SafeString(data, 0)
-		var market any = this.Market(symbolStr)
-		var marketId any = ccxt.GetValue(market, "id")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbolStr))
+		var marketId any = market["id"]
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1m")
 		var rawTimeframe *string = this.SafeString(timeframes, unfiedTimeframe, unfiedTimeframe)
 		if (selectedTimeframe != nil) && !ccxt.IsEqual(selectedTimeframe, rawTimeframe) {
@@ -448,8 +448,8 @@ func (this *Toobit) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "symbol")
-	var market any = this.Market(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+	var symbol any = market["symbol"]
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var timeframeId *string = this.SafeString(params, "klineType")
 	var timeframe any = this.FindTimeframe(timeframeId)
@@ -559,9 +559,9 @@ func (this *Toobit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var subParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		messageHashes = append(messageHashes, ccxt.Add("ticker::", symbol))
-		var rawHash any = ccxt.GetValue(market, "id")
+		var rawHash any = market["id"]
 		subParams = append(subParams, rawHash)
 	}
 	var marketIds any = this.MarketIds(symbols)
@@ -718,9 +718,9 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var subParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("orderBook::", symbol), "::"), channel))
-		var rawHash any = ccxt.GetValue(market, "id")
+		var rawHash any = market["id"]
 		subParams = append(subParams, rawHash)
 	}
 	var marketIds any = this.MarketIds(symbols)
@@ -765,8 +765,8 @@ func (this *Toobit) HandleOrderBook(client any, message any) {
 		return
 	}
 	var marketId *string = this.SafeString(message, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var entry any = ccxt.GetValue(data, i)

@@ -291,15 +291,15 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes20812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes20812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency": GetValue(market, "id"),
+		"currency": market["id"],
 	}
 
 	response := (<-this.PublicGetDataCurrencyDepth(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "amount")
+	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
 }
 func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -377,9 +377,9 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes27812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes27812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency": GetValue(market, "id"),
+		"currency": market["id"],
 	}
 
 	ticker := (<-this.PublicGetDataCurrencyTicker(this.Extend(request, params)))
@@ -463,9 +463,9 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes34412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes34412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency": GetValue(market, "id"),
+		"currency": market["id"],
 	}
 
 	response := (<-this.PublicGetDataCurrencyTrades(this.Extend(request, params)))
@@ -653,10 +653,10 @@ func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes46912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes46912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"type":      this.Capitalize(typeVar) + "Order",
-		"currency":  GetValue(market, "id"),
+		"currency":  market["id"],
 		"direction": side,
 		"amount":    amount,
 	}

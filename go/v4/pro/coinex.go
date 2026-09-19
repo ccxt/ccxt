@@ -731,12 +731,12 @@ func (this *Coinex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes65012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes65012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 
 	tickers := (<-this.WatchTickersAsync([]any{symbol}, params))
 	ccxt.PanicOnError(tickers)
 
-	ch <- ccxt.GetValue(tickers, ccxt.GetValue(market, "symbol"))
+	ch <- ccxt.GetValue(tickers, market["symbol"])
 	return nil
 }
 
@@ -1080,8 +1080,8 @@ func (this *Coinex) HandleOrderBook(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var depth any = this.SafeDict(data, "depth", map[string]any{})
 	var marketId *string = this.SafeString(data, "market")
-	var market any = this.SafeMarket(marketId, nil, nil, defaultType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
+	var symbol any = market["symbol"]
 	var name string = "orderbook"
 	var messageHash any = ccxt.Add(name+":", symbol)
 	var timestamp *int64 = this.SafeInteger(depth, "updated_at")
@@ -1318,7 +1318,7 @@ func (this *Coinex) HandleOrders(client any, message any) {
 	}, this.SafeDict2(data, "order", "stop", map[string]any{}))
 	var parsedOrder any = this.ParseWsOrder(order)
 	var symbol any = ccxt.GetValue(parsedOrder, "symbol")
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1326,7 +1326,7 @@ func (this *Coinex) HandleOrders(client any, message any) {
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(parsedOrder)
 	var messageHash any = "orders"
-	var messageWithType any = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "type"))
+	var messageWithType any = ccxt.Add(ccxt.Add(messageHash, ":"), market["type"])
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageWithType)
 	messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)

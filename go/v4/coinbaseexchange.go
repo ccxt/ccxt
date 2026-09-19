@@ -1273,9 +1273,9 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan any, symbol any, optionalA
 		retRes100312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes100312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"id": GetValue(market, "id"),
+		"id": market["id"],
 	}
 	// publicGetProductsIdTicker or publicGetProductsIdStats
 	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "publicGetProductsIdTicker")
@@ -1454,9 +1454,9 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 		retRes113912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes113912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "id"),
+		"product_id": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1507,9 +1507,9 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan any, symbol any, optionalA
 		retRes117312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes117312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"id": GetValue(market, "id"),
+		"id": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit // default 100
@@ -1646,10 +1646,10 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 		ch <- retRes127619
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var parsedTimeframe *int64 = this.SafeInteger(this.Timeframes, timeframe)
 	var request map[string]any = map[string]any{
-		"id": GetValue(market, "id"),
+		"id": market["id"],
 	}
 	if parsedTimeframe != nil {
 		request["granularity"] = parsedTimeframe
@@ -2080,11 +2080,11 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol any, typeVar a
 		retRes157512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes157512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"type":       typeVar,
 		"side":       side,
-		"product_id": GetValue(market, "id"),
+		"product_id": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_oid")
 	if clientOrderId != nil {

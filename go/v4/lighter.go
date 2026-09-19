@@ -1022,10 +1022,10 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	}
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false) // default false
 	var orderType string = ToUpper(typeVar)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderSide string = ToUpper(side)
 	var request map[string]any = map[string]any{
-		"market_index": this.ParseToInt(GetValue(market, "id")),
+		"market_index": this.ParseToInt(market["id"]),
 	}
 	var nonce any = nil
 	var apiKeyIndex any = nil
@@ -1391,7 +1391,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var amountScale any = this.Pow("10", marketInfo["size_decimals"])
 	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
@@ -1410,7 +1410,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
 	PanicOnError(nonce)
 	var signRaw map[string]any = map[string]any{
-		"market_index":  this.ParseToInt(GetValue(market, "id")),
+		"market_index":  this.ParseToInt(market["id"]),
 		"index":         this.ParseToInt(id),
 		"base_amount":   this.ParseToInt(Precise.StringMul(amountStr, amountScale)),
 		"price":         this.ParseToInt(Precise.StringMul(priceStr, priceScale)),
@@ -1847,9 +1847,9 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes137512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes137512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_id": GetValue(market, "id"),
+		"market_id": market["id"],
 		"limit":     100,
 	}
 	if !IsEqual(limit, nil) {
@@ -1887,7 +1887,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var result any = this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "remaining_base_amount")
+	var result any = this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "remaining_base_amount")
 
 	ch <- result
 	return nil
@@ -2019,9 +2019,9 @@ func (this *Lighter) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes153112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes153112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_id": GetValue(market, "id"),
+		"market_id": market["id"],
 	}
 
 	response := (<-this.PublicGetOrderBookDetails(this.Extend(request, params)))
@@ -2175,7 +2175,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes165512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes165512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"until"})
 	var now int64 = this.Milliseconds()
@@ -2206,7 +2206,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		}
 	}
 	var request map[string]any = map[string]any{
-		"market_id":       GetValue(market, "id"),
+		"market_id":       market["id"],
 		"count_back":      0,
 		"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
 		"start_timestamp": startTs,
@@ -2819,9 +2819,9 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes21678 := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(retRes21678)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_id":     GetValue(market, "id"),
+		"market_id":     market["id"],
 		"account_index": accountIndex,
 	}
 
@@ -2924,9 +2924,9 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 
 	retRes22458 := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(retRes22458)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_id":     GetValue(market, "id"),
+		"market_id":     market["id"],
 		"account_index": accountIndex,
 		"limit":         100,
 	}
@@ -4078,12 +4078,12 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
 	PanicOnError(nonce)
 	var signRaw map[string]any = map[string]any{
-		"market_index":            this.ParseToInt(GetValue(market, "id")),
+		"market_index":            this.ParseToInt(market["id"]),
 		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
 		"margin_mode": func() int {
 			if IsEqual(marginMode, "cross") {
@@ -4462,12 +4462,12 @@ func (this *Lighter) setMarginBody(ch chan any, symbol any, amount any, optional
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
 	PanicOnError(nonce)
 	var signRaw map[string]any = map[string]any{
-		"market_index":  this.ParseToInt(GetValue(market, "id")),
+		"market_index":  this.ParseToInt(market["id"]),
 		"usdc_amount":   this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision("USDC", amount))),
 		"direction":     direction,
 		"nonce":         nonce,

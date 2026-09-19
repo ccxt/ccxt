@@ -605,8 +605,8 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 		retRes47212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes47212)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var options any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var interval *string = this.SafeString(options, timeframe, timeframe)
 

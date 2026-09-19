@@ -944,7 +944,7 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes79012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes79012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1027,7 +1027,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes83512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes83512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":   this.SafeString(market, "id2"),
@@ -1097,7 +1097,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		retRes89212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes89212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1136,7 +1136,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
-	var orderbook any = this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "b", "a")
+	var orderbook any = this.ParseOrderBook(data, market["symbol"], timestamp, "b", "a")
 	AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "u"))
 
 	ch <- orderbook
@@ -1175,7 +1175,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes95112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes95112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1276,7 +1276,7 @@ func (this *Apex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 		retRes103612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes103612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1362,8 +1362,8 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes109912)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = this.Market(symbol)
-	request["symbol"] = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	request["symbol"] = market["id"]
 	if !IsEqual(since, nil) {
 		request["beginTimeInclusive"] = since
 	}
@@ -1665,7 +1665,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		retRes136912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes136912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderType string = ToUpper(typeVar)
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
@@ -1679,7 +1679,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
 	var maker *string = this.SafeString(fees, "maker", "0.0002")
-	var limitFee string = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
+	var limitFee string = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(market["precision"], "price"))), TRUNCATE, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 	var timeNow int64 = this.Milliseconds()
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -1733,7 +1733,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"accountId":    accountId,
 		"slotId":       finalClientOrderId,
 		"nonce":        finalClientOrderId,
-		"pairId":       GetValue(market, "quoteId"),
+		"pairId":       market["quoteId"],
 		"size":         orderSize,
 		"price":        finalOrderPrice,
 		"direction":    orderSide,
@@ -1747,7 +1747,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	signature := (<-this.GetZKContractSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
 	PanicOnError(signature)
 	var request map[string]any = map[string]any{
-		"symbol":      GetValue(market, "id"),
+		"symbol":      market["id"],
 		"side":        orderSide,
 		"type":        orderType,
 		"size":        orderSize,
@@ -2444,11 +2444,11 @@ func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		retRes192512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes192512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var leverageString *string = this.NumberToString(leverage)
 	var initialMarginRate *string = Precise.StringDiv("1", leverageString, 4)
 	var request map[string]any = map[string]any{
-		"symbol":            GetValue(market, "id"),
+		"symbol":            market["id"],
 		"initialMarginRate": initialMarginRate,
 	}
 

@@ -1881,9 +1881,9 @@ func (this *Zebpay) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		retRes139512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes139512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PrivateSwapPostV1TradePositionClose(this.Extend(request, params)))
@@ -1965,7 +1965,7 @@ func (this *Zebpay) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		retRes144712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes144712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeStringUpper(market, "id"),
 	}
@@ -2013,10 +2013,10 @@ func (this *Zebpay) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		retRes147812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes147812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"leverage": leverage,
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 	}
 	//
 	// { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
@@ -2109,9 +2109,9 @@ func (this *Zebpay) addMarginBody(ch chan any, symbol any, amount any, optionalA
 		retRes154212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes154212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"amount": amount,
 	}
 
@@ -2171,9 +2171,9 @@ func (this *Zebpay) reduceMarginBody(ch chan any, symbol any, amount any, option
 		retRes158912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes158912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"amount": amount,
 	}
 

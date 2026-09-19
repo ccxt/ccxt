@@ -874,9 +874,9 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		retRes67712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes67712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"marketId":   GetValue(market, "id"),
+		"marketId":   market["id"],
 		"timeWindow": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if !IsEqual(since, nil) {
@@ -927,9 +927,9 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		retRes71812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes71812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"marketId": GetValue(market, "id"),
+		"marketId": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketsMarketIdOrderbook(this.Extend(request, params)))
@@ -1034,9 +1034,9 @@ func (this *Btcmarkets) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		retRes80912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"marketId": GetValue(market, "id"),
+		"marketId": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketsMarketIdTicker(this.Extend(request, params)))
@@ -1075,9 +1075,9 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan any, symbol any, optionalArgs .
 		retRes83612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes83612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"id": GetValue(market, "id"),
+		"id": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketsMarketIdTicker(this.Extend(request, params)))
@@ -1190,9 +1190,9 @@ func (this *Btcmarkets) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		retRes92612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes92612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"marketId": GetValue(market, "id"),
+		"marketId": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketsMarketIdTrades(this.Extend(request, params)))
@@ -1240,9 +1240,9 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 		retRes96012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes96012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"marketId": GetValue(market, "id"),
+		"marketId": market["id"],
 		"amount":   this.AmountToPrecision(symbol, amount),
 		"side": func() string {
 			if IsEqual(side, "buy") {

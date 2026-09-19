@@ -182,14 +182,14 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		retRes14112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14112)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
 	var request map[string]any = map[string]any{
 		"action":      "subscribe",
 		"channel":     "prices",
-		"symbol":      ccxt.GetValue(market, "id"),
+		"symbol":      market["id"],
 		"granularity": this.ParseNumber(interval),
 	}
 	request = this.DeepExtend(request, params)
@@ -274,14 +274,14 @@ func (this *Blockchaincom) watchTickerBody(ch chan any, symbol any, optionalArgs
 		retRes21912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes21912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "ticker",
-		"symbol":  ccxt.GetValue(market, "id"),
+		"symbol":  market["id"],
 	}
 	request = this.DeepExtend(request, params)
 
@@ -407,14 +407,14 @@ func (this *Blockchaincom) watchTradesBody(ch chan any, symbol any, optionalArgs
 		retRes33112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes33112)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "trades",
-		"symbol":  ccxt.GetValue(market, "id"),
+		"symbol":  market["id"],
 	}
 	request = this.DeepExtend(request, params)
 
@@ -536,8 +536,8 @@ func (this *Blockchaincom) watchOrdersBody(ch chan any, optionalArgs ...any) any
 	retRes4378 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes4378)
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var message map[string]any = map[string]any{
@@ -770,7 +770,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalA
 		retRes65312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes65312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var typeVar *string = this.SafeString(params, "type", "l2")
 	params = this.Omit(params, "type")
@@ -778,7 +778,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalA
 	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": typeVar,
-		"symbol":  ccxt.GetValue(market, "id"),
+		"symbol":  market["id"],
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 

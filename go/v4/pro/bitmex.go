@@ -130,8 +130,8 @@ func (this *Bitmex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			var subscription any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
+			var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+			var subscription any = ccxt.Add(name+":", market["id"])
 			rawSubscriptions = append(rawSubscriptions, subscription)
 			var messageHash any = ccxt.Add("ticker:", symbol)
 			messageHashes = append(messageHashes, messageHash)
@@ -476,8 +476,8 @@ func (this *Bitmex) watchLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			subscriptionHashes = append(subscriptionHashes, ccxt.Add("liquidation:", ccxt.GetValue(market, "id")))
+			var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+			subscriptionHashes = append(subscriptionHashes, ccxt.Add("liquidation:", market["id"]))
 			messageHashes = append(messageHashes, ccxt.Add("liquidations::", symbol))
 		}
 	}
@@ -1557,8 +1557,8 @@ func (this *Bitmex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var topic any = ccxt.Add(ccxt.Add(table, ":"), ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var topic any = ccxt.Add(ccxt.Add(table, ":"), market["id"])
 		topics = append(topics, topic)
 		var messageHash any = ccxt.Add(ccxt.Add(table, ":"), symbol)
 		messageHashes = append(messageHashes, messageHash)
@@ -1612,8 +1612,8 @@ func (this *Bitmex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var topic any = ccxt.Add(table+":", ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var topic any = ccxt.Add(table+":", market["id"])
 		topics = append(topics, topic)
 		var messageHash any = ccxt.Add(table+":", symbol)
 		messageHashes = append(messageHashes, messageHash)
@@ -1669,10 +1669,10 @@ func (this *Bitmex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes143012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes143012)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var table any = ccxt.Add("tradeBin", this.SafeString(this.Timeframes, timeframe, timeframe))
-	var messageHash any = ccxt.Add(ccxt.Add(table, ":"), ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(ccxt.Add(table, ":"), market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -1763,9 +1763,9 @@ func (this *Bitmex) HandleOHLCV(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)
 		var marketId *string = this.SafeString(candle, "symbol")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add(ccxt.Add(table, ":"), ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
+		var messageHash any = ccxt.Add(ccxt.Add(table, ":"), market["id"])
 		var result []any = []any{ccxt.Subtract(this.ParseToInt(this.Parse8601(this.SafeString(candle, "timestamp"))), ccxt.Multiply(duration, 1000)), nil, this.SafeFloat(candle, "high"), this.SafeFloat(candle, "low"), this.SafeFloat(candle, "close"), this.SafeFloat(candle, "volume")}
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)

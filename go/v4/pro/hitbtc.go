@@ -308,10 +308,10 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	} else if ccxt.IsEqual(name, "orderbook/{depth}/{speed}/batch") {
 		name = "orderbook/D" + *depth + "/" + *speed + "ms/batch"
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
-			"symbols": []any{ccxt.GetValue(market, "id")},
+			"symbols": []any{market["id"]},
 		},
 	}
 
@@ -356,8 +356,8 @@ func (this *Hitbtc) HandleOrderBook(client any, message any) {
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var item any = ccxt.GetValue(data, marketId)
 		var messageHash any = ccxt.Add("orderbooks::", symbol)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -751,10 +751,10 @@ func (this *Hitbtc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes60112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes60112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
-			"symbols": []any{ccxt.GetValue(market, "id")},
+			"symbols": []any{market["id"]},
 		},
 	}
 	if !ccxt.IsEqual(limit, nil) {
@@ -911,10 +911,10 @@ func (this *Hitbtc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name any = "candles/" + *period
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
-			"symbols": []any{ccxt.GetValue(market, "id")},
+			"symbols": []any{market["id"]},
 		},
 	}
 	if !ccxt.IsEqual(limit, nil) {
@@ -1368,7 +1368,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 		retRes114212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes114212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var request any = map[string]any{}
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)

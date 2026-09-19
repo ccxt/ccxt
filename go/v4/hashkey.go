@@ -1439,9 +1439,9 @@ func (this *Hashkey) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes125912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes125912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1500,9 +1500,9 @@ func (this *Hashkey) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes130112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes130112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1797,10 +1797,10 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- retRes157219
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	timeframe = DerefScalar(this.SafeString(this.Timeframes, timeframe, timeframe))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": timeframe,
 	}
 	if !IsEqual(since, nil) {
@@ -1883,9 +1883,9 @@ func (this *Hashkey) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes164712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes164712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetQuoteV1Ticker24hr(this.Extend(request, params)))
@@ -3074,7 +3074,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan any, symbol any, typeVar any, s
 		retRes258912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes258912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var isMarketBuy bool = (IsEqual(typeVar, "market")) && (IsEqual(side, "buy"))
 	var cost *string = this.SafeString(params, "cost")
 	if (!isMarketBuy) && (cost != nil) {
@@ -3149,10 +3149,10 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	 * @param {string} [params.clientOrderId] a unique id for the order
 	 * @returns {object} request to be sent to the exchange
 	 */
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	typeVar = ToUpper(typeVar)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ToUpper(side),
 		"type":   typeVar,
 	}
@@ -3209,9 +3209,9 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"type":     "LIMIT",
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
@@ -3294,7 +3294,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan any, symbol any, typeVar any, s
 		retRes284412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes284412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params)))
@@ -3852,9 +3852,9 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 	if symbol == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a symbol argument for swap market orders")))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var isTrigger any = false
 	isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
@@ -4270,9 +4270,9 @@ func (this *Hashkey) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 		retRes387012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes387012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 		"timestamp": this.Milliseconds(),
 	}
 
@@ -4405,9 +4405,9 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -4618,9 +4618,9 @@ func (this *Hashkey) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 		retRes412712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes412712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params)))
@@ -4686,8 +4686,8 @@ func (this *Hashkey) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"leverage": leverage,
 	}
-	var market any = this.Market(symbol)
-	request["symbol"] = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	request["symbol"] = market["id"]
 
 	response := (<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params)))
 	PanicOnError(response)

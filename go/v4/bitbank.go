@@ -492,9 +492,9 @@ func (this *Bitbank) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes41012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes41012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetPairTicker(this.Extend(request, params)))
@@ -532,9 +532,9 @@ func (this *Bitbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes43312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes43312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetPairDepth(this.Extend(request, params)))
@@ -542,7 +542,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var orderbook any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp)
 	return nil
 }
 func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
@@ -623,9 +623,9 @@ func (this *Bitbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes50412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes50412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetPairTransactions(this.Extend(request, params)))
@@ -697,8 +697,8 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; i < GetArrayLength(pairs); i++ {
 		var pair any = GetValue(pairs, i)
 		var marketId *string = this.SafeString(pair, "name")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       pair,
 			"symbol":     symbol,
@@ -768,9 +768,9 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes61912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes61912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":       GetValue(market, "id"),
+		"pair":       market["id"],
 		"candletype": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"yyyymmdd":   this.Yyyymmdd(since, ""),
 	}
@@ -969,9 +969,9 @@ func (this *Bitbank) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes78912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes78912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":   GetValue(market, "id"),
+		"pair":   market["id"],
 		"amount": this.AmountToPrecision(symbol, amount),
 		"side":   side,
 		"type":   typeVar,
@@ -1015,10 +1015,10 @@ func (this *Bitbank) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		retRes81812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes81812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"order_id": id,
-		"pair":     GetValue(market, "id"),
+		"pair":     market["id"],
 	}
 
 	response := (<-this.PrivatePostUserSpotCancelOrder(this.Extend(request, params)))
@@ -1079,10 +1079,10 @@ func (this *Bitbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes86512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes86512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"order_id": id,
-		"pair":     GetValue(market, "id"),
+		"pair":     market["id"],
 	}
 
 	response := (<-this.PrivateGetUserSpotOrder(this.Extend(request, params)))
@@ -1147,9 +1147,9 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes91212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes91212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["count"] = limit

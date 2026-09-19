@@ -1789,9 +1789,9 @@ func (this *Deribit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes134912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes134912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -1863,13 +1863,13 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"code"})
 	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var market any = this.Market(GetValue(symbols, i))
-			if !IsEqual(code, nil) && !IsEqual(code, GetValue(market, "base")) {
+			var market map[string]any = MapTyped(this.Market(GetValue(symbols, i)))
+			if !IsEqual(code, nil) && !IsEqual(code, market["base"]) {
 				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency"))
 			}
 			if IsEqual(code, nil) {
-				code = GetValue(market, "base")
-				typeVar = GetValue(market, "type")
+				code = market["base"]
+				typeVar = market["type"]
 			}
 		}
 	}
@@ -1986,9 +1986,9 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- retRes150219
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
@@ -2170,9 +2170,9 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes166112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"include_old":     true,
 	}
 	if !IsEqual(since, nil) {
@@ -2391,9 +2391,9 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes184812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes184812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["depth"] = limit
@@ -2443,7 +2443,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(result, "timestamp")
 	var nonce *int64 = this.SafeInteger(result, "change_id")
-	var orderbook any = this.ParseOrderBook(result, GetValue(market, "symbol"), timestamp)
+	var orderbook any = this.ParseOrderBook(result, market["symbol"], timestamp)
 	AddElementToObject(orderbook, "nonce", nonce)
 
 	ch <- orderbook
@@ -2679,9 +2679,9 @@ func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes210412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes210412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"amount":          this.AmountToPrecision(symbol, amount),
 		"type":            typeVar,
 	}
@@ -2970,8 +2970,8 @@ func (this *Deribit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetCancelAll(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		var market any = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["instrument_name"] = market["id"]
 
 		response = (<-this.PrivateGetCancelAllByInstrument(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3623,9 +3623,9 @@ func (this *Deribit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...
 		retRes284612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes284612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 
 	response := (<-this.PrivateGetGetPosition(this.Extend(request, params)))
@@ -4186,10 +4186,10 @@ func (this *Deribit) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 		retRes328012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes328012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var time int64 = this.Milliseconds()
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"start_timestamp": Subtract(time, ((8 * 60) * 60 * 1000)),
 		"end_timestamp":   time,
 	}
@@ -4245,7 +4245,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		retRes331812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes331812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -4272,7 +4272,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		time = Add(since, month)
 	}
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"start_timestamp": Subtract(since, 1),
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
@@ -4606,9 +4606,9 @@ func (this *Deribit) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...an
 		retRes360912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes360912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -4757,9 +4757,9 @@ func (this *Deribit) fetchOptionBody(ch chan any, symbol any, optionalArgs ...an
 		retRes374412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes374412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 
 	response := (<-this.PublicGetGetBookSummaryByInstrument(this.Extend(request, params)))

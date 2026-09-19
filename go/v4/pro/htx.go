@@ -320,10 +320,10 @@ func (this *Htx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes26412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes26412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".trade.detail")
-	var url any = this.GetUrlByMarketType(ccxt.GetValue(market, "type"), ccxt.GetValue(market, "linear"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var messageHash any = ccxt.Add(ccxt.Add("market.", market["id"]), ".trade.detail")
+	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
 	trades := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
 	ccxt.PanicOnError(trades)
@@ -361,12 +361,12 @@ func (this *Htx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes29012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes29012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var topic string = "trades"
 	var options any = this.SafeDict(this.Options, "watchTrades", map[string]any{})
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.trade.detail")
 	var subMessageHash any = this.ImplodeParams(channel, map[string]any{
-		"marketId": ccxt.GetValue(market, "id"),
+		"marketId": market["id"],
 	})
 
 	retRes29715 := (<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params))
@@ -454,11 +454,11 @@ func (this *Htx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		retRes36112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes36112)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".kline."), interval)
-	var url any = this.GetUrlByMarketType(ccxt.GetValue(market, "type"), ccxt.GetValue(market, "linear"))
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".kline."), interval)
+	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
 	ohlcv := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
 	ccxt.PanicOnError(ohlcv)
@@ -500,11 +500,11 @@ func (this *Htx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes39012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".kline."), interval)
+	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".kline."), interval)
 	var topic string = "ohlcv"
-	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{ccxt.GetValue(market, "symbol"), timeframe}})
+	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{market["symbol"], timeframe}})
 
 	retRes39715 := (<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params))
 	ccxt.PanicOnError(retRes39715)
@@ -783,8 +783,8 @@ func (this *Htx) watchOrderBookSnapshotBody(ch chan any, client any, message any
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var params any = this.SafeValue(subscription, "params")
 	var attempts *int64 = this.SafeInteger(subscription, "numAttempts", 0)
-	var market any = this.Market(symbol)
-	var url any = this.GetUrlByMarketType(ccxt.GetValue(market, "type"), ccxt.GetValue(market, "linear"), false, true)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, true)
 	var requestId any = this.RequestId()
 	var request map[string]any = map[string]any{
 		"req": messageHash,

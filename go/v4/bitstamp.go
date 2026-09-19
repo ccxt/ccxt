@@ -1503,9 +1503,9 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes90112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetOrderBookPair(this.Extend(request, params)))
@@ -1531,7 +1531,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microtimestamp"))
 	}
 	var timestamp int64 = this.ParseToInt(Divide(microtimestamp, 1000))
-	var orderbook any = this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
+	var orderbook any = this.ParseOrderBook(response, market["symbol"], timestamp)
 	AddElementToObject(orderbook, "nonce", microtimestamp)
 
 	ch <- orderbook
@@ -1611,9 +1611,9 @@ func (this *Bitstamp) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes99312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes99312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	ticker := (<-this.PublicGetTickerPair(this.Extend(request, params)))
@@ -1923,9 +1923,9 @@ func (this *Bitstamp) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes127512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes127512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 		"time": "hour",
 	}
 
@@ -2002,9 +2002,9 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes133912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes133912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
@@ -2138,9 +2138,9 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		retRes144612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes144612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_symbol": GetValue(market, "id"),
+		"market_symbol": market["id"],
 	}
 
 	response := (<-this.PrivatePostFeesTrading(this.Extend(request, params)))
@@ -2160,7 +2160,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	//     ]
 	//
 	var tradingFeesByMarketId map[string]any = this.IndexBy(response, "currency_pair")
-	var tradingFee any = this.SafeDict(tradingFeesByMarketId, GetValue(market, "id"))
+	var tradingFee any = this.SafeDict(tradingFeesByMarketId, market["id"])
 	if IsEqual(tradingFee, nil) {
 		tradingFee = map[string]any{}
 	}
@@ -2418,9 +2418,9 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes165612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes165612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":   GetValue(market, "id"),
+		"pair":   market["id"],
 		"amount": this.AmountToPrecision(symbol, amount),
 	}
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
@@ -2511,7 +2511,7 @@ func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		retRes171512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes171512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"amount": this.AmountToPrecision(symbol, amount),
 		"price":  this.PriceToPrecision(symbol, price),
@@ -3488,9 +3488,9 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		retRes247212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes247212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_symbol": GetValue(market, "id"),
+		"market_symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params)))

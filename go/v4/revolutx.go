@@ -612,8 +612,8 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			marketIds = append(marketIds, GetValue(market, "id"))
+			var market map[string]any = MapTyped(this.Market(symbol))
+			marketIds = append(marketIds, market["id"])
 		}
 		request["symbols"] = Join(marketIds, ",")
 	}
@@ -730,9 +730,9 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes62612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes62612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -817,9 +817,9 @@ func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes69012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes69012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": this.SafeInteger(this.Timeframes, timeframe, 5),
 	}
 	if !IsEqual(since, nil) {
@@ -1174,7 +1174,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes98012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -1214,7 +1214,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var request map[string]any = map[string]any{
 		"client_order_id":     clientOrderId,
-		"symbol":              GetValue(market, "id"),
+		"symbol":              market["id"],
 		"side":                side,
 		"order_configuration": orderConfiguration,
 	}
@@ -1239,7 +1239,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var state *string = this.SafeString(orderData, "state")
 	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     venueOrderId,
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
@@ -1419,8 +1419,8 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["symbols"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["symbols"] = market["id"]
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1499,8 +1499,8 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		request["symbols"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["symbols"] = market["id"]
 	}
 	var thirtyDays int = 2592000000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
@@ -1673,9 +1673,9 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol parameter"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var thirtyDays int = 2592000000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
@@ -1765,7 +1765,7 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		retRes139712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes139712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -1809,7 +1809,7 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var state *string = this.SafeString(orderData, "state")
 	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     newVenueOrderId,
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,

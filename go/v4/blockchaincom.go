@@ -509,9 +509,9 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol any, optiona
 		retRes45012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes45012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["depth"] = limit
@@ -520,7 +520,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol any, optiona
 	response := (<-this.PublicGetL3Symbol(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "px", "qty")
+	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
 	return nil
 }
 func (this *Blockchaincom) FetchL2OrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
@@ -540,9 +540,9 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol any, optiona
 		retRes46512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes46512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["depth"] = limit
@@ -551,7 +551,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol any, optiona
 	response := (<-this.PublicGetL2Symbol(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "px", "qty")
+	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
 	return nil
 }
 func (this *Blockchaincom) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -618,9 +618,9 @@ func (this *Blockchaincom) fetchTickerBody(ch chan any, symbol any, optionalArgs
 		retRes52712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
@@ -768,7 +768,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any,
 		retRes63812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes63812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderType *string = this.SafeString(params, "ordType", typeVar)
 	var uppercaseOrderType string = ToUpper(orderType)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
@@ -778,7 +778,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any,
 	}
 	var request map[string]any = map[string]any{
 		"ordType":  uppercaseOrderType,
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"side":     ToUpper(side),
 		"orderQty": this.AmountToPrecision(symbol, amount),
 		"clOrdId":  clientOrderId,

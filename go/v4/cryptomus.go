@@ -672,9 +672,9 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		retRes55912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes55912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair": GetValue(market, "id"),
+		"currencyPair": market["id"],
 	}
 	var level any = 0
 	var levelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "level", level)
@@ -740,9 +740,9 @@ func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		retRes60612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes60612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair": GetValue(market, "id"),
+		"currencyPair": market["id"],
 	}
 
 	response := (<-this.PublicGetV1ExchangeMarketTradesCurrencyPair(this.Extend(request, params)))
@@ -905,9 +905,9 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		retRes73912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":    GetValue(market, "id"),
+		"market":    market["id"],
 		"direction": side,
 		"tag":       "ccxt",
 	}

@@ -820,13 +820,13 @@ func (this *Bitfinex) AmountToPrecision(symbol any, amount any) any {
 	// The amount field allows up to 8 decimals.
 	// Anything exceeding this will be rounded to the 8th decimal.
 	symbol = DerefScalar(this.SafeSymbol(symbol))
-	var market any = this.Market(symbol)
-	return this.DecimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), DECIMAL_PLACES)
+	var market map[string]any = MapTyped(this.Market(symbol))
+	return this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), DECIMAL_PLACES)
 }
 func (this *Bitfinex) PriceToPrecision(symbol any, price any) any {
 	symbol = DerefScalar(this.SafeSymbol(symbol))
-	var market any = this.Market(symbol)
-	price = this.DecimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode)
+	var market map[string]any = MapTyped(this.Market(symbol))
+	price = this.DecimalToPrecision(price, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode)
 	// https://docs.bitfinex.com/docs/introduction#price-precision
 	// The precision level of all trading prices is based on significant figures.
 	// All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -1527,9 +1527,9 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes118912)
 	}
 	var precision any = this.HandleOption("fetchOrderBook", "precision", "R0")
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 		"precision": precision,
 	}
 	if !IsEqual(limit, nil) {
@@ -1541,7 +1541,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	PanicOnError(orderbook)
 	var timestamp int64 = this.Milliseconds()
 	var result map[string]any = map[string]any{
-		"symbol":    GetValue(market, "symbol"),
+		"symbol":    market["symbol"],
 		"bids":      []any{},
 		"asks":      []any{},
 		"timestamp": timestamp,
@@ -1797,9 +1797,9 @@ func (this *Bitfinex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes141612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes141612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	ticker := (<-this.PublicGetTickerSymbol(this.Extend(request, params)))
@@ -1957,10 +1957,10 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		ch <- retRes153019
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var sort string = "-1"
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start", since)
@@ -2045,14 +2045,14 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- retRes158719
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if IsEqual(limit, nil) {
 		limit = 10000
 	} else {
 		limit = mathMin(limit, 10000)
 	}
 	var request any = map[string]any{
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 		"timeframe": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":     limit,
 	}
@@ -2351,7 +2351,7 @@ func (this *Bitfinex) createOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes187112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes187112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostAuthWOrderSubmit(request))
@@ -3035,11 +3035,11 @@ func (this *Bitfinex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		retRes237012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes237012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderId int64 = ParseInt(id)
 	var request map[string]any = map[string]any{
 		"id":     orderId,
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	// valid for trades up to 10 days old
 
@@ -4240,9 +4240,9 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		ch <- retRes333919
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start", since)
@@ -4506,9 +4506,9 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 		retRes356912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes356912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"keys": GetValue(market, "id"),
+		"keys": market["id"],
 	}
 
 	response := (<-this.PublicGetStatusDeriv(this.Extend(request, params)))
@@ -4595,9 +4595,9 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		ch <- retRes363119
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start", since)
@@ -4767,7 +4767,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 		ch <- retRes377019
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start", since)
@@ -5066,7 +5066,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		retRes400012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes400012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id": this.ParseToNumeric(id),
 	}

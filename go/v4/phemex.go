@@ -4772,10 +4772,10 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
 		retRes402212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes402212)
 	}
-	var market any = this.Market(symbol)
-	symbol = GetValue(market, "symbol")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = mathMin(200, limit)
@@ -5285,9 +5285,9 @@ func (this *Phemex) setMarginBody(ch chan any, symbol any, amount any, optionalA
 		retRes446712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes446712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":       GetValue(market, "id"),
+		"symbol":       market["id"],
 		"posBalanceEv": this.ToEv(amount, market),
 	}
 

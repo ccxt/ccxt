@@ -835,9 +835,9 @@ func (this *Dydx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes68512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes68512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = mathMin(limit, 1000)
@@ -922,9 +922,9 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes75712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":     GetValue(market, "id"),
+		"market":     market["id"],
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if !IsEqual(limit, nil) {
@@ -1004,9 +1004,9 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		retRes81812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes81812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1656,7 +1656,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	}
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var orderType string = ToUpper(typeVar)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrderRequest() requires a side argument"))
 	}
@@ -1982,7 +1982,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		retRes158312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes158312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId", id)
 	if clientOrderId == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported."))
@@ -2040,7 +2040,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 			},
 			"clientId":   clientOrderId,
 			"orderFlags": orderFlags,
-			"clobPairId": GetValue(GetValue(market, "info"), "clobPairId"),
+			"clobPairId": GetValue(market["info"], "clobPairId"),
 		},
 		"goodTilBlock":     goodTillBlock,
 		"goodTilBlockTime": goodTillBlockTime,
@@ -2107,7 +2107,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		retRes167812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes167812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
 	if IsEqual(clientOrderIds, nil) {
 		panic(NotSupported(this.Id + " cancelOrders only support clientOrderIds."))
@@ -2130,7 +2130,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	PanicOnError(account)
 	var cancelOrders map[string]any = map[string]any{
 		"clientIds":  clientOrderIds,
-		"clobPairId": GetValue(GetValue(market, "info"), "clobPairId"),
+		"clobPairId": GetValue(market["info"], "clobPairId"),
 	}
 	var cancelPayload map[string]any = map[string]any{
 		"subaccountId": map[string]any{
@@ -2201,9 +2201,9 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		retRes174912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params)))
@@ -2225,7 +2225,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//     ]
 	// }
 	//
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "size")
+	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "size")
 	return nil
 }
 func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {

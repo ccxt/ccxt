@@ -654,9 +654,9 @@ func (this *Foxbit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes57412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes57412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.V3PublicGetMarketsMarketTicker24hr(this.Extend(request, params)))
@@ -830,10 +830,10 @@ func (this *Foxbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes70112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes70112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 		"depth": func() any {
 			if IsEqual(limit, nil) {
 				return defaultLimit
@@ -904,9 +904,9 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes75112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["page_size"] = limit
@@ -965,10 +965,10 @@ func (this *Foxbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes79112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes79112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
-		"market":   GetValue(market, "id"),
+		"market":   market["id"],
 		"interval": interval,
 	}
 	if !IsEqual(since, nil) {
@@ -1234,7 +1234,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes95212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes95212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	typeVar = ToUpper(typeVar)
 	if (!IsEqual(typeVar, "LIMIT")) && (!IsEqual(typeVar, "MARKET")) && (!IsEqual(typeVar, "STOP_MARKET")) && (!IsEqual(typeVar, "STOP_LIMIT")) && (!IsEqual(typeVar, "INSTANT")) {
 		panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must be one of: limit, market, stop_market, stop_limit, instant.")))
@@ -1246,7 +1246,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
-		"market_symbol": GetValue(market, "id"),
+		"market_symbol": market["id"],
 		"side":          ToUpper(side),
 		"type":          typeVar,
 	}
@@ -1322,7 +1322,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		var typeVar *string = this.SafeStringUpper(order, "type")
 		var orderParams any = this.SafeDict(order, "params", map[string]any{})
 		if (typeVar == nil || *typeVar != "LIMIT") && (typeVar == nil || *typeVar != "MARKET") && (typeVar == nil || *typeVar != "STOP_MARKET") && (typeVar == nil || *typeVar != "STOP_LIMIT") && (typeVar == nil || *typeVar != "INSTANT") {
@@ -1332,7 +1332,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var postOnly *bool = this.SafeBool(orderParams, "postOnly", false)
 		var triggerPrice *float64 = this.SafeNumber(orderParams, "triggerPrice")
 		var request map[string]any = map[string]any{
-			"market_symbol": GetValue(market, "id"),
+			"market_symbol": market["id"],
 			"side":          this.SafeStringUpper(order, "side"),
 			"type":          typeVar,
 		}
@@ -1473,9 +1473,9 @@ func (this *Foxbit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"type": "ALL",
 	}
 	if symbol != nil {
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		request["type"] = "MARKET"
-		request["market_symbol"] = GetValue(market, "id")
+		request["market_symbol"] = market["id"]
 	}
 
 	response := (<-this.V3PrivatePutOrdersCancel(this.Extend(request, params)))
@@ -1668,9 +1668,9 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes127612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes127612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_symbol": GetValue(market, "id"),
+		"market_symbol": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["start_time"] = this.Iso8601(since)
@@ -2048,7 +2048,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		retRes154412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes154412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a side argument"))
 	}
@@ -2061,7 +2061,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		"create": map[string]any{
 			"type":          typeVar,
 			"side":          ToUpper(side),
-			"market_symbol": GetValue(market, "id"),
+			"market_symbol": market["id"],
 		},
 	}
 	if (IsEqual(typeVar, "LIMIT")) || (IsEqual(typeVar, "MARKET")) {

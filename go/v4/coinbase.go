@@ -2849,9 +2849,9 @@ func (this *Coinbase) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ..
 		retRes223912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes223912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = this.Extend(map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}, params)
 
 	spot := (<-this.V2PublicGetPricesSymbolSpot(request))
@@ -2898,9 +2898,9 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 		retRes227012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes227012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "id"),
+		"product_id": market["id"],
 		"limit":      1,
 	}
 	var usePrivate any = false
@@ -4396,7 +4396,7 @@ func (this *Coinbase) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		retRes355912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes355912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
@@ -4927,9 +4927,9 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- retRes391919
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id":  GetValue(market, "id"),
+		"product_id":  market["id"],
 		"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end")
@@ -5033,9 +5033,9 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes400812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes400812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "id"),
+		"product_id": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["start"] = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
@@ -5219,9 +5219,9 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes414412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes414412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "id"),
+		"product_id": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -6198,11 +6198,11 @@ func (this *Coinbase) closePositionBody(ch chan any, symbol any, optionalArgs ..
 		retRes491012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes491012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	params = this.Omit(params, "clientOrderId")
 	var request map[string]any = map[string]any{
-		"product_id": GetValue(market, "id"),
+		"product_id": market["id"],
 	}
 	if clientOrderId == nil {
 		panic(ArgumentsRequired(this.Id + " closePosition() requires a clientOrderId parameter"))

@@ -1020,9 +1020,9 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes73912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"type":   "step0",
 	}
 
@@ -1087,9 +1087,9 @@ func (this *Bittrade) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes79112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes79112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.MarketGetDetailMerged(this.Extend(request, params)))
@@ -1379,9 +1379,9 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes100512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes100512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["size"] = mathMin(limit, 2000)
@@ -1424,7 +1424,7 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	result = this.SortBy(result, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(result, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(result, market["symbol"], since, limit)
 	return nil
 }
 func (this *Bittrade) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1477,9 +1477,9 @@ func (this *Bittrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes108812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if !IsEqual(limit, nil) {
@@ -2206,10 +2206,10 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 	retRes15868 := (<-this.LoadAccountsAsync())
 	PanicOnError(retRes15868)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"account-id": GetValue(GetValue(this.Accounts, 0), "id"),
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"type":       Add(Add(side, "-"), typeVar),
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client-order-id") // must be 64 chars max and unique within 24 hours

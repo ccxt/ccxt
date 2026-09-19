@@ -588,17 +588,17 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol any, opti
 		retRes45212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes45212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode":   GetValue(market, "baseId"),
-		"secondaryCurrencyCode": GetValue(market, "quoteId"),
+		"primaryCurrencyCode":   market["baseId"],
+		"secondaryCurrencyCode": market["quoteId"],
 	}
 
 	response := (<-this.PublicGetGetOrderBook(this.Extend(request, params)))
 	PanicOnError(response)
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume")
+	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume")
 	return nil
 }
 func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -674,10 +674,10 @@ func (this *Independentreserve) fetchTickerBody(ch chan any, symbol any, optiona
 		retRes52212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode":   GetValue(market, "baseId"),
-		"secondaryCurrencyCode": GetValue(market, "quoteId"),
+		"primaryCurrencyCode":   market["baseId"],
+		"secondaryCurrencyCode": market["quoteId"],
 	}
 
 	response := (<-this.PublicGetGetMarketSummary(this.Extend(request, params)))
@@ -1104,10 +1104,10 @@ func (this *Independentreserve) fetchTradesBody(ch chan any, symbol any, optiona
 		retRes85312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes85312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode":            GetValue(market, "baseId"),
-		"secondaryCurrencyCode":          GetValue(market, "quoteId"),
+		"primaryCurrencyCode":            market["baseId"],
+		"secondaryCurrencyCode":          market["quoteId"],
 		"numberOfRecentTradesToRetrieve": 50,
 	}
 
@@ -1171,8 +1171,8 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var fee any = this.SafeDict(fees, GetValue(market, "base"), map[string]any{})
+		var market map[string]any = MapTyped(this.Market(symbol))
+		var fee any = this.SafeDict(fees, market["base"], map[string]any{})
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       this.SafeDict(fee, "info"),
 			"symbol":     symbol,
@@ -1216,7 +1216,7 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 		retRes93312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderType any = this.Capitalize(typeVar)
 	orderType = Add(orderType, func() string {
 		if IsEqual(side, "sell") {
@@ -1225,8 +1225,8 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 		return "Bid"
 	}())
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode":   GetValue(market, "baseId"),
-		"secondaryCurrencyCode": GetValue(market, "quoteId"),
+		"primaryCurrencyCode":   market["baseId"],
+		"secondaryCurrencyCode": market["quoteId"],
 		"orderType":             orderType,
 	}
 	var response any = nil

@@ -507,8 +507,8 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 
 		retRes37312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes37312)
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 		var symbols []any = []any{symbol}
 		var marketIds any = this.MarketIds(symbols)
 		request["codes"] = marketIds

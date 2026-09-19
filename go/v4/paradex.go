@@ -1078,9 +1078,9 @@ func (this *Paradex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		retRes75412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes75412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PublicGetMarkets(this.Extend(request, params)))
@@ -1203,10 +1203,10 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes84312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes84312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 	}
 	var now int64 = this.Milliseconds()
 	var duration any = this.ParseTimeframe(timeframe)
@@ -1353,9 +1353,9 @@ func (this *Paradex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes96712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes96712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketsSummary(this.Extend(request, params)))
@@ -1514,11 +1514,11 @@ func (this *Paradex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 		retRes109512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes109512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
-	rates := (<-this.FetchFundingRatesAsync([]any{GetValue(market, "symbol")}, params))
+	rates := (<-this.FetchFundingRatesAsync([]any{market["symbol"]}, params))
 	PanicOnError(rates)
-	var rate any = this.SafeDict(rates, GetValue(market, "symbol"))
+	var rate any = this.SafeDict(rates, market["symbol"])
 	if IsEqual(rate, nil) {
 		panic(BadSymbol(Add(this.Id+" fetchFundingRate() could not find a funding rate for ", symbol)))
 	}
@@ -1617,9 +1617,9 @@ func (this *Paradex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes117512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes117512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PublicGetOrderbookMarket(this.Extend(request, params)))
@@ -1647,7 +1647,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["depth"] = limit
 	}
 	var timestamp *int64 = this.SafeInteger(response, "last_updated_at")
-	var orderbook any = this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
+	var orderbook any = this.ParseOrderBook(response, market["symbol"], timestamp)
 	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "seq_no"))
 
 	ch <- orderbook
@@ -1697,9 +1697,9 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- retRes122819
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "page_size", mathMin(limit, 1000))
@@ -2284,12 +2284,12 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var orderType string = ToUpper(typeVar)
 	var orderSide string = ToUpper(side)
 	var request map[string]any = map[string]any{
-		"market":      GetValue(market, "id"),
+		"market":      market["id"],
 		"side":        orderSide,
 		"type":        orderType,
 		"instruction": "GTC",
@@ -2492,7 +2492,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes186112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes186112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	request = (<-this.SignOrderRequestAsync(request))
@@ -2578,7 +2578,7 @@ func (this *Paradex) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		retRes192412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes192412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	request = this.Omit(request, []any{"instruction", "client_id", "flags"})
 	AddElementToObject(request, "order_id", id)
@@ -2896,9 +2896,9 @@ func (this *Paradex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes216212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes216212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
@@ -3374,9 +3374,9 @@ func (this *Paradex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...
 		retRes249712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes249712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
-	positions := (<-this.FetchPositionsAsync([]any{GetValue(market, "symbol")}, params))
+	positions := (<-this.FetchPositionsAsync([]any{market["symbol"]}, params))
 	PanicOnError(positions)
 
 	ch <- this.SafeDict(positions, 0, map[string]any{})
@@ -4018,9 +4018,9 @@ func (this *Paradex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 		retRes297912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes297912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PrivateGetAccountMargin(this.Extend(request, params)))
@@ -4087,13 +4087,13 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		retRes302812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes302812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var leverage any = 1
 	var leverageparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage", leverage)
 	leverage = GetValue(leverageparamsVariable, 0)
 	params = GetValue(leverageparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"market":      GetValue(market, "id"),
+		"market":      market["id"],
 		"leverage":    leverage,
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
@@ -4131,9 +4131,9 @@ func (this *Paradex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 		retRes305312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes305312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PrivateGetAccountMargin(this.Extend(request, params)))
@@ -4209,13 +4209,13 @@ func (this *Paradex) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		retRes311212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes311212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"market":      GetValue(market, "id"),
+		"market":      market["id"],
 		"leverage":    leverage,
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
@@ -4250,9 +4250,9 @@ func (this *Paradex) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...an
 		retRes313612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes313612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketsSummary(this.Extend(request, params)))
@@ -4485,9 +4485,9 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 		ch <- retRes332419
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "page_size", mathMin(limit, 5000))
@@ -4589,9 +4589,9 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		retRes340412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes340412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": GetValue(market, "id"),
+		"market": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["page_size"] = mathMin(limit, 5000) // api maximum 5000
@@ -4637,7 +4637,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		var datetime *string = this.Iso8601(timestamp)
 		rates = append(rates, map[string]any{
 			"info":        rate,
-			"symbol":      GetValue(market, "symbol"),
+			"symbol":      market["symbol"],
 			"fundingRate": this.SafeNumber(rate, "funding_rate"),
 			"timestamp":   timestamp,
 			"datetime":    datetime,
@@ -4645,7 +4645,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 func (this *Paradex) Sign(path any, optionalArgs ...any) any {

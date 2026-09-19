@@ -4226,7 +4226,7 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 
 	retRes32988 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes32988)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -4246,7 +4246,7 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"lever":   leverage,
 		"mgnMode": ToUpper(marginMode),
-		"symbol":  GetValue(market, "id"),
+		"symbol":  market["id"],
 	}
 
 	response := (<-this.SwapPrivatePostV3PositionLeverage(this.Extend(request, params)))
@@ -4278,9 +4278,9 @@ func (this *Poloniex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes33318 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes33318)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
@@ -4613,10 +4613,10 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan any, symbol any, amount any
 
 	retRes35968 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes35968)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	amount = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"amt":    Precise.StringAbs(amount),
 		"type":   ToUpper(typeVar),
 	}

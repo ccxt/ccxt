@@ -496,8 +496,8 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		if isSpot {
-			var market any = this.Market(ccxt.GetValue(symbols, i))
-			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id")))
+			var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 		}
 		messageHashes = append(messageHashes, ccxt.Add("bidask:", ccxt.GetValue(symbols, i)))
 	}
@@ -1939,11 +1939,11 @@ func (this *Mexc) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		retRes165712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes165712)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("fundingRate:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("fundingRate:", market["symbol"])
 	var channel string = "sub.funding.rate"
 	var requestParams map[string]any = map[string]any{
-		"symbol": ccxt.GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	retRes166515 := (<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params))
@@ -1976,12 +1976,12 @@ func (this *Mexc) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		retRes167912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes167912)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("unsubscribe:fundingRate:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("unsubscribe:fundingRate:", market["symbol"])
 	var url any = nil
 	var channel string = "unsub.funding.rate"
 	var requestParams map[string]any = map[string]any{
-		"symbol": ccxt.GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
 	this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
@@ -2159,8 +2159,8 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		if isSpot {
-			var market any = this.Market(ccxt.GetValue(symbols, i))
-			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id")))
+			var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 		}
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(symbols, i)))
 	}

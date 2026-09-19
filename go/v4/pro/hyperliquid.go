@@ -211,7 +211,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan any, id any, symbol any, typeVa
 		retRes15012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
 	order := ccxt.GetValue(orderglobalParamsVariable, 0)
@@ -451,8 +451,8 @@ func (this *Hyperliquid) HandleOrderBook(client any, message any) {
 	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var market any = this.Market(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+	var symbol any = market["symbol"]
 	var rawData any = this.SafeList(entry, "levels", []any{})
 	var data map[string]any = map[string]any{
 		"bids": this.SafeList(rawData, 0, []any{}),
@@ -608,7 +608,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan any, optionalArgs ...any) any 
 	var defaultDex *string = this.SafeString(params, "dex")
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
-		var market any = this.Market(firstSymbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
 		var dexName *string = this.SafeString(this.SafeDict(market, "info", map[string]any{}), "dex")
 		if dexName != nil {
 			defaultDex = dexName
@@ -1060,8 +1060,8 @@ func (this *Hyperliquid) HandleTrades(client any, message any) {
 	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
 	var coin *string = this.SafeString(first, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var market any = this.Market(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+	var symbol any = market["symbol"]
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)

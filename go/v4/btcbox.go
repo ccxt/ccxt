@@ -495,17 +495,17 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes42512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes42512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
-		request["coin"] = GetValue(market, "baseId")
+		request["coin"] = market["baseId"]
 	}
 
 	response := (<-this.PublicGetDepth(this.Extend(request, params)))
 	PanicOnError(response)
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
+	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
 }
 func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -561,11 +561,11 @@ func (this *Btcbox) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes47512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes47512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
-		request["coin"] = GetValue(market, "baseId")
+		request["coin"] = market["baseId"]
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -675,11 +675,11 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes55212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes55212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
-		request["coin"] = GetValue(market, "baseId")
+		request["coin"] = market["baseId"]
 	}
 
 	response := (<-this.PublicGetOrders(this.Extend(request, params)))
@@ -730,12 +730,12 @@ func (this *Btcbox) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes59012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes59012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"amount": amount,
 		"price":  price,
 		"type":   side,
-		"coin":   GetValue(market, "baseId"),
+		"coin":   market["baseId"],
 	}
 
 	response := (<-this.PrivatePostTradeAdd(this.Extend(request, params)))
@@ -782,10 +782,10 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if symbol == nil {
 		symbol = "BTC/JPY"
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id":   id,
-		"coin": GetValue(market, "baseId"),
+		"coin": market["baseId"],
 	}
 
 	response := (<-this.PrivatePostTradeCancel(this.Extend(request, params)))
@@ -901,10 +901,10 @@ func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	if symbol == nil {
 		symbol = "BTC/JPY"
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = this.Extend(map[string]any{
 		"id":   id,
-		"coin": GetValue(market, "baseId"),
+		"coin": market["baseId"],
 	}, params)
 
 	response := (<-this.PrivatePostTradeView(this.Extend(request, params)))
@@ -950,10 +950,10 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 	if symbol == nil {
 		symbol = "BTC/JPY"
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"type": typeVar,
-		"coin": GetValue(market, "baseId"),
+		"coin": market["baseId"],
 	}
 
 	response := (<-this.PrivatePostTradeList(this.Extend(request, params)))

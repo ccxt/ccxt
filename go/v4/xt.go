@@ -3308,9 +3308,9 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes261212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes261212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"side":   ToUpper(side),
 		"type":   ToUpper(typeVar),
 	}
@@ -5793,9 +5793,9 @@ func (this *Xt) modifyMarginHelperBody(ch chan any, symbol any, amount any, addO
 		retRes452712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes452712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":       GetValue(market, "id"),
+		"symbol":       market["id"],
 		"margin":       amount,
 		"type":         addOrReduce,
 		"positionSide": positionSide,
@@ -5976,9 +5976,9 @@ func (this *Xt) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalAr
 		retRes466612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes466612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarketLeverageTiers", market, params)
@@ -6722,9 +6722,9 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes523312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes523312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPosition", market, params)

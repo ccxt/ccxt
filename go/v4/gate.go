@@ -3489,9 +3489,9 @@ func (this *Gate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		retRes247712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes247712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency_pair": GetValue(market, "id"),
+		"currency_pair": market["id"],
 	}
 
 	response := (<-this.PrivateWalletGetFee(this.Extend(request, params)))
@@ -3564,7 +3564,7 @@ func (this *Gate) ParseTradingFees(response any) any {
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		AddElementToObject(result, symbol, this.ParseTradingFee(response, market))
 	}
 	return result
@@ -4419,8 +4419,8 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marginMode := GetValue(marginModerequestQueryVariable, 0)
 	requestQuery := GetValue(marginModerequestQueryVariable, 1)
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		AddElementToObject(request, "currency_pair", GetValue(market, "id"))
+		var market map[string]any = MapTyped(this.Market(symbol))
+		AddElementToObject(request, "currency_pair", market["id"])
 	}
 	var response any = nil
 	if EvalTruthy(isUnifiedAccount) {
@@ -4843,7 +4843,7 @@ func (this *Gate) fetchOptionOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		retRes353812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes353812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{}
 	requestparamsVariable := this.PrepareRequest(market, nil, params)
 	request = GetValue(requestparamsVariable, 0)
@@ -8120,8 +8120,8 @@ func (this *Gate) transferBody(ch chan any, code any, amount any, fromAccount an
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " transfer requires params[\"symbol\"] for isolated margin transfers"))
 		}
-		var market any = this.Market(symbol)
-		request["currency_pair"] = GetValue(market, "id")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["currency_pair"] = market["id"]
 		params = this.Omit(params, "symbol")
 	}
 	if (IsEqual(toId, "futures")) || (IsEqual(toId, "delivery")) || (IsEqual(fromId, "futures")) || (IsEqual(fromId, "delivery")) {
@@ -8837,7 +8837,7 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 		retRes673112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes673112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchMarketLeverageTiers", market, params)
 	typeVar := GetValue(typeVarqueryVariable, 0)
 	query := GetValue(typeVarqueryVariable, 1)
@@ -8973,8 +8973,8 @@ func (this *Gate) repayIsolatedMarginBody(ch chan any, symbol any, code any, amo
 		"currency": ToUpper(currency["id"]),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
-	var market any = this.Market(symbol)
-	request["currency_pair"] = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	request["currency_pair"] = market["id"]
 	request["type"] = "repay"
 
 	response := (<-this.PrivateMarginPostUniLoans(this.Extend(request, params)))
@@ -9077,8 +9077,8 @@ func (this *Gate) borrowIsolatedMarginBody(ch chan any, symbol any, code any, am
 		"currency": ToUpper(currency["id"]),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
-	var market any = this.Market(symbol)
-	request["currency_pair"] = GetValue(market, "id")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	request["currency_pair"] = market["id"]
 	request["type"] = "borrow"
 
 	response := (<-this.PrivateMarginPostUniLoans(this.Extend(request, params)))
@@ -9759,7 +9759,7 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) a
 		retRes743412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes743412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
@@ -9767,7 +9767,7 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) a
 	if !IsEqual(typeVar, "option") {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() supports option markets only"))
 	}
-	var marketId any = GetValue(market, "id")
+	var marketId any = market["id"]
 	var optionParts []string = Split(marketId, "-")
 	var request map[string]any = map[string]any{
 		"underlying": this.SafeString(optionParts, 0),
@@ -10672,9 +10672,9 @@ func (this *Gate) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes817512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes817512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"underlying": GetValue(GetValue(market, "info"), "underlying"),
+		"underlying": GetValue(market["info"], "underlying"),
 	}
 
 	response := (<-this.PublicOptionsGetTickers(this.Extend(request, params)))
@@ -10701,7 +10701,7 @@ func (this *Gate) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) 
 	//         },
 	//     ]
 	//
-	var marketId any = GetValue(market, "id")
+	var marketId any = market["id"]
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = this.SafeDict(response, i, map[string]any{})
 		var entryMarketId *string = this.SafeString(entry, "name")
@@ -10944,9 +10944,9 @@ func (this *Gate) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes847112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes847112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"contract": GetValue(market, "id"),
+		"contract": market["id"],
 	}
 
 	response := (<-this.PublicOptionsGetContractsContract(this.Extend(request, params)))

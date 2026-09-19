@@ -181,8 +181,8 @@ func (this *Onetrading) watchTickerBody(ch chan any, symbol any, optionalArgs ..
 		retRes15212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15212)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var subscriptionHash string = "MARKET_TICKER"
 	var messageHash any = ccxt.Add("ticker.", symbol)
 	var request map[string]any = map[string]any{
@@ -349,8 +349,8 @@ func (this *Onetrading) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var messageHash any = "myTrades"
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 
@@ -414,8 +414,8 @@ func (this *Onetrading) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 		retRes33012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes33012)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("book:", symbol)
 	var subscriptionHash string = "ORDER_BOOK"
 	var depth any = 0
@@ -553,8 +553,8 @@ func (this *Onetrading) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "orders"
 	if symbol != nil {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 
@@ -1197,9 +1197,9 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		retRes107712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes107712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var marketId any = ccxt.GetValue(market, "id")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var marketId any = market["id"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId any = this.SafeDict(timeframes, timeframe)

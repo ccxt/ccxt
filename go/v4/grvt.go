@@ -1219,7 +1219,7 @@ func (this *Grvt) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes86512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes86512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"instrument": this.MarketId(symbol),
 	}
@@ -1418,9 +1418,9 @@ func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes102712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes102712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"instrument": GetValue(market, "id"),
+		"instrument": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -1608,9 +1608,9 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ch <- retRes117219
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"instrument": GetValue(market, "id"),
+		"instrument": market["id"],
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var priceTypeMap map[string]any = map[string]any{
@@ -1724,9 +1724,9 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		ch <- retRes126619
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
-		"instrument": GetValue(market, "id"),
+		"instrument": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -2691,9 +2691,9 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 	retRes20218 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes20218)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderLeg map[string]any = map[string]any{
-		"instrument": GetValue(market, "id"),
+		"instrument": market["id"],
 		"size":       this.AmountToPrecision(symbol, amount),
 	}
 	if !IsEqual(price, nil) {
@@ -2912,9 +2912,9 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 	var legs []any = []any{}
 	for i := 0; i < GetArrayLength(orderLegs); i++ {
 		var leg any = GetValue(orderLegs, i)
-		var market any = this.Market(GetValue(leg, "instrument"))
+		var market map[string]any = MapTyped(this.Market(GetValue(leg, "instrument")))
 		var bigInt10 any = this.ConvertToBigIntCustom("10")
-		var precisionValue int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))
+		var precisionValue int = this.PrecisionFromString(this.SafeString(market["precision"], "base"))
 		var precisionValueStr string = ToString(precisionValue)
 		var sizeMultiplier float64 = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
 		var size any = GetValue(leg, "size")
@@ -2924,7 +2924,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		var sizeDecLengthStr string = ToString(sizeDecLength)
 		var sizeInteger any = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
 		var legOrder map[string]any = map[string]any{
-			"assetID":          GetValue(GetValue(market, "info"), "instrument_hash"),
+			"assetID":          GetValue(market["info"], "instrument_hash"),
 			"contractSize":     this.ParseToInt(sizeInteger),
 			"isBuyingContract": GetValue(leg, "is_buying_asset"),
 		}
@@ -3286,10 +3286,10 @@ func (this *Grvt) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 
 	retRes25018 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes25018)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
-		"instrument":     GetValue(market, "id"),
+		"instrument":     market["id"],
 		"leverage":       this.NumberToString(leverage),
 	}
 
@@ -4057,13 +4057,13 @@ func (this *Grvt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 	if symbol != nil {
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		request["base"] = []any{}
 		retRes313212 := request["base"]
-		AppendToArray(&retRes313212, GetValue(market, "baseId"))
+		AppendToArray(&retRes313212, market["baseId"])
 		request["quote"] = []any{}
 		retRes313412 := request["quote"]
-		AppendToArray(&retRes313412, GetValue(market, "quoteId"))
+		AppendToArray(&retRes313412, market["quoteId"])
 	}
 
 	response := (<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params)))

@@ -538,9 +538,9 @@ func (this *Btcturk) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes45812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes45812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pairSymbol": GetValue(market, "id"),
+		"pairSymbol": market["id"],
 	}
 
 	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
@@ -559,7 +559,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
-	ch <- this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
+	ch <- this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1)
 	return nil
 }
 func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -775,10 +775,10 @@ func (this *Btcturk) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes64212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	// let maxCount = 50;
 	var request map[string]any = map[string]any{
-		"pairSymbol": GetValue(market, "id"),
+		"pairSymbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["last"] = limit
@@ -862,9 +862,9 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes71412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes71412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":     GetValue(market, "id"),
+		"symbol":     market["id"],
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
@@ -993,11 +993,11 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes81912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes81912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"orderType":   side,
 		"orderMethod": typeVar,
-		"pairSymbol":  GetValue(market, "id"),
+		"pairSymbol":  market["id"],
 		"quantity":    this.AmountToPrecision(symbol, amount),
 	}
 	if !IsEqual(typeVar, "market") {
@@ -1140,9 +1140,9 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes90912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pairSymbol": GetValue(market, "id"),
+		"pairSymbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		// default 100 max 1000

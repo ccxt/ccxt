@@ -1467,9 +1467,9 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		ch <- retRes105719
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["start_ts"] = since
@@ -1558,9 +1558,9 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		ch <- retRes112119
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"timeframe":       this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if !IsEqual(limit, nil) {
@@ -1641,9 +1641,9 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		retRes118712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes118712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 	if (!IsEqual(limit, nil)) && (!IsEqual(limit, 0)) {
 		request["depth"] = mathMin(limit, 50) // max 50
@@ -1858,10 +1858,10 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var uppercaseType string = ToUpper(typeVar)
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"side":            ToUpper(side),
 		"quantity":        this.AmountToPrecision(symbol, amount),
 	}
@@ -1994,7 +1994,7 @@ func (this *Cryptocom) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		retRes148312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes148312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.V1PrivatePostPrivateCreateOrder(request))
@@ -2131,10 +2131,10 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 	// since the advanced order endpoint requires a different set of parameters
 	// namely here we don't support ref_price or spot_margin
 	// and market-buy orders need to send notional instead of quantity
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var uppercaseType string = ToUpper(typeVar)
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"side":            ToUpper(side),
 	}
 	if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
@@ -2437,12 +2437,12 @@ func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 		retRes182712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes182712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderRequests []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)
 		var order map[string]any = map[string]any{
-			"instrument_name": GetValue(market, "id"),
+			"instrument_name": market["id"],
 			"order_id":        ToString(id),
 		}
 		orderRequests = append(orderRequests, order)
@@ -2489,9 +2489,9 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
 		var order any = GetValue(orders, i)
 		var id *string = this.SafeString(order, "id")
 		var symbol *string = this.SafeString(order, "symbol")
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		var orderItem map[string]any = map[string]any{
-			"instrument_name": GetValue(market, "id"),
+			"instrument_name": market["id"],
 			"order_id":        ToString(id),
 		}
 		orderRequests = append(orderRequests, orderItem)
@@ -4178,9 +4178,9 @@ func (this *Cryptocom) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 		retRes326412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes326412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 
 	response := (<-this.V1PrivatePostPrivateGetPositions(this.Extend(request, params)))
@@ -4416,9 +4416,9 @@ func (this *Cryptocom) closePositionBody(ch chan any, symbol any, optionalArgs .
 		retRes346412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes346412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 		"type":            "MARKET",
 	}
 	var typeVar *string = this.SafeStringUpper(params, "type")
@@ -4427,7 +4427,7 @@ func (this *Cryptocom) closePositionBody(ch chan any, symbol any, optionalArgs .
 		request["type"] = typeVar
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
+		request["price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 
 	response := (<-this.V1PrivatePostPrivateClosePosition(this.Extend(request, params)))
@@ -4473,9 +4473,9 @@ func (this *Cryptocom) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 		retRes350612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes350612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": GetValue(market, "id"),
+		"instrument_name": market["id"],
 	}
 
 	response := (<-this.V1PrivatePostPrivateGetInstrumentFeeRate(this.Extend(request, params)))
@@ -4562,8 +4562,8 @@ func (this *Cryptocom) ParseTradingFees(response any) any {
 	result["info"] = response
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
-		var market any = this.Market(symbol)
-		var isSwap any = GetValue(market, "swap")
+		var market map[string]any = MapTyped(this.Market(symbol))
+		var isSwap any = market["swap"]
 		var takerFeeKey string = func() string {
 			if isSwap == true {
 				return "effective_deriv_taker_rate_bps"

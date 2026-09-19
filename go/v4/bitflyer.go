@@ -638,15 +638,15 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		retRes47512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes47512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": GetValue(market, "id"),
+		"product_code": market["id"],
 	}
 
 	orderbook := (<-this.PublicGetGetboard(this.Extend(request, params)))
 	PanicOnError(orderbook)
 
-	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), nil, "bids", "asks", "price", "size")
+	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")
 	return nil
 }
 func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -703,9 +703,9 @@ func (this *Bitflyer) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes52412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": GetValue(market, "id"),
+		"product_code": market["id"],
 	}
 
 	response := (<-this.PublicGetGetticker(this.Extend(request, params)))
@@ -811,9 +811,9 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		retRes61212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes61212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": GetValue(market, "id"),
+		"product_code": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["count"] = limit
@@ -863,9 +863,9 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		retRes64912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": GetValue(market, "id"),
+		"product_code": market["id"],
 	}
 
 	response := (<-this.PrivateGetGettradingcommission(this.Extend(request, params)))
@@ -879,7 +879,7 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 	ch <- map[string]any{
 		"info":       response,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     market["symbol"],
 		"maker":      fee,
 		"taker":      fee,
 		"percentage": nil,
@@ -1077,9 +1077,9 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes80812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": GetValue(market, "id"),
+		"product_code": market["id"],
 		"count":        limit,
 	}
 
@@ -1240,9 +1240,9 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes89712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes89712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": GetValue(market, "id"),
+		"product_code": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["count"] = limit
@@ -1627,9 +1627,9 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		retRes119212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes119212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": GetValue(market, "id"),
+		"product_code": market["id"],
 	}
 
 	response := (<-this.PublicGetGetfundingrate(this.Extend(request, params)))

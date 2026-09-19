@@ -195,8 +195,8 @@ func (this *Gate) createOrderWsBody(ch chan any, symbol any, typeVar any, side a
 		retRes17412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes17412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_place")
 	var url any = this.GetUrlByMarket(market)
@@ -423,7 +423,7 @@ func (this *Gate) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, 
 		retRes29612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes29612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var extendedRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_amend")
@@ -1032,8 +1032,8 @@ func (this *Gate) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes73912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes73912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
 
 	result := (<-this.WatchTickersAsync([]any{symbol}, params))
@@ -1170,7 +1170,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var market any = this.Market(ccxt.GetValue(symbols, 0))
+	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbols)
 	var channelName any = nil
@@ -1323,7 +1323,7 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbols)
-	var market any = this.Market(ccxt.GetValue(symbols, 0))
+	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var messageHashes []any = []any{}
@@ -1370,7 +1370,7 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbols)
-	var market any = this.Market(ccxt.GetValue(symbols, 0))
+	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var subMessageHashes []any = []any{}
@@ -1487,13 +1487,13 @@ func (this *Gate) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ccxt.PanicOnError(retRes103912)
 	}
 	// todo add options support
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var marketId any = ccxt.GetValue(market, "id")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var marketId any = market["id"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".candlesticks")
-	var messageHash any = ccxt.Add("candles:"+*interval+":", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("candles:"+*interval+":", market["symbol"])
 	var url any = this.GetUrlByMarket(market)
 	var payload []any = []any{interval, marketId}
 

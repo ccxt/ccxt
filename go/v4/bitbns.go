@@ -498,9 +498,9 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes37412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes37412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
@@ -527,7 +527,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
+	ch <- this.ParseOrderBook(response, market["symbol"], timestamp)
 	return nil
 }
 func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -857,7 +857,7 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes69012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes69012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "t_rate"})
 	var targetRate *string = this.SafeString(params, "target_rate")
 	var trailRate *string = this.SafeString(params, "trail_rate")
@@ -867,13 +867,13 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var request map[string]any = map[string]any{
 		"side":     ToUpper(side),
-		"symbol":   GetValue(market, "uppercaseId"),
+		"symbol":   market["uppercaseId"],
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
 	if IsEqual(typeVar, "limit") {
 		request["rate"] = this.PriceToPrecision(symbol, price)
 	} else {
-		request["market"] = GetValue(market, "quoteId")
+		request["market"] = market["quoteId"]
 	}
 	if triggerPrice != nil {
 		request["t_rate"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -1012,9 +1012,9 @@ func (this *Bitbns) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		retRes79212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes79212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"entry_id": id,
 	}
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
@@ -1257,9 +1257,9 @@ func (this *Bitbns) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes98412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"page":   0,
 	}
 	if !IsEqual(since, nil) {
@@ -1347,10 +1347,10 @@ func (this *Bitbns) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes105512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes105512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"coin":   GetValue(market, "baseId"),
-		"market": GetValue(market, "quoteId"),
+		"coin":   market["baseId"],
+		"market": market["quoteId"],
 	}
 
 	response := (<-this.WwwGetExchangeDataTradedetails(this.Extend(request, params)))

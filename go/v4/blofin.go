@@ -939,9 +939,9 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes71512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes71512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId": GetValue(market, "id"),
+		"instId": market["id"],
 	}
 	limit = func() any {
 		if IsEqual(limit, nil) {
@@ -1071,9 +1071,9 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes82112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes82112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId": GetValue(market, "id"),
+		"instId": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
@@ -1110,9 +1110,9 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 		retRes84512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes84512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PublicGetMarketMarkPrice(this.Extend(request, params)))
@@ -1313,9 +1313,9 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- retRes100519
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId": GetValue(market, "id"),
+		"instId": market["id"],
 	}
 	var response any = nil
 	if !IsEqual(limit, nil) {
@@ -1389,7 +1389,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes106412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -1405,7 +1405,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		limit = 100 // default 100, max 100
 	}
 	var request map[string]any = map[string]any{
-		"instId": GetValue(market, "id"),
+		"instId": market["id"],
 		"bar":    this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":  limit,
 	}
@@ -1471,9 +1471,9 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		ch <- retRes111319
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId": GetValue(market, "id"),
+		"instId": market["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["before"] = mathMax(Subtract(since, 1), 0)
@@ -1496,7 +1496,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
 		rates = append(rates, map[string]any{
 			"info":        rate,
-			"symbol":      GetValue(market, "symbol"),
+			"symbol":      market["symbol"],
 			"fundingRate": this.SafeNumber(rate, "fundingRate"),
 			"timestamp":   timestamp,
 			"datetime":    this.Iso8601(timestamp),
@@ -1504,7 +1504,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -1766,9 +1766,9 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId":    GetValue(market, "id"),
+		"instId":    market["id"],
 		"side":      side,
 		"orderType": typeVar,
 		"size":      this.AmountToPrecision(symbol, amount),
@@ -2026,7 +2026,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes159912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes159912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var isStopLossPriceDefined bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitPriceDefined bool = (this.SafeString(params, "takeProfitPrice") != nil)
 	var isTriggerOrder bool = (this.SafeString(params, "triggerPrice") != nil)
@@ -2084,7 +2084,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var positionSide string = "net"
 	if hedged != nil && *hedged == true {
@@ -2096,7 +2096,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 		}()
 	}
 	var request map[string]any = map[string]any{
-		"instId":       GetValue(market, "id"),
+		"instId":       market["id"],
 		"side":         side,
 		"positionSide": positionSide,
 		"brokerId":     this.SafeString(this.Options, "brokerId", "ec6dd3a7dd982d0b"),
@@ -2175,9 +2175,9 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		retRes170812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes170812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId": GetValue(market, "id"),
+		"instId": market["id"],
 	}
 	var isTrigger *bool = this.SafeBool(params, "trigger", false)
 	var isTpsl *bool = this.SafeBool2(params, "tpsl", "TPSL", false)
@@ -3008,7 +3008,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		retRes233712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request []any = []any{}
 	var method any = this.HandleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders")
 	var clientOrderIds any = this.ParseIds(this.SafeValue(params, "clientOrderId"))
@@ -3023,7 +3023,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 			for i := 0; i < GetArrayLength(tpslIds); i++ {
 				request = append(request, map[string]any{
 					"tpslId": GetValue(tpslIds, i),
-					"instId": GetValue(market, "id"),
+					"instId": market["id"],
 				})
 			}
 		}
@@ -3031,19 +3031,19 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 			if trigger != nil && *trigger == true {
 				request = append(request, map[string]any{
 					"tpslId": GetValue(ids, i),
-					"instId": GetValue(market, "id"),
+					"instId": market["id"],
 				})
 			} else {
 				request = append(request, map[string]any{
 					"orderId": GetValue(ids, i),
-					"instId":  GetValue(market, "id"),
+					"instId":  market["id"],
 				})
 			}
 		}
 	} else {
 		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
 			request = append(request, map[string]any{
-				"instId":        GetValue(market, "id"),
+				"instId":        market["id"],
 				"clientOrderId": GetValue(clientOrderIds, i),
 			})
 		}
@@ -3151,9 +3151,9 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		retRes244712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes244712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId": GetValue(market, "id"),
+		"instId": market["id"],
 	}
 
 	response := (<-this.PrivateGetAccountPositions(this.Extend(request, params)))
@@ -3482,11 +3482,11 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	var instIds any = ""
 	for i := 0; i < GetArrayLength(symbolsList); i++ {
 		var entry any = GetValue(symbolsList, i)
-		var entryMarket any = this.Market(entry)
+		var entryMarket map[string]any = MapTyped(this.Market(entry))
 		if i > 0 {
-			instIds = Add(Add(instIds, ","), GetValue(entryMarket, "id"))
+			instIds = Add(Add(instIds, ","), entryMarket["id"])
 		} else {
-			instIds = Add(instIds, GetValue(entryMarket, "id"))
+			instIds = Add(instIds, entryMarket["id"])
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -3550,9 +3550,9 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
 		panic(BadRequest(this.Id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instId":     GetValue(market, "id"),
+		"instId":     market["id"],
 		"marginMode": marginMode,
 	}
 
@@ -3625,7 +3625,7 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		retRes282612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes282612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -3636,7 +3636,7 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"leverage":   leverage,
 		"marginMode": marginMode,
-		"instId":     GetValue(market, "id"),
+		"instId":     market["id"],
 	}
 
 	response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params)))
@@ -3680,14 +3680,14 @@ func (this *Blofin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		retRes286212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes286212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"instId":     GetValue(market, "id"),
+		"instId":     market["id"],
 		"marginMode": marginMode,
 	}
 	if clientOrderId != nil {
@@ -3805,7 +3805,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 		retRes294012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes294012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	response := (<-this.PrivateGetAccountMarginMode(params))
 	PanicOnError(response)

@@ -296,8 +296,8 @@ func (this *Blofin) HandleOrderBook(client any, message any) {
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -341,8 +341,8 @@ func (this *Blofin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 
 	result := (<-this.WatchTickersAsync([]any{symbol}, params))
 	ccxt.PanicOnError(result)
@@ -449,7 +449,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var symbolsList any = symbols
-	var firstMarket any = this.Market(ccxt.GetValue(symbolsList, 0))
+	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbolsList, 0)))
 	var channel string = "tickers"
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
@@ -459,11 +459,11 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
-		var market any = this.Market(ccxt.GetValue(symbolsList, i))
-		messageHashes = append(messageHashes, ccxt.Add("bidask:", ccxt.GetValue(market, "symbol")))
+		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbolsList, i)))
+		messageHashes = append(messageHashes, ccxt.Add("bidask:", market["symbol"]))
 		args = append(args, map[string]any{
 			"channel": channel,
-			"instId":  ccxt.GetValue(market, "id"),
+			"instId":  market["id"],
 		})
 	}
 	var request any = this.GetSubscriptionRequest(args)
@@ -930,15 +930,15 @@ func (this *Blofin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		retRes66412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes66412)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchFundingRate", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	var messageHash any = ccxt.Add("fundingRate:", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("fundingRate:", market["symbol"])
 	var requestParams map[string]any = map[string]any{
 		"channel": "funding-rate",
-		"instId":  ccxt.GetValue(market, "id"),
+		"instId":  market["id"],
 	}
 	var request any = this.GetSubscriptionRequest([]any{requestParams})
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")

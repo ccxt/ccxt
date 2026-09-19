@@ -86,15 +86,15 @@ func (this *Coinone) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes6412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6412)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "ORDERBOOK",
 		"topic": map[string]any{
-			"quote_currency":  ccxt.GetValue(market, "quote"),
-			"target_currency": ccxt.GetValue(market, "base"),
+			"quote_currency":  market["quote"],
+			"target_currency": market["base"],
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -183,15 +183,15 @@ func (this *Coinone) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes14812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14812)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("ticker:", market["symbol"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TICKER",
 		"topic": map[string]any{
-			"quote_currency":  ccxt.GetValue(market, "quote"),
-			"target_currency": ccxt.GetValue(market, "base"),
+			"quote_currency":  market["quote"],
+			"target_currency": market["base"],
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -327,15 +327,15 @@ func (this *Coinone) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes27312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes27312)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add("trade:", market["symbol"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TRADE",
 		"topic": map[string]any{
-			"quote_currency":  ccxt.GetValue(market, "quote"),
-			"target_currency": ccxt.GetValue(market, "base"),
+			"quote_currency":  market["quote"],
+			"target_currency": market["base"],
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -343,7 +343,7 @@ func (this *Coinone) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
+		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
