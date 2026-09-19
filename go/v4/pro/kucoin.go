@@ -1185,7 +1185,7 @@ func (this *Kucoin) HandleBidAsk(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("bidask@", symbol)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Kucoin) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var topic *string = this.SafeString(ticker, "topic")

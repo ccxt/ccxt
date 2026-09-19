@@ -693,7 +693,7 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 	var messageHash any = marketType + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, marketType), messageHash)
 }
-func (this *Blofin) ParseWsBalance(message any) any {
+func (this *Blofin) ParseWsBalance(message map[string]any) any {
 	return this.ParseBalance(message)
 }
 

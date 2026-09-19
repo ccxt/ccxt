@@ -370,7 +370,7 @@ func (this *Bitget) HandleTicker(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Bitget) ParseWsTicker(message any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) any {
 	//
 	// spot
 	//
@@ -598,7 +598,7 @@ func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("bidask:", symbol)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Bitget) ParseWsBidAsk(message any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")

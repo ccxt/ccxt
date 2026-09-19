@@ -1262,7 +1262,7 @@ func (this *Toobit) HandleMyTrade(client any, message map[string]any) {
 	messageHash = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 }
-func (this *Toobit) ParseMyTrade(trade any, optionalArgs ...any) any {
+func (this *Toobit) ParseMyTrade(trade map[string]any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "s")

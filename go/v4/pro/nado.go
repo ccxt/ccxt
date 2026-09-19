@@ -1974,7 +1974,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          nil,
 	}, market)
 }
-func (this *Nado) ParseWsMyTrade(trade any, optionalArgs ...any) any {
+func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "type": "fill",
@@ -2188,7 +2188,7 @@ func (this *Nado) HandleOrder(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("orders:", symbol))
 }
-func (this *Nado) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "type": "position_change",
@@ -2276,7 +2276,7 @@ func (this *Nado) HandlePosition(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(positions, "positions")
 	client.(ccxt.ClientInterface).Resolve(positions, ccxt.Add("positions:", symbol))
 }
-func (this *Nado) ParseWsBidAsk(bidask any, optionalArgs ...any) any {
+func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "type": "best_bid_offer",
@@ -2319,7 +2319,7 @@ func (this *Nado) HandleBidAsk(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(tickers, "bidask")
 	client.(ccxt.ClientInterface).Resolve(tickers, "ticker")
 }
-func (this *Nado) ParseWsAllBidsAsks(message any) any {
+func (this *Nado) ParseWsAllBidsAsks(message map[string]any) any {
 	//
 	//     {
 	//         "type": "all_bbo",

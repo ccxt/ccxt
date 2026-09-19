@@ -401,7 +401,7 @@ func (this *Lbank) HandleTicker(client any, message map[string]any) {
 	messageHash = "fetchTicker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Lbank) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Lbank) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "tick":{

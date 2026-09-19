@@ -419,7 +419,7 @@ func (this *Coinbaseinternational) HandleInstrument(client any, message map[stri
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
 	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add(ccxt.Add(channel, "::"), ccxt.GetValue(ticker, "symbol")))
 }
-func (this *Coinbaseinternational) ParseWsInstrument(ticker any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseWsInstrument(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "sequence": 1,

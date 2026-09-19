@@ -3739,7 +3739,12 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 func (this *Polymarket) ParseEvents(rawEvents []any) any {
 	var result []any = []any{}
 	for i := 0; i < len(rawEvents); i++ {
-		var rawEvent any = ccxt.GetValue(rawEvents, i)
+		var rawEvent any = func() any {
+			if i >= 0 && i < len(rawEvents) {
+				return ccxt.DerefScalar(rawEvents[i])
+			}
+			return nil
+		}()
 		result = append(result, this.ParseEvent(rawEvent))
 	}
 	return result

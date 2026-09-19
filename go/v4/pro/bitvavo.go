@@ -1194,9 +1194,9 @@ func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]
 	}
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 }
-func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string]any, marketIds any) {
+func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string]any, marketIds []any) {
 	var name string = "book"
-	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
+	for i := 0; i < len(marketIds); i++ {
 		var marketId *string = this.SafeString(marketIds, i)
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash any = ccxt.Add(name+"@", marketId)

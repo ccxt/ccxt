@@ -564,7 +564,7 @@ func (this *Aster) HandleTicker(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 	}
 }
-func (this *Aster) ParseWsTicker(message any, marketType any) any {
+func (this *Aster) ParseWsTicker(message map[string]any, marketType any) any {
 	var event *string = this.SafeString(message, "e")
 	var marketId *string = this.SafeString(message, "s")
 	var timestamp *int64 = this.SafeInteger(message, "E")
@@ -755,7 +755,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("bidask:", symbol)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Aster) ParseWsBidAsk(message any, optionalArgs ...any) any {
+func (this *Aster) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(message, "T")

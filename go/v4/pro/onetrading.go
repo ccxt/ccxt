@@ -645,7 +645,7 @@ func (this *Onetrading) HandleTrading(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("orders:", ccxt.GetValue(order, "symbol")))
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
 }
-func (this *Onetrading) ParseTradingOrder(order any, optionalArgs ...any) any {
+func (this *Onetrading) ParseTradingOrder(order map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "order_book_sequence": 892925263,

@@ -341,7 +341,7 @@ func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Blockchaincom) ParseWsUpdatedTicker(ticker any, optionalArgs ...any) any {
+func (this *Blockchaincom) ParseWsUpdatedTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "seqnum": 2,

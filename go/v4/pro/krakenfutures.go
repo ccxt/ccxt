@@ -1365,7 +1365,7 @@ func (this *Krakenfutures) HandleBidAsk(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
-func (this *Krakenfutures) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "time": 1680811086487,

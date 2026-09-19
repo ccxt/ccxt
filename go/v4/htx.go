@@ -11557,7 +11557,7 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Htx) ParseSettlements(settlements any, market any) []any {
+func (this *Htx) ParseSettlements(settlements any, market map[string]any) []any {
 	//
 	// coin-m swap, fetchSettlementHistory
 	//
@@ -11610,7 +11610,7 @@ func (this *Htx) ParseSettlements(settlements any, market any) []any {
 	for i := 0; i < GetArrayLength(settlements); i++ {
 		var settlement any = GetValue(settlements, i)
 		var list any = this.SafeList(settlement, "list")
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 			var parsedSettlement map[string]any = this.ParseSettlement(settlement, market)
 			result = append(result, parsedSettlement)
 		} else if !IsEqual(list, nil) {
@@ -11630,7 +11630,7 @@ func (this *Htx) ParseSettlements(settlements any, market any) []any {
 	}
 	return result
 }
-func (this *Htx) ParseSettlement(settlement any, market any) map[string]any {
+func (this *Htx) ParseSettlement(settlement any, market map[string]any) map[string]any {
 	//
 	// coin-m swap, fetchSettlementHistory
 	//

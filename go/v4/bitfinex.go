@@ -1172,7 +1172,7 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseCurrenciesCustom(ids, indexed, indexedNetworks)
 	return nil
 }
-func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed any, indexedNetworks any) map[string]any {
+func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed map[string]any, indexedNetworks map[string]any) map[string]any {
 	var allowedIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)
@@ -1195,23 +1195,23 @@ func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed any, indexedNetwork
 	}
 	return result
 }
-func (this *Bitfinex) ParseCurrencyCustom(id any, indexed any, indexedNetworks any) any {
+func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexedNetworks map[string]any) any {
 	var code *string = this.SafeCurrencyCode(id)
-	var label any = this.SafeList(GetValue(indexed, "label"), id, []any{})
+	var label any = this.SafeList(indexed["label"], id, []any{})
 	var name *string = this.SafeString(label, 1)
-	var pool any = this.SafeList(GetValue(indexed, "pool"), id, []any{})
+	var pool any = this.SafeList(indexed["pool"], id, []any{})
 	var rawType *string = this.SafeString(pool, 1)
-	var isCryptoCoin bool = (rawType != nil) || (InOp(GetValue(indexed, "explorer"), id)) // "hacky" solution
+	var isCryptoCoin bool = (rawType != nil) || (InOp(indexed["explorer"], id)) // "hacky" solution
 	var typeVar any = func() any {
 		if isCryptoCoin {
 			return "crypto"
 		}
 		return nil
 	}()
-	var feeValues any = this.SafeList(GetValue(indexed, "fees"), id, []any{})
+	var feeValues any = this.SafeList(indexed["fees"], id, []any{})
 	var fees any = this.SafeList(feeValues, 1, []any{})
 	var fee *float64 = this.SafeNumber(fees, 1)
-	var undl any = this.SafeList(GetValue(indexed, "undl"), id, []any{})
+	var undl any = this.SafeList(indexed["undl"], id, []any{})
 	var defaultCurrencyPrecision *string = this.SafeString(this.Options, "defaultCurrencyPrecision", "8") // kept here for backward-compatibility
 	// numberToString instead of an `as string` cast: the describe() default for this option is the
 	// NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
@@ -1228,7 +1228,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed any, indexedNetworks a
 			continue
 		}
 		var network any = this.NetworkIdToCode(networkId, code)
-		var dwStatuses any = this.SafeList(GetValue(indexed, "statuses"), networkId, []any{})
+		var dwStatuses any = this.SafeList(indexed["statuses"], networkId, []any{})
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
 				"info":      networkId,
@@ -1270,7 +1270,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed any, indexedNetworks a
 			},
 		},
 		"networks": networks,
-		"margin":   this.InArray(id, GetValue(indexed, "marginables")),
+		"margin":   this.InArray(id, indexed["marginables"]),
 	})
 }
 

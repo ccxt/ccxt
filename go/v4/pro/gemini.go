@@ -578,7 +578,7 @@ func (this *Gemini) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes46315
 	return nil
 }
-func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges any, timestamp any, nonce any) {
+func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp any, nonce any) {
 	//
 	// {
 	//     eventId: '1683002916916153',
@@ -606,7 +606,12 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges any,
 	//     type: 'update'
 	// }
 	//
-	var marketId any = ccxt.GetValue(ccxt.GetValue(rawBidAskChanges, 0), "symbol")
+	var marketId any = ccxt.GetValue(func() any {
+		if 0 >= 0 && 0 < len(rawBidAskChanges) {
+			return ccxt.DerefScalar(rawBidAskChanges[0])
+		}
+		return nil
+	}(), "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToLower(marketId)))
 	var symbol any = market["symbol"]
 	if !(ccxt.InOp(this.Bidsasks, symbol)) {
@@ -616,8 +621,13 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges any,
 	var currentBidAsk any = ccxt.GetValue(this.Bidsasks, symbol)
 	var messageHash any = ccxt.Add("bidsasks:", symbol)
 	// last update always overwrites the previous state and is the latest state
-	for i := 0; i < ccxt.GetArrayLength(rawBidAskChanges); i++ {
-		var entry any = ccxt.GetValue(rawBidAskChanges, i)
+	for i := 0; i < len(rawBidAskChanges); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rawBidAskChanges) {
+				return ccxt.DerefScalar(rawBidAskChanges[i])
+			}
+			return nil
+		}()
 		var rawSide *string = this.SafeString(entry, "side")
 		var price *float64 = this.SafeNumber(entry, "price")
 		var sizeString *string = this.SafeString(entry, "remaining")
@@ -690,7 +700,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	ch <- retRes56015
 	return nil
 }
-func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges any, timestamp any, nonce any) {
+func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp any, nonce any) {
 	//
 	// rawOrderBookChanges
 	//
@@ -706,7 +716,12 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	//   },
 	//   ...
 	//
-	var marketId any = ccxt.GetValue(ccxt.GetValue(rawOrderBookChanges, 0), "symbol")
+	var marketId any = ccxt.GetValue(func() any {
+		if 0 >= 0 && 0 < len(rawOrderBookChanges) {
+			return ccxt.DerefScalar(rawOrderBookChanges[0])
+		}
+		return nil
+	}(), "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToLower(marketId)))
 	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -717,8 +732,13 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
-	for i := 0; i < ccxt.GetArrayLength(rawOrderBookChanges); i++ {
-		var entry any = ccxt.GetValue(rawOrderBookChanges, i)
+	for i := 0; i < len(rawOrderBookChanges); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rawOrderBookChanges) {
+				return ccxt.DerefScalar(rawOrderBookChanges[i])
+			}
+			return nil
+		}()
 		var price *float64 = this.SafeNumber(entry, "price")
 		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")
