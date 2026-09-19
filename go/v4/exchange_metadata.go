@@ -1,6 +1,6 @@
 package ccxt
 
-var Version string = "4.5.79"
+var Version string = "4.5.80"
 
 // GetCcxtVersion returns the version of the ccxt library, e.g. "4.5.54"
 func (this *BaseExchange) GetCcxtVersion() string {
