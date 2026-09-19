@@ -3676,7 +3676,7 @@ public class Bitget extends BitgetApi
             Object parameters = parameters3;
             Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
             Object uta = null;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (methodName), "uta");
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "uta");
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (!java.util.Objects.equals(uta, null))
@@ -4544,7 +4544,7 @@ public class Bitget extends BitgetApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object marginMode = null;
@@ -5373,7 +5373,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -5431,7 +5431,7 @@ final Object finalMinNotional = minNotional;
             String bidsKey = (((java.util.Objects.equals(uta, true)))) ? "b" : "bids";
             String asksKey = (((java.util.Objects.equals(uta, true)))) ? "a" : "asks";
             Long timestamp = this.safeInteger(data, "ts");
-            return this.parseOrderBook(data, (String) (((Map<String, Object>)market).get("symbol")), timestamp, bidsKey, asksKey);
+            return this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, bidsKey, asksKey);
         }).thenApply(OrderBook::new);
 
     }
@@ -5607,7 +5607,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -5780,7 +5780,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -5995,7 +5995,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot, swap and future: fetchTrades
@@ -6193,7 +6193,7 @@ final Object finalMinNotional = minNotional;
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "idLessThan", "idLessThan")).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -6359,7 +6359,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -6715,7 +6715,7 @@ final Object finalMinNotional = minNotional;
                 Object limitForPagination = (((java.util.Objects.equals(useHistoryEndpointForPagination, true)))) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, limitForPagination)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -7132,7 +7132,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     public Object parseBalance(Object balance)
@@ -7222,7 +7222,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        return this.safeBalance((Map<String, Object>) (result));
+        return this.safeBalance(result);
     }
 
     public String parseOrderStatus(String status)
@@ -7248,7 +7248,7 @@ final Object finalMinNotional = minNotional;
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder, editOrder, closePosition
@@ -7645,7 +7645,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -7714,7 +7714,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginParams = this.handleMarginModeAndParams("createOrder", parameters);
             Object marginMode = ((List<Object>)marginParams).get(0);
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
@@ -7785,7 +7785,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (data), market);
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -7802,7 +7802,7 @@ final Object finalMinNotional = minNotional;
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object productType = null;
         List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
         productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -7823,7 +7823,7 @@ final Object finalMinNotional = minNotional;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "category", finalProductType );
             put( "symbol", ((Map<String, Object>)market).get("id") );
-            put( "qty", Bitget.this.amountToPrecision((String) (symbol), amount) );
+            put( "qty", Bitget.this.amountToPrecision(symbol, amount) );
             put( "side", finalSide );
         }};
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
@@ -7847,10 +7847,10 @@ final Object finalMinNotional = minNotional;
             {
                 String slType = this.safeString(parameters, "slTriggerBy", "mark");
                 ((Map<String, Object>)request).put("slTriggerBy", slType);
-                ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision((String) (symbol), stopLossTriggerPrice));
+                ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision(symbol, price));
                     ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
                 } else
                 {
@@ -7860,10 +7860,10 @@ final Object finalMinNotional = minNotional;
             {
                 String tpType = this.safeString(parameters, "tpTriggerBy", "mark");
                 ((Map<String, Object>)request).put("tpTriggerBy", tpType);
-                ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision((String) (symbol), takeProfitTriggerPrice));
+                ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision(symbol, price));
                     ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
                 } else
                 {
@@ -7877,10 +7877,10 @@ final Object finalMinNotional = minNotional;
             {
                 Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 Double slLimitPrice = this.safeNumber(stopLoss, "price");
-                ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision((String) (symbol), slTriggerPrice));
+                ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision(symbol, slTriggerPrice));
                 if (!java.util.Objects.equals(slLimitPrice, null))
                 {
-                    ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision((String) (symbol), slLimitPrice));
+                    ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision(symbol, slLimitPrice));
                     ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
                 } else
                 {
@@ -7891,10 +7891,10 @@ final Object finalMinNotional = minNotional;
             {
                 Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 Double tpLimitPrice = this.safeNumber(takeProfit, "price");
-                ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision((String) (symbol), tpTriggerPrice));
+                ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision(symbol, tpTriggerPrice));
                 if (!java.util.Objects.equals(tpLimitPrice, null))
                 {
-                    ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision((String) (symbol), tpLimitPrice));
+                    ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision(symbol, tpLimitPrice));
                     ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
                 } else
                 {
@@ -7904,7 +7904,7 @@ final Object finalMinNotional = minNotional;
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             ((Map<String, Object>)request).put("orderType", type);
             String exchangeSpecificTifParam = this.safeString(parameters, "timeInForce");
@@ -7973,7 +7973,7 @@ final Object finalMinNotional = minNotional;
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object marketType = null;
         Object marginMode = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
@@ -8029,7 +8029,7 @@ final Object finalMinNotional = minNotional;
         }
         if (java.util.Objects.equals(type, "limit"))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         String triggerPriceType = this.safeString2(parameters, "triggerPriceType", "triggerType", "mark_price");
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
@@ -8064,7 +8064,7 @@ final Object finalMinNotional = minNotional;
         if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
         {
             ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-            ((Map<String, Object>)request).put("size", this.amountToPrecision((String) (symbol), amount));
+            ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -8089,31 +8089,31 @@ final Object finalMinNotional = minNotional;
                     throw new ArgumentsRequired((this.id + " createOrder() bitget trailing orders must have a trailingTriggerPrice param")) ;
                 }
                 ((Map<String, Object>)request).put("planType", "track_plan");
-                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), trailingTriggerPrice));
+                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 ((Map<String, Object>)request).put("callbackRatio", trailingPercent);
             } else if (Boolean.TRUE.equals(isTriggerOrder))
             {
                 ((Map<String, Object>)request).put("planType", "normal_plan");
-                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("executePrice", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
                 }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
-                    ((Map<String, Object>)request).put("stopLossTriggerPrice", this.priceToPrecision((String) (symbol), slTriggerPrice));
+                    ((Map<String, Object>)request).put("stopLossTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     String slPrice = this.safeString(stopLoss, "price");
-                    ((Map<String, Object>)request).put("stopLossExecutePrice", this.priceToPrecision((String) (symbol), slPrice));
+                    ((Map<String, Object>)request).put("stopLossExecutePrice", this.priceToPrecision(symbol, slPrice));
                     String slType = this.safeString(stopLoss, "type", "mark_price");
                     ((Map<String, Object>)request).put("stopLossTriggerType", slType);
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
-                    ((Map<String, Object>)request).put("stopSurplusTriggerPrice", this.priceToPrecision((String) (symbol), tpTriggerPrice));
+                    ((Map<String, Object>)request).put("stopSurplusTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     String tpPrice = this.safeString(takeProfit, "price");
-                    ((Map<String, Object>)request).put("stopSurplusExecutePrice", this.priceToPrecision((String) (symbol), tpPrice));
+                    ((Map<String, Object>)request).put("stopSurplusExecutePrice", this.priceToPrecision(symbol, tpPrice));
                     String tpType = this.safeString(takeProfit, "type", "mark_price");
                     ((Map<String, Object>)request).put("stopSurplusTriggerType", tpType);
                 }
@@ -8121,7 +8121,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("executePrice", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
                     if (request.containsKey("price"))
                     {
                         ((Map<String,Object>)request).remove("price");
@@ -8136,11 +8136,11 @@ final Object finalMinNotional = minNotional;
                 }
                 if (Boolean.TRUE.equals(isStopLossTriggerOrder))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), stopLossTriggerPrice));
+                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
                     ((Map<String, Object>)request).put("planType", "pos_loss");
                 } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), takeProfitTriggerPrice));
+                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                     ((Map<String, Object>)request).put("planType", "pos_profit");
                 }
             } else
@@ -8152,13 +8152,13 @@ final Object finalMinNotional = minNotional;
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
                     }
-                    ((Map<String, Object>)request).put("presetStopLossPrice", this.priceToPrecision((String) (symbol), slTriggerPrice));
+                    ((Map<String, Object>)request).put("presetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     Double slLimitPrice = this.safeNumber(stopLoss, "price");
                     if (!java.util.Objects.equals(slLimitPrice, null))
                     {
                         // without the execute price the exchange fills the attached stop loss
                         // at the market price, see https://github.com/ccxt/ccxt/issues/23459
-                        ((Map<String, Object>)request).put("presetStopLossExecutePrice", this.priceToPrecision((String) (symbol), slLimitPrice));
+                        ((Map<String, Object>)request).put("presetStopLossExecutePrice", this.priceToPrecision(symbol, slLimitPrice));
                     }
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
@@ -8168,11 +8168,11 @@ final Object finalMinNotional = minNotional;
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
                     }
-                    ((Map<String, Object>)request).put("presetStopSurplusPrice", this.priceToPrecision((String) (symbol), tpTriggerPrice));
+                    ((Map<String, Object>)request).put("presetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     Double tpLimitPrice = this.safeNumber(takeProfit, "price");
                     if (!java.util.Objects.equals(tpLimitPrice, null))
                     {
-                        ((Map<String, Object>)request).put("presetStopSurplusExecutePrice", this.priceToPrecision((String) (symbol), tpLimitPrice));
+                        ((Map<String, Object>)request).put("presetStopSurplusExecutePrice", this.priceToPrecision(symbol, tpLimitPrice));
                     }
                 }
             }
@@ -8225,7 +8225,7 @@ final Object finalMinNotional = minNotional;
                 parameters = this.omit(parameters, "cost");
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    quantity = this.costToPrecision((String) (symbol), cost);
+                    quantity = this.costToPrecision(symbol, cost);
                 } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if (java.util.Objects.equals(price, null))
@@ -8236,16 +8236,16 @@ final Object finalMinNotional = minNotional;
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
-                        quantity = this.costToPrecision((String) (symbol), quoteAmount);
+                        quantity = this.costToPrecision(symbol, quoteAmount);
                     }
                 } else
                 {
-                    quantity = this.costToPrecision((String) (symbol), amount);
+                    quantity = this.costToPrecision(symbol, amount);
                 }
             } else
             {
                 planType = "amount";
-                quantity = this.amountToPrecision((String) (symbol), amount);
+                quantity = this.amountToPrecision(symbol, amount);
             }
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -8271,10 +8271,10 @@ final Object finalMinNotional = minNotional;
                 {
                     ((Map<String, Object>)request).put("planType", planType);
                     ((Map<String, Object>)request).put("triggerType", triggerPriceType);
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision((String) (symbol), price));
+                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
                     }
                 }
             }
@@ -8540,7 +8540,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -8589,7 +8589,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (!java.util.Objects.equals(amount, null))
                 {
-                    ((Map<String, Object>)request).put("qty", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)request).put("qty", this.amountToPrecision(symbol, amount));
                 }
                 if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
                 {
@@ -8597,10 +8597,10 @@ final Object finalMinNotional = minNotional;
                     {
                         String slType = this.safeString(parameters, "slTriggerBy", "mark");
                         ((Map<String, Object>)request).put("slTriggerBy", slType);
-                        ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision((String) (symbol), stopLossPrice));
+                        ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision(symbol, stopLossPrice));
                         if (!java.util.Objects.equals(price, null))
                         {
-                            ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision((String) (symbol), price));
+                            ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision(symbol, price));
                             ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
                         } else
                         {
@@ -8610,10 +8610,10 @@ final Object finalMinNotional = minNotional;
                     {
                         String tpType = this.safeString(parameters, "tpTriggerBy", "mark");
                         ((Map<String, Object>)request).put("tpTriggerBy", tpType);
-                        ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision((String) (symbol), takeProfitPrice));
+                        ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision(symbol, takeProfitPrice));
                         if (!java.util.Objects.equals(price, null))
                         {
-                            ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision((String) (symbol), price));
+                            ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision(symbol, price));
                             ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
                         } else
                         {
@@ -8626,7 +8626,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                        ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                     }
                     response = (this.privateUtaPostV3TradeModifyOrder(this.extend(request, parameters))).join();
                 }
@@ -8645,25 +8645,25 @@ final Object finalMinNotional = minNotional;
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
                         String finalCost = (((java.util.Objects.equals(cost, null)))) ? (Precise.stringMul(amountString, priceString)) : cost;
-                        ((Map<String, Object>)request).put("size", this.priceToPrecision((String) (symbol), finalCost));
+                        ((Map<String, Object>)request).put("size", this.priceToPrecision(symbol, finalCost));
                     }
                 } else
                 {
-                    ((Map<String, Object>)request).put("size", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
                 }
                 ((Map<String, Object>)request).put("orderType", type);
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                     // market plan orders carry no execute price, follow up to
                     // https://github.com/ccxt/ccxt/issues/25427
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision((String) (symbol), price));
+                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
                     }
                 } else
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision((String) (symbol), price));
+                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 }
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
@@ -8685,11 +8685,11 @@ final Object finalMinNotional = minNotional;
                 {
                     if (!java.util.Objects.equals(amount, null))
                     {
-                        ((Map<String, Object>)request).put("newSize", this.amountToPrecision((String) (symbol), amount));
+                        ((Map<String, Object>)request).put("newSize", this.amountToPrecision(symbol, amount));
                     }
                     if ((!java.util.Objects.equals(price, null)) && !Boolean.TRUE.equals(isTrailingPercentOrder))
                     {
-                        ((Map<String, Object>)request).put("newPrice", this.priceToPrecision((String) (symbol), price));
+                        ((Map<String, Object>)request).put("newPrice", this.priceToPrecision(symbol, price));
                     }
                 }
                 if (Boolean.TRUE.equals(isTrailingPercentOrder))
@@ -8700,44 +8700,44 @@ final Object finalMinNotional = minNotional;
                     }
                     if (!java.util.Objects.equals(trailingTriggerPrice, null))
                     {
-                        ((Map<String, Object>)request).put("newTriggerPrice", this.priceToPrecision((String) (symbol), trailingTriggerPrice));
+                        ((Map<String, Object>)request).put("newTriggerPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                     }
                     ((Map<String, Object>)request).put("newCallbackRatio", trailingPercent);
                     response = (this.privateMixPostV2MixOrderModifyPlanOrder(this.extend(request, parameters))).join();
                 } else if (Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder))
                 {
                     ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-                    ((Map<String, Object>)request).put("size", this.amountToPrecision((String) (symbol), amount));
+                    ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision((String) (symbol), price));
+                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
                     }
                     if (Boolean.TRUE.equals(isStopLossOrder))
                     {
-                        ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), stopLossPrice));
+                        ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
                     } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                     {
-                        ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision((String) (symbol), takeProfitPrice));
+                        ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
                     }
                     response = (this.privateMixPostV2MixOrderModifyTpslOrder(this.extend(request, parameters))).join();
                 } else if (Boolean.TRUE.equals(isTriggerOrder))
                 {
-                    ((Map<String, Object>)request).put("newTriggerPrice", this.priceToPrecision((String) (symbol), triggerPrice));
+                    ((Map<String, Object>)request).put("newTriggerPrice", this.priceToPrecision(symbol, triggerPrice));
                     if (Boolean.TRUE.equals(hasStopLoss))
                     {
                         Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newStopLossTriggerPrice", this.priceToPrecision((String) (symbol), slTriggerPrice));
+                        ((Map<String, Object>)request).put("newStopLossTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
                         Double slPrice = this.safeNumber(stopLoss, "price");
-                        ((Map<String, Object>)request).put("newStopLossExecutePrice", this.priceToPrecision((String) (symbol), slPrice));
+                        ((Map<String, Object>)request).put("newStopLossExecutePrice", this.priceToPrecision(symbol, slPrice));
                         String slType = this.safeString(stopLoss, "type", "mark_price");
                         ((Map<String, Object>)request).put("newStopLossTriggerType", slType);
                     }
                     if (Boolean.TRUE.equals(hasTakeProfit))
                     {
                         Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newSurplusTriggerPrice", this.priceToPrecision((String) (symbol), tpTriggerPrice));
+                        ((Map<String, Object>)request).put("newSurplusTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                         Double tpPrice = this.safeNumber(takeProfit, "price");
-                        ((Map<String, Object>)request).put("newStopSurplusExecutePrice", this.priceToPrecision((String) (symbol), tpPrice));
+                        ((Map<String, Object>)request).put("newStopSurplusExecutePrice", this.priceToPrecision(symbol, tpPrice));
                         String tpType = this.safeString(takeProfit, "type", "mark_price");
                         ((Map<String, Object>)request).put("newStopSurplusTriggerType", tpType);
                     }
@@ -8751,12 +8751,12 @@ final Object finalMinNotional = minNotional;
                     if (Boolean.TRUE.equals(hasStopLoss))
                     {
                         Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newPresetStopLossPrice", this.priceToPrecision((String) (symbol), slTriggerPrice));
+                        ((Map<String, Object>)request).put("newPresetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     }
                     if (Boolean.TRUE.equals(hasTakeProfit))
                     {
                         Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newPresetStopSurplusPrice", this.priceToPrecision((String) (symbol), tpTriggerPrice));
+                        ((Map<String, Object>)request).put("newPresetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     }
                     response = (this.privateMixPostV2MixOrderModifyOrder(this.extend(request, parameters))).join();
                 }
@@ -8773,7 +8773,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (data), market);
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -8816,7 +8816,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginMode = null;
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
@@ -8982,7 +8982,7 @@ final Object finalMinNotional = minNotional;
                     order = data;
                 }
             }
-            return this.parseOrder((Map<String, Object>) (order), market);
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -9002,7 +9002,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -9072,7 +9072,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "cancelOrders", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -9191,7 +9191,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -9315,7 +9315,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -9470,7 +9470,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (!(data instanceof List))
                 {
-                    return this.parseOrder((Map<String, Object>) (data), market);
+                    return this.parseOrder(data, market);
                 }
             }
             List<Object> dataList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -9480,7 +9480,7 @@ final Object finalMinNotional = minNotional;
                 throw new OrderNotFound(((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
             }
             Map<String, Object> first = (Map<String, Object>) this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (first), market);
+            return this.parseOrder(first, market);
         }).thenApply(Order::new);
 
     }
@@ -9535,7 +9535,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 String defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
                 Object marketType = (((((Map<?, ?>)market).containsKey("type")))) ? ((Map<String, Object>)market).get("type") : defaultType;
@@ -10080,7 +10080,7 @@ final Object finalMinNotional = minNotional;
             Object request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object marketType = null;
@@ -10411,7 +10411,7 @@ final Object finalMinNotional = minNotional;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
@@ -10846,7 +10846,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{}};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -11096,7 +11096,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -11702,7 +11702,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -11818,7 +11818,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
@@ -12131,7 +12131,7 @@ final Object finalMinNotional = minNotional;
                 }
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "endId", "idLessThan")).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingHistory() supports swap contracts only")) ;
@@ -12254,7 +12254,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             String holdSide = this.safeString(parameters, "holdSide");
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -12263,7 +12263,7 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "marginCoin", ((Map<String, Object>)market).get("settleId") );
-                put( "amount", Bitget.this.amountToPrecision((String) (symbol), amount) );
+                put( "amount", Bitget.this.amountToPrecision(symbol, amount) );
                 put( "holdSide", holdSide );
                 put( "productType", finalProductType );
             }};
@@ -12389,7 +12389,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -12479,7 +12479,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -12554,7 +12554,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -12616,7 +12616,7 @@ final Object finalMinNotional = minNotional;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object productType = null;
             Object uta = null;
@@ -12663,7 +12663,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
@@ -12726,14 +12726,14 @@ final Object finalMinNotional = minNotional;
         List<Object> data = (List<Object>) this.safeList2(interest, "openInterestList", "list", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(interest, "ts");
         String marketId = this.safeString((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "symbol");
-        return this.safeOpenInterest((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Bitget.this.safeSymbol(marketId, market, null, "contract") );
             put( "openInterestAmount", Bitget.this.safeNumber2((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "size", "openInterest") );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "info", interest );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -13137,7 +13137,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "borrowAmount", Bitget.this.currencyToPrecision((String) (code), amount) );
@@ -13185,7 +13185,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "repayAmount", Bitget.this.currencyToPrecision((String) (code), amount) );
@@ -13356,7 +13356,7 @@ final Object finalMinNotional = minNotional;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, parameters);
@@ -13527,7 +13527,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -13806,7 +13806,7 @@ final Object finalMinNotional = minNotional;
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market((String) (symbol));
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
@@ -13973,7 +13973,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -14005,7 +14005,7 @@ final Object finalMinNotional = minNotional;
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> order = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrder((Map<String, Object>) ((order == null || 0 >= ((List<?>)order).size() ? null : ((List<?>)order).get(0))), market);
+            return this.parseOrder((order == null || 0 >= ((List<?>)order).size() ? null : ((List<?>)order).get(0)), market);
         }).thenApply(Order::new);
 
     }
@@ -14076,7 +14076,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -14173,7 +14173,7 @@ final Object finalMinNotional = minNotional;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market((String) ((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -14567,7 +14567,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
@@ -14622,7 +14622,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};

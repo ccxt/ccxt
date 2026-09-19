@@ -5199,7 +5199,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseMarket(Map<String, Object> market)
+    public Object parseMarket(Object market)
     {
         throw new NotSupported((this.id + " parseMarket() is not supported yet")) ;
     }
@@ -5209,7 +5209,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            ((List<Object>)result).add(this.parseMarket((Map<String, Object>) (Helpers.GetValue(markets, i))));
+            ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(markets, i)));
         }
         return result;
     }
@@ -5226,7 +5226,7 @@ public Object describe()
         throw new NotSupported((this.id + " parseDepositAddress() is not supported yet")) ;
     }
 
-    public Object parseTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         throw new NotSupported((this.id + " parseTrade() is not supported yet")) ;
@@ -5248,7 +5248,7 @@ public Object describe()
         throw new NotSupported((this.id + " parseTransfer() is not supported yet")) ;
     }
 
-    public Object parseAccount(Map<String, Object> account)
+    public Object parseAccount(Object account)
     {
         throw new NotSupported((this.id + " parseAccount() is not supported yet")) ;
     }
@@ -5259,7 +5259,7 @@ public Object describe()
         throw new NotSupported((this.id + " parseLedgerEntry() is not supported yet")) ;
     }
 
-    public Object parseOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         throw new NotSupported((this.id + " parseOrder() is not supported yet")) ;
@@ -5888,7 +5888,7 @@ public Object describe()
         Object methodName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object paramName = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object defaultValue = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.featureValueByType(((Map<String, Object>)market).get("type"), (String) (((Map<String, Object>)market).get("subType")), methodName, paramName, defaultValue);
     }
 
@@ -6490,7 +6490,7 @@ public Object describe()
         return superWithRestDescribe;
     }
 
-    public Object safeBalance(Map<String, Object> balance)
+    public Object safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new ArrayList<Object>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
         List<Object> codes = Helpers.objectKeys(balances);
@@ -6520,9 +6520,9 @@ public Object describe()
             Helpers.addElementToObject(Helpers.GetValue(balance, code), "free", this.parseNumber(free));
             Helpers.addElementToObject(Helpers.GetValue(balance, code), "used", this.parseNumber(used));
             Helpers.addElementToObject(Helpers.GetValue(balance, code), "total", this.parseNumber(total));
-            Helpers.addElementToObject(balance.get("free"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "free"));
-            Helpers.addElementToObject(balance.get("used"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "used"));
-            Helpers.addElementToObject(balance.get("total"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "total"));
+            Helpers.addElementToObject(Helpers.GetValue(balance, "free"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "free"));
+            Helpers.addElementToObject(Helpers.GetValue(balance, "used"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "used"));
+            Helpers.addElementToObject(Helpers.GetValue(balance, "total"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "total"));
             if (!java.util.Objects.equals(debt, null))
             {
                 Helpers.addElementToObject(Helpers.GetValue(balance, code), "debt", this.parseNumber(debt));
@@ -6928,7 +6928,7 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((Map<String, Object>) (Helpers.GetValue(orders, i)), market); // don't inline this call
+                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
                 Map<String, Object> order = this.extend(parsed, parameters);
                 ((List<Object>)results).add(order);
             }
@@ -6941,7 +6941,7 @@ public Object describe()
                 Map<String, Object> idExtended = this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder((Map<String, Object>) (idExtended), market); // don't  inline these calls
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(idExtended, market); // don't  inline these calls
                 Map<String, Object> order = this.extend(parsedOrder, parameters);
                 ((List<Object>)results).add(order);
             }
@@ -7819,7 +7819,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            ((List<Object>)result).add(this.market((String) (Helpers.GetValue(symbols, i))));
+            ((List<Object>)result).add(this.market(Helpers.GetValue(symbols, i)));
         }
         return result;
     }
@@ -7863,7 +7863,7 @@ public Object describe()
         Object isLinearSubType = null;
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (Helpers.GetValue(symbols, i)));
+            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
             if (Helpers.isTrue(sameTypeOnly) && (!java.util.Objects.equals(marketType, null)))
             {
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), marketType))
@@ -8241,7 +8241,7 @@ public Object describe()
         return this.parseNumber(value, d);
     }
 
-    public Object parseOrderBook(Object orderbook, String symbol, Object... optionalArgs)
+    public Object parseOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
     {
         Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object bidsKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids";
@@ -8441,7 +8441,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)accountsArray).size(); i++)
         {
-            Map<String, Object> account = this.extend(this.parseAccount((Map<String, Object>) ((accountsArray == null || i < 0 || i >= accountsArray.size() ? null : accountsArray.get(i)))), parameters);
+            Map<String, Object> account = this.extend(this.parseAccount((accountsArray == null || i < 0 || i >= accountsArray.size() ? null : accountsArray.get(i))), parameters);
             ((List<Object>)result).add(account);
         }
         return result;
@@ -8463,7 +8463,7 @@ public Object describe()
                 parsed = this.parseWsTrade((Map<String, Object>) ((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i))), market);
             } else
             {
-                parsed = this.parseTrade((Map<String, Object>) ((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i))), market);
+                parsed = this.parseTrade((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i)), market);
             }
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)result).add(trade);
@@ -8584,7 +8584,7 @@ public Object describe()
 
     public Object marketId(String symbol)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (!java.util.Objects.equals(market, null))
         {
             return ((Map<String, Object>)market).get("id");
@@ -8592,13 +8592,13 @@ public Object describe()
         return symbol;
     }
 
-    public String symbol(String symbol)
+    public String symbol(Object symbol)
     {
         if (java.util.Objects.equals(symbol, null))
         {
             throw new ArgumentsRequired((this.id + " symbol() requires a symbol argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.safeString(market, "symbol", symbol);
     }
 
@@ -8830,11 +8830,11 @@ public Object describe()
                 (this.throttle(cost)).join();
             }
             Object retries = 0;
-            List<Object> retriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (path), "maxRetriesOnFailure", retries);
+            List<Object> retriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
             retries = ((List<Object>) retriesparametersVariable).get(0);
             parameters = ((List<Object>) retriesparametersVariable).get(1);
             Object retryDelay = 0;
-            List<Object> retryDelayparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (path), "maxRetriesOnFailureDelay", retryDelay);
+            List<Object> retryDelayparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
             retryDelay = ((List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((List<Object>) retryDelayparametersVariable).get(1);
             Boolean fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
@@ -9206,7 +9206,7 @@ public Object describe()
         {
             return null;
         }
-        return this.market((String) (symbol));
+        return this.market(symbol);
     }
 
     public Object checkRequiredCredentials(Object... optionalArgs)
@@ -9469,7 +9469,7 @@ public Object describe()
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleOptionAndParams(Object parameters, String methodName, Object optionName, Object... optionalArgs)
+    public Object handleOptionAndParams(Object parameters, Object methodName, Object optionName, Object... optionalArgs)
     {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -9483,7 +9483,7 @@ public Object describe()
         {
             // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", methodName);
-            methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
+            methodName = ((List<Object>) methodNameparametersVariable).get(0);
             parameters = ((List<Object>) methodNameparametersVariable).get(1);
             // check if exchange has properties for this method
             Object exchangeWideMethodOptions = this.safeValue(this.options, methodName);
@@ -9509,7 +9509,7 @@ public Object describe()
     {
         Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object value = null;
-        List<Object> valueparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (methodName1), optionName1);
+        List<Object> valueparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName1, optionName1);
         value = ((List<Object>) valueparametersVariable).get(0);
         parameters = ((List<Object>) valueparametersVariable).get(1);
         if (!java.util.Objects.equals(value, null))
@@ -9520,7 +9520,7 @@ public Object describe()
         }
         // if still undefined, try optionName2
         Object value2 = null;
-        List<Object> value2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (methodName1), optionName2, defaultValue);
+        List<Object> value2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName1, optionName2, defaultValue);
         value2 = ((List<Object>) value2parametersVariable).get(0);
         parameters = ((List<Object>) value2parametersVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(value2, parameters));
@@ -9529,7 +9529,7 @@ public Object describe()
     public Object handleOption(Object methodName, Object optionName, Object... optionalArgs)
     {
         Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object res = this.handleOptionAndParams(new HashMap<String, Object>() {{}}, (String) (methodName), optionName, defaultValue);
+        Object res = this.handleOptionAndParams(new HashMap<String, Object>() {{}}, methodName, optionName, defaultValue);
         return this.safeValue(res, 0);
     }
 
@@ -9618,7 +9618,7 @@ public Object describe()
             // if it was not defined in market object
             if (java.util.Objects.equals(subType, null))
             {
-                Object values = this.handleOptionAndParams(new HashMap<String, Object>() {{}}, (String) (methodName), "subType", defaultValue); // no need to re-test params here
+                Object values = this.handleOptionAndParams(new HashMap<String, Object>() {{}}, methodName, "subType", defaultValue); // no need to re-test params here
                 subType = ((List<Object>)values).get(0);
             }
         }
@@ -9635,7 +9635,7 @@ public Object describe()
         */
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Object defaultValue = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        return this.handleOptionAndParams(parameters, (String) (methodName), "marginMode", defaultValue);
+        return this.handleOptionAndParams(parameters, methodName, "marginMode", defaultValue);
     }
 
     public void throwExactlyMatchedException(Object exact, Object str, Object message)
@@ -9843,7 +9843,7 @@ public Object describe()
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsADLRank"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsADLRank"), false))
             {
                 (this.loadMarkets()).join();
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 Object ranks = (this.fetchPositionsADLRank(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
                 Map<String, Object> rank = (Map<String, Object>) this.safeDict(ranks, 0);
@@ -10338,7 +10338,7 @@ public Object describe()
         throw new ExchangeError(((this.id + " does not have currency code ") + code)) ;
     }
 
-    public Object market(String symbol)
+    public Object market(Object symbol)
     {
         if (java.util.Objects.equals(symbol, null))
         {
@@ -10424,23 +10424,23 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(tag, parameters));
     }
 
-    public String costToPrecision(String symbol, Object cost)
+    public String costToPrecision(Object symbol, Object cost)
     {
         if (java.util.Objects.equals(cost, null))
         {
             return null;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(((Map<String, Object>)market).get("precision"), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
-    public Object priceToPrecision(String symbol, Object price)
+    public Object priceToPrecision(Object symbol, Object price)
     {
         if (java.util.Objects.equals(price, null))
         {
             return null;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
@@ -10449,13 +10449,13 @@ public Object describe()
         return result;
     }
 
-    public Object amountToPrecision(String symbol, Object amount)
+    public Object amountToPrecision(Object symbol, Object amount)
     {
         if (java.util.Objects.equals(amount, null))
         {
             return null;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
@@ -10470,7 +10470,7 @@ public Object describe()
         {
             return null;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.decimalToPrecision(fee, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
     }
 
@@ -10639,7 +10639,7 @@ public Object describe()
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverageTiers"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverageTiers"), false))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                 {
                     throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
@@ -10879,7 +10879,7 @@ public Object describe()
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public String safeSymbol(String marketId, Object... optionalArgs)
+    public String safeSymbol(Object marketId, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object delimiter = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -10949,7 +10949,7 @@ public Object describe()
             {
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
             }
-            triggerPriceStr = this.priceToPrecision((String) (symbol), Helpers.parseFloat(triggerPrice));
+            triggerPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(triggerPrice));
         }
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
@@ -10957,7 +10957,7 @@ public Object describe()
             {
                 parameters = this.omit(parameters, "stopLossPrice");
             }
-            stopLossPriceStr = this.priceToPrecision((String) (symbol), Helpers.parseFloat(stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(stopLossPrice));
         }
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
@@ -10965,7 +10965,7 @@ public Object describe()
             {
                 parameters = this.omit(parameters, "takeProfitPrice");
             }
-            takeProfitPriceStr = this.priceToPrecision((String) (symbol), Helpers.parseFloat(takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(takeProfitPrice));
         }
         return new ArrayList<Object>(Arrays.asList(triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, parameters));
     }
@@ -11200,7 +11200,7 @@ public Object describe()
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingRates"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingRates"), false))
             {
                 (this.loadMarkets()).join();
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                 {
@@ -11232,7 +11232,7 @@ public Object describe()
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingIntervals"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingIntervals"), false))
             {
                 (this.loadMarkets()).join();
-                Map<String, Object> market = (Map<String, Object>) this.market((String) (symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                 {
@@ -11398,7 +11398,7 @@ public Object describe()
         Map<String, Object> marketsById = this.markets_by_id;
         if (((!java.util.Objects.equals(markets, null)) && ((account != null && ((Map<?, ?>)markets).containsKey(account)))) || ((!java.util.Objects.equals(marketsById, null)) && ((account != null && marketsById.containsKey(account)))))
         {
-            Map<String, Object> market = (Map<String, Object>) this.market((String) (account));
+            Map<String, Object> market = (Map<String, Object>) this.market(account);
             return ((Map<String, Object>)market).get("id");
         } else
         {
@@ -11691,7 +11691,7 @@ public Object describe()
         Object maxEntriesPerRequest = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Object newMaxEntriesPerRequest = null;
-        List<Object> newMaxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "maxEntriesPerRequest");
+        List<Object> newMaxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
         newMaxEntriesPerRequest = ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(0);
         parameters = ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(1);
         if ((!java.util.Objects.equals(newMaxEntriesPerRequest, null)) && (!Helpers.isEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)))
@@ -11717,20 +11717,20 @@ public Object describe()
             Object maxEntriesPerRequest = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
             Object removeRepeated = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : true;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             Object paginationDirection = null;
-            List<Object> paginationDirectionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "paginationDirection", "backward");
+            List<Object> paginationDirectionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationDirection", "backward");
             paginationDirection = ((List<Object>) paginationDirectionparametersVariable).get(0);
             parameters = ((List<Object>) paginationDirectionparametersVariable).get(1);
             Object paginationTimestamp = null;
             Object removeRepeatedOption = removeRepeated;
-            List<Object> removeRepeatedOptionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "removeRepeated", removeRepeated);
+            List<Object> removeRepeatedOptionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "removeRepeated", removeRepeated);
             removeRepeatedOption = ((List<Object>) removeRepeatedOptionparametersVariable).get(0);
             parameters = ((List<Object>) removeRepeatedOptionparametersVariable).get(1);
             Object calls = 0;
@@ -11853,7 +11853,7 @@ public Object describe()
             Object timeframe = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : new HashMap<String, Object>() {{}};
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             Object errors = 0;
@@ -11898,7 +11898,7 @@ public Object describe()
             Object parameters = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : new HashMap<String, Object>() {{}};
             Object maxEntriesPerRequest = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : null;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -11986,11 +11986,11 @@ public Object describe()
             Object cursorIncrement = optionalArgs != null && optionalArgs.length > 6 ? optionalArgs[6] : null;
             Object maxEntriesPerRequest = optionalArgs != null && optionalArgs.length > 7 ? optionalArgs[7] : null;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -12114,11 +12114,11 @@ public Object describe()
             Object pageKey = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
             Object maxEntriesPerRequest = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : null;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, (String) (method), "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -12259,7 +12259,7 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }
 
-    public Object safeOpenInterest(Map<String, Object> interest, Object... optionalArgs)
+    public Object safeOpenInterest(Object interest, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeString(interest, "symbol");
