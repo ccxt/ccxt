@@ -2718,7 +2718,7 @@ public class Htx extends HtxApi
                     future = !java.util.Objects.equals(delivery_date, null);
                     swap = !Boolean.TRUE.equals(future);
                     linear = !java.util.Objects.equals(business_type, null);
-                    inverse = !Helpers.isTrue(linear);
+                    inverse = !Boolean.TRUE.equals(linear);
                     if (Boolean.TRUE.equals(swap))
                     {
                         type = "swap";

@@ -1707,7 +1707,7 @@ public class Aster extends AsterApi
         Object isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
         final Object finalMarket = market;
         final Object finalSide = side;

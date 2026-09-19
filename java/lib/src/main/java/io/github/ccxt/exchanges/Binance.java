@@ -5442,7 +5442,7 @@ public class Binance extends BinanceApi
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = java.util.Objects.equals(settle, quote);
             inverse = java.util.Objects.equals(settle, base);
-            String feesType = ((Helpers.isTrue(linear))) ? "linear" : "inverse";
+            String feesType = ((Boolean.TRUE.equals(linear))) ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new HashMap<String, Object>() {{}});
         }
         Boolean active = (java.util.Objects.equals(status, "TRADING"));
@@ -7372,7 +7372,7 @@ public class Binance extends BinanceApi
         Object takerOrMaker = null;
         if (!java.util.Objects.equals(buyerMaker, null))
         {
-            side = ((Helpers.isTrue(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
         } else if (((Map<?, ?>)trade).containsKey("side"))
         {
             side = this.safeStringLower(trade, "side");
@@ -10525,7 +10525,7 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object isConditional = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
-            Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Helpers.isTrue(isConditional));
+            Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
             String orderIdRequest = (((java.util.Objects.equals(isPortfolioMarginConditional, true)))) ? "strategyId" : "orderId";
             ((Map<String, Object>)request).put((String)orderIdRequest, id);
             Object response = null;

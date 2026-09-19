@@ -3983,7 +3983,7 @@ public class Bitget extends BitgetApi
                     }
                     contract = true;
                     inverse = (java.util.Objects.equals(base, settle));
-                    linear = !Helpers.isTrue(inverse);
+                    linear = !Boolean.TRUE.equals(inverse);
                     Object priceDecimals = this.safeInteger(market, "pricePlace");
                     Object amountDecimals = this.safeInteger(market, "volumePlace");
                     String priceStep = this.safeString(market, "priceEndStep");
@@ -4287,7 +4287,7 @@ public class Bitget extends BitgetApi
                     }
                     contract = true;
                     inverse = (java.util.Objects.equals(base, settle));
-                    linear = !Helpers.isTrue(inverse);
+                    linear = !Boolean.TRUE.equals(inverse);
                     marginModes = new HashMap<String, Object>() {{
                         put( "cross", true );
                         put( "isolated", true );
@@ -7998,7 +7998,7 @@ final Object finalMinNotional = minNotional;
         parameters = ((List<Object>) oneWayModeparametersVariable).get(1);
         if (!java.util.Objects.equals(oneWayMode, null))
         {
-            hedged = !Helpers.isTrue(oneWayMode);
+            hedged = !Boolean.TRUE.equals(oneWayMode);
         }
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");

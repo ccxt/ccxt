@@ -821,7 +821,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = null;
-        if (Helpers.isTrue(isUta))
+        if (Boolean.TRUE.equals(isUta))
         {
             messageHash = ("kline:" + symbol);
         } else
@@ -3444,7 +3444,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = null;
         Object subMessageHash = null;
-        if (Helpers.isTrue(isUta))
+        if (Boolean.TRUE.equals(isUta))
         {
             messageHash = ("unsubscribe:kline:" + symbol);
             subMessageHash = ("kline:" + symbol);

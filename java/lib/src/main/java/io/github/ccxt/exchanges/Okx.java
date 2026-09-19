@@ -4970,7 +4970,7 @@ public class Okx extends OkxApi
         String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            if (Helpers.isTrue(isAlgoOrder))
+            if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)request).put("algoClOrdId", clientOrderId);
             } else
@@ -4979,7 +4979,7 @@ public class Okx extends OkxApi
             }
         } else
         {
-            if (Helpers.isTrue(isAlgoOrder))
+            if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)request).put("algoId", id);
             } else
@@ -4997,7 +4997,7 @@ public class Okx extends OkxApi
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
-        if (Helpers.isTrue(isAlgoOrder))
+        if (Boolean.TRUE.equals(isAlgoOrder))
         {
             if ((java.util.Objects.equals(stopLossTriggerPrice, null)) && (java.util.Objects.equals(takeProfitTriggerPrice, null)))
             {
@@ -5061,7 +5061,7 @@ public class Okx extends OkxApi
         {
             ((Map<String, Object>)request).put("newSz", this.amountToPrecision(symbol, amount));
         }
-        if (!Helpers.isTrue(isAlgoOrder))
+        if (!Boolean.TRUE.equals(isAlgoOrder))
         {
             if (!java.util.Objects.equals(price, null))
             {
@@ -5123,7 +5123,7 @@ public class Okx extends OkxApi
                 isAlgoOrder = true;
             }
             Object response = null;
-            if (Helpers.isTrue(isAlgoOrder))
+            if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 response = (this.privatePostTradeAmendAlgos(this.extend(request, parameters))).join();
             } else
