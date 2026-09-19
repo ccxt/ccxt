@@ -72,7 +72,7 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    async getListenKey (isContract: boolean) {
+    async getListenKey (isContract: boolean): Promise<Str> {
         this.checkRequiredCredentials ();
         const tradeType = isContract ? 'contract' : 'spot';
         let url = this.urls['api']['ws'][tradeType];
@@ -143,7 +143,7 @@ export default class xt extends xtRest {
         return client.subscriptions['token'];
     }
 
-    override getCacheIndex (orderbook: any, cache: any) {
+    override getCacheIndex (orderbook: Dict, cache: any): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeDict (cache, 0);
@@ -161,7 +161,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleDelta (orderbook: Dict, delta: Dict): void {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks = this.safeList (delta, 'a', []);
         const obBids = this.safeList (delta, 'b', []);
@@ -197,7 +197,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: Strings = undefined, params: Dict = {}) {
+    async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const privateAccess = access === 'private';
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
@@ -703,7 +703,7 @@ export default class xt extends xtRest {
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
     }
 
-    handleFundingRate (client: Client, message: Dict) {
+    handleFundingRate (client: Client, message: Dict): Dict {
         //
         //     {
         //         "topic": "fund_rate",
@@ -735,7 +735,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    setPositionsCache (client: Client) {
+    setPositionsCache (client: Client): void {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -749,7 +749,7 @@ export default class xt extends xtRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: any): Promise<void> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -768,7 +768,7 @@ export default class xt extends xtRest {
         }
     }
 
-    handlePosition (client: any, message: any) {
+    handlePosition (client: any, message: Dict): void {
         //
         //    {
         //      topic: 'position',
@@ -820,7 +820,7 @@ export default class xt extends xtRest {
         client.resolve ([ position ], 'position::contract');
     }
 
-    handleTicker (client: Client, message: Dict) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -899,7 +899,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTickers (client: Client, message: Dict) {
+    handleTickers (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -999,7 +999,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOHLCV (client: Client, message: Dict) {
+    handleOHLCV (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -1060,7 +1060,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTrade (client: Client, message: Dict) {
+    handleTrade (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -1113,7 +1113,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message: Dict) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // spot
         //
@@ -1231,7 +1231,7 @@ export default class xt extends xtRest {
         }
     }
 
-    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //    {
         //        "s": "btc_usdt",                         // symbol
@@ -1289,7 +1289,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    override parseWsOrder (order: Dict, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //
@@ -1366,7 +1366,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    handleOrder (client: Client, message: Dict) {
+    handleOrder (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -1427,7 +1427,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleBalance (client: Client, message: Dict) {
+    handleBalance (client: Client, message: Dict): void {
         //
         // spot
         //
@@ -1477,7 +1477,7 @@ export default class xt extends xtRest {
         client.resolve (this.balance, 'balance::' + tradeType);
     }
 
-    handleMyTrades (client: Client, message: Dict) {
+    handleMyTrades (client: Client, message: Dict): void {
         //
         // spot
         //
@@ -1530,7 +1530,7 @@ export default class xt extends xtRest {
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
@@ -1566,12 +1566,12 @@ export default class xt extends xtRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): string {
         client.lastPong = this.milliseconds ();
         return 'ping';
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         id: '1763045665228ticker@eth_usdt',
@@ -1600,7 +1600,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleUnSubscription (client: Client, subscription: Dict) {
+    handleUnSubscription (client: Client, subscription: Dict): void {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
@@ -1611,7 +1611,7 @@ export default class xt extends xtRest {
         this.cleanCache (subscription);
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): void {
         //
         //    {
         //        "id": "123",

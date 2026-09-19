@@ -61,7 +61,7 @@ export default class lighter extends lighterRest {
         });
     }
 
-    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined) {
+    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined): string {
         let hash = unifiedChannel;
         if (symbol !== undefined) {
             hash += '::' + symbol;
@@ -74,7 +74,7 @@ export default class lighter extends lighterRest {
         return hash;
     }
 
-    async subscribePublic (messageHash: any, params: Dict = {}) {
+    async subscribePublic (messageHash: string, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
@@ -86,7 +86,7 @@ export default class lighter extends lighterRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePublicMultiple (messageHashes: any, params: Dict = {}) {
+    async subscribePublicMultiple (messageHashes: string[], params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
@@ -98,7 +98,7 @@ export default class lighter extends lighterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
     }
 
-    async unsubscribe (messageHash: any, params: Dict = {}) {
+    async unsubscribe (messageHash: string, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'unsubscribe',
@@ -110,25 +110,25 @@ export default class lighter extends lighterRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash: any, params: Dict = {}) {
+    async subscribePrivate (messageHash: string, params: Dict = {}): Promise<any> {
         await this.preLoadLighterLibrary ();
         params['auth'] = this.createAuth (params);
         return await this.subscribePublic (messageHash, params);
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: any, delta: any): void {
         const price = this.safeFloat (delta, 'price');
         const amount = this.safeFloat (delta, 'size');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any): void {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: Dict): Dict {
         const data = this.safeDict (message, 'order_book', {});
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
@@ -139,7 +139,7 @@ export default class lighter extends lighterRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // {
         //     "channel": "order_book:0",
@@ -235,7 +235,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         // watchTicker
         //     {
@@ -468,7 +468,7 @@ export default class lighter extends lighterRest {
         return this.unWatchTickers (symbols, params);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "trade_id": 526801155,
@@ -520,7 +520,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //     {
         //         "channel": "trade:0",
@@ -630,7 +630,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "trade_id": 526801155,
@@ -844,7 +844,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: Dict, market: Market = undefined): Liquidation | undefined {
         //
         //     {
         //         "trade_id": 526801155,
@@ -898,7 +898,7 @@ export default class lighter extends lighterRest {
         });
     }
 
-    handleLiquidation (client: Client, message: any) {
+    handleLiquidation (client: Client, message: Dict): void {
         //
         //     {
         //         "channel": "trade:0",
@@ -1279,7 +1279,7 @@ export default class lighter extends lighterRest {
         return this.parseOrders ([ rawMessage ]);
     }
 
-    handleWsSendtxApi (client: Client, message: any) {
+    handleWsSendtxApi (client: Client, message: Dict): void {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
@@ -1384,7 +1384,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1439,7 +1439,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
@@ -1449,7 +1449,7 @@ export default class lighter extends lighterRest {
         return message;
     }
 
-    handleUnSubscription (client: Client, message: any) {
+    handleUnSubscription (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "unsubscribed",
@@ -1479,7 +1479,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleOrderBookUnSubscription (client: Client, marketId: Str) {
+    handleOrderBookUnSubscription (client: Client, marketId: Str): void {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = this.getMessageHash ('orderbook', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -1489,7 +1489,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleTickerUnSubscription (client: Client, marketId: Str) {
+    handleTickerUnSubscription (client: Client, marketId: Str): void {
         if (marketId === 'all') {
             // a ticker hash is served by the one wire channel that created its subscription
             // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
@@ -1533,7 +1533,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleTradesUnSubscription (client: Client, marketId: Str) {
+    handleTradesUnSubscription (client: Client, marketId: Str): void {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = this.getMessageHash ('trade', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -1543,7 +1543,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleMyTradesUnSubscription (client: Client) {
+    handleMyTradesUnSubscription (client: Client): void {
         // one account-wide channel feeds the plural hash and every per-symbol hash
         const messageHash = 'unsubscribe:' + this.getMessageHash ('myTrades');
         this.cleanUnsubscription (client, 'myTrades', messageHash, true);
@@ -1553,14 +1553,14 @@ export default class lighter extends lighterRest {
         this.cleanCache (myTradesStructure);
     }
 
-    handleOrdersUnSubscription (client: Client, marketId: Str) {
+    handleOrdersUnSubscription (client: Client, marketId: Str): void {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = this.getMessageHash ('orders', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
     }
 
-    handleAllOrdersUnSubscription (client: Client) {
+    handleAllOrdersUnSubscription (client: Client): void {
         // only the plural hash is awaited on this channel, per-symbol order hashes
         // belong to the account_orders/<marketId> channels and stay untouched here
         const subMessageHash = this.getMessageHash ('orders');
@@ -1572,14 +1572,14 @@ export default class lighter extends lighterRest {
         this.cleanCache (ordersStructure);
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: any): void {
         //
         //     { "type": "ping" }
         //
         this.spawn (this.pong, client, message);
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: any): Promise<void> {
         const request: Dict = {
             'type': 'pong',
         };
