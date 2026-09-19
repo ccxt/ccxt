@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType, Dict , Market } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict , Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ export default class luno extends lunoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -151,7 +151,7 @@ export default class luno extends lunoRest {
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -226,9 +226,9 @@ export default class luno extends lunoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customParseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
-        const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+    customParseOrderBook (orderbook: Dict, symbol: Str, timestamp: Int = undefined, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
+        const bids = this.parseOrderBookBidsAsks (this.safeList (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks (this.safeList (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),

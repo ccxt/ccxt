@@ -182,7 +182,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    async getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: Str = undefined, params = {}) {
+    async getUrlByMarketType (symbol: Str = undefined, isPrivate: Bool = false, method: Str = undefined, params: Dict = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         if (method === undefined) {
             method = '';
@@ -264,7 +264,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -311,7 +311,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -346,7 +346,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -384,7 +384,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -393,7 +393,7 @@ export default class bybit extends bybitRest {
         const messageHash = 'ticker:' + symbol;
         const url = await this.getUrlByMarketType (symbol, false, 'watchTicker', params);
         params = this.cleanParams (params);
-        const options = this.safeValue (this.options, 'watchTicker', {});
+        const options = this.safeDict (this.options, 'watchTicker', {});
         let topic = this.safeString (options, 'name', 'tickers');
         if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new BadRequest (this.id + ' watchTicker() only supports name tickers for contract markets');
@@ -413,7 +413,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -421,7 +421,7 @@ export default class bybit extends bybitRest {
         const messageHashes: string[] = [];
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchTickers', params);
         params = this.cleanParams (params);
-        const options = this.safeValue (this.options, 'watchTickers', {});
+        const options = this.safeDict (this.options, 'watchTickers', {});
         const topic = this.safeString (options, 'name', 'tickers');
         const marketIds = this.marketIds (symbols);
         const topics: string[] = [];
@@ -449,12 +449,12 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, undefined, false) as string[];
-        const options = this.safeValue (this.options, 'watchTickers', {});
+        const options = this.safeDict (this.options, 'watchTickers', {});
         const topic = this.safeString (options, 'name', 'tickers');
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
@@ -481,7 +481,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         return this.unWatchTickers ([ symbol ], params);
     }
 
@@ -642,7 +642,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -714,7 +714,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -751,7 +751,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -831,7 +831,7 @@ export default class bybit extends bybitRest {
         const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ohlcvsByTimeframe = this.safeValue (this.ohlcvs, symbol);
+        const ohlcvsByTimeframe = this.safeDict (this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
@@ -887,7 +887,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
@@ -901,7 +901,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -953,7 +953,7 @@ export default class bybit extends bybitRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -993,7 +993,7 @@ export default class bybit extends bybitRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
@@ -1092,7 +1092,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -1107,7 +1107,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1130,7 +1130,7 @@ export default class bybit extends bybitRest {
         }
         const trades = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1146,7 +1146,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1176,7 +1176,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
@@ -1318,7 +1318,7 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
         if (this.markets === undefined) {
@@ -1335,7 +1335,7 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        let topic = this.safeValue (topicByMarket, this.getPrivateType (url));
+        let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
         let executionFast = false;
         [ executionFast, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
@@ -1360,7 +1360,7 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         const method = 'watchMyTrades';
         const messageHash = 'unsubscribe:myTrades';
         const subHash = 'myTrades';
@@ -1377,7 +1377,7 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        let topic = this.safeValue (topicByMarket, this.getPrivateType (url));
+        let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
         let executionFast = false;
         [ executionFast, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
@@ -1474,7 +1474,7 @@ export default class bybit extends bybitRest {
         const topic = this.safeString (message, 'topic', '');
         const spot = topic === 'ticketInfo';
         const executionFast = topic === 'execution.fast';
-        let data = this.safeValue (message, 'data', []);
+        let data = this.safeList (message, 'data', []);
         if (!Array.isArray (data)) {
             data = this.safeList (data, 'result', []);
         }
@@ -1544,7 +1544,7 @@ export default class bybit extends bybitRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1704,7 +1704,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    override async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1732,7 +1732,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    override async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1861,7 +1861,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1878,7 +1878,7 @@ export default class bybit extends bybitRest {
             'unified': [ 'order' ],
             'usdc': [ 'user.openapi.perp.order' ],
         };
-        const topics = this.safeValue (topicsByMarket, this.getPrivateType (url));
+        const topics = this.safeList (topicsByMarket, this.getPrivateType (url));
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1896,7 +1896,7 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1913,7 +1913,7 @@ export default class bybit extends bybitRest {
             'unified': [ 'order' ],
             'usdc': [ 'user.openapi.perp.order' ],
         };
-        const topics = this.safeValue (topicsByMarket, this.getPrivateType (url));
+        const topics = this.safeList (topicsByMarket, this.getPrivateType (url));
         return await this.unWatchTopics (url, 'orders', [ ], [ messageHash ], [ subHash ], topics, params);
     }
 
@@ -2034,7 +2034,7 @@ export default class bybit extends bybitRest {
         }
         const orders = this.orders;
         let rawOrders = this.safeList (message, 'data', []);
-        const first = this.safeValue (rawOrders, 0, {});
+        const first = this.safeDict (rawOrders, 0, {});
         const category = this.safeString (first, 'category');
         const isSpot = category === 'spot';
         if (!isSpot) {
@@ -2072,7 +2072,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2119,7 +2119,7 @@ export default class bybit extends bybitRest {
                 }
             }
         }
-        const topics = [ this.safeValue (topicByMarket, this.getPrivateType (url)) ];
+        const topics = [ this.safeString (topicByMarket, this.getPrivateType (url)) ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
 
@@ -2270,7 +2270,7 @@ export default class bybit extends bybitRest {
             this.balance = {};
         }
         let messageHash = 'balance';
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         let info: NullableList = undefined;
         let rawBalances: any[] = [];
         let account: Str = undefined;
@@ -2278,7 +2278,7 @@ export default class bybit extends bybitRest {
             account = 'spot';
             const data = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
-                const B = this.safeValue (data[i], 'B', []);
+                const B = this.safeList (data[i], 'B', []);
                 rawBalances = this.arrayConcat (rawBalances, B);
             }
             info = rawBalances;
@@ -2286,9 +2286,9 @@ export default class bybit extends bybitRest {
         if (topic === 'wallet') {
             const data = this.safeValue (message, 'data', {});
             for (let i = 0; i < data.length; i++) {
-                const result = this.safeValue (data, 0, {});
+                const result = this.safeDict (data, 0, {});
                 account = this.safeStringLower (result, 'accountType');
-                rawBalances = this.arrayConcat (rawBalances, this.safeValue (result, 'coin', []));
+                rawBalances = this.arrayConcat (rawBalances, this.safeList (result, 'coin', []));
             }
             info = data;
         }
@@ -2296,7 +2296,7 @@ export default class bybit extends bybitRest {
             this.parseWsBalance (rawBalances[i], account);
         }
         if (account !== undefined) {
-            if (this.safeValue (this.balance, account) === undefined) {
+            if (this.safeDict (this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
@@ -2363,7 +2363,7 @@ export default class bybit extends bybitRest {
         // is the consistent total, the spot rows fall back to the wallet balance
         account['total'] = this.safeString2 (balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
-            if (this.safeValue (this.balance, accountType) === undefined) {
+            if (this.safeDict (this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
             if ((accountType !== undefined) && (code !== undefined)) {
@@ -2376,7 +2376,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTopics (url: any, messageHashes: any, topics: any, params = {}) {
+    async watchTopics (url: any, messageHashes: any, topics: any, params: Dict = {}) {
         const client = this.client (url);
         const newTopics: string[] = [];
         const topicsLength = topics.length;
@@ -2428,7 +2428,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
     }
 
-    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params = {}, subExtension = {}) {
+    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params: Dict = {}, subExtension: Dict = {}) {
         const reqId = this.requestId ();
         const request: Dict = {
             'op': 'unsubscribe',
@@ -2446,7 +2446,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, this.extend (subscription, subExtension));
     }
 
-    async authenticate (url: any, params = {}) {
+    async authenticate (url: any, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
@@ -2523,10 +2523,10 @@ export default class bybit extends bybitRest {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
                 throw new ExchangeError (feedback);
             }
-            const success = this.safeValue (message, 'success');
+            const success = this.safeBool (message, 'success');
             if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
-                const request = this.safeValue (message, 'request', {});
+                const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');
                 if (op === 'auth') {
                     throw new AuthenticationError ('Authentication failed: ' + ret_msg);
@@ -2712,7 +2712,7 @@ export default class bybit extends bybitRest {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        const success = this.safeValue (message, 'success');
+        const success = this.safeBool (message, 'success');
         const code = this.safeInteger (message, 'retCode');
         const messageHash = 'authenticated';
         if ((success === true) || (code === 0)) {
