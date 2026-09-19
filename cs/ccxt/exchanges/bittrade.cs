@@ -1926,16 +1926,16 @@ public partial class bittrade : Exchange
         if (((type == "market")) && ((side == "buy")))
         {
             string? quoteAmount = null;
-            object createMarketBuyOrderRequiresPrice = true;
+            bool createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
+            createMarketBuyOrderRequiresPrice = isTrue(((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0]);
             parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
             if (!isEqual(cost, null))
             {
                 quoteAmount = this.amountToPrecision(symbol, cost);
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
+            } else if (createMarketBuyOrderRequiresPrice)
             {
                 if ((price == null))
                 {

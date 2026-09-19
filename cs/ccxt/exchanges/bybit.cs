@@ -3738,11 +3738,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 1000));
         }
@@ -4034,11 +4034,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbolVar, since, limitVar, parameters, 200));
         }
@@ -5541,11 +5541,11 @@ public partial class bybit : Exchange
         {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
-            object createMarketBuyOrderRequiresPrice = true;
+            bool createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice");
-            createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
+            createMarketBuyOrderRequiresPrice = isTrue(((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0]);
             parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-            if (isTrue(createMarketBuyOrderRequiresPrice))
+            if (createMarketBuyOrderRequiresPrice)
             {
                 if (((price == null)) && ((cost == null)))
                 {
@@ -6499,11 +6499,11 @@ public partial class bybit : Exchange
         {
             return await this.FetchOrderClassic(id, symbol, parameters);
         }
-        object acknowledge = false;
+        bool acknowledge = false;
         IList<object> acknowledgeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrder", "acknowledged");
-        acknowledge = ((IList<object>)acknowledgeparametersVariable)[0];
+        acknowledge = isTrue(((IList<object>)acknowledgeparametersVariable)[0]);
         parameters = ((IList<object>)acknowledgeparametersVariable)[1];
-        if (!isTrue(acknowledge))
+        if (!acknowledge)
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
         }
@@ -6614,11 +6614,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrdersClassic", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrdersClassic", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50));
         }
@@ -6821,11 +6821,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50));
         }
@@ -7019,11 +7019,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50));
         }
@@ -7177,11 +7177,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 100));
         }
@@ -7383,11 +7383,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50));
         }
@@ -7461,11 +7461,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50));
         }
@@ -7655,11 +7655,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50));
         }
@@ -8096,11 +8096,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToPositionList(await this.fetchPaginatedCallCursor("fetchPositions", symbols, null, null, parameters, "nextPageCursor", "cursor", null, 200));
         }
@@ -9270,11 +9270,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50));
         }
@@ -10304,11 +10304,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyLiquidations", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 100));
         }
@@ -10444,11 +10444,11 @@ public partial class bybit : Exchange
         {
             market = this.market(symbol);
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "getLeverageTiersPaginated", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return await this.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, null, null, parameters, "nextPageCursor", "cursor", null, 100);
         }
@@ -10606,11 +10606,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 100));
         }

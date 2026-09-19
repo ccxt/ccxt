@@ -846,11 +846,11 @@ public partial class cryptomus : Exchange
         {
             if (sideBuy)
             {
-                object createMarketBuyOrderRequiresPrice = true;
+                bool createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
+                createMarketBuyOrderRequiresPrice = isTrue(((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0]);
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-                if (isTrue(createMarketBuyOrderRequiresPrice))
+                if (createMarketBuyOrderRequiresPrice)
                 {
                     if (((price == null)) && ((cost == null)))
                     {

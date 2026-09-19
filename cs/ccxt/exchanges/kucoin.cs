@@ -2122,9 +2122,9 @@ public partial class kucoin : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object fetchTickersFees = null;
+        bool? fetchTickersFees = null;
         IList<object> fetchTickersFeesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkets", "fetchTickersFees", true);
-        fetchTickersFees = ((IList<object>)fetchTickersFeesparametersVariable)[0];
+        fetchTickersFees = isTrue(((IList<object>)fetchTickersFeesparametersVariable)[0]);
         parameters = ((IList<object>)fetchTickersFeesparametersVariable)[1];
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkets", "uta", uta);
@@ -2146,7 +2146,7 @@ public partial class kucoin : Exchange
             fetchContractMarkets = true;
         }
         bool fetchSpotMarkets = this.inArray("spot", types);
-        fetchTickersFees = isTrue(fetchTickersFees) && fetchSpotMarkets; // tickers and fees are only fetched for spot markets
+        fetchTickersFees = (fetchTickersFees == true) && fetchSpotMarkets; // tickers and fees are only fetched for spot markets
         List<object> promises = new List<object>() {};
         if (fetchSpotMarkets)
         {
@@ -2168,7 +2168,7 @@ public partial class kucoin : Exchange
             //
             ((IList<object>)promises).Add(this.privateGetIsolatedSymbols(parameters)); // isolated margin symbols
         }
-        if (isTrue(fetchTickersFees))
+        if ((fetchTickersFees == true))
         {
             //
             //     {
@@ -2223,7 +2223,7 @@ public partial class kucoin : Exchange
             nextIndex = this.sum(nextIndex, 2);
             isolatedIndex = this.sum(crossIndex, 1);
         }
-        if (isTrue(fetchTickersFees))
+        if ((fetchTickersFees == true))
         {
             tickersIndex = nextIndex;
             nextIndex = this.sum(nextIndex, 1);
@@ -2238,7 +2238,7 @@ public partial class kucoin : Exchange
         object isolatedData = ((bool) ((requestMarginables == true))) ? getValue(responses, isolatedIndex) : new Dictionary<string, object>() {};
         List<object> isolatedItems = this.safeList(isolatedData, "data", new List<object>() {});
         Dictionary<string, object> isolatedById = this.indexBy(isolatedItems, "symbol");
-        IDictionary<string, object> tickersResponse = ((bool) isTrue(fetchTickersFees)) ? this.safeDict(responses, tickersIndex, new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
+        IDictionary<string, object> tickersResponse = ((bool) (fetchTickersFees == true)) ? this.safeDict(responses, tickersIndex, new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         List<object> tickerItems = this.safeList(this.safeDict(tickersResponse, "data", new Dictionary<string, object>() {}), "ticker", new List<object>() {});
         Dictionary<string, object> tickersById = this.indexBy(tickerItems, "symbol");
         List<object> result = new List<object>() {};
@@ -3873,11 +3873,11 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         int maxLimit = 1500;
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, sinceVar, limitVar,((string)timeframeVar), parameters, maxLimit));
         }
@@ -3979,11 +3979,11 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         int maxLimit = 1500;
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, sinceVar, limitVar,((string)timeframeVar), parameters, maxLimit));
         }
@@ -4051,11 +4051,11 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         int maxLimit = 200;
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, sinceVar, limitVar,((string)timeframeVar), parameters, maxLimit));
         }
@@ -4668,9 +4668,9 @@ public partial class kucoin : Exchange
         IList<object> hfparametersVariable = (IList<object>)this.handleHfAndParams(parameters);
         hf = (bool?)((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
-        object useSync = false;
+        bool useSync = false;
         IList<object> useSyncparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "sync", false);
-        useSync = ((IList<object>)useSyncparametersVariable)[0];
+        useSync = isTrue(((IList<object>)useSyncparametersVariable)[0]);
         parameters = ((IList<object>)useSyncparametersVariable)[1];
         IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(parameters);
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
@@ -4720,7 +4720,7 @@ public partial class kucoin : Exchange
             {
                 response = await this.privatePostMarginOrder(orderRequest);
             }
-        } else if (isTrue(useSync))
+        } else if (useSync)
         {
             response = await this.privatePostHfOrdersSync(orderRequest);
         } else if (isEqual(hf, true))
@@ -5519,12 +5519,12 @@ public partial class kucoin : Exchange
         IList<object> hfparametersVariable = (IList<object>)this.handleHfAndParams(parameters);
         hf = (bool?)((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
-        object useSync = false;
+        bool useSync = false;
         IList<object> useSyncparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrders", "sync", false);
-        useSync = ((IList<object>)useSyncparametersVariable)[0];
+        useSync = isTrue(((IList<object>)useSyncparametersVariable)[0]);
         parameters = ((IList<object>)useSyncparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isTrue(useSync))
+        if (useSync)
         {
             response = await this.privatePostHfOrdersMultiSync(this.extend(request, parameters));
         } else if (isEqual(hf, true))
@@ -5779,9 +5779,9 @@ public partial class kucoin : Exchange
         IList<object> hfparametersVariable = (IList<object>)this.handleHfAndParams(parameters);
         hf = (bool?)((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
-        object useSync = false;
+        bool useSync = false;
         IList<object> useSyncparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrder", "sync", false);
-        useSync = ((IList<object>)useSyncparametersVariable)[0];
+        useSync = isTrue(((IList<object>)useSyncparametersVariable)[0]);
         parameters = ((IList<object>)useSyncparametersVariable)[1];
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", parameters);
@@ -5789,7 +5789,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         string? tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
         bool isMarginOrder = (tradeType == "MARGIN_TRADE") || (marginMode != null);
-        if ((isEqual(hf, true)) || isTrue(useSync) || isMarginOrder)
+        if ((isEqual(hf, true)) || useSync || isMarginOrder)
         {
             if ((trigger != true))
             {
@@ -5831,7 +5831,7 @@ public partial class kucoin : Exchange
             } else if (isMarginOrder)
             {
                 response = await this.privateDeleteHfMarginOrdersClientOrderClientOid(this.extend(request, parameters));
-            } else if (isTrue(useSync))
+            } else if (useSync)
             {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, parameters));
             } else if (isEqual(hf, true))
@@ -5864,7 +5864,7 @@ public partial class kucoin : Exchange
             } else if (isMarginOrder)
             {
                 response = await this.privateDeleteHfMarginOrdersOrderId(this.extend(request, parameters));
-            } else if (isTrue(useSync))
+            } else if (useSync)
             {
                 response = await this.privateDeleteHfOrdersSyncOrderId(this.extend(request, parameters));
             } else if (isEqual(hf, true))
@@ -6474,11 +6474,11 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters));
         }
@@ -6603,12 +6603,12 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         int maxLimit = 200;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters, maxLimit));
         }
@@ -6754,11 +6754,11 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters));
         }
@@ -6799,11 +6799,11 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters));
         }
@@ -7799,11 +7799,11 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
@@ -7956,11 +7956,11 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
@@ -8049,11 +8049,11 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
@@ -8757,11 +8757,11 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)request)["amount"] = parseFloat(amountString);
         }
-        object includeFee = null;
+        bool? includeFee = null;
         IList<object> includeFeeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "withdraw", "includeFee", false);
-        includeFee = ((IList<object>)includeFeeparametersVariable)[0];
+        includeFee = isTrue(((IList<object>)includeFeeparametersVariable)[0]);
         parameters = ((IList<object>)includeFeeparametersVariable)[1];
-        if (isTrue(includeFee))
+        if ((includeFee == true))
         {
             ((IDictionary<string,object>)request)["feeDeductType"] = "INTERNAL";
         }
@@ -8952,11 +8952,11 @@ public partial class kucoin : Exchange
         {
             return await this.FetchContractDeposits(((string)code),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters));
         }
@@ -9129,11 +9129,11 @@ public partial class kucoin : Exchange
             return await this.FetchContractWithdrawals(((string)code),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
         int maxLimit = 500;
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters, maxLimit));
         }
@@ -10371,11 +10371,11 @@ public partial class kucoin : Exchange
                 maxLimit = 100;
             }
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, maxLimit));
         }
@@ -13355,11 +13355,11 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters));
         }

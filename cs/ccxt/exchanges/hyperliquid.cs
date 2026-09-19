@@ -1333,9 +1333,9 @@ public partial class hyperliquid : Exchange
         object response = new List<object>() {};
         string? type = this.safeString(parameters, "type");
         parameters = this.omit(parameters, "type");
-        object hip3 = false;
+        bool hip3 = false;
         IList<object> hip3parametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTickers", "hip3", false);
-        hip3 = ((IList<object>)hip3parametersVariable)[0];
+        hip3 = isTrue(((IList<object>)hip3parametersVariable)[0]);
         parameters = ((IList<object>)hip3parametersVariable)[1];
         if ((symbols != null))
         {
@@ -1350,7 +1350,7 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        if (isTrue(hip3))
+        if (hip3)
         {
             parameters = this.omit(parameters, "hip3");
             response = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchHip3Markets(parameters));

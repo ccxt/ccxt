@@ -1671,11 +1671,11 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,((string)timeframeVar), parameters, 1000));
         }

@@ -1121,11 +1121,11 @@ public partial class lighter : Exchange
             return ccxt.BaseExchange.ToInt64Value(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
-        object skipNonce = true;
+        bool skipNonce = true;
         IList<object> skipNonceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchNonce", "skipNonce", true);
-        skipNonce = ((IList<object>)skipNonceparametersVariable)[0];
+        skipNonce = isTrue(((IList<object>)skipNonceparametersVariable)[0]);
         parameters = ((IList<object>)skipNonceparametersVariable)[1];
-        if (isTrue(skipNonce))
+        if (skipNonce)
         {
             return ccxt.BaseExchange.ToInt64Value(this.milliseconds());
         }
@@ -2938,11 +2938,11 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
@@ -3057,11 +3057,11 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
@@ -3137,11 +3137,11 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
@@ -3352,11 +3352,11 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, 50));
         }

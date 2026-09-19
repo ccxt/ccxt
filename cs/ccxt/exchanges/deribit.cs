@@ -1119,11 +1119,11 @@ public partial class deribit : Exchange
         List<object> instrumentsResponses = new List<object>() {};
         List<object> result = new List<object>() {};
         Dictionary<string, object> parsedMarkets = new Dictionary<string, object>() {};
-        object fetchAllMarkets = null;
+        bool? fetchAllMarkets = null;
         IList<object> fetchAllMarketsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
-        fetchAllMarkets = ((IList<object>)fetchAllMarketsparametersVariable)[0];
+        fetchAllMarkets = isTrue(((IList<object>)fetchAllMarketsparametersVariable)[0]);
         parameters = ((IList<object>)fetchAllMarketsparametersVariable)[1];
-        if (isTrue(fetchAllMarkets))
+        if ((fetchAllMarkets == true))
         {
             Dictionary<string, object> instrumentsResponse = await this.publicGetGetInstruments(parameters);
             ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
@@ -1830,11 +1830,11 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, sinceVar, limitVar,((string)timeframeVar), parameters, 5000));
         }
@@ -3799,13 +3799,13 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
         int maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         string eachItemDuration = "1h";
-        if (isTrue(paginate))
+        if (paginate)
         {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
             Dictionary<string, object> paginationParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -3937,11 +3937,11 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation", null));
         }

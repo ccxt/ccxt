@@ -1459,11 +1459,11 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        object executionFast = false;
+        bool executionFast = false;
         IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
-        executionFast = ((IList<object>)executionFastparametersVariable)[0];
+        executionFast = isTrue(((IList<object>)executionFastparametersVariable)[0]);
         parameters = ((IList<object>)executionFastparametersVariable)[1];
-        if (isTrue(executionFast))
+        if (executionFast)
         {
             topic = "execution.fast";
         }
@@ -1509,11 +1509,11 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        object executionFast = false;
+        bool executionFast = false;
         IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
-        executionFast = ((IList<object>)executionFastparametersVariable)[0];
+        executionFast = isTrue(((IList<object>)executionFastparametersVariable)[0]);
         parameters = ((IList<object>)executionFastparametersVariable)[1];
-        if (isTrue(executionFast))
+        if (executionFast)
         {
             topic = "execution.fast";
         }

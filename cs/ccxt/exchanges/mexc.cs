@@ -2181,11 +2181,11 @@ public partial class mexc : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = ((bool) ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,((string)timeframeVar), parameters, maxLimit));
         }

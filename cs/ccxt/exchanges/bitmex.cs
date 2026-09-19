@@ -1474,11 +1474,11 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, 100));
         }
@@ -1575,11 +1575,11 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
         }
@@ -2122,11 +2122,11 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,((string)timeframeVar), parameters));
         }
@@ -2153,15 +2153,15 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-        object useOpenTimestamp = null;
+        bool? useOpenTimestamp = null;
         IList<object> useOpenTimestampparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
-        useOpenTimestamp = ((IList<object>)useOpenTimestampparametersVariable)[0];
+        useOpenTimestamp = isTrue(((IList<object>)useOpenTimestampparametersVariable)[0]);
         parameters = ((IList<object>)useOpenTimestampparametersVariable)[1];
         // if since is not set, they will return candles starting from 2017-01-01
         if ((since != null))
         {
             object timestamp = since;
-            if (isTrue(useOpenTimestamp))
+            if ((useOpenTimestamp == true))
             {
                 timestamp = this.sum(timestamp, duration);
             }
@@ -2180,7 +2180,7 @@ public partial class bitmex : Exchange
         //     ]
         //
         IList<object> result = this.parseOHLCVs(this.toArray(response), market,((string)timeframeVar), since, limit);
-        if (isTrue(useOpenTimestamp))
+        if ((useOpenTimestamp == true))
         {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
@@ -2466,11 +2466,11 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters));
         }
@@ -3787,11 +3787,11 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, parameters));
         }

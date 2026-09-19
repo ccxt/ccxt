@@ -4450,7 +4450,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // `[x, y] = f()` prints element reads into untyped slots; accepted when the
             // assignment is an audited request builder whose element is cast back (see below)
             if (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-                if (!destructuredWriteIsCastable (csharp, index, declaration, n, parent.parent, csharpType)) {
+                if (!destructuredWriteIsCastable (csharp, scope, index, declaration, n, parent.parent, csharpType)) {
                     return false;
                 }
             }
@@ -6045,6 +6045,89 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handlePostOnly': 'bool',
 };
 
+// Tuple-returning `handle*AndParams` helpers whose element 0 is the caller's RAW params value
+// (`safeValue2 (params, …)` / `safeValue2 (this.options, …)` / the call's own `defaultValue`):
+// the box can be any JSON value, so no cast names it. When such an element feeds a local whose
+// EVERY read is a truthiness position, the emitted element write is rewritten to the isTrue
+// COERCION instead (installDestructuredCasts) — isTrue computes exactly the truthiness those
+// reads already applied to the raw box — and the local is then declared `bool` / `bool?`.
+// A cast would throw InvalidCastException on a non-bool value where the object local answered
+// truthily; the coercion cannot.
+export const DESTRUCTURED_BOOL_COERCION_HELPERS = [
+    'handleOptionAndParams',
+    'handleOptionAndParams2',
+];
+
+// the parent shapes a bool-coerced target may be READ in: every one of them prints through
+// printCondition, so the C# test is the same truthiness the raw box had. `!x` prints
+// `!isTrue(x)`, `x ?: ` prints `((bool) isTrue(x)) ? …`, `x || y` / `x && y` print both
+// operands through printCondition and `if (x)` / `while (x)` / `for (…; x; …)` likewise.
+function destructuredBoolReadIsTruthy (node) {
+    let current = node;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.IfStatement:
+    case ts.SyntaxKind.WhileStatement:
+    case ts.SyntaxKind.DoStatement:
+    case ts.SyntaxKind.ForStatement:
+        return parent.expression === current;
+    case ts.SyntaxKind.ConditionalExpression:
+        return parent.condition === current;
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        return (parent.operator === ts.SyntaxKind.ExclamationToken) && (parent.operand === current);
+    case ts.SyntaxKind.BinaryExpression: {
+        const op = parent.operatorToken.kind;
+        return ((op === ts.SyntaxKind.BarBarToken) || (op === ts.SyntaxKind.AmpersandAmpersandToken))
+            && ((parent.left === current) || (parent.right === current));
+    }
+    }
+    return false;
+}
+
+// every read of the target in its own function is a truthiness position (write positions are
+// vetted by the generic retype scan, which the caller runs around this proof)
+function destructuredBoolReadsAreTruthy (csharp, scope, index, declaration) {
+    const name = declaration.name.escapedText;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue; // another same-name binding
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            continue; // a plain write — the generic scan proves its value is bool
+        }
+        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            continue; // the destructuring write target itself
+        }
+        if (!destructuredBoolReadIsTruthy (n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// element 0 of an audited bool-coercion helper, read only in truthiness positions: the target
+// is declared bool (bool literal initializer) / bool? (null initializer + a Boolean annotation)
+// and its element write is rewritten to `x = isTrue(((IList<object>)tmp)[0]);`
+function destructuredBoolElementProof (csharp, scope, index, declaration, idNode, helper) {
+    if (!DESTRUCTURED_BOOL_COERCION_HELPERS.includes (helper)) {
+        return false;
+    }
+    if (idNode.parent?.elements?.[0] !== idNode) {
+        return false; // only slot 0 is the helper's value (slot 1 is the caller's params dict)
+    }
+    return destructuredBoolReadsAreTruthy (csharp, scope, index, declaration);
+}
+
 // scope (enclosing function node) -> Map<printed local name, proven C# type>, filled while the
 // declaration is printed and read while a destructuring assignment in the same scope is printed
 const destructuredWriteTypes = new WeakMap ();
@@ -6062,7 +6145,7 @@ export function recordDestructuredWriteType (scope, printedName, csharpType) {
 }
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
-function destructuredWriteIsCastable (csharp, index, declaration, idNode, assignment, csharpType) {
+function destructuredWriteIsCastable (csharp, scope, index, declaration, idNode, assignment, csharpType) {
     const right = assignment.right;
     if (right?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
@@ -6080,6 +6163,10 @@ function destructuredWriteIsCastable (csharp, index, declaration, idNode, assign
     } else if ((csharpType === 'string' || csharpType === 'string?') && destructuredStringElementProof (declaration, idNode, assignment, helper)) {
         // the null-initialised string family: element 0 of an audited helper (see
         // DESTRUCTURED_STRING_HELPERS) is a string or null, and the `(string)` cast names that box
+    } else if ((csharpType === 'bool' || csharpType === 'bool?') && destructuredBoolElementProof (csharp, scope, index, declaration, idNode, helper)) {
+        // the bool family: element 0 of an audited helper (DESTRUCTURED_BOOL_COERCION_HELPERS)
+        // is the raw user box, and the emitted write is rewritten to the isTrue coercion, which
+        // is the truthiness every read of the target already computed
     } else {
         // element 0 of an audited [value, params] helper: the helper's own C# local boxes the
         // target's declared type on every path, so the injected cast is an identity. The
@@ -6130,6 +6217,14 @@ function installDestructuredCasts (csharp) {
         if (types === undefined) {
             return printed;
         }
+        // the coercion is only the bool-coercion family's mechanism: element 0 of the
+        // cast-proven helpers (DESTRUCTURED_ELEMENT0_TYPES) really is the named box, so those
+        // keep their `(bool?)` / `(string?)` cast — only an audited bool-coercion helper takes
+        // the isTrue rewrite
+        const destructuredCallee = node.right?.expression;
+        const destructuredHelper = (destructuredCallee?.kind === ts.SyntaxKind.PropertyAccessExpression && destructuredCallee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+            ? destructuredCallee.name?.escapedText : undefined;
+        const boolCoercionHelper = DESTRUCTURED_BOOL_COERCION_HELPERS.includes (destructuredHelper);
         return printed.split ('\n').map ((line) => {
             const match = /^(\s*)([A-Za-z_][A-Za-z0-9_]*) = \(\(IList<object>\)([A-Za-z_][A-Za-z0-9_]*)\)\[(\d+)\](;?)$/.exec (line);
             const targetType = (match === null) ? undefined : types.get (match[2]);
@@ -6144,6 +6239,16 @@ function installDestructuredCasts (csharp) {
                     return line;
                 }
                 return match[1] + match[2] + ' = (string)((IList<object>)' + match[3] + ')[' + match[4] + ']' + match[5];
+            }
+            // the bool family: element 0 is the raw user box (any JSON value), so the write
+            // takes the isTrue coercion — exactly the truthiness every read of the target
+            // already computed (destructuredBoolReadsAreTruthy) — instead of a cast, which
+            // would throw on a non-bool box where the object local answered truthily
+            if ((targetType === 'bool' || targetType === 'bool?') && boolCoercionHelper) {
+                if (match[4] !== '0') {
+                    return line;
+                }
+                return match[1] + match[2] + ' = isTrue(((IList<object>)' + match[3] + ')[' + match[4] + '])' + match[5];
             }
             return match[1] + match[2] + ' = (' + targetType + ')((IList<object>)' + match[3] + ')[' + match[4] + ']' + match[5];
         }).join ('\n');

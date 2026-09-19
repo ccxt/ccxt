@@ -1456,11 +1456,11 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,((string)timeframeVar), parameters, defaultMaxLimit));
         }
@@ -1608,16 +1608,16 @@ public partial class pacifica : Exchange
         {
             market = this.market(symbol);
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
         string? userAddress = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchMyTrades", parameters);
         userAddress = (string)((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         int defaultLimit = 100; // Default max limit
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
@@ -2438,12 +2438,12 @@ public partial class pacifica : Exchange
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
         int defaultLimit = 100; // Default max limit
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
@@ -2733,12 +2733,12 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
         int defaultLimit = 100; // max default 100
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
@@ -3502,16 +3502,16 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
         string? userAddress = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchLedger", parameters);
         userAddress = (string)((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         int defaultLimit = 100; // Default max limit
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
@@ -3624,9 +3624,9 @@ public partial class pacifica : Exchange
         {
             market = this.market(symbol);
         }
-        object paginate = false;
+        bool paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
         string? userAddress = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchFundingHistory", parameters);
@@ -3640,7 +3640,7 @@ public partial class pacifica : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         int defaultLimit = 100;
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
