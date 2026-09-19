@@ -4421,7 +4421,7 @@ public class Binance extends BinanceApi
         {
             if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
             {
-                Object market = Helpers.GetValue(this.markets, symbol);
+                Object market = (this.markets == null ? null : ((Map<?, ?>)this.markets).get(symbol));
                 // begin diff
                 if (Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
                 {
@@ -4429,7 +4429,7 @@ public class Binance extends BinanceApi
                     Object futuresSymbol = Helpers.add((symbol + ":"), settle);
                     if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(futuresSymbol)))
                     {
-                        return Helpers.GetValue(this.markets, futuresSymbol);
+                        return (this.markets == null ? null : ((Map<?, ?>)this.markets).get(futuresSymbol));
                     }
                 } else
                 {
@@ -4471,7 +4471,7 @@ public class Binance extends BinanceApi
                     String futuresSymbol = ((symbol + ":") + settle);
                     if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(futuresSymbol)))
                     {
-                        return Helpers.GetValue(this.markets, futuresSymbol);
+                        return (this.markets == null ? null : ((Map<?, ?>)this.markets).get(futuresSymbol));
                     }
                 }
             } else if ((Helpers.isGreaterThan(((String)symbol).indexOf("-C"), -1)) || (Helpers.isGreaterThan(((String)symbol).indexOf("-P"), -1)))
@@ -14427,7 +14427,7 @@ public class Binance extends BinanceApi
                         String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                         ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
                     }
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "leverageBrackets"), symbol, result);
+                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("leverageBrackets")), symbol, result);
                 }
             }
             return ((Map<String, Object>)this.options).get("leverageBrackets");

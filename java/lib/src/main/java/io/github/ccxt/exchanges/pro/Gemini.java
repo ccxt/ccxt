@@ -423,7 +423,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
         Object changesLength = ((List<?>)changes).size();
@@ -504,7 +504,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         for (var i = 0; i < ((List<?>)changes).size(); i++)
         {
             Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
@@ -708,7 +708,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
         for (var i = 0; i < Helpers.getArrayLength(rawOrderBookChanges); i++)
@@ -1147,9 +1147,9 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 put( "X-GEMINI-PAYLOAD", b64 );
                 put( "X-GEMINI-SIGNATURE", signature );
             }};
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers", headers);
+            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
             this.client(url);
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers", originalHeaders);
+            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
             return null;
         });
 

@@ -12793,9 +12793,9 @@ public Object describe()
                 }
                 if ((!java.util.Objects.equals(this.ohlcvs, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
                 {
-                    if (((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(timeframe))
+                    if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe))
                     {
-                        ((Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove(timeframe);
+                        ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove(timeframe);
                     }
                 }
             }

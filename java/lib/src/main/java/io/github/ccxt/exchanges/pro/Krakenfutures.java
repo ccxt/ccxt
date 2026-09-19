@@ -1453,7 +1453,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long limit = this.safeInteger(subscription, "limit");
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> bids = (List<Object>) this.safeList(message, "bids");
         if (java.util.Objects.equals(bids, null))
         {
@@ -1503,7 +1503,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String side = this.safeString(message, "side");
         Double price = this.safeNumber(message, "price");
         Double qty = this.safeNumber(message, "qty");
@@ -1694,7 +1694,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
             }
             Helpers.addElementToObject(this.balance, "cash", holdingResult);
-            Helpers.addElementToObject(this.balance, "cash", this.safeBalance(Helpers.GetValue(this.balance, "cash")));
+            Helpers.addElementToObject(this.balance, "cash", this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash"))));
             client.resolve(holdingResult, messageHash);
         }
         if (!java.util.Objects.equals(futures, null))
@@ -1723,8 +1723,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
             }
             Helpers.addElementToObject(this.balance, "margin", futuresResult);
-            Helpers.addElementToObject(this.balance, "margin", this.safeBalance(Helpers.GetValue(this.balance, "margin")));
-            client.resolve(Helpers.GetValue(this.balance, "margin"), (messageHash + "futures"));
+            Helpers.addElementToObject(this.balance, "margin", this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin"))));
+            client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), (messageHash + "futures"));
         }
         if (!java.util.Objects.equals(flexFutures, null))
         {
@@ -1750,8 +1750,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
             }
             Helpers.addElementToObject(this.balance, "flex", flexFuturesResult);
-            Helpers.addElementToObject(this.balance, "flex", this.safeBalance(Helpers.GetValue(this.balance, "flex")));
-            client.resolve(Helpers.GetValue(this.balance, "flex"), (messageHash + "flex_futures"));
+            Helpers.addElementToObject(this.balance, "flex", this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex"))));
+            client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), (messageHash + "flex_futures"));
         }
         client.resolve(this.balance, messageHash);
     }

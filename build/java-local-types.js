@@ -1689,10 +1689,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
         const readType = wsMapReadType (initializer);
         if (readType !== undefined) {
-            // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key);
-            // `this.safeValue*(this.<map>, key)` prints itself
+            // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key), or the native
+            // `((java.util.Map<?, ?>)this.<map>).get(key)` shape when the field is one of
+            // javaTranspiler's JAVA_FIELD_TYPES; `this.safeValue*(this.<map>, key)` prints itself
             const prefixes = ts.isElementAccessExpression (initializer)
-                ? [ 'Helpers.' ] : [ 'this.' ];
+                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
         }
         if (/^messageHash\d*$/.test (declaration.name.escapedText)
@@ -3973,7 +3974,10 @@ export function installJavaLocalTypes (transpiler) {
         if (info.anyValueShape !== true) {
             const prefixes = info.valuePrefixes !== undefined ? info.valuePrefixes
                 : [ info.valuePrefix === undefined ? 'this.' : info.valuePrefix ];
-            if (!prefixes.some ((prefix) => value.startsWith (prefix))) {
+            // the guarded native field read (javaTranspiler JAVA_FIELD_TYPES) wraps the
+            // accessor in a null test, so it matches no prefix but is still the ws map read
+            const nativeFieldRead = /\(\(java\.util\.Map<\?, \?>\)this\.|\(\(Map<\?, \?>\)this\./;
+            if (!prefixes.some ((prefix) => value.startsWith (prefix)) && !nativeFieldRead.test (value)) {
                 return printed; // unexpected shape — leave it as the printer emitted it
             }
         }
@@ -4021,8 +4025,8 @@ export function installJavaLocalTypes (transpiler) {
             }
             const head = at + marker.length;
             const rest = printed.slice (head);
-            if (rest.startsWith ('(')) {
-                return printed; // already cast (never expected for a ws read)
+            if (rest.startsWith ('(' + javaType + ')')) {
+                return printed; // already cast
             }
             return printed.slice (0, head) + '(' + javaType + ') ' + printed.slice (head);
         }

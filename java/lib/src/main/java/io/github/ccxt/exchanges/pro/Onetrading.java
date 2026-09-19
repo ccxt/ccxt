@@ -1332,7 +1332,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         client.resolve(stored, channel);
     }

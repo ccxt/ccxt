@@ -1830,12 +1830,12 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(message, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -2167,7 +2167,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
         String messageHash = ("orderbook:" + symbol);
         String maxTimestamp = this.safeString(orderbook, "maxTimestamp");
         String lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
@@ -2321,9 +2321,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
             String timeframe = this.safeString(parts, 1);
             String symbol = this.safeString(parts, 2);
-            if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)) && (((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(timeframe)))
+            if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)) && (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
             {
-                ((Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)timeframe);
+                ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
             }
         } else if (Helpers.isEqual(((String)messageHash).indexOf("ticker:"), 0))
         {

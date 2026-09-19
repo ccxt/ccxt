@@ -239,7 +239,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String type = this.safeString(message, "type", "");
         if (java.util.Objects.equals(type, "subscribed/order_book"))
         {
@@ -1360,7 +1360,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         ((Map<String, Object>)balance).put("datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.balance, type, this.safeBalance(balance));
         Object messageHash = this.getMessageHash("balances", null, type);
-        client.resolve(Helpers.GetValue(this.balance, type), messageHash);
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
         return true;
     }
 
@@ -1460,7 +1460,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
         return this.numberToString(newValue);
     }
 

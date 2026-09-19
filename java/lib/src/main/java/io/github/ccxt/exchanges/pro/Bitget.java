@@ -812,7 +812,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1112,7 +1112,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Helpers.addElementToObject(ob, "symbol", symbol);
                 Helpers.addElementToObject(this.orderbooks, symbol, ob);
             }
-            io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             List<Object> asks = (List<Object>) this.safeList2(rawOrderBook, "asks", "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList2(rawOrderBook, "bids", "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
@@ -1176,7 +1176,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsedOrderbook});
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         }
-        client.resolve(Helpers.GetValue(this.orderbooks, symbol), messageHash);
+        client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
     public CompletableFuture<Object> handleCheckSumError(Client client, Object symbol, Object messageHash)
@@ -2882,7 +2882,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     Object account = this.account();
                     if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
                     {
-                        account = Helpers.GetValue(this.balance, code);
+                        account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
                     }
                     String borrow = this.safeString(entry, "borrow");
                     String debts = this.safeString(entry, "debts");
@@ -2905,7 +2905,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Object account = this.account();
                 if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
                 {
-                    account = Helpers.GetValue(this.balance, code);
+                    account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
                 }
                 String borrow = this.safeString(rawBalance, "borrow");
                 if (!java.util.Objects.equals(borrow, null))
@@ -3455,9 +3455,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         if (((Map<?, ?>)this.ohlcvs).containsKey(symbol))
         {
-            if ((!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(timeframe)))
+            if ((!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
             {
-                ((Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)timeframe);
+                ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
             }
         }
         this.cleanUnsubscription(client, subMessageHash, messageHash);

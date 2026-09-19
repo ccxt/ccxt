@@ -729,7 +729,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, 1000));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(full, true))
         {
             Object snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
@@ -1401,7 +1401,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
                 }
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -1414,7 +1414,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object timeframe = Helpers.GetValue(marketIds, symbol);
             Object interval = this.findTimeframe(timeframe);
             String hash = ((Helpers.add(("candles" + ":"), interval) + ":") + symbol);
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), interval);
+            Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), interval);
             client.resolve(stored, hash);
         }
     }

@@ -417,7 +417,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
@@ -1162,13 +1162,13 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        if (!(((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(timeframe)))
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        Object ohlcv = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object ohlcv = Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         Object parsed = this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
         String messageHash = ((Helpers.add("candles:", timeframe) + ":") + symbol);
@@ -1396,11 +1396,11 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             Helpers.addElementToObject(this.balance, account, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "info", info);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "timestamp", timestamp);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.balance, account, this.safeBalance(Helpers.GetValue(this.balance, account)));
-        client.resolve(Helpers.GetValue(this.balance, account), messageHash);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "info", info);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "timestamp", timestamp);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject(this.balance, account, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account))));
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), messageHash);
     }
 
     public void parseWsBalance(Object balance, Object... optionalArgs)
@@ -1459,7 +1459,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
             }
         } else
         {
@@ -1952,9 +1952,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (((Map<?, ?>)this.ohlcvs).containsKey(symbol))
         {
-            if (((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(((String)timeframe)))
+            if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe)))
             {
-                ((Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)((String)timeframe));
+                ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)((String)timeframe));
             }
         }
     }

@@ -2255,7 +2255,7 @@ public class Kraken extends KrakenApi
             put( "baseId", baseId );
             put( "quoteId", quoteId );
         }};
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "delistedMarketsById"), id, market);
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("delistedMarketsById")), id, market);
         return market;
     }
 

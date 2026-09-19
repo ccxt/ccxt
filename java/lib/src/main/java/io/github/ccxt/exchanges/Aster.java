@@ -5044,7 +5044,7 @@ public class Aster extends AsterApi
                         String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                         ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
                     }
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "leverageBrackets"), symbol, result);
+                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("leverageBrackets")), symbol, result);
                 }
             }
             return ((Map<String, Object>)this.options).get("leverageBrackets");

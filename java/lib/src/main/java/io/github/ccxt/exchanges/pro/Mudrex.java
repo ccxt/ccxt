@@ -279,7 +279,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(tf, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), tf, stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), tf, stored);
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});

@@ -302,7 +302,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "ts");
         String action = this.safeString(message, "action");
         if (java.util.Objects.equals(action, "snapshot"))
@@ -592,12 +592,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Object interval = Helpers.replace(channelName, (String)"candle", (String)"");
         Object unifiedTimeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe);
+        Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -665,7 +665,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
         Helpers.addElementToObject(this.balance, marketType, this.parseWsBalance(message));
         String messageHash = (marketType + ":balance");
-        client.resolve(Helpers.GetValue(this.balance, marketType), messageHash);
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), messageHash);
     }
 
     public Object parseWsBalance(Object message)

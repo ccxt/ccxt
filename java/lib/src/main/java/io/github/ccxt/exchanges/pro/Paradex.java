@@ -197,7 +197,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data);
+        Object parsedTrade = this.parseTrade(data);
         Object symbol = ((Map<String, Object>)parsedTrade).get("symbol");
         String messageHash = this.safeString(parameters, "channel");
         Object stored = this.safeValue(this.trades, symbol);
@@ -308,8 +308,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 ((List<Object>)((Map<String, Object>)orderbookData).get("asks")).add(new ArrayList<Object>(Arrays.asList(price, size)));
             }
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        Object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = this.safeString(parameters, "channel");
@@ -494,7 +494,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data);
+        Object parsed = this.parseOrder(data);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -544,7 +544,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
+        Object ticker = this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
         client.resolve(ticker, messageHash);

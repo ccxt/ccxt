@@ -357,7 +357,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         // upbit always returns a snapshot of 15 topmost entries
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update

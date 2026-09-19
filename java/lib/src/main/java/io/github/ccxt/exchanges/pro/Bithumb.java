@@ -561,7 +561,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 Helpers.addElementToObject(ob, "symbol", legacySymbol);
                 Helpers.addElementToObject(this.orderbooks, legacySymbol, ob);
             }
-            io.github.ccxt.ws.WsOrderBook legacyOrderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, legacySymbol);
+            io.github.ccxt.ws.WsOrderBook legacyOrderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(legacySymbol);
             this.handleDeltas(legacyOrderbook, list);
             Helpers.addElementToObject(legacyOrderbook, "timestamp", legacyTimestamp);
             Helpers.addElementToObject(legacyOrderbook, "datetime", this.iso8601(legacyTimestamp));
@@ -582,7 +582,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");

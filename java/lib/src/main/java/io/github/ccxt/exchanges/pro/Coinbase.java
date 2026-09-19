@@ -1186,11 +1186,11 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) && java.util.Objects.equals(Helpers.GetValue(this.orderbooks, symbol), null))
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) && java.util.Objects.equals(((Map<?, ?>)this.orderbooks).get(symbol), null))
             {
                 continue;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             this.handleOrderBookHelper(orderbook, updates);
             Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
             Helpers.addElementToObject(orderbook, "datetime", datetime);

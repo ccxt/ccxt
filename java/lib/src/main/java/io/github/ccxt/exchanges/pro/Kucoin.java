@@ -1299,12 +1299,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = Helpers.add((("candles:" + symbol) + ":"), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
         Boolean isContractMarket = (((String)topic).indexOf("contractMarket") >= 0);
         Object baseVolumeIndex = ((Boolean.TRUE.equals(isContractMarket))) ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
@@ -1342,12 +1342,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object timeframe = this.findTimeframe(interval);
         String messageHash = Helpers.add((("uta:candles:" + symbol) + ":"), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -2042,17 +2042,17 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
             } else
             {
-                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 Helpers.callDynamically(orderbook, "reset", new Object[]{});
             }
-            Helpers.addElementToObject(Helpers.GetValue(this.orderbooks, symbol), "symbol", symbol);
+            Helpers.addElementToObject(((Map<?, ?>)this.orderbooks).get(symbol), "symbol", symbol);
         } else
         {
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long nonce = this.safeInteger(orderbook, "nonce");
             Object deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
             if (java.util.Objects.equals(nonce, null))
@@ -2082,8 +2082,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return;
             }
         }
-        this.handleDelta(Helpers.GetValue(this.orderbooks, symbol), data);
-        client.resolve(Helpers.GetValue(this.orderbooks, symbol), messageHash);
+        this.handleDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
+        client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
     public void handleUtaOrderBook(Client client, Object message)
@@ -2115,7 +2115,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String depth = this.safeString(message, "dp");
         String messageHash = Helpers.add((("uta:orderbook:" + symbol) + ":depth:"), depth);
         if (java.util.Objects.equals(type, "snapshot"))
@@ -2148,8 +2148,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return;
             }
         }
-        this.handleDelta(Helpers.GetValue(this.orderbooks, symbol), data);
-        client.resolve(Helpers.GetValue(this.orderbooks, symbol), messageHash);
+        this.handleDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
+        client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
     public Object getCacheIndex(Object orderbook, Object cache)
@@ -3204,7 +3204,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
-                client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
+                client.resolve((type == null ? null : this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), Helpers.add(type, ":balance"));
             }
             return null;
         });
@@ -3300,10 +3300,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Helpers.addElementToObject(this.balance, uniformType, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, uniformType), "info", data);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "info", data);
         Long timestamp = (Long) this.safeInteger2(data, "time", "timestamp");
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, uniformType), "timestamp", timestamp);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, uniformType), "datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "timestamp", timestamp);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "datetime", this.iso8601(timestamp));
         String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         String used = this.safeString2(data, "hold", "holdBalance");
@@ -3317,11 +3317,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         ((Map<String, Object>)account).put("total", this.safeString(data, "total"));
         if ((!java.util.Objects.equals(uniformType, null)) && (!java.util.Objects.equals(code, null)))
         {
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, uniformType), code, account);
+            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), code, account);
         }
-        Helpers.addElementToObject(this.balance, uniformType, this.safeBalance(Helpers.GetValue(this.balance, uniformType)));
+        Helpers.addElementToObject(this.balance, uniformType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType))));
         String messageHash = (uniformType + ":balance");
-        client.resolve(Helpers.GetValue(this.balance, uniformType), messageHash);
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), messageHash);
     }
 
     public void handleUtaBalance(Client client, Object message)
@@ -3349,21 +3349,21 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "info", data);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
         Long timestamp = this.safeIntegerProduct(data, "U", 0.000001);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "timestamp", timestamp);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
         Object account = this.account();
         ((Map<String, Object>)account).put("free", this.safeString(data, "a"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "h"));
         ((Map<String, Object>)account).put("total", this.safeString(data, "b"));
         if ((!java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(code, null)))
         {
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
+            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
         }
-        Helpers.addElementToObject(this.balance, type, this.safeBalance(Helpers.GetValue(this.balance, type)));
+        Helpers.addElementToObject(this.balance, type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
         String messageHash = (type + ":balance");
-        client.resolve(Helpers.GetValue(this.balance, type), messageHash);
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
     }
 
     /**
@@ -4146,7 +4146,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 type = (type + "Futures");
             }
-            Helpers.addElementToObject(Helpers.GetValue(this.options, "urls"), type, null);
+            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("urls")), type, null);
         }
         this.handleErrors(1, "", client.url, "", new HashMap<String, Object>() {{}}, data, message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
         return false;

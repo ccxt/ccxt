@@ -167,13 +167,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
             }
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if (!(((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey("unknown")))
+            if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey("unknown")))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), "unknown", stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown", stored);
             }
-            Object ohlcv = ((Map<String, Object>)Helpers.GetValue(this.ohlcvs, symbol)).get("unknown");
+            Object ohlcv = ((Map<String, Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).get("unknown");
             Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
             client.resolve(ohlcv, messageHash);
         }
@@ -270,7 +270,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         if (java.util.Objects.equals(isSnapshot, true))

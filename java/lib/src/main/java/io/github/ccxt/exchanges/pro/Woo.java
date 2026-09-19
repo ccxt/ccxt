@@ -106,7 +106,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
         return newValue;
     }
 
@@ -289,7 +289,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 return;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(orderbook, "timestamp");
             if (java.util.Objects.equals(timestamp, null))
             {
@@ -327,7 +327,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Long limit = this.safeInteger(subscription, "limit", defaultLimit);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(message, "ts");
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -926,7 +926,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -1817,7 +1817,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
             {
-                account = Helpers.GetValue(this.balance, code);
+                account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
             }
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");

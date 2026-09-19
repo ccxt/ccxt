@@ -356,7 +356,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                     continue;
                 }
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
-                Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
+                Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
                 Object length = Helpers.getArrayLength(stored);
                 if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isEqual((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))
                 {
@@ -401,7 +401,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                         }
                     }
                 }
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
         String name = "SubscribeTicker";
@@ -416,7 +416,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                List<Object> stored = (List<Object>) this.safeList(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
+                List<Object> stored = (List<Object>) this.safeList(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
                 client.resolve(stored, messageHash);
             }
         }

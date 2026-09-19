@@ -144,7 +144,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> cookies = new HashMap<String, Object>() {{
                 put( "JWT_COOKIE", token );
             }};
-            Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "cookies", cookies);
+            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "cookies", cookies);
             Object id = String.valueOf(this.requestId());
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -406,7 +406,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Object bids = this.separateBidsOrAsks(this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
         Object asks = this.separateBidsOrAsks(this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
         Map<String, Object> snapshot = new HashMap<String, Object>() {{
@@ -819,15 +819,15 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             String code = this.safeCurrencyCode(assetId);
             if ((!java.util.Objects.equals(tradingAccountId, null)) && (!java.util.Objects.equals(code, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.balance, tradingAccountId), code, account);
+                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), code, account);
             }
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, tradingAccountId), "info", message);
-            Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance(Helpers.GetValue(this.balance, tradingAccountId)));
+            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
+            Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
         }
         Object messageHash = "balance";
         String tradingAccountIdHash = ("::" + tradingAccountId);
-        client.resolve(Helpers.GetValue(this.balance, tradingAccountId), messageHash);
-        client.resolve(Helpers.GetValue(this.balance, tradingAccountId), (messageHash + tradingAccountIdHash));
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), messageHash);
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), (messageHash + tradingAccountIdHash));
     }
 
     /**

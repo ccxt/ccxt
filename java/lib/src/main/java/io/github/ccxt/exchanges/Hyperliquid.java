@@ -419,7 +419,7 @@ public class Hyperliquid extends HyperliquidApi
                 Object newSymbol = Helpers.add(Helpers.add(this.safeCurrencyCode(unifiedBaseName), "/"), quote);
                 if (((Map<?, ?>)this.markets).containsKey(newSymbol))
                 {
-                    return Helpers.GetValue(this.markets, newSymbol);
+                    return (this.markets == null ? null : ((Map<?, ?>)this.markets).get(newSymbol));
                 }
             }
         }
@@ -537,7 +537,7 @@ public class Hyperliquid extends HyperliquidApi
         String id = this.safeString(rawCurrency, "index");
         String name = this.safeString(rawCurrency, "name");
         String code = this.safeCurrencyCode(name);
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), id, name);
+        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("cachedCurrenciesById")), id, name);
         final Object finalName = name;
         final Object finalCode = code;
         Map<String, Object> result = (Map<String, Object>) this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -579,7 +579,7 @@ public class Hyperliquid extends HyperliquidApi
                 String baseCode = this.safeCurrencyCode(nameWithoutU);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "spotCurrencyMapping"), code, baseCode);
+                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("spotCurrencyMapping")), code, baseCode);
                 }
             }
         }
@@ -753,7 +753,7 @@ public class Hyperliquid extends HyperliquidApi
                         // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                         String safeCode = this.safeCurrencyCode(name);
                         Object hip3Code = (((java.util.Objects.equals(safeCode, null)))) ? name : Helpers.replace((String)safeCode, (String)":", (String)"-");
-                        Helpers.addElementToObject(Helpers.GetValue(this.options, "hip3TokensByName"), name, new HashMap<String, Object>() {{
+                        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("hip3TokensByName")), name, new HashMap<String, Object>() {{
         put( "quote", collateralTokenCode );
         put( "code", hip3Code );
     }});

@@ -142,7 +142,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         } else
         {
-            orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
             if (java.util.Objects.equals(orderbook, null))
             {
                 return;
@@ -538,7 +538,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
             {
-                account = Helpers.GetValue(this.balance, code);
+                account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
             }
             String second = this.safeString(parts, 1);
             String freeOrTotal = (((java.util.Objects.equals(second, "available")))) ? "free" : "total";
