@@ -70,7 +70,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    requestId (url: any) {
+    requestId (url: string): number {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -78,7 +78,7 @@ export default class woofipro extends woofiproRest {
         return newValue;
     }
 
-    async watchPublic (messageHash: any, message: any) {
+    async watchPublic (messageHash: string, message: Dict): Promise<any> {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if (this.accountId !== undefined && this.accountId !== '') {
@@ -103,7 +103,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -119,7 +119,7 @@ export default class woofipro extends woofiproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -165,7 +165,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -181,7 +181,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -218,7 +218,7 @@ export default class woofipro extends woofiproRest {
         }, market);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@ticker",
@@ -257,7 +257,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -273,7 +273,7 @@ export default class woofipro extends woofiproRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message: any) {
+    handleTickers (client: Client, message: Dict): void {
         //
         //     {
         //         "topic":"tickers",
@@ -316,7 +316,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -332,7 +332,7 @@ export default class woofipro extends woofiproRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict): void {
         //
         //     {
         //       "topic": "bbos",
@@ -362,7 +362,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -391,7 +391,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -414,7 +414,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -472,7 +472,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -491,7 +491,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict): void {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -522,7 +522,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (trades, topic);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -597,7 +597,7 @@ export default class woofipro extends woofiproRest {
         }, market);
     }
 
-    handleAuth (client: Client, message: any) {
+    handleAuth (client: Client, message: Dict): void {
         //
         //     {
         //         "event": "auth",
@@ -621,7 +621,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const client = this.client (url);
@@ -652,7 +652,7 @@ export default class woofipro extends woofiproRest {
         return await future;
     }
 
-    async watchPrivate (messageHash: any, message: any, params = {}) {
+    async watchPrivate (messageHash: string, message: Dict, params: Dict = {}): Promise<any> {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -663,7 +663,7 @@ export default class woofipro extends woofiproRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchPrivateMultiple (messageHashes: any, message: any, params = {}) {
+    async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}): Promise<any> {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -687,7 +687,7 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -725,7 +725,7 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -750,7 +750,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -871,7 +871,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message: any) {
+    handleOrderUpdate (client: Client, message: Dict): void {
         //
         //     {
         //         "topic": "executionreport",
@@ -922,7 +922,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleOrder (client: Client, message: any, topic: any) {
+    handleOrder (client: Client, message: Dict, topic: any): void {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -954,7 +954,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict): void {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1011,7 +1011,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1051,7 +1051,7 @@ export default class woofipro extends woofiproRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, symbols: Strings = undefined): void {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1064,7 +1064,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1083,7 +1083,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict): void {
         //
         //    {
         //        "topic":"position",
@@ -1136,7 +1136,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1217,7 +1217,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1231,7 +1231,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPrivate (messageHash, message);
     }
 
-    handleBalance (client: any, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         //     {
         //         "topic":"balance",
@@ -1287,7 +1287,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
@@ -1319,7 +1319,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -1376,19 +1376,19 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: Dict): Promise<void> {
         await client.send ({ 'event': 'pong' });
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict): void {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         // { event: "pong", ts: 1614667590000 }
         //
@@ -1396,7 +1396,7 @@ export default class woofipro extends woofiproRest {
         return message;
     }
 
-    handleSubscribe (client: Client, message: any) {
+    handleSubscribe (client: Client, message: Dict): Dict {
         //
         //     {
         //         "id": "666888",
