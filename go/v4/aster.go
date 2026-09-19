@@ -4942,7 +4942,7 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
+func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
@@ -4969,7 +4969,7 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 		}
 	}
 	// as oppose to notionalValue
-	var usdm bool = (InOp(position, "notional"))
+	var usdm bool = (func() bool { _, ok := position["notional"]; return ok }())
 	var maintenanceMarginString *string = this.SafeString(position, "maintMargin")
 	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
 	var entryPriceString *string = this.SafeString(position, "entryPrice")

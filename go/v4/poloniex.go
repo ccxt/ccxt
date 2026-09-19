@@ -2259,7 +2259,7 @@ func (this *Poloniex) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseOpenOrders(orders any, market any, result any) any {
+func (this *Poloniex) ParseOpenOrders(orders any, market map[string]any, result any) any {
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = GetValue(orders, i)
 		var extended map[string]any = this.Extend(order, map[string]any{
