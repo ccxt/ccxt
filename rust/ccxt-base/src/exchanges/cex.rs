@@ -169,9 +169,9 @@ impl CexCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("cex".to_string()));
-        m.insert("name".to_string(), Value::Str("CEX.IO".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("GB".to_string()), Value::Str("EU".to_string()), Value::Str("CY".to_string()), Value::Str("RU".to_string())]));
+        m.insert("id".to_string(), Value::Str("cex".into()));
+        m.insert("name".to_string(), Value::Str("CEX.IO".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("GB".into()), Value::Str("EU".into()), Value::Str("CY".into()), Value::Str("RU".into())]));
         m.insert("rateLimit".to_string(), Value::Int(300));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
@@ -277,17 +277,17 @@ impl CexCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://trade.cex.io/api/spot/rest-public".to_string()));
-        m.insert("private".to_string(), Value::Str("https://trade.cex.io/api/spot/rest".to_string()));
+        m.insert("public".to_string(), Value::Str("https://trade.cex.io/api/spot/rest-public".into()));
+        m.insert("private".to_string(), Value::Str("https://trade.cex.io/api/spot/rest".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://cex.io".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://trade.cex.io/docs/".to_string()));
-        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://cex.io/fee-schedule".to_string()), Value::Str("https://cex.io/limits-commissions".to_string())]));
-        m.insert("referral".to_string(), Value::Str("https://cex.io/r/0/up105393824/0/".to_string()));
+        m.insert("www".to_string(), Value::Str("https://cex.io".into()));
+        m.insert("doc".to_string(), Value::Str("https://trade.cex.io/docs/".into()));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://cex.io/fee-schedule".into()), Value::Str("https://cex.io/limits-commissions".into())]));
+        m.insert("referral".to_string(), Value::Str("https://cex.io/r/0/up105393824/0/".into()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -549,75 +549,75 @@ impl CexCore {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("You have negative balance on following accounts".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("Mandatory parameter side should be one of BUY,SELL".to_string(), Value::Str("BadRequest".to_string()));
-        m.insert("API orders from Main account are not allowed".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("check failed".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("Get deposit address for main account is not allowed".to_string(), Value::Str("PermissionDenied".to_string()).clone());
-        m.insert("Market Trigger orders are not allowed".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("key not passed or incorrect".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("API rate limit reached".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("You have negative balance on following accounts".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("Mandatory parameter side should be one of BUY,SELL".to_string(), Value::Str("BadRequest".into()));
+        m.insert("API orders from Main account are not allowed".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("check failed".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("Get deposit address for main account is not allowed".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("Market Trigger orders are not allowed".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("key not passed or incorrect".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("API rate limit reached".to_string(), Value::Str("RateLimitExceeded".into()).clone());
     m
 }));
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1m".to_string(), Value::Str("1m".to_string()));
-        m.insert("5m".to_string(), Value::Str("5m".to_string()));
-        m.insert("15m".to_string(), Value::Str("15m".to_string()));
-        m.insert("30m".to_string(), Value::Str("30m".to_string()));
-        m.insert("1h".to_string(), Value::Str("1h".to_string()));
-        m.insert("2h".to_string(), Value::Str("2h".to_string()));
-        m.insert("4h".to_string(), Value::Str("4h".to_string()));
-        m.insert("1d".to_string(), Value::Str("1d".to_string()));
+        m.insert("1m".to_string(), Value::Str("1m".into()));
+        m.insert("5m".to_string(), Value::Str("5m".into()));
+        m.insert("15m".to_string(), Value::Str("15m".into()));
+        m.insert("30m".to_string(), Value::Str("30m".into()));
+        m.insert("1h".to_string(), Value::Str("1h".into()));
+        m.insert("2h".to_string(), Value::Str("2h".into()));
+        m.insert("4h".to_string(), Value::Str("4h".into()));
+        m.insert("1d".to_string(), Value::Str("1d".into()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("BTC".to_string(), Value::Str("bitcoin".to_string()));
-        m.insert("ERC20".to_string(), Value::Str("ERC20".to_string()));
-        m.insert("BSC20".to_string(), Value::Str("binancesmartchain".to_string()));
-        m.insert("DOGE".to_string(), Value::Str("dogecoin".to_string()));
-        m.insert("ALGO".to_string(), Value::Str("algorand".to_string()));
-        m.insert("XLM".to_string(), Value::Str("stellar".to_string()));
-        m.insert("ATOM".to_string(), Value::Str("cosmos".to_string()));
-        m.insert("LTC".to_string(), Value::Str("litecoin".to_string()));
-        m.insert("XRP".to_string(), Value::Str("ripple".to_string()));
-        m.insert("FTM".to_string(), Value::Str("fantom".to_string()));
-        m.insert("MINA".to_string(), Value::Str("mina".to_string()));
-        m.insert("THETA".to_string(), Value::Str("theta".to_string()));
-        m.insert("XTZ".to_string(), Value::Str("tezos".to_string()));
-        m.insert("TIA".to_string(), Value::Str("celestia".to_string()));
-        m.insert("CRONOS".to_string(), Value::Str("cronos".to_string()));
-        m.insert("MATIC".to_string(), Value::Str("polygon".to_string()));
-        m.insert("TON".to_string(), Value::Str("ton".to_string()));
-        m.insert("TRC20".to_string(), Value::Str("tron".to_string()));
-        m.insert("SOLANA".to_string(), Value::Str("solana".to_string()));
-        m.insert("SGB".to_string(), Value::Str("songbird".to_string()));
-        m.insert("DYDX".to_string(), Value::Str("dydx".to_string()));
-        m.insert("DASH".to_string(), Value::Str("dash".to_string()));
-        m.insert("ZIL".to_string(), Value::Str("zilliqa".to_string()));
-        m.insert("EOS".to_string(), Value::Str("eos".to_string()));
-        m.insert("AVALANCHEC".to_string(), Value::Str("avalanche".to_string()));
-        m.insert("ETHPOW".to_string(), Value::Str("ethereumpow".to_string()));
-        m.insert("NEAR".to_string(), Value::Str("near".to_string()));
-        m.insert("ARBITRUM".to_string(), Value::Str("arbitrum".to_string()));
-        m.insert("DOT".to_string(), Value::Str("polkadot".to_string()));
-        m.insert("OPT".to_string(), Value::Str("optimism".to_string()));
-        m.insert("INJ".to_string(), Value::Str("injective".to_string()));
-        m.insert("ADA".to_string(), Value::Str("cardano".to_string()));
-        m.insert("ONT".to_string(), Value::Str("ontology".to_string()));
-        m.insert("ICP".to_string(), Value::Str("icp".to_string()));
-        m.insert("KAVA".to_string(), Value::Str("kava".to_string()));
-        m.insert("KSM".to_string(), Value::Str("kusama".to_string()));
-        m.insert("SEI".to_string(), Value::Str("sei".to_string()));
-        m.insert("NEO".to_string(), Value::Str("neo".to_string()));
-        m.insert("NEO3".to_string(), Value::Str("neo3".to_string()));
-        m.insert("XDC".to_string(), Value::Str("xdc".to_string()));
+        m.insert("BTC".to_string(), Value::Str("bitcoin".into()));
+        m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
+        m.insert("BSC20".to_string(), Value::Str("binancesmartchain".into()));
+        m.insert("DOGE".to_string(), Value::Str("dogecoin".into()));
+        m.insert("ALGO".to_string(), Value::Str("algorand".into()));
+        m.insert("XLM".to_string(), Value::Str("stellar".into()));
+        m.insert("ATOM".to_string(), Value::Str("cosmos".into()));
+        m.insert("LTC".to_string(), Value::Str("litecoin".into()));
+        m.insert("XRP".to_string(), Value::Str("ripple".into()));
+        m.insert("FTM".to_string(), Value::Str("fantom".into()));
+        m.insert("MINA".to_string(), Value::Str("mina".into()));
+        m.insert("THETA".to_string(), Value::Str("theta".into()));
+        m.insert("XTZ".to_string(), Value::Str("tezos".into()));
+        m.insert("TIA".to_string(), Value::Str("celestia".into()));
+        m.insert("CRONOS".to_string(), Value::Str("cronos".into()));
+        m.insert("MATIC".to_string(), Value::Str("polygon".into()));
+        m.insert("TON".to_string(), Value::Str("ton".into()));
+        m.insert("TRC20".to_string(), Value::Str("tron".into()));
+        m.insert("SOLANA".to_string(), Value::Str("solana".into()));
+        m.insert("SGB".to_string(), Value::Str("songbird".into()));
+        m.insert("DYDX".to_string(), Value::Str("dydx".into()));
+        m.insert("DASH".to_string(), Value::Str("dash".into()));
+        m.insert("ZIL".to_string(), Value::Str("zilliqa".into()));
+        m.insert("EOS".to_string(), Value::Str("eos".into()));
+        m.insert("AVALANCHEC".to_string(), Value::Str("avalanche".into()));
+        m.insert("ETHPOW".to_string(), Value::Str("ethereumpow".into()));
+        m.insert("NEAR".to_string(), Value::Str("near".into()));
+        m.insert("ARBITRUM".to_string(), Value::Str("arbitrum".into()));
+        m.insert("DOT".to_string(), Value::Str("polkadot".into()));
+        m.insert("OPT".to_string(), Value::Str("optimism".into()));
+        m.insert("INJ".to_string(), Value::Str("injective".into()));
+        m.insert("ADA".to_string(), Value::Str("cardano".into()));
+        m.insert("ONT".to_string(), Value::Str("ontology".into()));
+        m.insert("ICP".to_string(), Value::Str("icp".into()));
+        m.insert("KAVA".to_string(), Value::Str("kava".into()));
+        m.insert("KSM".to_string(), Value::Str("kusama".into()));
+        m.insert("SEI".to_string(), Value::Str("sei".into()));
+        m.insert("NEO".to_string(), Value::Str("neo".into()));
+        m.insert("NEO3".to_string(), Value::Str("neo3".into()));
+        m.insert("XDC".to_string(), Value::Str("xdc".into()));
     m
 }));
     m
@@ -680,12 +680,12 @@ impl CexCore {
         //            ...
         //
         let mut responses: Value = promise_all(&promises).await;
-        let mut dataCurrencies: Value = self.safe_list(responses.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("data".to_string()), &[Value::from(vec![])]);
-        let mut dataNetworks: Value = self.safe_dict(responses.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str("data".to_string()), &[Value::Map({
+        let mut dataCurrencies: Value = self.safe_list(responses.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]);
+        let mut dataNetworks: Value = self.safe_dict(responses.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currenciesIndexed: Value = self.index_by(dataCurrencies.clone(), Value::Str("currency".to_string()));
+        let mut currenciesIndexed: Value = self.index_by(dataCurrencies.clone(), Value::Str("currency".into()));
         let mut data: Value = self.deep_extend(currenciesIndexed.clone(), &[dataNetworks.clone()]);
         return self.parse_currencies(self.to_array(data.clone()));
 
@@ -696,7 +696,7 @@ impl CexCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "fiat", &[]).as_bool() == Some(true);
-        let mut type_var: Value = (if isFiat { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
+        let mut type_var: Value = (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) });
         let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -832,8 +832,8 @@ impl CexCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".to_string()))), quote)); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
+        let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".into())).into()), quote).into()); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -844,7 +844,7 @@ impl CexCore {
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
@@ -1084,7 +1084,7 @@ impl CexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("fromDateISO".to_string(), self.iso8601(since.clone())); }
         }
         let mut until: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("toDateISO".to_string(), self.iso8601(until.clone())); }
         }
@@ -1144,7 +1144,7 @@ impl CexCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "amount", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -1224,7 +1224,7 @@ impl CexCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -1232,9 +1232,9 @@ impl CexCore {
     m
 }));
         let mut dataType: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("dataType".to_string()), &[]); dataType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("dataType".into()), &[]); dataType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (dataType == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1251,7 +1251,7 @@ impl CexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("fromISO".to_string(), self.iso8601(since.clone())); }
         }
         let mut until: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("toISO".to_string(), self.iso8601(until.clone())); }
         }  else if (since == Value::Null) {
@@ -1259,9 +1259,9 @@ impl CexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("toISO".to_string(), self.iso8601(self.milliseconds())); }
         }
         if (since != Value::Null) && (until != Value::Null) && (limit != Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".into()))));
         }  else if is_true(&((since != Value::Null) || (until != Value::Null))) && (limit == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".into()))));
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
@@ -1467,9 +1467,9 @@ impl CexCore {
     m
 }));
         let mut accountName: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("account".to_string()), &[Value::Str("".to_string())]); accountName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default is empty string
+        { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("account".into()), &[Value::Str("".into())]); accountName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default is empty string
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("method".to_string()), &[Value::Str("privatePostGetMyWalletBalance".to_string())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("method".into()), &[Value::Str("privatePostGetMyWalletBalance".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut accountBalance: Value = Value::Null;
         if (method.as_str() == Some("privatePostGetMyAccountStatusV3")) {
             let mut response: Value = self.private_post_get_my_account_status_v3(&[params.clone()]).await;
@@ -1603,7 +1603,7 @@ impl CexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("serverCreateTimestampFrom".to_string(), (match (&(self.milliseconds()), &((match (&((match (&((match (&((match (&(Value::Int(364)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         }
         let mut until: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("serverCreateTimestampTo".to_string(), until.clone()); }
         }
@@ -1674,7 +1674,7 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_status(Value::Str("closed".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+        return self.fetch_orders_by_status(Value::Str("closed".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1698,7 +1698,7 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_status(Value::Str("open".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+        return self.fetch_orders_by_status(Value::Str("open".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1768,14 +1768,14 @@ impl CexCore {
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("PENDING_NEW".to_string(), Value::Str("open".to_string()));
-                m.insert("NEW".to_string(), Value::Str("open".to_string()));
-                m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".to_string()));
-                m.insert("FILLED".to_string(), Value::Str("closed".to_string()));
-                m.insert("EXPIRED".to_string(), Value::Str("expired".to_string()));
-                m.insert("REJECTED".to_string(), Value::Str("rejected".to_string()));
-                m.insert("PENDING_CANCEL".to_string(), Value::Str("canceling".to_string()));
-                m.insert("CANCELLED".to_string(), Value::Str("canceled".to_string()));
+                m.insert("PENDING_NEW".to_string(), Value::Str("open".into()));
+                m.insert("NEW".to_string(), Value::Str("open".into()));
+                m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".into()));
+                m.insert("FILLED".to_string(), Value::Str("closed".into()));
+                m.insert("EXPIRED".to_string(), Value::Str("expired".into()));
+                m.insert("REJECTED".to_string(), Value::Str("rejected".into()));
+                m.insert("PENDING_CANCEL".to_string(), Value::Str("canceling".into()));
+                m.insert("CANCELLED".to_string(), Value::Str("canceled".into()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -1821,7 +1821,7 @@ impl CexCore {
         let mut currency2: Value = self.safe_string_k(order.clone(), "currency2", &[]);
         let mut marketId: Value = Value::Null;
         if (currency1 != Value::Null) && (currency2 != Value::Null) {
-            marketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency1, Value::Str("-".to_string()))), currency2));
+            marketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency1, Value::Str("-".into())).into()), currency2).into());
         }
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1851,10 +1851,10 @@ impl CexCore {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "lastUpdateTimestamp", &[]));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("orderType".to_string()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("orderType".into()), &[]));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]));
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));
         m.insert("amount".to_string(), requestedBase.clone());
@@ -1894,16 +1894,16 @@ impl CexCore {
     m
 }));
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("accountId".to_string()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1918,15 +1918,15 @@ impl CexCore {
             m
         });
         let mut timeInForce: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("timeInForce".to_string()), &[Value::Str("GTC".to_string())]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() == Some("limit")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), timeInForce.clone()); }
         }
         let mut triggerPrice: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("triggerPrice".to_string()), &[]); triggerPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("triggerPrice".into()), &[]); triggerPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("Stop Limit".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("Stop Limit".into())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), triggerPrice.clone()); }
         }
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
@@ -2010,7 +2010,7 @@ impl CexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
-                m.insert("cancelRequestId".to_string(), Value::Str(format!("{}{}", Value::Str("c_".to_string()), to_string_val(&(self.milliseconds())))));
+                m.insert("cancelRequestId".to_string(), Value::Str(format!("{}{}", Value::Str("c_".into()), to_string_val(&(self.milliseconds()))).into()));
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
@@ -2120,7 +2120,7 @@ impl CexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageSize".to_string(), limit.clone()); }
         }
         let mut until: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("dateTo".to_string(), until.clone()); }
         }
@@ -2151,11 +2151,11 @@ impl CexCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut amount: Value = self.safe_string_k(item.clone(), "amount", &[]);
         let mut direction: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringLe(&amount, &Value::Str("0".to_string()))) {
-            direction = Value::Str("out".to_string());
-            amount = crate::precise::Precise::stringMul(&Value::Str("-1".to_string()), &amount);
+        if is_true(&crate::precise::Precise::stringLe(&amount, &Value::Str("0".into()))) {
+            direction = Value::Str("out".into());
+            amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount);
         }  else {
-            direction = Value::Str("in".to_string());
+            direction = Value::Str("in".into());
         }
         let mut currencyId: Value = self.safe_string_k(item.clone(), "currency", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
@@ -2168,7 +2168,7 @@ impl CexCore {
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
         m.insert("direction".to_string(), direction.clone());
-        m.insert("account".to_string(), self.safe_string_k(item.clone(), "accountId", &[Value::Str("".to_string())]));
+        m.insert("account".to_string(), self.safe_string_k(item.clone(), "accountId", &[Value::Str("".into())]));
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone()));
@@ -2189,9 +2189,9 @@ impl CexCore {
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
         let mut ledgerType: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("deposit".to_string(), Value::Str("deposit".to_string()));
-                m.insert("withdraw".to_string(), Value::Str("withdrawal".to_string()));
-                m.insert("commission".to_string(), Value::Str("fee".to_string()));
+                m.insert("deposit".to_string(), Value::Str("deposit".into()));
+                m.insert("withdraw".to_string(), Value::Str("withdrawal".into()));
+                m.insert("commission".to_string(), Value::Str("fee".into()));
             m
         });
         return self.safe_string(ledgerType.clone(), type_var.clone(), &[type_var.clone()]);
@@ -2236,7 +2236,7 @@ impl CexCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageSize".to_string(), limit.clone()); }
         }
         let mut until: Value = Value::Null;
-        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_param_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("dateTo".to_string(), until.clone()); }
         }
@@ -2270,7 +2270,7 @@ impl CexCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut direction: Option<String> = self.safe_string_k(transaction.clone(), "direction", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if is_true(&(direction.as_deref() == Some("withdraw"))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut type_var: Value = (if is_true(&(direction.as_deref() == Some("withdraw"))) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut updatedAt: Value = self.safe_string_k(transaction.clone(), "updatedAt", &[]);
         let mut timestamp: Value = self.parse8601(updatedAt.clone());
@@ -2310,9 +2310,9 @@ impl CexCore {
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("rejected".to_string(), Value::Str("rejected".to_string()));
-                m.insert("pending".to_string(), Value::Str("pending".to_string()));
-                m.insert("approved".to_string(), Value::Str("ok".to_string()));
+                m.insert("rejected".to_string(), Value::Str("rejected".into()));
+                m.insert("pending".to_string(), Value::Str("pending".into()));
+                m.insert("approved".to_string(), Value::Str("ok".into()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -2343,10 +2343,10 @@ impl CexCore {
         }  else {
             transfer = self.transfer_between_main_and_sub_account(code.clone(), amount.clone(), fromAccount.clone(), toAccount.clone(), &[params.clone()]).await;
         }
-        let mut fillResponseFromRequest: Value = self.handle_option(Value::Str("transfer".to_string()), Value::Str("fillResponseFromRequest".to_string()), &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.handle_option(Value::Str("transfer".into()), Value::Str("fillResponseFromRequest".into()), &[Value::Bool(true)]);
         if is_equal(&fillResponseFromRequest, &Value::Bool(true)) {
-            add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
-            add_element_to_object(&mut transfer, &Value::Str("toAccount".to_string()), toAccount.clone());
+            add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount.clone());
+            add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount.clone());
         }
         return transfer;
 
@@ -2468,7 +2468,7 @@ impl CexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
-        m.insert("id".to_string(), self.safe_string2(transfer.clone(), Value::Str("transactionId".to_string()), Value::Str("clientTxId".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string2(transfer.clone(), Value::Str("transactionId".into()), Value::Str("clientTxId".into()), &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("currency".to_string(), currencyCode.clone());
@@ -2498,9 +2498,9 @@ impl CexCore {
     m
 }));
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("accountId".to_string()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2557,26 +2557,26 @@ impl CexCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
+        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("public")) {
             if (method.as_str() == Some("GET")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
             }  else {
                 body = json_stringify(&query);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                        m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
                 });
             }
@@ -2584,11 +2584,11 @@ impl CexCore {
             self.check_required_credentials(&[]);
             let mut seconds: Value = to_string_val(&self.seconds());
             body = json_stringify(&query);
-            let mut auth: Value = Value::Str(format!("{}{}", add(&path, &seconds), body));
-            let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
+            let mut auth: Value = Value::Str(format!("{}{}", add(&path, &seconds), body).into());
+            let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                    m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-AGGR-KEY".to_string(), self.apiKey.clone());
                     m.insert("X-AGGR-TIMESTAMP".to_string(), seconds.clone());
                     m.insert("X-AGGR-SIGNATURE".to_string(), signature.clone());
@@ -2613,17 +2613,17 @@ impl CexCore {
         // and because of `.parseJson` bug, we need extra fix
         if (response == Value::Null) {
             if (body == Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".to_string()))));
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".into()))));
             }  else if (get_value(&body, &Value::Int(0)).as_str() == Some("{")) {
                 let mut fixed: Value = self.fix_stringified_json_members(body.clone());
                 response = self.parse_json_value(fixed.clone());
             }  else {
-                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" returned unparsed response: ".to_string()))), body)));
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" returned unparsed response: ".into())).into()), body)));
             }
         }
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
         if (error != Value::Null) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -2637,7 +2637,7 @@ impl CexCore {
             let mut rejectReason: Value = self.safe_string_k(data.clone(), "rejectReason", &[]);
             if (rejectReason != Value::Null) {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), rejectReason.clone(), rejectReason.clone());
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".to_string()))), rejectReason)));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".into())).into()), rejectReason)));
             }
         }
         return Value::Null;

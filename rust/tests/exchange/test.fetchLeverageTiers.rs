@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLeverageTiers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLeverageTiers".to_string());
+    let mut method: Value = Value::Str("fetchLeverageTiers".into());
     let mut tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_leverage_tiers", vec![Value::from(vec![symbol.clone()])]).await;
     // const format = {
     //     'RAY/USDT': [
@@ -22,14 +22,14 @@ pub async fn testFetchLeverageTiers(mut exchange: Value, mut skippedProperties: 
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tierKeys.clone(), symbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1458: bool = true;
-        while { if !__for_first_1458 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1458 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tierKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_44: bool = true;
+        while { if !__for_first_44 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_44 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tierKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut tiersForSymbol: Value = get_value(&tiers, &get_value(&tierKeys, &i));
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiersForSymbol.clone(), symbol.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1457: bool = true;
-            while { if !__for_first_1457 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1457 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(tiersForSymbol.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_43: bool = true;
+            while { if !__for_first_43 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_43 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(tiersForSymbol.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&tiersForSymbol, &j));
         }
         }

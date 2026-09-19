@@ -154,10 +154,10 @@ impl CoinsphCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("coinsph".to_string()));
-        m.insert("name".to_string(), Value::Str("Coins.ph".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("PH".to_string())]));
-        m.insert("version".to_string(), Value::Str("v1".to_string()));
+        m.insert("id".to_string(), Value::Str("coinsph".into()));
+        m.insert("name".to_string(), Value::Str("Coins.ph".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("PH".into())]));
+        m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(false));
@@ -297,38 +297,38 @@ impl CoinsphCore {
 }));
         m.insert("timeframes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1m".to_string(), Value::Str("1m".to_string()));
-        m.insert("3m".to_string(), Value::Str("3m".to_string()));
-        m.insert("5m".to_string(), Value::Str("5m".to_string()));
-        m.insert("15m".to_string(), Value::Str("15m".to_string()));
-        m.insert("30m".to_string(), Value::Str("30m".to_string()));
-        m.insert("1h".to_string(), Value::Str("1h".to_string()));
-        m.insert("2h".to_string(), Value::Str("2h".to_string()));
-        m.insert("4h".to_string(), Value::Str("4h".to_string()));
-        m.insert("6h".to_string(), Value::Str("6h".to_string()));
-        m.insert("8h".to_string(), Value::Str("8h".to_string()));
-        m.insert("12h".to_string(), Value::Str("12h".to_string()));
-        m.insert("1d".to_string(), Value::Str("1d".to_string()));
-        m.insert("3d".to_string(), Value::Str("3d".to_string()));
-        m.insert("1w".to_string(), Value::Str("1w".to_string()));
-        m.insert("1M".to_string(), Value::Str("1M".to_string()));
+        m.insert("1m".to_string(), Value::Str("1m".into()));
+        m.insert("3m".to_string(), Value::Str("3m".into()));
+        m.insert("5m".to_string(), Value::Str("5m".into()));
+        m.insert("15m".to_string(), Value::Str("15m".into()));
+        m.insert("30m".to_string(), Value::Str("30m".into()));
+        m.insert("1h".to_string(), Value::Str("1h".into()));
+        m.insert("2h".to_string(), Value::Str("2h".into()));
+        m.insert("4h".to_string(), Value::Str("4h".into()));
+        m.insert("6h".to_string(), Value::Str("6h".into()));
+        m.insert("8h".to_string(), Value::Str("8h".into()));
+        m.insert("12h".to_string(), Value::Str("12h".into()));
+        m.insert("1d".to_string(), Value::Str("1d".into()));
+        m.insert("3d".to_string(), Value::Str("3d".into()));
+        m.insert("1w".to_string(), Value::Str("1w".into()));
+        m.insert("1M".to_string(), Value::Str("1M".into()));
     m
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/225719995-48ab2026-4ddb-496c-9da7-0d7566617c9b.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/225719995-48ab2026-4ddb-496c-9da7-0d7566617c9b.jpg".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://api.pro.coins.ph".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api.pro.coins.ph".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api.pro.coins.ph".into()));
+        m.insert("private".to_string(), Value::Str("https://api.pro.coins.ph".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://coins.ph/".to_string()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://coins-docs.github.io/rest-api".to_string())]));
-        m.insert("fees".to_string(), Value::Str("https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees".to_string()));
+        m.insert("www".to_string(), Value::Str("https://coins.ph/".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://coins-docs.github.io/rest-api".into())]));
+        m.insert("fees".to_string(), Value::Str("https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees".into()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::Str("https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001".to_string()));
+        m.insert("url".to_string(), Value::Str("https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001".into()));
         m.insert("discount".to_string(), Value::Float(0.2));
     m
 }));
@@ -777,15 +777,15 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("feeSide".to_string(), Value::Str("get".to_string()));
+        m.insert("feeSide".to_string(), Value::Str("get".into()));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.0025".to_string()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.003".to_string()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.0025".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.003".into()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0027".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0024".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000000".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0025".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0022".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.003".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0027".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]), self.parse_number(Value::Str("0.0024".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0018".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0.0015".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".into()), &[]), self.parse_number(Value::Str("0.0012".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000000".into()), &[]), self.parse_number(Value::Str("0.0009".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000000".into()), &[]), self.parse_number(Value::Str("0.0007".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000000".into()), &[]), self.parse_number(Value::Str("0.0005".into()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.0025".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0022".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]), self.parse_number(Value::Str("0.0018".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.0015".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0012".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0.001".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".into()), &[]), self.parse_number(Value::Str("0.0008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000000".into()), &[]), self.parse_number(Value::Str("0.0007".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000000".into()), &[]), self.parse_number(Value::Str("0.0006".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000000".into()), &[]), self.parse_number(Value::Str("0.0005".into()), &[])])]));
     m
 }));
     m
@@ -808,31 +808,31 @@ impl CoinsphCore {
 }));
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timeInForce".to_string(), Value::Str("GTC".to_string()));
+        m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
         m.insert("newOrderRespType".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("market".to_string(), Value::Str("FULL".to_string()));
-        m.insert("limit".to_string(), Value::Str("FULL".to_string()));
+        m.insert("market".to_string(), Value::Str("FULL".into()));
+        m.insert("limit".to_string(), Value::Str("FULL".into()));
     m
 }));
     m
 }));
         m.insert("fetchTicker".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("method".to_string(), Value::Str("publicGetOpenapiQuoteV1Ticker24hr".to_string()));
+        m.insert("method".to_string(), Value::Str("publicGetOpenapiQuoteV1Ticker24hr".into()));
     m
 }));
         m.insert("fetchTickers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("method".to_string(), Value::Str("publicGetOpenapiQuoteV1Ticker24hr".to_string()));
+        m.insert("method".to_string(), Value::Str("publicGetOpenapiQuoteV1Ticker24hr".into()));
     m
 }));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
-        m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
-        m.insert("BEP20".to_string(), Value::Str("BSC".to_string()));
-        m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM".to_string()));
+        m.insert("TRC20".to_string(), Value::Str("TRX".into()));
+        m.insert("ERC20".to_string(), Value::Str("ETH".into()));
+        m.insert("BEP20".to_string(), Value::Str("BSC".into()));
+        m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM".into()));
     m
 }));
     m
@@ -938,119 +938,119 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-1000".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1001".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1002".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("-1003".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
-        m.insert("-1004".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1006".to_string(), Value::Str("BadResponse".to_string()).clone());
-        m.insert("-1007".to_string(), Value::Str("BadResponse".to_string()).clone());
-        m.insert("-1014".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1015".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
-        m.insert("-1016".to_string(), Value::Str("NotSupported".to_string()).clone());
-        m.insert("-1020".to_string(), Value::Str("NotSupported".to_string()).clone());
-        m.insert("-1021".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1022".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1023".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("-1024".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1025".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1030".to_string(), Value::Str("ExchangeError".to_string()).clone());
-        m.insert("-1100".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1101".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1102".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1103".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1104".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1105".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1106".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1111".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1112".to_string(), Value::Str("BadResponse".to_string()).clone());
-        m.insert("-1114".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1115".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1116".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1117".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1118".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1119".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1120".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1121".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("-1122".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1125".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1127".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1128".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1130".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1131".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("-1132".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1133".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1134".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1135".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1136".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1137".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1138".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1139".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1140".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1141".to_string(), Value::Str("DuplicateOrderId".to_string()).clone());
-        m.insert("-1142".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1143".to_string(), Value::Str("OrderNotFound".to_string()).clone());
-        m.insert("-1144".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1145".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1146".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1147".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1148".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1149".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1150".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1151".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("-1152".to_string(), Value::Str("NotSupported".to_string()).clone());
-        m.insert("-1153".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("-1154".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1155".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1156".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1157".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("-1158".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1159".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-1160".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-1161".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-2010".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-2013".to_string(), Value::Str("OrderNotFound".to_string()).clone());
-        m.insert("-2011".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-2014".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-2015".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("-2016".to_string(), Value::Str("BadResponse".to_string()).clone());
-        m.insert("-3126".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-3127".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-4001".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-100011".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("-100012".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("-30008".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("-30036".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("403".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("-1000".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1001".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1002".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("-1003".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("-1004".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1006".to_string(), Value::Str("BadResponse".into()).clone());
+        m.insert("-1007".to_string(), Value::Str("BadResponse".into()).clone());
+        m.insert("-1014".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1015".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("-1016".to_string(), Value::Str("NotSupported".into()).clone());
+        m.insert("-1020".to_string(), Value::Str("NotSupported".into()).clone());
+        m.insert("-1021".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1022".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1023".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("-1024".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1025".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1030".to_string(), Value::Str("ExchangeError".into()).clone());
+        m.insert("-1100".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1101".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1102".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1103".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1104".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1105".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1106".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1111".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1112".to_string(), Value::Str("BadResponse".into()).clone());
+        m.insert("-1114".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1115".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1116".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1117".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1118".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1119".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1120".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1121".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("-1122".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1125".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1127".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1128".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1130".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1131".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("-1132".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1133".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1134".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1135".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1136".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1137".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1138".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1139".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1140".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1141".to_string(), Value::Str("DuplicateOrderId".into()).clone());
+        m.insert("-1142".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1143".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("-1144".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1145".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1146".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1147".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1148".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1149".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1150".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1151".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("-1152".to_string(), Value::Str("NotSupported".into()).clone());
+        m.insert("-1153".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("-1154".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1155".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1156".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1157".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("-1158".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1159".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-1160".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-1161".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-2010".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-2013".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("-2011".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-2014".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-2015".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("-2016".to_string(), Value::Str("BadResponse".into()).clone());
+        m.insert("-3126".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-3127".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-4001".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-100011".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("-100012".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("-30008".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("-30036".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("403".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Unknown order sent".to_string(), Value::Str("OrderNotFound".to_string()).clone());
-        m.insert("Duplicate order sent".to_string(), Value::Str("DuplicateOrderId".to_string()).clone());
-        m.insert("Market is closed".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("Account has insufficient balance for requested action".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("Market orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("Iceberg orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("Stop loss orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("Stop loss limit orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("Take profit orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("Take profit limit orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".to_string()).clone());
-        m.insert("Price* QTY is zero or less".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("IcebergQty exceeds QTY".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("This action disabled is on this account".to_string(), Value::Str("PermissionDenied".to_string()).clone());
-        m.insert("Unsupported order combination".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("Order would trigger immediately".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("Cancel order is invalid. Check origClOrdId and orderId".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("Order would immediately match and take".to_string(), Value::Str("OrderImmediatelyFillable".to_string()).clone());
-        m.insert("PRICE_FILTER".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("LOT_SIZE".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("MIN_NOTIONAL".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("MAX_NUM_ORDERS".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("MAX_ALGO_ORDERS".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("BROKER_MAX_NUM_ORDERS".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("BROKER_MAX_ALGO_ORDERS".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("ICEBERG_PARTS".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("Unknown order sent".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("Duplicate order sent".to_string(), Value::Str("DuplicateOrderId".into()).clone());
+        m.insert("Market is closed".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("Account has insufficient balance for requested action".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("Market orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("Iceberg orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("Stop loss orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("Stop loss limit orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("Take profit orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("Take profit limit orders are not supported for this symbol".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("Price* QTY is zero or less".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("IcebergQty exceeds QTY".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("This action disabled is on this account".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("Unsupported order combination".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Order would trigger immediately".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Cancel order is invalid. Check origClOrdId and orderId".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Order would immediately match and take".to_string(), Value::Str("OrderImmediatelyFillable".into()).clone());
+        m.insert("PRICE_FILTER".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("LOT_SIZE".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("MIN_NOTIONAL".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("MAX_NUM_ORDERS".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("MAX_ALGO_ORDERS".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("BROKER_MAX_NUM_ORDERS".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("BROKER_MAX_ALGO_ORDERS".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("ICEBERG_PARTS".to_string(), Value::Str("BadRequest".into()).clone());
     m
 }));
     m
@@ -1140,7 +1140,7 @@ impl CoinsphCore {
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("code".to_string(), code.clone());
-        m.insert("type".to_string(), (if is_true(&(isFiat.as_bool() == Some(true))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(isFiat.as_bool() == Some(true))) { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "transferPrecision", &[])]), &[]));
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);
@@ -1164,11 +1164,11 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) {
+        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol")))) && !(in_op(&params, &Value::Str("symbol".into()))) {
             return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbolAndNoSymbols")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) && !(in_op(&params, &Value::Str("symbols".to_string()))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbolAndNoSymbols")))) && !(in_op(&params, &Value::Str("symbol".into()))) && !(in_op(&params, &Value::Str("symbols".into()))) {
             return config.as_map().and_then(|__m| __m.get("noSymbolAndNoSymbols")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byNumberOfSymbols")))) && (in_op(&params, &Value::Str("symbols".to_string()))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byNumberOfSymbols")))) && (in_op(&params, &Value::Str("symbols".into()))) {
             let mut symbols: Value = crate::value::get_value_k(&params, "symbols");
             let mut symbolsAmount: Value = get_array_length(&symbols);
             let mut byNumberOfSymbols: Value = self.safe_list_k(config.clone(), "byNumberOfSymbols", &[Value::from(vec![])]);
@@ -1183,7 +1183,7 @@ impl CoinsphCore {
                 }
             }
             }
-        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit")))) && (in_op(&params, &Value::Str("limit".to_string()))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit")))) && (in_op(&params, &Value::Str("limit".into()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
             let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::from(vec![])]);
             {
@@ -1219,7 +1219,7 @@ impl CoinsphCore {
         let mut response: Value = self.public_get_openapi_v1_ping(&[params.clone()]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), Value::Str("ok".to_string()));
+        m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1335,7 +1335,7 @@ impl CoinsphCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut limits: Value = self.index_by(self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]), Value::Str("filterType".to_string()));
+            let mut limits: Value = self.index_by(self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]), Value::Str("filterType".into()));
             let mut amountLimits: Value = self.safe_dict_k(limits.clone(), "LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1351,20 +1351,20 @@ impl CoinsphCore {
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);
                     m.insert("baseId".to_string(), baseId.clone());
                     m.insert("quoteId".to_string(), quoteId.clone());
                     m.insert("settleId".to_string(), Value::Null);
-                    m.insert("type".to_string(), Value::Str("spot".to_string()));
+                    m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
                     m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), Value::Bool(self.safe_string_lower(market.clone(), Value::Str("status".to_string()), &[]).as_str() == Some("trading")));
+                    m.insert("active".to_string(), Value::Bool(self.safe_string_lower(market.clone(), Value::Str("status".into()), &[]).as_str() == Some("trading")));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -1458,7 +1458,7 @@ impl CoinsphCore {
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbols".to_string(), ids.clone()); }
         }
-        let mut defaultMethod: Value = Value::Str("publicGetOpenapiQuoteV1Ticker24hr".to_string());
+        let mut defaultMethod: Value = Value::Str("publicGetOpenapiQuoteV1Ticker24hr".into());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTickers", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1505,7 +1505,7 @@ impl CoinsphCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut defaultMethod: Value = Value::Str("publicGetOpenapiQuoteV1Ticker24hr".to_string());
+        let mut defaultMethod: Value = Value::Str("publicGetOpenapiQuoteV1Ticker24hr".into());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTicker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1586,7 +1586,7 @@ impl CoinsphCore {
         let mut vwap: Value = self.safe_string_k(ticker.clone(), "weightedAvgPrice", &[]);
         let mut changeValue: Value = self.safe_string_k(ticker.clone(), "priceChange", &[]);
         let mut changePcnt: Value = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
-        changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".to_string()));
+        changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".into()));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -1595,7 +1595,7 @@ impl CoinsphCore {
         m.insert("open".to_string(), open.clone());
         m.insert("high".to_string(), high.clone());
         m.insert("low".to_string(), low.clone());
-        m.insert("close".to_string(), self.safe_string2(ticker.clone(), Value::Str("lastPrice".to_string()), Value::Str("price".to_string()), &[]));
+        m.insert("close".to_string(), self.safe_string2(ticker.clone(), Value::Str("lastPrice".into()), Value::Str("price".into()), &[]));
         m.insert("bid".to_string(), bid.clone());
         m.insert("bidVolume".to_string(), bidVolume.clone());
         m.insert("ask".to_string(), ask.clone());
@@ -1658,7 +1658,7 @@ impl CoinsphCore {
         //     }
         //
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol.clone(), &[]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
         return orderbook;
 
     Value::Null
@@ -1678,7 +1678,7 @@ impl CoinsphCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -1718,7 +1718,7 @@ impl CoinsphCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), (match (&(until), &(((match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         }
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
-        params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
+        params = self.omit(params.clone(), Value::Str("until".into()), &[]);
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_openapi_quote_v1_klines(&[__ws_arg_7]).await;
         //
@@ -1813,7 +1813,7 @@ impl CoinsphCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1859,7 +1859,7 @@ impl CoinsphCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".into()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1914,7 +1914,7 @@ impl CoinsphCore {
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("tradeId".to_string()), &[]);
+        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]);
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "time", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -1934,15 +1934,15 @@ impl CoinsphCore {
                 m
             });
         }
-        let mut isBuyer: Value = self.safe_bool2(trade.clone(), Value::Str("isBuyer".to_string()), Value::Str("isBuyerMaker".to_string()), &[]);
+        let mut isBuyer: Value = self.safe_bool2(trade.clone(), Value::Str("isBuyer".into()), Value::Str("isBuyerMaker".into()), &[]);
         let mut side: Value = Value::Null;
         if (isBuyer != Value::Null) {
-            side = (if is_true(&(isBuyer.as_bool() == Some(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if is_true(&(isBuyer.as_bool() == Some(true))) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut isMaker: Option<String> = self.safe_string_k(trade.clone(), "isMaker", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker.is_some()) {
-            takerOrMaker = (if is_true(&(isMaker.as_deref() == Some("true"))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if is_true(&(isMaker.as_deref() == Some("true"))) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut costString: Value = Value::Null;
         if (orderId != Value::Null) {
@@ -2048,10 +2048,10 @@ impl CoinsphCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
-        params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
+        params = self.omit(params.clone(), Value::Str("test".into()), &[]);
         let mut orderType: Value = self.safe_string_k(params.clone(), "type", &[type_var.clone()]);
         orderType = self.encode_order_type(orderType.clone());
-        params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
+        params = self.omit(params.clone(), Value::Str("type".into()), &[]);
         let mut orderSide: Value = self.encode_order_side(side.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2071,29 +2071,29 @@ impl CoinsphCore {
         // if limit order
         if (orderType.as_str() == Some("LIMIT")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) || (orderType.as_str() == Some("LIMIT_MAKER")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".to_string()))), type_var)), Value::Str(" order".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
             }
-            newOrderRespType = self.safe_string_k(newOrderRespType.clone(), "limit", &[Value::Str("FULL".to_string())]);
+            newOrderRespType = self.safe_string_k(newOrderRespType.clone(), "limit", &[Value::Str("FULL".into())]);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             if (orderType.as_str() != Some("LIMIT_MAKER")) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), self.safe_string_k(options.clone(), "timeInForce", &[Value::Str("GTC".to_string())])); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), self.safe_string_k(options.clone(), "timeInForce", &[Value::Str("GTC".into())])); }
             }
         }  else if (orderType.as_str() == Some("MARKET")) || (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("TAKE_PROFIT")) {
-            newOrderRespType = self.safe_string_k(newOrderRespType.clone(), "market", &[Value::Str("FULL".to_string())]);
+            newOrderRespType = self.safe_string_k(newOrderRespType.clone(), "market", &[Value::Str("FULL".into())]);
             if (orderSide.as_str() == Some("SELL")) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }  else if (orderSide.as_str() == Some("BUY")) {
                 let mut quoteAmount: Value = Value::Null;
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-                { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-                let mut cost: Value = self.safe_number2(params.clone(), Value::Str("cost".to_string()), Value::Str("quoteOrderQty".to_string()), &[]);
-                params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
+                { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+                let mut cost: Value = self.safe_number2(params.clone(), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]);
+                params = self.omit(params.clone(), Value::Str("cost".into()), &[]);
                 if (cost != Value::Null) {
                     quoteAmount = self.cost_to_precision(symbol.clone(), cost.clone());
                 }  else if is_true(&createMarketBuyOrderRequiresPrice) {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -2107,14 +2107,14 @@ impl CoinsphCore {
             }
         }
         if (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
-            let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+            let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             if (triggerPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders".into()))));
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
         if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newOrderRespType".to_string(), newOrderRespType.clone()); }
-        params = self.omit(params.clone(), Value::Str("price".to_string()), &[Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("quantity".to_string()), Value::Str("quoteOrderQty".to_string())]);
+        params = self.omit(params.clone(), Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]);
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2154,13 +2154,13 @@ impl CoinsphCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
         }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("origClientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]);
         let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_openapi_v1_order(&[__ws_arg_13]).await;
         return self.parse_order(response.clone(), &[]);
@@ -2226,7 +2226,7 @@ impl CoinsphCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2274,13 +2274,13 @@ impl CoinsphCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("origClientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
         }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("origClientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]);
         let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_openapi_v1_order(&[__ws_arg_16]).await;
         return self.parse_order(response.clone(), &[]);
@@ -2304,7 +2304,7 @@ impl CoinsphCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2398,10 +2398,10 @@ impl CoinsphCore {
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("time".to_string()), Value::Str("transactTime".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("time".into()), Value::Str("transactTime".into()), &[]);
         let mut trades: Value = self.safe_value_k(order.clone(), "fills", &[]);
         let mut triggerPrice: Value = self.safe_string_k(order.clone(), "stopPrice", &[]);
-        if is_true(&crate::precise::Precise::stringEq(&triggerPrice, &Value::Str("0".to_string()))) {
+        if is_true(&crate::precise::Precise::stringEq(&triggerPrice, &Value::Str("0".into()))) {
             triggerPrice = Value::Null;
         }
         return self.safe_order(Value::Map({
@@ -2436,8 +2436,8 @@ impl CoinsphCore {
     pub fn parse_order_side(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("BUY".to_string(), Value::Str("buy".to_string()));
-                m.insert("SELL".to_string(), Value::Str("sell".to_string()));
+                m.insert("BUY".to_string(), Value::Str("buy".into()));
+                m.insert("SELL".to_string(), Value::Str("sell".into()));
             m
         });
         if (status == Value::Null) {
@@ -2451,8 +2451,8 @@ impl CoinsphCore {
     pub fn encode_order_side(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("buy".to_string(), Value::Str("BUY".to_string()));
-                m.insert("sell".to_string(), Value::Str("SELL".to_string()));
+                m.insert("buy".to_string(), Value::Str("BUY".into()));
+                m.insert("sell".to_string(), Value::Str("SELL".into()));
             m
         });
         if (status == Value::Null) {
@@ -2466,13 +2466,13 @@ impl CoinsphCore {
     pub fn parse_order_type(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("MARKET".to_string(), Value::Str("market".to_string()));
-                m.insert("LIMIT".to_string(), Value::Str("limit".to_string()));
-                m.insert("LIMIT_MAKER".to_string(), Value::Str("limit".to_string()));
-                m.insert("STOP_LOSS".to_string(), Value::Str("market".to_string()));
-                m.insert("STOP_LOSS_LIMIT".to_string(), Value::Str("limit".to_string()));
-                m.insert("TAKE_PROFIT".to_string(), Value::Str("market".to_string()));
-                m.insert("TAKE_PROFIT_LIMIT".to_string(), Value::Str("limit".to_string()));
+                m.insert("MARKET".to_string(), Value::Str("market".into()));
+                m.insert("LIMIT".to_string(), Value::Str("limit".into()));
+                m.insert("LIMIT_MAKER".to_string(), Value::Str("limit".into()));
+                m.insert("STOP_LOSS".to_string(), Value::Str("market".into()));
+                m.insert("STOP_LOSS_LIMIT".to_string(), Value::Str("limit".into()));
+                m.insert("TAKE_PROFIT".to_string(), Value::Str("market".into()));
+                m.insert("TAKE_PROFIT_LIMIT".to_string(), Value::Str("limit".into()));
             m
         });
         if (status == Value::Null) {
@@ -2486,13 +2486,13 @@ impl CoinsphCore {
     pub fn encode_order_type(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::Str("MARKET".to_string()));
-                m.insert("limit".to_string(), Value::Str("LIMIT".to_string()));
-                m.insert("limit_maker".to_string(), Value::Str("LIMIT_MAKER".to_string()));
-                m.insert("stop_loss".to_string(), Value::Str("STOP_LOSS".to_string()));
-                m.insert("stop_loss_limit".to_string(), Value::Str("STOP_LOSS_LIMIT".to_string()));
-                m.insert("take_profit".to_string(), Value::Str("TAKE_PROFIT".to_string()));
-                m.insert("take_profit_limit".to_string(), Value::Str("TAKE_PROFIT_LIMIT".to_string()));
+                m.insert("market".to_string(), Value::Str("MARKET".into()));
+                m.insert("limit".to_string(), Value::Str("LIMIT".into()));
+                m.insert("limit_maker".to_string(), Value::Str("LIMIT_MAKER".into()));
+                m.insert("stop_loss".to_string(), Value::Str("STOP_LOSS".into()));
+                m.insert("stop_loss_limit".to_string(), Value::Str("STOP_LOSS_LIMIT".into()));
+                m.insert("take_profit".to_string(), Value::Str("TAKE_PROFIT".into()));
+                m.insert("take_profit_limit".to_string(), Value::Str("TAKE_PROFIT_LIMIT".into()));
             m
         });
         if (status == Value::Null) {
@@ -2506,12 +2506,12 @@ impl CoinsphCore {
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("NEW".to_string(), Value::Str("open".to_string()));
-                m.insert("FILLED".to_string(), Value::Str("closed".to_string()));
-                m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".to_string()));
-                m.insert("PARTIALLY_CANCELED".to_string(), Value::Str("canceled".to_string()));
-                m.insert("REJECTED".to_string(), Value::Str("rejected".to_string()));
+                m.insert("NEW".to_string(), Value::Str("open".into()));
+                m.insert("FILLED".to_string(), Value::Str("closed".into()));
+                m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".into()));
+                m.insert("PARTIALLY_CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("REJECTED".to_string(), Value::Str("rejected".into()));
             m
         });
         if (status == Value::Null) {
@@ -2525,9 +2525,9 @@ impl CoinsphCore {
     pub fn parse_order_time_in_force(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("GTC".to_string(), Value::Str("GTC".to_string()));
-                m.insert("FOK".to_string(), Value::Str("FOK".to_string()));
-                m.insert("IOC".to_string(), Value::Str("IOC".to_string()));
+                m.insert("GTC".to_string(), Value::Str("GTC".into()));
+                m.insert("FOK".to_string(), Value::Str("FOK".into()));
+                m.insert("IOC".to_string(), Value::Str("IOC".into()));
             m
         });
         if (status == Value::Null) {
@@ -2680,12 +2680,12 @@ impl CoinsphCore {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[]);
         let mut warning: Value = self.safe_bool_k(options.clone(), "warning", &[Value::Bool(true)]);
         if (warning.as_bool() == Some(true)) {
-            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".into()))));
         }
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
         let mut networkId: Value = (if is_true(&(networkCode == Value::Null)) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
         if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require network parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require network parameter".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2702,7 +2702,7 @@ impl CoinsphCore {
         if (tag != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("withdrawOrderId".to_string(), tag.clone()); }
         }
-        params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
+        params = self.omit(params.clone(), Value::Str("network".into()), &[]);
         let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_openapi_wallet_v1_withdraw_apply(&[__ws_arg_19]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
@@ -2850,15 +2850,15 @@ impl CoinsphCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut timestamp: Value = Value::Null;
-        timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".to_string()), Value::Str("applyTime".to_string()), &[]);
+        timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]);
         let mut updated: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut withdrawOrderId: Option<String> = self.safe_string_k(transaction.clone(), "withdrawOrderId", &[]).as_str().map(str::to_owned);
         let mut depositOrderId: Option<String> = self.safe_string_k(transaction.clone(), "depositOrderId", &[]).as_str().map(str::to_owned);
         if (withdrawOrderId.is_some()) {
-            type_var = Value::Str("withdrawal".to_string());
+            type_var = Value::Str("withdrawal".into());
         }  else if (depositOrderId.is_some()) {
-            type_var = Value::Str("deposit".to_string());
+            type_var = Value::Str("deposit".into());
         }
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
@@ -2905,10 +2905,10 @@ impl CoinsphCore {
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("0".to_string(), Value::Str("pending".to_string()));
-                m.insert("1".to_string(), Value::Str("ok".to_string()));
-                m.insert("2".to_string(), Value::Str("failed".to_string()));
-                m.insert("3".to_string(), Value::Str("pending".to_string()));
+                m.insert("0".to_string(), Value::Str("pending".into()));
+                m.insert("1".to_string(), Value::Str("ok".into()));
+                m.insert("2".to_string(), Value::Str("failed".into()));
+                m.insert("3".to_string(), Value::Str("pending".into()));
             m
         });
         if (status == Value::Null) {
@@ -2937,7 +2937,7 @@ impl CoinsphCore {
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
         let mut networkId: Value = (if is_true(&(networkCode == Value::Null)) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
         if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() require network parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() require network parameter".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2949,7 +2949,7 @@ impl CoinsphCore {
                 m.insert("network".to_string(), networkId.clone());
             m
         });
-        params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
+        params = self.omit(params.clone(), Value::Str("network".into()), &[]);
         let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_openapi_wallet_v1_deposit_address(&[__ws_arg_22]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
@@ -2986,7 +2986,7 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut encodedArrayParams: Value = Value::Str("".to_string());
+        let mut encodedArrayParams: Value = Value::Str("".into());
         let mut keys: Value = object_keys(&query);
         {
                         let mut i: Value = Value::Int(0);
@@ -2996,19 +2996,19 @@ impl CoinsphCore {
             let mut key: Value = get_value(&keys, &i);
             if is_true(&(matches!(&get_value(&query, &key), Value::Arr(_)))) {
                 if (i.as_f64() != Some(0.0)) {
-                    encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".to_string())));
+                    encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".into())).into());
                 }
                 let mut innerArray: Value = get_value(&query, &key);
                 let mut innerArray: Value = get_value(&query, &key);
                 query = self.omit(query.clone(), key.clone(), &[]);
                 let mut encodedArrayParam: Value = self.parse_array_param(innerArray.clone(), key.clone());
-                encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, encodedArrayParam));
+                encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, encodedArrayParam).into());
             }
         }
         }
         let mut encodedQuery: Value = self.urlencode(query.clone(), &[]);
         if (Value::Int(encodedQuery.len() as i64).as_f64() != Some(0.0)) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery, Value::Str("&".to_string()))), encodedArrayParams));
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery, Value::Str("&".into())).into()), encodedArrayParams).into());
         }  else {
             return encodedArrayParams;
         }
@@ -3018,17 +3018,17 @@ impl CoinsphCore {
 
     pub fn parse_array_param(&self, mut array: Value, mut key: Value) -> Value {
         let mut stringifiedArray: Value = json_stringify(&array);
-        stringifiedArray = replace_str(&stringifiedArray, &Value::Str("[".to_string()), &Value::Str("%5B".to_string()));
-        stringifiedArray = replace_str(&stringifiedArray, &Value::Str("]".to_string()), &Value::Str("%5D".to_string()));
-        let mut urlEncodedParam: Value = Value::Str(format!("{}{}", add(&key, &Value::Str("=".to_string())), stringifiedArray));
+        stringifiedArray = replace_str(&stringifiedArray, &Value::Str("[".into()), &Value::Str("%5B".into()));
+        stringifiedArray = replace_str(&stringifiedArray, &Value::Str("]".into()), &Value::Str("%5D".into()));
+        let mut urlEncodedParam: Value = Value::Str(format!("{}{}", add(&key, &Value::Str("=".into())), stringifiedArray).into());
         return urlEncodedParam;
 
     Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3038,20 +3038,20 @@ impl CoinsphCore {
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpoint: Value = self.implode_params(path.clone(), params.clone());
-        url = Value::Str(format!("{}{}", add(&url, &Value::Str("/".to_string())), endpoint));
+        url = Value::Str(format!("{}{}", add(&url, &Value::Str("/".into())), endpoint).into());
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            add_element_to_object(&mut query, &Value::Str("timestamp".to_string()), self.milliseconds());
+            add_element_to_object(&mut query, &Value::Str("timestamp".into()), self.milliseconds());
             let mut recvWindow: Option<i64> = self.safe_integer_k(query.clone(), "recvWindow", &[]).as_i64();
             if (recvWindow.is_none()) {
                 let mut defaultRecvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[]);
                 if (defaultRecvWindow != Value::Null) {
-                    add_element_to_object(&mut query, &Value::Str("recvWindow".to_string()), defaultRecvWindow.clone());
+                    add_element_to_object(&mut query, &Value::Str("recvWindow".into()), defaultRecvWindow.clone());
                 }
             }
             query = self.url_encode_query(&[query.clone()]);
-            let mut signature: Value = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
-            url = add(&Value::Str(format!("{}{}", add(&add(&url, &Value::Str("?".to_string())), &query), Value::Str("&signature=".to_string()))), &signature);
+            let mut signature: Value = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            url = add(&Value::Str(format!("{}{}", add(&add(&url, &Value::Str("?".into())), &query), Value::Str("&signature=".into())).into()), &signature);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-COINS-APIKEY".to_string(), self.apiKey.clone());
@@ -3060,7 +3060,7 @@ impl CoinsphCore {
         }  else {
             query = self.url_encode_query(&[query.clone()]);
             if !is_equal(&get_array_length(&query), &Value::Int(0)) {
-                url = add(&url, &add(&Value::Str("?".to_string()), &query));
+                url = add(&url, &add(&Value::Str("?".into()), &query));
             }
         }
         return Value::Map({
@@ -3081,7 +3081,7 @@ impl CoinsphCore {
         }
         let mut responseCode: Value = self.safe_string_k(response.clone(), "code", &[]);
         if is_true(&(responseCode != Value::Null)) && is_true(&(responseCode.as_str() != Some("200"))) && is_true(&(responseCode.as_str() != Some("0"))) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCode.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

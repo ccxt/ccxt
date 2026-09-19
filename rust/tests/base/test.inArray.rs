@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testInArray() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("regirock".to_string()));
+            m.insert("id".to_string(), Value::Str("regirock".into()));
         m
     }));
     let mut array: Value = Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);

@@ -123,11 +123,11 @@ impl BtcboxCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("btcbox".to_string()));
-        m.insert("name".to_string(), Value::Str("BtcBox".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
+        m.insert("id".to_string(), Value::Str("btcbox".into()));
+        m.insert("name".to_string(), Value::Str("BtcBox".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".into())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
-        m.insert("version".to_string(), Value::Str("v1".to_string()));
+        m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("pro".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -226,15 +226,15 @@ impl BtcboxCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/1e2cb499-8d0f-4f8f-9464-3c015cfbc76b".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/1e2cb499-8d0f-4f8f-9464-3c015cfbc76b".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://www.btcbox.co.jp/api".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://www.btcbox.co.jp/api".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.btcbox.co.jp/".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://blog.btcbox.jp/en/archives/8762".to_string()));
-        m.insert("fees".to_string(), Value::Str("https://support.btcbox.co.jp/hc/en-us/articles/360001235694-Fees-introduction".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.btcbox.co.jp/".into()));
+        m.insert("doc".to_string(), Value::Str("https://blog.btcbox.jp/en/archives/8762".into()));
+        m.insert("fees".to_string(), Value::Str("https://support.btcbox.co.jp/hc/en-us/articles/360001235694-Fees-introduction".into()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -417,16 +417,16 @@ impl BtcboxCore {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("104".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("105".to_string(), Value::Str("PermissionDenied".to_string()).clone());
-        m.insert("106".to_string(), Value::Str("InvalidNonce".to_string()).clone());
-        m.insert("107".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("200".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("201".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("202".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("203".to_string(), Value::Str("OrderNotFound".to_string()).clone());
-        m.insert("401".to_string(), Value::Str("OrderNotFound".to_string()).clone());
-        m.insert("402".to_string(), Value::Str("DDoSProtection".to_string()).clone());
+        m.insert("104".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("105".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("106".to_string(), Value::Str("InvalidNonce".into()).clone());
+        m.insert("107".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("200".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("201".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("202".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("203".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("401".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("402".to_string(), Value::Str("DDoSProtection".into()).clone());
     m
 }));
     m
@@ -448,7 +448,7 @@ impl BtcboxCore {
     m
 }));
         let mut promise1: Value = self.public_get_tickers(&[]).await;
-        let mut promise2: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".to_string()), Value::Str("webApiGetAjaxCoinCoinInfo".to_string()), Value::Bool(true), &[]).await;
+        let mut promise2: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webApiGetAjaxCoinCoinInfo".into()), Value::Bool(true), &[]).await;
         let mut response1response2Variable = promise_all(&Value::from(vec![promise1.clone(), promise2.clone()])).await;
         let mut response1: Value = response1response2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response2: Value = response1response2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -465,17 +465,17 @@ impl BtcboxCore {
             while { if !__for_first_450 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_450 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
-            let mut symbolParts: Value = split(&marketId, &Value::Str("_".to_string()));
-            let mut baseCurr: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".to_string())]);
-            let mut quote: Value = self.safe_string(symbolParts.clone(), Value::Int(1), &[Value::Str("".to_string())]);
+            let mut symbolParts: Value = split(&marketId, &Value::Str("_".into()));
+            let mut baseCurr: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]);
+            let mut quote: Value = self.safe_string(symbolParts.clone(), Value::Int(1), &[Value::Str("".into())]);
             let mut quoteId: Value = to_lower(&quote);
             let mut id: Value = to_lower(&baseCurr);
             let mut res: Value = self.safe_dict(response1.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".to_string()))), quote));
-            let mut fee: Value = (if is_true(&(id.as_str() == Some("BTC"))) { self.parse_number(Value::Str("0.0005".to_string()), &[]) } else { self.parse_number(Value::Str("0.0010".to_string()), &[]) });
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".into())).into()), quote).into());
+            let mut fee: Value = (if is_true(&(id.as_str() == Some("BTC"))) { self.parse_number(Value::Str("0.0005".into()), &[]) } else { self.parse_number(Value::Str("0.0010".into()), &[]) });
             let mut details: Value = self.safe_dict(result2Data.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -495,7 +495,7 @@ impl BtcboxCore {
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
@@ -562,7 +562,7 @@ impl BtcboxCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -574,7 +574,7 @@ impl BtcboxCore {
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
@@ -646,10 +646,10 @@ impl BtcboxCore {
             let mut code: Value = get_value(&codes, &i);
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            let mut free: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_balance".to_string())));
+            let mut free: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_balance".into())).into());
             if (in_op(&response, &free)) {
                 let mut account: Value = self.account();
-                let mut used: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_lock".to_string())));
+                let mut used: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_lock".into())).into());
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), free.clone(), &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(response.clone(), used.clone(), &[])); }
                 add_element_to_object(&mut result, &code, account.clone());
@@ -819,7 +819,7 @@ impl BtcboxCore {
         //          "type":"buy"
         //      }
         //
-        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".to_string()), &[]);
+        let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".into()), &[]);
         market = self.safe_market(&[Value::Null, market.clone()]);
         let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -943,7 +943,7 @@ impl BtcboxCore {
         }
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol == Value::Null) {
-            symbol = Value::Str("BTC/JPY".to_string());
+            symbol = Value::Str("BTC/JPY".into());
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -962,11 +962,11 @@ impl BtcboxCore {
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("part".to_string(), Value::Str("open".to_string()));
-                m.insert("all".to_string(), Value::Str("closed".to_string()));
-                m.insert("cancelled".to_string(), Value::Str("canceled".to_string()));
-                m.insert("closed".to_string(), Value::Str("closed".to_string()));
-                m.insert("no".to_string(), Value::Str("closed".to_string()));
+                m.insert("part".to_string(), Value::Str("open".into()));
+                m.insert("all".to_string(), Value::Str("closed".into()));
+                m.insert("cancelled".to_string(), Value::Str("canceled".into()));
+                m.insert("closed".to_string(), Value::Str("closed".into()));
+                m.insert("no".to_string(), Value::Str("closed".into()));
             m
         });
         if (status == Value::Null) {
@@ -995,7 +995,7 @@ impl BtcboxCore {
         let mut datetimeString: Option<String> = self.safe_string_k(order.clone(), "datetime", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = Value::Null;
         if (datetimeString.is_some()) {
-            timestamp = self.parse8601(add(&order.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null), &Value::Str("+09:00".to_string()))); // Tokyo time
+            timestamp = self.parse8601(add(&order.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null), &Value::Str("+09:00".into()))); // Tokyo time
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "amount_original", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "amount_outstanding", &[]);
@@ -1004,8 +1004,8 @@ impl BtcboxCore {
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         // fetchOrders do not return status, use heuristic
         if (status == Value::Null) {
-            if is_true(&crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".to_string()))) {
-                status = Value::Str("closed".to_string());
+            if is_true(&crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".into()))) {
+                status = Value::Str("closed".into());
             }
         }
         let mut trades: Value = Value::Null; // todo: this.parseTrades (order['trades']);
@@ -1061,7 +1061,7 @@ impl BtcboxCore {
         }
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol == Value::Null) {
-            symbol = Value::Str("BTC/JPY".to_string());
+            symbol = Value::Str("BTC/JPY".into());
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.extend(Value::Map({
@@ -1090,7 +1090,7 @@ impl BtcboxCore {
         }
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol == Value::Null) {
-            symbol = Value::Str("BTC/JPY".to_string());
+            symbol = Value::Str("BTC/JPY".into());
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -1121,7 +1121,7 @@ impl BtcboxCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_452: bool = true;
                 while { if !__for_first_452 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_452 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-                add_element_to_object(get_value_mut(&mut orders, &i), &Value::Str("status".to_string()), Value::Str("open".to_string()));
+                add_element_to_object(get_value_mut(&mut orders, &i), &Value::Str("status".into()), Value::Str("open".into()));
             }
             }
         }
@@ -1149,7 +1149,7 @@ impl BtcboxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_type(Value::Str("all".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+        return self.fetch_orders_by_type(Value::Str("all".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1173,7 +1173,7 @@ impl BtcboxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_type(Value::Str("open".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+        return self.fetch_orders_by_type(Value::Str("open".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1185,21 +1185,21 @@ impl BtcboxCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), self.version.clone())), Value::Str("/".to_string()))), &path);
+        let mut url: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".into())), self.version.clone()).into()), Value::Str("/".into())).into()), &path);
         if (api.as_str() == Some("public")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
             }
         }  else if (api.as_str() == Some("webApi")) {
-            url = add(&Value::Str(format!("{}{}", self.urls.as_map().and_then(|__m| __m.get("www")).cloned().unwrap_or(Value::Null), Value::Str("/".to_string()))), &path);
+            url = add(&Value::Str(format!("{}{}", self.urls.as_map().and_then(|__m| __m.get("www")).cloned().unwrap_or(Value::Null), Value::Str("/".into())).into()), &path);
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
@@ -1210,12 +1210,12 @@ impl BtcboxCore {
                 m
             }), &[params.clone()]);
             let mut request: Value = self.urlencode(query.clone(), &[]);
-            let mut secret: Value = self.hash(self.encode(self.secret.clone()), Value::Str("md5".to_string()), &[]);
-            add_element_to_object(&mut query, &Value::Str("signature".to_string()), self.hmac(self.encode(request.clone()), self.encode(secret.clone()), Value::Str("sha256".to_string()), &[]));
+            let mut secret: Value = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]);
+            add_element_to_object(&mut query, &Value::Str("signature".into()), self.hmac(self.encode(request.clone()), self.encode(secret.clone()), Value::Str("sha256".into()), &[]));
             body = self.urlencode(query.clone(), &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));
+                    m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                 m
             });
         }
@@ -1244,7 +1244,7 @@ impl BtcboxCore {
             return Value::Null;
         }
         let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
         self.throw_exactly_matched_exception(self.exceptions.clone(), code.clone(), feedback.clone());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
@@ -1252,8 +1252,8 @@ impl BtcboxCore {
 }
 
     pub async fn request(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1269,7 +1269,7 @@ impl BtcboxCore {
             // sometimes the exchange returns whitespace prepended to json
             response = self.strip(response.clone(), &[]);
             if !is_true(&self.is_json_encoded_object(&[response.clone()])) {
-                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &response)));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &response)));
             }
             response = json_parse(&response);
         }

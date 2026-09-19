@@ -193,7 +193,7 @@ impl DydxCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -241,12 +241,12 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://indexer.v4testnet.dydx.exchange/v4/ws".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://indexer.v4testnet.dydx.exchange/v4/ws".into()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://indexer.dydx.trade/v4/ws".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://indexer.dydx.trade/v4/ws".into()));
     m
 }));
     m
@@ -292,11 +292,11 @@ impl DydxCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("channel".to_string(), Value::Str("v4_trades".to_string()));
+                m.insert("type".to_string(), Value::Str("subscribe".into()));
+                m.insert("channel".to_string(), Value::Str("v4_trades".into()));
                 m.insert("id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -305,7 +305,7 @@ impl DydxCore {
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -329,11 +329,11 @@ impl DydxCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str("unsubscribe".to_string()));
-                m.insert("channel".to_string(), Value::Str("v4_trades".to_string()));
+                m.insert("type".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("channel".to_string(), Value::Str("v4_trades".into()));
                 m.insert("id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -387,7 +387,7 @@ impl DydxCore {
             stored.append(parsed.clone());
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".to_string()), Value::Str(":".to_string()))), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol).into());
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
@@ -413,8 +413,8 @@ impl DydxCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "size", &[]));
@@ -447,11 +447,11 @@ impl DydxCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("channel".to_string(), Value::Str("v4_orderbook".to_string()));
+                m.insert("type".to_string(), Value::Str("subscribe".into()));
+                m.insert("channel".to_string(), Value::Str("v4_orderbook".into()));
                 m.insert("id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -481,11 +481,11 @@ impl DydxCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str("unsubscribe".to_string()));
-                m.insert("channel".to_string(), Value::Str("v4_orderbook".to_string()));
+                m.insert("type".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("channel".to_string(), Value::Str("v4_orderbook".into()));
                 m.insert("id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -527,13 +527,13 @@ impl DydxCore {
         if (orderbook == Value::Null) {
             orderbook = self.order_book(&[]);
         }
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
+        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
         let mut asks: Value = self.safe_list_k(content.clone(), "asks", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(content, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(message.clone(), "message_id", &[]));
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(message.clone(), "message_id", &[]));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
@@ -544,7 +544,7 @@ impl DydxCore {
             let mut amount: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
             bookside.store(price.clone(), amount.clone());
         }  else {
-            let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("size".to_string())]);
+            let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".into()), Value::Str("size".into())]);
             bookside.store_array(bidAsk.clone());
         }
 }
@@ -562,7 +562,7 @@ impl DydxCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -574,13 +574,13 @@ impl DydxCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("channel".to_string(), Value::Str("v4_candles".to_string()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("/".to_string()))), resolution)));
+                m.insert("type".to_string(), Value::Str("subscribe".into()));
+                m.insert("channel".to_string(), Value::Str("v4_candles".into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("/".into())).into()), resolution).into()));
             m
         });
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
@@ -605,7 +605,7 @@ impl DydxCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -615,13 +615,13 @@ impl DydxCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str("unsubscribe".to_string()));
-                m.insert("channel".to_string(), Value::Str("v4_candles".to_string()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("/".to_string()))), resolution)));
+                m.insert("type".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("channel".to_string(), Value::Str("v4_candles".into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("/".into())).into()), resolution).into()));
             m
         });
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
@@ -682,8 +682,8 @@ impl DydxCore {
         //     }
         // }
         //
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[Value::Str("".to_string())]);
-        let mut part: Value = split(&id, &Value::Str("/".to_string()));
+        let mut id: Value = self.safe_string_k(message.clone(), "id", &[Value::Str("".into())]);
+        let mut part: Value = split(&id, &Value::Str("/".into()));
         let mut interval: Value = self.safe_string(part.clone(), Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         let mut marketId: Value = self.safe_string(part.clone(), Value::Int(0), &[]);
@@ -691,7 +691,7 @@ impl DydxCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut content: Value = self.safe_dict_k(message, "contents", &[]);
         let mut candles: Value = self.safe_list_k(content.clone(), "candles", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
         let mut ohlcv: Value = self.safe_dict(candles.clone(), Value::Int(0), &[content.clone()]);
         let mut parsed: Value = self.parse_ohlcv(ohlcv.clone(), &[market.clone()]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -711,7 +711,7 @@ impl DydxCore {
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut msg: Value = self.safe_string_k(message.clone(), "message", &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg)));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.reject(&[e.clone()]);
@@ -731,9 +731,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut topic: Value = self.safe_string_k(message.clone(), "channel", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("v4_trades".to_string(), Value::Str("handle_trades".to_string()).clone());
-                    m.insert("v4_orderbook".to_string(), Value::Str("handle_order_book".to_string()).clone());
-                    m.insert("v4_candles".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("v4_trades".to_string(), Value::Str("handle_trades".into()).clone());
+                    m.insert("v4_orderbook".to_string(), Value::Str("handle_order_book".into()).clone());
+                    m.insert("v4_candles".to_string(), Value::Str("handle_ohlcv".into()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), topic.clone(), &[]);

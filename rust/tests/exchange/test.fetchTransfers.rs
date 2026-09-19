@@ -10,13 +10,13 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTransfers(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTransfers".to_string());
+    let mut method: Value = Value::Str("fetchTransfers".into());
     let mut transfers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_transfers", vec![code.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), transfers.clone(), code.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1477: bool = true;
-        while { if !__for_first_1477 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1477 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(transfers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_63: bool = true;
+        while { if !__for_first_63 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_63 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(transfers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testTransfer(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&transfers, &i), code.clone());
     }
     }

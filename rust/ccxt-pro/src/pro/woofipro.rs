@@ -212,7 +212,7 @@ impl WoofiproCore {
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_auth" => { self.handle_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -295,8 +295,8 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("wss://ws-evm.orderly.org/ws/stream".to_string()));
-        m.insert("private".to_string(), Value::Str("wss://ws-private-evm.orderly.org/v2/ws/private/stream".to_string()));
+        m.insert("public".to_string(), Value::Str("wss://ws-evm.orderly.org/ws/stream".into()));
+        m.insert("private".to_string(), Value::Str("wss://ws-private-evm.orderly.org/v2/ws/private/stream".into()));
     m
 }));
     m
@@ -305,8 +305,8 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("wss://testnet-ws-evm.orderly.org/ws/stream".to_string()));
-        m.insert("private".to_string(), Value::Str("wss://testnet-ws-private-evm.orderly.org/v2/ws/private/stream".to_string()));
+        m.insert("public".to_string(), Value::Str("wss://testnet-ws-evm.orderly.org/ws/stream".into()));
+        m.insert("private".to_string(), Value::Str("wss://testnet-ws-private-evm.orderly.org/v2/ws/private/stream".into()));
     m
 }));
     m
@@ -338,7 +338,7 @@ impl WoofiproCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
+        m.insert("ping".to_string(), Value::Str("ping".into()).clone());
         m.insert("keepAlive".to_string(), Value::Int(10000));
     m
 }));
@@ -348,7 +348,7 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Auth is needed.".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Auth is needed.".to_string(), Value::Str("AuthenticationError".into()).clone());
     m
 }));
     m
@@ -368,7 +368,7 @@ impl WoofiproCore {
         })]);
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue.clone(), Value::Int(1)]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".to_string())), &url, newValue.clone());
+        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())), &url, newValue.clone());
         return newValue;
 
     Value::Null
@@ -376,11 +376,11 @@ impl WoofiproCore {
 
     pub async fn watch_public(&mut self, mut messageHash: Value, mut message: Value) -> Value {
         // the default id
-        let mut id: Value = Value::Str("OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY".to_string());
+        let mut id: Value = Value::Str("OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY".into());
         if (self.accountId.clone() != Value::Null) && (self.accountId.as_str() != Some("")) {
             id = self.accountId.clone();
         }
-        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &Value::Str("/".to_string())), id));
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &Value::Str("/".into())), id).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -412,12 +412,12 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut name: Value = Value::Str("orderbook".to_string());
+        let mut name: Value = Value::Str("orderbook".into());
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), name));
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
@@ -463,7 +463,7 @@ impl WoofiproCore {
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string())]);
+        let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot.clone());
         client.resolve(&[orderbook.clone(), topic.clone()]);
 }
@@ -485,13 +485,13 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut name: Value = Value::Str("ticker".to_string());
+        let mut name: Value = Value::Str("ticker".into());
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), name));
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
@@ -556,9 +556,9 @@ impl WoofiproCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        add_element_to_object(&mut data, &Value::Str("date".to_string()), timestamp.clone());
+        add_element_to_object(&mut data, &Value::Str("date".into()), timestamp.clone());
         let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone()]);
-        add_element_to_object(&mut ticker, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        add_element_to_object(&mut ticker, &Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         add_element_to_object(&mut self.tickers, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
         client.resolve(&[ticker.clone(), topic.clone()]);
         return message;
@@ -585,17 +585,17 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut name: Value = Value::Str("tickers".to_string());
+        let mut name: Value = Value::Str("tickers".into());
         let mut topic: Value = name.clone();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
         let mut tickers: Value = self.watch_public(topic.clone(), message.clone()).await;
-        return self.filter_by_array(tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+        return self.filter_by_array(tickers.clone(), Value::Str("symbol".into()), &[symbols.clone()]);
 
     Value::Null
 }
@@ -662,17 +662,17 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut name: Value = Value::Str("bbos".to_string());
+        let mut name: Value = Value::Str("bbos".into());
         let mut topic: Value = name.clone();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
         let mut tickers: Value = self.watch_public(topic.clone(), message.clone()).await;
-        return self.filter_by_array(tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+        return self.filter_by_array(tickers.clone(), Value::Str("symbol".into()), &[symbols.clone()]);
 
     Value::Null
 }
@@ -751,7 +751,7 @@ impl WoofiproCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -762,15 +762,15 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         if is_true(&(timeframe.as_str() != Some("1m"))) && is_true(&(timeframe.as_str() != Some("5m"))) && is_true(&(timeframe.as_str() != Some("15m"))) && is_true(&(timeframe.as_str() != Some("30m"))) && is_true(&(timeframe.as_str() != Some("1h"))) && is_true(&(timeframe.as_str() != Some("1d"))) && is_true(&(timeframe.as_str() != Some("1w"))) && is_true(&(timeframe.as_str() != Some("1M"))) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".into()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut name: Value = Value::Str("kline".to_string());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), name)), Value::Str("_".to_string()))), interval));
+        let mut name: Value = Value::Str("kline".into());
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into()), Value::Str("_".into())).into()), interval).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
@@ -853,10 +853,10 @@ impl WoofiproCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut topic: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".to_string())));
+        let mut topic: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".into())).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
@@ -950,15 +950,15 @@ impl WoofiproCore {
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut price: Value = self.safe_string2(trade.clone(), Value::Str("executedPrice".to_string()), Value::Str("price".to_string()), &[]);
-        let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("executedQuantity".to_string()), Value::Str("size".to_string()), &[]);
+        let mut price: Value = self.safe_string2(trade.clone(), Value::Str("executedPrice".into()), Value::Str("price".into()), &[]);
+        let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("executedQuantity".into()), Value::Str("size".into()), &[]);
         let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
+        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".into()), &[]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         let mut takerOrMaker: Value = Value::Null;
         let mut maker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
         if (maker != Value::Null) {
-            takerOrMaker = (if is_true(&maker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if is_true(&maker) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeValue: Value = self.safe_string_k(trade.clone(), "fee", &[]);
@@ -982,7 +982,7 @@ impl WoofiproCore {
         m.insert("cost".to_string(), cost.clone());
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
-        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]));
+        m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]));
         m.insert("fee".to_string(), fee.clone());
         m.insert("info".to_string(), trade.clone());
     m
@@ -999,18 +999,18 @@ impl WoofiproCore {
         //         "ts": 1657463158812
         //     }
         //
-        let mut messageHash: Value = Value::Str("authenticated".to_string());
+        let mut messageHash: Value = Value::Str("authenticated".into());
         let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
         if (success.as_bool() == Some(true)) {
             // client.resolve (message, messageHash);
-            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
+            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
-                remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()));
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("authenticated".into()));
             }
         }
 }
@@ -1021,21 +1021,21 @@ impl WoofiproCore {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".to_string())), self.accountId.clone()));
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".into())), self.accountId.clone()).into());
         let mut client: Value = self.client(&[url.clone()]);
-        let mut messageHash: Value = Value::Str("authenticated".to_string());
-        let mut event: Value = Value::Str("auth".to_string());
+        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut event: Value = Value::Str("auth".into());
         let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
             let mut ts: Value = to_string_val(&self.nonce());
             let mut auth: Value = ts.clone();
             let mut secret: Value = self.secret.clone();
             if Value::Int(secret.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                let mut parts: Value = split(&secret, &Value::Str("ed25519:".to_string()));
+                let mut parts: Value = split(&secret, &Value::Str("ed25519:".into()));
                 secret = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
-            let mut signature: Value = eddsa(self.encode(auth.clone()), self.base58_to_binary(secret.clone(), &[]), Value::Str("ed25519".to_string()));
+            let mut signature: Value = eddsa(self.encode(auth.clone()), self.base58_to_binary(secret.clone(), &[]), Value::Str("ed25519".into()));
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), event.clone());
@@ -1062,7 +1062,7 @@ impl WoofiproCore {
     m
 }));
         self.authenticate(&[params.clone()]).await;
-        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".to_string())), self.accountId.clone()));
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".into())), self.accountId.clone()).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1081,7 +1081,7 @@ impl WoofiproCore {
     m
 }));
         self.authenticate(&[params.clone()]).await;
-        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".to_string())), self.accountId.clone()));
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".into())), self.accountId.clone()).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1118,18 +1118,18 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
+        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".into()) } else { Value::Str("executionreport".into()) });
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
@@ -1167,18 +1167,18 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
-        params = self.omit(params.clone(), Value::Str("stop".to_string()), &[]);
-        let mut messageHash: Value = Value::Str("myTrades".to_string());
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
+        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".into()) } else { Value::Str("executionreport".into()) });
+        params = self.omit(params.clone(), Value::Str("stop".into()), &[]);
+        let mut messageHash: Value = Value::Str("myTrades".into());
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
@@ -1273,12 +1273,12 @@ impl WoofiproCore {
         let mut priceString: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut price: Value = self.safe_number_k(order.clone(), "price", &[]);
         let mut avgPrice: Value = self.safe_number_k(order.clone(), "avgPrice", &[]);
-        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".to_string()))) && is_true(&(avgPrice != Value::Null)) {
+        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".into()))) && is_true(&(avgPrice != Value::Null)) {
             price = avgPrice.clone();
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
-        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".to_string()), &[]);
+        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".into()), &[]);
+        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
         let mut filled: Value = self.safe_number_k(order.clone(), "totalExecutedQuantity", &[]);
         let mut totalExecQuantity: Value = self.safe_string_k(order.clone(), "totalExecutedQuantity", &[]);
         let mut remaining: Value = amount.clone();
@@ -1393,19 +1393,19 @@ impl WoofiproCore {
             if (order != Value::Null) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("fee".to_string()), fee.clone());
+                    add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee.clone());
                 }
                 let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
                 if (fees != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("fees".to_string()), fees.clone());
+                    add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees.clone());
                 }
-                add_element_to_object(&mut parsed, &Value::Str("trades".to_string()), self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]));
-                add_element_to_object(&mut parsed, &Value::Str("timestamp".to_string()), self.safe_integer_k(order.clone(), "timestamp", &[]));
-                add_element_to_object(&mut parsed, &Value::Str("datetime".to_string()), self.safe_string_k(order.clone(), "datetime", &[]));
+                add_element_to_object(&mut parsed, &Value::Str("trades".into()), self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]));
+                add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), self.safe_integer_k(order.clone(), "timestamp", &[]));
+                add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.safe_string_k(order.clone(), "datetime", &[]));
             }
             cachedOrders.append(parsed.clone());
             client.resolve(&[self.orders.clone(), topic.clone()]);
-            let mut messageHashSymbol: Value = Value::Str(format!("{}{}", add(&topic, &Value::Str(":".to_string())), symbol));
+            let mut messageHashSymbol: Value = Value::Str(format!("{}{}", add(&topic, &Value::Str(":".into())), symbol).into());
             client.resolve(&[self.orders.clone(), messageHashSymbol.clone()]);
         }
 }
@@ -1439,7 +1439,7 @@ impl WoofiproCore {
         //     maker: false
         // }
         //
-        let mut messageHash: Value = Value::Str("myTrades".to_string());
+        let mut messageHash: Value = Value::Str("myTrades".into());
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1452,7 +1452,7 @@ impl WoofiproCore {
         }
         trades.append(trade.clone());
         client.resolve(&[trades.clone(), messageHash.clone()]);
-        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
+        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         client.resolve(&[trades.clone(), symbolSpecificMessageHash.clone()]);
 }
 
@@ -1482,36 +1482,36 @@ impl WoofiproCore {
         symbols = self.market_symbols(&[symbols.clone()]);
         if !is_true(&self.is_empty(symbols.clone())) {
             if (symbols == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
             }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_676: bool = true;
                 while { if !__for_first_676 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_676 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 if (symbols == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
                 }
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("positions::".to_string()), symbol)));
+                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("positions::".into()), symbol).into()));
             }
             }
         }  else {
-            append_to_array(&mut messageHashes, Value::Str("positions".to_string()));
+            append_to_array(&mut messageHashes, Value::Str("positions".into()));
         }
-        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".to_string())), self.accountId.clone()));
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/".into())), self.accountId.clone()).into());
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client.clone(), &[symbols.clone()]);
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
-        let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
+        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
+        let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(self.positions.clone() == Value::Null)) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".to_string())])).await;
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
             return self.filter_by_symbols_since_limit(snapshot.clone(), &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("topic".to_string(), Value::Str("position".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
+                m.insert("topic".to_string(), Value::Str("position".into()));
             m
         });
         let mut newPositions: Value = self.watch_private_multiple(messageHashes.clone(), request.clone(), &[params.clone()]).await;
@@ -1525,12 +1525,12 @@ impl WoofiproCore {
 
     pub fn set_positions_cache(&mut self, mut client: Value, optional_args: &[Value]) {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(false)]);
+        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if is_equal(&fetchPositionsSnapshot, &Value::Bool(true)) {
-            let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".to_string());
-            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
+            let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
+            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone()]);
+                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
         }  else {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -1547,17 +1547,17 @@ impl WoofiproCore {
             while { if !__for_first_677 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_677 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
-            let mut contracts: Value = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".to_string())]);
-            if is_true(&crate::precise::Precise::stringGt(&contracts, &Value::Str("0".to_string()))) {
+            let mut contracts: Value = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".into())]);
+            if is_true(&crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into()))) {
                 cache.append(position.clone());
             }
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
-            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
+        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
-            client.resolve(&[cache.clone(), Value::Str("positions".to_string())]);
+            client.resolve(&[cache.clone(), Value::Str("positions".into())]);
         }
 
     Value::Null
@@ -1617,11 +1617,11 @@ impl WoofiproCore {
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[market.clone()]);
             append_to_array(&mut newPositions, position.clone());
             cache.append(position.clone());
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("positions::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("positions::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
             client.resolve(&[position.clone(), messageHash.clone()]);
         }
         }
-        client.resolve(&[newPositions.clone(), Value::Str("positions".to_string())]);
+        client.resolve(&[newPositions.clone(), Value::Str("positions".into())]);
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -1654,10 +1654,10 @@ impl WoofiproCore {
         market = self.safe_market(&[contract.clone(), market.clone()]);
         let mut size: Value = self.safe_string_k(position.clone(), "positionQty", &[]);
         let mut side: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".to_string()))) {
-            side = Value::Str("long".to_string());
+        if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".into()))) {
+            side = Value::Str("long".into());
         }  else {
-            side = Value::Str("short".to_string());
+            side = Value::Str("short".into());
         }
         let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
         let mut markPrice: Value = self.safe_string_k(position.clone(), "markPrice", &[]);
@@ -1689,7 +1689,7 @@ impl WoofiproCore {
         m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), Value::Str("cross".to_string()));
+        m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("marginType".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
         m.insert("percentage".to_string(), Value::Null);
@@ -1718,11 +1718,11 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut topic: Value = Value::Str("balance".to_string());
+        let mut topic: Value = Value::Str("balance".into());
         let mut messageHash: Value = topic.clone();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
@@ -1770,9 +1770,9 @@ impl WoofiproCore {
         })]);
         let mut keys: Value = object_keys(&balances);
         let mut ts: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
-        add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), ts.clone());
-        { let __be_tmp = self.iso8601(ts.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
+        add_element_to_object(&mut self.balance, &Value::Str("info".into()), data.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), ts.clone());
+        { let __be_tmp = self.iso8601(ts.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".into()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_679: bool = true;
@@ -1788,23 +1788,23 @@ impl WoofiproCore {
             }
             let mut total: Value = self.safe_string_k(value.clone(), "holding", &[]);
             let mut used: Value = self.safe_string_k(value.clone(), "frozen", &[]);
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), crate::precise::Precise::stringSub(&total, &used));
+            add_element_to_object(&mut account, &Value::Str("total".into()), total.clone());
+            add_element_to_object(&mut account, &Value::Str("used".into()), used.clone());
+            add_element_to_object(&mut account, &Value::Str("free".into()), crate::precise::Precise::stringSub(&total, &used));
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());
             }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), Value::Str("balance".to_string())]);
+        client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
-        if !(in_op(&message, &Value::Str("success".to_string()))) {
+        if !(in_op(&message, &Value::Str("success".into()))) {
             return Value::Bool(false);
         }
         let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
@@ -1814,17 +1814,17 @@ impl WoofiproCore {
         let mut errorMessage: Value = self.safe_string_k(message.clone(), "errorMsg", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorMessage != Value::Null) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-            if is_instance(&error, &Value::Str("AuthenticationError".to_string())) {
-                let mut messageHash: Value = Value::Str("authenticated".to_string());
+            if is_instance(&error, &Value::Str("AuthenticationError".into())) {
+                let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
-                    remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
+                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
                 client.reject(&[Value::from(error.clone())]);
@@ -1841,20 +1841,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ping".to_string(), Value::Str("handle_ping".to_string()).clone());
-                m.insert("pong".to_string(), Value::Str("handle_pong".to_string()).clone());
-                m.insert("subscribe".to_string(), Value::Str("handle_subscribe".to_string()).clone());
-                m.insert("orderbook".to_string(), Value::Str("handle_order_book".to_string()).clone());
-                m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
-                m.insert("tickers".to_string(), Value::Str("handle_tickers".to_string()).clone());
-                m.insert("kline".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
-                m.insert("trade".to_string(), Value::Str("handle_trade".to_string()).clone());
-                m.insert("auth".to_string(), Value::Str("handle_auth".to_string()).clone());
-                m.insert("executionreport".to_string(), Value::Str("handle_order_update".to_string()).clone());
-                m.insert("algoexecutionreport".to_string(), Value::Str("handle_order_update".to_string()).clone());
-                m.insert("position".to_string(), Value::Str("handle_positions".to_string()).clone());
-                m.insert("balance".to_string(), Value::Str("handle_balance".to_string()).clone());
-                m.insert("bbos".to_string(), Value::Str("handle_bid_ask".to_string()).clone());
+                m.insert("ping".to_string(), Value::Str("handle_ping".into()).clone());
+                m.insert("pong".to_string(), Value::Str("handle_pong".into()).clone());
+                m.insert("subscribe".to_string(), Value::Str("handle_subscribe".into()).clone());
+                m.insert("orderbook".to_string(), Value::Str("handle_order_book".into()).clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
+                m.insert("tickers".to_string(), Value::Str("handle_tickers".into()).clone());
+                m.insert("kline".to_string(), Value::Str("handle_ohlcv".into()).clone());
+                m.insert("trade".to_string(), Value::Str("handle_trade".into()).clone());
+                m.insert("auth".to_string(), Value::Str("handle_auth".into()).clone());
+                m.insert("executionreport".to_string(), Value::Str("handle_order_update".into()).clone());
+                m.insert("algoexecutionreport".to_string(), Value::Str("handle_order_update".into()).clone());
+                m.insert("position".to_string(), Value::Str("handle_positions".into()).clone());
+                m.insert("balance".to_string(), Value::Str("handle_balance".into()).clone());
+                m.insert("bbos".to_string(), Value::Str("handle_bid_ask".into()).clone());
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
@@ -1870,7 +1870,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
-            let mut splitTopic: Value = split(&topic, &Value::Str("@".to_string()));
+            let mut splitTopic: Value = split(&topic, &Value::Str("@".into()));
             let mut splitLength: f64 = ((splitTopic.len() as i64) as f64);
             if (splitLength == 2.0) {
                 let mut name: Value = self.safe_string(splitTopic.clone(), Value::Int(1), &[]);
@@ -1882,7 +1882,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;
                 }
-                let mut splitName: Value = split(&name, &Value::Str("_".to_string()));
+                let mut splitName: Value = split(&name, &Value::Str("_".into()));
                 let mut splitNameLength: f64 = ((splitTopic.len() as i64) as f64);
                 if (splitNameLength == 2.0) {
                     method = self.safe_value(methods.clone(), self.safe_string(splitName.clone(), Value::Int(0), &[]), &[]);
@@ -1897,7 +1897,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn ping(&self, mut client: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("event".to_string(), Value::Str("ping".to_string()));
+        m.insert("event".to_string(), Value::Str("ping".into()));
     m
 });
 
@@ -1907,7 +1907,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
         client.send(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("event".to_string(), Value::Str("pong".to_string()));
+                m.insert("event".to_string(), Value::Str("pong".into()));
             m
         })]);
 
@@ -1915,14 +1915,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
-        self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
+        self.spawn(&[Value::Str("pong".into()).clone(), client.clone(), message.clone()]);
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
         //
         // { event: "pong", ts: 1614667590000 }
         //
-        crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
         return message;
 
     Value::Null

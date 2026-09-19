@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub async fn testSleep() -> Value {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut start: Value = exchange.milliseconds();

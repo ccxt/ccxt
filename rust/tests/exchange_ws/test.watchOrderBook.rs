@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOrderBook(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchOrderBook".to_string());
+    let mut method: Value = Value::Str("watchOrderBook".into());
     // `watchOrderBook` only resolves when the exchange pushes an update, and a
     // pending subscription can not be cancelled from here, so every extra
     // iteration risks blocking until the test-runner kills the whole exchange.
@@ -28,7 +28,7 @@ pub async fn testWatchOrderBook(mut exchange: Value, mut skippedProperties: Valu
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_order_book", vec![symbol.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !(is_instance(&e, &Value::Str("InvalidNonce".to_string()))) {
+            if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !(is_instance(&e, &Value::Str("InvalidNonce".into()))) {
                 panic!("{}", e);
             }
             success = Value::Bool(false);

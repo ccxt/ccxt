@@ -151,10 +151,10 @@ impl BitoproCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bitopro".to_string()));
-        m.insert("name".to_string(), Value::Str("BitoPro".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("TW".to_string())]));
-        m.insert("version".to_string(), Value::Str("v3".to_string()));
+        m.insert("id".to_string(), Value::Str("bitopro".into()));
+        m.insert("name".to_string(), Value::Str("BitoPro".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("TW".into())]));
+        m.insert("version".to_string(), Value::Str("v3".into()));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
@@ -195,7 +195,7 @@ impl BitoproCore {
         m.insert("fetchDepositAddress".to_string(), Value::Bool(false));
         m.insert("fetchDeposits".to_string(), Value::Bool(true));
         m.insert("fetchDepositsWithdrawals".to_string(), Value::Bool(false));
-        m.insert("fetchDepositWithdrawFee".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchDepositWithdrawFee".to_string(), Value::Str("emulated".into()));
         m.insert("fetchDepositWithdrawFees".to_string(), Value::Bool(true));
         m.insert("fetchFundingHistory".to_string(), Value::Bool(false));
         m.insert("fetchFundingInterval".to_string(), Value::Bool(false));
@@ -270,30 +270,30 @@ impl BitoproCore {
 }));
         m.insert("timeframes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1m".to_string(), Value::Str("1m".to_string()));
-        m.insert("5m".to_string(), Value::Str("5m".to_string()));
-        m.insert("15m".to_string(), Value::Str("15m".to_string()));
-        m.insert("30m".to_string(), Value::Str("30m".to_string()));
-        m.insert("1h".to_string(), Value::Str("1h".to_string()));
-        m.insert("3h".to_string(), Value::Str("3h".to_string()));
-        m.insert("6h".to_string(), Value::Str("6h".to_string()));
-        m.insert("12h".to_string(), Value::Str("12h".to_string()));
-        m.insert("1d".to_string(), Value::Str("1d".to_string()));
-        m.insert("1w".to_string(), Value::Str("1w".to_string()));
-        m.insert("1M".to_string(), Value::Str("1M".to_string()));
+        m.insert("1m".to_string(), Value::Str("1m".into()));
+        m.insert("5m".to_string(), Value::Str("5m".into()));
+        m.insert("15m".to_string(), Value::Str("15m".into()));
+        m.insert("30m".to_string(), Value::Str("30m".into()));
+        m.insert("1h".to_string(), Value::Str("1h".into()));
+        m.insert("3h".to_string(), Value::Str("3h".into()));
+        m.insert("6h".to_string(), Value::Str("6h".into()));
+        m.insert("12h".to_string(), Value::Str("12h".into()));
+        m.insert("1d".to_string(), Value::Str("1d".into()));
+        m.insert("1w".to_string(), Value::Str("1w".into()));
+        m.insert("1M".to_string(), Value::Str("1M".into()));
     m
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/affc6337-b95a-44bf-aacd-04f9722364f6".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/affc6337-b95a-44bf-aacd-04f9722364f6".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://api.bitopro.com/v3".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://api.bitopro.com/v3".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.bitopro.com".to_string()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md".to_string())]));
-        m.insert("fees".to_string(), Value::Str("https://www.bitopro.com/fees".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.bitopro.com".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md".into())]));
+        m.insert("fees".to_string(), Value::Str("https://www.bitopro.com/fees".into()));
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
@@ -470,12 +470,12 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000000".to_string()), &[]), self.parse_number(Value::Str("0.00194".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".to_string()), &[]), self.parse_number(Value::Str("0.0014".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("300000000".to_string()), &[]), self.parse_number(Value::Str("0.0013".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("550000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1300000000".to_string()), &[]), self.parse_number(Value::Str("0.0011".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000000".to_string()), &[]), self.parse_number(Value::Str("0.00097".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("300000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("550000000".to_string()), &[]), self.parse_number(Value::Str("0.0004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1300000000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000000".into()), &[]), self.parse_number(Value::Str("0.00194".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0015".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".into()), &[]), self.parse_number(Value::Str("0.0014".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("300000000".into()), &[]), self.parse_number(Value::Str("0.0013".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("550000000".into()), &[]), self.parse_number(Value::Str("0.0012".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1300000000".into()), &[]), self.parse_number(Value::Str("0.0011".into()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.001".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000000".into()), &[]), self.parse_number(Value::Str("0.00097".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0007".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".into()), &[]), self.parse_number(Value::Str("0.0006".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("300000000".into()), &[]), self.parse_number(Value::Str("0.0005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("550000000".into()), &[]), self.parse_number(Value::Str("0.0004".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1300000000".into()), &[]), self.parse_number(Value::Str("0.0003".into()), &[])])]));
     m
 }));
     m
@@ -486,17 +486,17 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ERC20".to_string(), Value::Str("ERC20".to_string()));
-        m.insert("ETH".to_string(), Value::Str("ERC20".to_string()));
-        m.insert("TRX".to_string(), Value::Str("TRX".to_string()));
-        m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
-        m.insert("BEP20".to_string(), Value::Str("BSC".to_string()));
-        m.insert("BSC".to_string(), Value::Str("BSC".to_string()));
+        m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
+        m.insert("ETH".to_string(), Value::Str("ERC20".into()));
+        m.insert("TRX".to_string(), Value::Str("TRX".into()));
+        m.insert("TRC20".to_string(), Value::Str("TRX".into()));
+        m.insert("BEP20".to_string(), Value::Str("BSC".into()));
+        m.insert("BSC".to_string(), Value::Str("BSC".into()));
     m
 }));
         m.insert("fetchCurrencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fiatCurrencies".to_string(), Value::from(vec![Value::Str("TWD".to_string())]));
+        m.insert("fiatCurrencies".to_string(), Value::from(vec![Value::Str("TWD".into())]));
     m
 }));
     m
@@ -608,19 +608,19 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Unsupported currency.".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("Unsupported order type".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("Invalid body".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("Invalid Signature".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("Address not in whitelist.".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("Unsupported currency.".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Unsupported order type".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Invalid body".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Invalid Signature".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("Address not in whitelist.".to_string(), Value::Str("BadRequest".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Invalid amount".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("Balance for ".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("Invalid ".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("Wrong parameter".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("Invalid amount".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Balance for ".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("Invalid ".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Wrong parameter".to_string(), Value::Str("BadRequest".into()).clone());
     m
 }));
     m
@@ -672,7 +672,7 @@ impl BitoproCore {
 }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        let mut fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".to_string()), Value::Str("fiatCurrencies".to_string()), &[Value::from(vec![])]);
+        let mut fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("fiatCurrencies".into()), &[Value::from(vec![])]);
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut deposit: Value = self.safe_bool_k(rawCurrency.clone(), "deposit", &[]);
@@ -683,7 +683,7 @@ impl BitoproCore {
         m.insert("id".to_string(), currencyId.clone());
         m.insert("code".to_string(), code.clone());
         m.insert("info".to_string(), rawCurrency.clone());
-        m.insert("type".to_string(), (if is_true(&isFiat) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&isFiat) { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("name".to_string(), Value::Null);
         m.insert("active".to_string(), (Value::Bool(is_true(&(deposit.as_bool() == Some(true))) && is_true(&(withdraw.as_bool() == Some(true))))));
         m.insert("deposit".to_string(), deposit.clone());
@@ -737,14 +737,14 @@ impl BitoproCore {
         let mut active: Value = (Value::Bool(self.safe_bool_k(market.clone(), "maintain", &[]).as_bool() != Some(true)));
         let mut id: Value = self.safe_string_k(market.clone(), "pair", &[]);
         if (id == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
         }
         let mut uppercaseId: Value = to_upper(&id);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut limits: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), Value::Map({
@@ -784,7 +784,7 @@ impl BitoproCore {
         m.insert("quoteId".to_string(), quote.clone());
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::Str("spot".to_string()));
+        m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
@@ -947,7 +947,7 @@ impl BitoproCore {
         }
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_order_book_pair(&[__ws_arg_1]).await;
-        return self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("amount".to_string())]);
+        return self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
 
     Value::Null
 }
@@ -982,7 +982,7 @@ impl BitoproCore {
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
         let mut timestamp: Value = Value::Null;
         if (id == Value::Null) {
-            timestamp = self.safe_timestamp(trade.clone(), Value::Str("timestamp".to_string()), &[]);
+            timestamp = self.safe_timestamp(trade.clone(), Value::Str("timestamp".into()), &[]);
         }  else {
             timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         }
@@ -990,14 +990,14 @@ impl BitoproCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]);
-        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("action".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("type".into()), &[]);
+        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("action".into()), &[]);
         if (side == Value::Null) {
             let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
             if (isBuyer.as_bool() == Some(true)) {
-                side = Value::Str("buy".to_string());
+                side = Value::Str("buy".into());
             }  else {
-                side = Value::Str("sell".to_string());
+                side = Value::Str("sell".into());
             }
         }
         let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -1020,9 +1020,9 @@ impl BitoproCore {
         let mut takerOrMaker: Value = Value::Null;
         if (isTaker != Value::Null) {
             if is_true(&isTaker) {
-                takerOrMaker = Value::Str("taker".to_string());
+                takerOrMaker = Value::Str("taker".into());
             }  else {
-                takerOrMaker = Value::Str("maker".to_string());
+                takerOrMaker = Value::Str("maker".into());
             }
         }
         return self.safe_trade(Value::Map({
@@ -1214,7 +1214,7 @@ impl BitoproCore {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -1303,7 +1303,7 @@ impl BitoproCore {
                 { let __be_tmp = get_value(&copy, &Value::Int(4)); add_element_to_object(&mut copy, &Value::Int(1), __be_tmp); };
                 { let __be_tmp = get_value(&copy, &Value::Int(4)); add_element_to_object(&mut copy, &Value::Int(2), __be_tmp); };
                 { let __be_tmp = get_value(&copy, &Value::Int(4)); add_element_to_object(&mut copy, &Value::Int(3), __be_tmp); };
-                add_element_to_object(&mut copy, &Value::Int(5), self.parse_number(Value::Str("0".to_string()), &[]));
+                add_element_to_object(&mut copy, &Value::Int(5), self.parse_number(Value::Str("0".into()), &[]));
                 append_to_array(&mut result, copy.clone());
             }
             timestamp = self.sum(&[timestamp.clone(), multiply(&distance, &Value::Int(1000))]);
@@ -1382,13 +1382,13 @@ impl BitoproCore {
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("-1".to_string(), Value::Str("open".to_string()));
-                m.insert("0".to_string(), Value::Str("open".to_string()));
-                m.insert("1".to_string(), Value::Str("open".to_string()));
-                m.insert("2".to_string(), Value::Str("closed".to_string()));
-                m.insert("3".to_string(), Value::Str("closed".to_string()));
-                m.insert("4".to_string(), Value::Str("canceled".to_string()));
-                m.insert("6".to_string(), Value::Str("canceled".to_string()));
+                m.insert("-1".to_string(), Value::Str("open".into()));
+                m.insert("0".to_string(), Value::Str("open".into()));
+                m.insert("1".to_string(), Value::Str("open".into()));
+                m.insert("2".to_string(), Value::Str("closed".into()));
+                m.insert("3".to_string(), Value::Str("closed".into()));
+                m.insert("4".to_string(), Value::Str("canceled".into()));
+                m.insert("6".to_string(), Value::Str("canceled".into()));
             m
         });
         return (if is_true(&(status == Value::Null)) { Value::Null } else { self.safe_string(statuses.clone(), status.clone(), &[]) });
@@ -1432,21 +1432,21 @@ impl BitoproCore {
         //             "updatedTimestamp":1644899002598
         //         }
         //
-        let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".to_string()), Value::Str("orderId".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("timestamp".to_string()), Value::Str("createdTimestamp".to_string()), &[]);
+        let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]);
+        let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned no side".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned no side".into()))));
         }
         side = to_lower(&side);
-        let mut amount: Value = self.safe_string2(order.clone(), Value::Str("amount".to_string()), Value::Str("originalAmount".to_string()), &[]);
+        let mut amount: Value = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("originalAmount".into()), &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string())]);
+        market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".into())]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut orderStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut status: Value = self.parse_order_status(orderStatus.clone());
-        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("type".into()), &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "avgExecutionPrice", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executedAmount", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "remainingAmount", &[]);
@@ -1458,7 +1458,7 @@ impl BitoproCore {
         let mut fee: Value = Value::Null;
         let mut feeAmount: Value = self.safe_string_k(order.clone(), "fee", &[]);
         let mut feeSymbol: Value = self.safe_currency_code(self.safe_string_k(order.clone(), "feeSymbol", &[]), &[]);
-        if is_true(&crate::precise::Precise::stringGt(&feeAmount, &Value::Str("0".to_string()))) {
+        if is_true(&crate::precise::Precise::stringGt(&feeAmount, &Value::Str("0".into()))) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), feeSymbol.clone());
@@ -1534,23 +1534,23 @@ impl BitoproCore {
         }
         if (orderType.as_str() == Some("STOP_LIMIT")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
-            let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
+            let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
             if (triggerPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".to_string()))), orderType)), Value::Str(" orders".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             }
             let mut condition: Value = self.safe_string_k(params.clone(), "condition", &[]);
             if (condition == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a condition parameter for ".to_string()))), orderType)), Value::Str(" orders".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a condition parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("condition".to_string(), condition.clone()); }
             }
         }
         let mut postOnly: Value = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
         if is_true(&postOnly) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), Value::Str("POST_ONLY".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timeInForce".to_string(), Value::Str("POST_ONLY".into())); }
         }
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_orders_pair(&[__ws_arg_4]).await;
@@ -1576,7 +1576,7 @@ impl BitoproCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1643,7 +1643,7 @@ impl BitoproCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1733,7 +1733,7 @@ impl BitoproCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1772,7 +1772,7 @@ impl BitoproCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1860,7 +1860,7 @@ impl BitoproCore {
 }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("statusKind".to_string(), Value::Str("DONE".to_string()));
+                m.insert("statusKind".to_string(), Value::Str("DONE".into()));
             m
         });
         let __ws_arg_12 = self.extend(request, &[params.clone()]);
@@ -1889,7 +1889,7 @@ impl BitoproCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1911,15 +1911,15 @@ impl BitoproCore {
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut states: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("COMPLETE".to_string(), Value::Str("ok".to_string()));
-                m.insert("INVALID".to_string(), Value::Str("failed".to_string()));
-                m.insert("PROCESSING".to_string(), Value::Str("pending".to_string()));
-                m.insert("WAIT_PROCESS".to_string(), Value::Str("pending".to_string()));
-                m.insert("FAILED".to_string(), Value::Str("failed".to_string()));
-                m.insert("EXPIRED".to_string(), Value::Str("failed".to_string()));
-                m.insert("CANCELLED".to_string(), Value::Str("failed".to_string()));
-                m.insert("EMAIL_VERIFICATION".to_string(), Value::Str("pending".to_string()));
-                m.insert("WAIT_CONFIRMATION".to_string(), Value::Str("pending".to_string()));
+                m.insert("COMPLETE".to_string(), Value::Str("ok".into()));
+                m.insert("INVALID".to_string(), Value::Str("failed".into()));
+                m.insert("PROCESSING".to_string(), Value::Str("pending".into()));
+                m.insert("WAIT_PROCESS".to_string(), Value::Str("pending".into()));
+                m.insert("FAILED".to_string(), Value::Str("failed".into()));
+                m.insert("EXPIRED".to_string(), Value::Str("failed".into()));
+                m.insert("CANCELLED".to_string(), Value::Str("failed".into()));
+                m.insert("EMAIL_VERIFICATION".to_string(), Value::Str("pending".into()));
+                m.insert("WAIT_CONFIRMATION".to_string(), Value::Str("pending".into()));
             m
         });
         return self.safe_string(states.clone(), status.clone(), &[status.clone()]);
@@ -2037,7 +2037,7 @@ impl BitoproCore {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() requires the code argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() requires the code argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2059,7 +2059,7 @@ impl BitoproCore {
         let mut result: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(result.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("type".to_string(), Value::Str("deposit".to_string()));
+        m.insert("type".to_string(), Value::Str("deposit".into()));
     m
 })]);
 
@@ -2086,7 +2086,7 @@ impl BitoproCore {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() requires the code argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() requires the code argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2108,7 +2108,7 @@ impl BitoproCore {
         let mut result: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(result.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("type".to_string(), Value::Str("withdrawal".to_string()));
+        m.insert("type".to_string(), Value::Str("withdrawal".into()));
     m
 })]);
 
@@ -2132,7 +2132,7 @@ impl BitoproCore {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() requires the code argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() requires the code argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2191,11 +2191,11 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut requestedNetwork: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("network".to_string())]), &[]);
+            let mut requestedNetwork: Value = self.safe_string_upper(params.clone(), Value::Str("network".into()), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
             let mut networkId: Value = (if is_true(&(requestedNetwork == Value::Null)) { Value::Null } else { self.safe_string(networks.clone(), requestedNetwork.clone(), &[]) });
             if (networkId == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".to_string()))), requestedNetwork)));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork)));
             }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("protocol".to_string(), networkId.clone()); }
         }
@@ -2276,21 +2276,21 @@ impl BitoproCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_deposit_withdraw_fees(data.clone(), &[codes.clone(), Value::Str("currency".to_string())]);
+        return self.parse_deposit_withdraw_fees(data.clone(), &[codes.clone(), Value::Str("currency".into())]);
 
     Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if (headers == Value::Null) {
             headers = Value::Map({
@@ -2298,19 +2298,19 @@ impl BitoproCore {
                 m
             });
         }
-        add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-API".to_string()), Value::Str("ccxt".to_string()));
+        add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-API".into()), Value::Str("ccxt".into()));
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 body = json_stringify(&params);
                 let mut payload: Value = self.string_to_base64(body.clone(), &[]);
-                let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".to_string()), &[]);
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".to_string()), self.apiKey.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".to_string()), payload.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".to_string()), signature.clone());
+                let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
                 let mut nonce: Value = self.milliseconds();
                 let mut rawData: Value = Value::Map({
@@ -2320,14 +2320,14 @@ impl BitoproCore {
                 });
                 let mut data: Value = json_stringify(&rawData);
                 let mut payload: Value = self.string_to_base64(data.clone(), &[]);
-                let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".to_string()), &[]);
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".to_string()), self.apiKey.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".to_string()), payload.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".to_string()), signature.clone());
+                let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
             }
         }  else if (api.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }
         url = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &url);
@@ -2350,7 +2350,7 @@ impl BitoproCore {
         if code.as_f64().unwrap_or(f64::NAN) >= ((200i64) as f64) && code.as_f64().unwrap_or(f64::NAN) < ((300i64) as f64) {
             return Value::Null;
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());

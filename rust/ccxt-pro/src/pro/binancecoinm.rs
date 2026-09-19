@@ -199,22 +199,22 @@ impl BinancecoinmCore {
         let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
         return self.deep_extend(extended.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("binancecoinm".to_string()));
-        m.insert("name".to_string(), Value::Str("Binance COIN-M".to_string()));
+        m.insert("id".to_string(), Value::Str("binancecoinm".into()));
+        m.insert("name".to_string(), Value::Str("Binance COIN-M".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://developers.binance.com/en".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg".into()));
+        m.insert("doc".to_string(), Value::Str("https://developers.binance.com/en".into()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::from(vec![Value::Str("inverse".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("inverse".into())]));
     m
 }));
-        m.insert("defaultSubType".to_string(), Value::Str("inverse".to_string()));
+        m.insert("defaultSubType".to_string(), Value::Str("inverse".into()));
     m
 }));
     m

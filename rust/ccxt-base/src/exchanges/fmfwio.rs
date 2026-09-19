@@ -193,30 +193,30 @@ impl FmfwioCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("fmfwio".to_string()));
-        m.insert("name".to_string(), Value::Str("FMFW.io".to_string()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("KN".to_string())]));
+        m.insert("id".to_string(), Value::Str("fmfwio".into()));
+        m.insert("name".to_string(), Value::Str("FMFW.io".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("KN".into())]));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://api.fmfw.io/api/3".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api.fmfw.io/api/3".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api.fmfw.io/api/3".into()));
+        m.insert("private".to_string(), Value::Str("https://api.fmfw.io/api/3".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://fmfw.io".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://api.fmfw.io/".to_string()));
-        m.insert("fees".to_string(), Value::Str("https://fmfw.io/fees-and-limits".to_string()));
-        m.insert("referral".to_string(), Value::Str("https://fmfw.io/referral/da948b21d6c92d69".to_string()));
+        m.insert("www".to_string(), Value::Str("https://fmfw.io".into()));
+        m.insert("doc".to_string(), Value::Str("https://api.fmfw.io/".into()));
+        m.insert("fees".to_string(), Value::Str("https://fmfw.io/fees-and-limits".into()));
+        m.insert("referral".to_string(), Value::Str("https://fmfw.io/referral/da948b21d6c92d69".into()));
     m
 }));
         m.insert("fees".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.005".to_string()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.005".to_string()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.005".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.005".into()), &[]));
     m
 }));
     m

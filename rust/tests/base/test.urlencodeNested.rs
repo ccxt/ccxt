@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testUrlencodeNested() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     // todo: add nulls
@@ -21,16 +21,16 @@ pub fn testUrlencodeNested() {
             m.insert("b".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("c".to_string(), Value::Int(2));
-        m.insert("target".to_string(), Value::Str("+&".to_string()));
+        m.insert("target".to_string(), Value::Str("+&".into()));
     m
 }));
             m.insert("d".to_string(), Value::from(vec![Value::Int(1), Value::Int(2)]));
         m
     });
-    let mut expected2a: Value = Value::Str("b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2".to_string());
-    let mut expected2c: Value = Value::Str("b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2".to_string());
-    let mut expected2b: Value = Value::Str("d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".to_string());
-    let mut expected2d: Value = Value::Str("d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".to_string());
+    let mut expected2a: Value = Value::Str("b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2".into());
+    let mut expected2c: Value = Value::Str("b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2".into());
+    let mut expected2b: Value = Value::Str("d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".into());
+    let mut expected2d: Value = Value::Str("d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".into());
     let mut result2: Value = exchange.urlencode_nested(dict2.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(((result2.as_str() == expected2a.as_str()) || (result2.as_str() == expected2b.as_str()) || (result2.as_str() == expected2c.as_str()) || (result2.as_str() == expected2d.as_str())))));
 }

@@ -10,15 +10,15 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMarkets(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMarkets".to_string());
+    let mut method: Value = Value::Str("fetchMarkets".into());
     let mut markets: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_markets", vec![]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), markets.clone()]);
     let mut marketValues: Value = object_values(&markets);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marketValues.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1462: bool = true;
-        while { if !__for_first_1462 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1462 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_48: bool = true;
+        while { if !__for_first_48 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_48 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
     }
     }
@@ -35,14 +35,14 @@ fn detectMarketConflicts(mut exchange: Value, mut marketValues: Value) -> Value 
     });
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1463: bool = true;
-        while { if !__for_first_1463 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1463 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_49: bool = true;
+        while { if !__for_first_49 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_49 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut market: Value = get_value(&marketValues, &i);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut symbol: Value = get_value(&market, &Value::Str("symbol".into()));
         if !(in_op(&ids, &symbol)) {
-            add_element_to_object(&mut ids, &symbol, get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut ids, &symbol, get_value(&market, &Value::Str("id".into())));
         }  else {
-            let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &symbol), &get_value(&market, &Value::Str("id".to_string()))));
+            let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &symbol), &get_value(&market, &Value::Str("id".into()))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isDifferent)))));
         }
     }

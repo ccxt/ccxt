@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testDeepExtend() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut obj1: Value = Value::Map({
@@ -25,7 +25,7 @@ pub fn testDeepExtend() {
     m
 })]));
             m.insert("d".to_string(), Value::Null);
-            m.insert("e".to_string(), Value::Str("not_undefined".to_string()));
+            m.insert("e".to_string(), Value::Str("not_undefined".into()));
             m.insert("sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(1));
@@ -37,11 +37,11 @@ pub fn testDeepExtend() {
     m
 })]));
         m.insert("d".to_string(), Value::Null);
-        m.insert("e".to_string(), Value::Str("not_undefined".to_string()));
-        m.insert("other1".to_string(), Value::Str("x".to_string()));
+        m.insert("e".to_string(), Value::Str("not_undefined".into()));
+        m.insert("other1".to_string(), Value::Str("x".into()));
     m
 }));
-            m.insert("other1".to_string(), Value::Str("x".to_string()));
+            m.insert("other1".to_string(), Value::Str("x".into()));
         m
     });
     let mut obj2: Value = Value::Map({
@@ -54,7 +54,7 @@ pub fn testDeepExtend() {
         m.insert("test3".to_string(), Value::Int(3));
     m
 })]));
-            m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
+            m.insert("d".to_string(), Value::Str("not_undefined".into()));
             m.insert("e".to_string(), Value::Null);
             m.insert("sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -66,12 +66,12 @@ pub fn testDeepExtend() {
         m.insert("test3".to_string(), Value::Int(3));
     m
 })]));
-        m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
+        m.insert("d".to_string(), Value::Str("not_undefined".into()));
         m.insert("e".to_string(), Value::Null);
-        m.insert("other2".to_string(), Value::Str("y".to_string()));
+        m.insert("other2".to_string(), Value::Str("y".into()));
     m
 }));
-            m.insert("other2".to_string(), Value::Str("y".to_string()));
+            m.insert("other2".to_string(), Value::Str("y".into()));
         m
     });
     // deepExtend
@@ -86,7 +86,7 @@ pub fn testDeepExtend() {
         m.insert("test3".to_string(), Value::Int(3));
     m
 })]));
-            m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
+            m.insert("d".to_string(), Value::Str("not_undefined".into()));
             m.insert("e".to_string(), Value::Null);
             m.insert("sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -98,17 +98,17 @@ pub fn testDeepExtend() {
         m.insert("test3".to_string(), Value::Int(3));
     m
 })]));
-        m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
+        m.insert("d".to_string(), Value::Str("not_undefined".into()));
         m.insert("e".to_string(), Value::Null);
-        m.insert("other1".to_string(), Value::Str("x".to_string()));
-        m.insert("other2".to_string(), Value::Str("y".to_string()));
+        m.insert("other1".to_string(), Value::Str("x".into()));
+        m.insert("other2".to_string(), Value::Str("y".into()));
     m
 }));
-            m.insert("other1".to_string(), Value::Str("x".to_string()));
-            m.insert("other2".to_string(), Value::Str("y".to_string()));
+            m.insert("other1".to_string(), Value::Str("x".into()));
+            m.insert("other2".to_string(), Value::Str("y".into()));
         m
     });
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testDeepExtend".to_string()).clone(), deepExtended.clone(), compareTo.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testDeepExtend".into()).clone(), deepExtended.clone(), compareTo.clone()]);
 }

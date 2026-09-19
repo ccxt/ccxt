@@ -878,7 +878,7 @@ function createImplicitMethodsRust(){
             return [[
                 `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
                 `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[Value]) -> Value {`,
-                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".to_string()), optional_args).await`,
+                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".into()), optional_args).await`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')];

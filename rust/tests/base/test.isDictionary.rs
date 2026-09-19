@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testIsDictionary() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     // populated dict
@@ -28,7 +28,7 @@ pub fn testIsDictionary() {
     // undefined is not a dict
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::Null).as_bool() == Some(false)))));
     // scalars are not dicts
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::Str("str".to_string())).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::Str("str".into())).as_bool() == Some(false)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::Int(5)).as_bool() == Some(false)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::Bool(true)).as_bool() == Some(false)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::Map({

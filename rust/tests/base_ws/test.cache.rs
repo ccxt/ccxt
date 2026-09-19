@@ -15,94 +15,94 @@ pub fn testWsCache() {
     let mut arrayCache = ArrayCache::new(Value::Int(3));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(1));
         m
     }));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(2));
         m
     }));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(3));
         m
     }));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(4));
         m
     }));
     assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(2));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(3));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(4));
     m
 })])))));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(5));
         m
     }));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(6));
         m
     }));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(7));
         m
     }));
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(8));
         m
     }));
     assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(6));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(7));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(8));
     m
 })])))));
     arrayCache.clear();
     arrayCache.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(1));
         m
     }));
     assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(1));
     m
 })])))));
@@ -110,19 +110,19 @@ pub fn testWsCache() {
     let mut arraycache2 = ArrayCache::new(Value::Int(1));
     arraycache2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(1));
         m
     }));
     arraycache2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(2));
         m
     }));
     assert!(ccxt::runtime::is_true(&(equals(arraycache2.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
         m.insert("data".to_string(), Value::Int(2));
     m
 })])))));
@@ -140,22 +140,22 @@ pub fn testWsCache() {
     let mut cacheSymbolId = ArrayCacheBySymbolById::new(Value::Null);
     let mut object1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("abcdef".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("abcdef".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     });
     let mut object2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("qwerty".to_string()));
+            m.insert("symbol".to_string(), Value::Str("ETH/USDT".into()));
+            m.insert("id".to_string(), Value::Str("qwerty".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     });
     let mut object3: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("abcdef".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("abcdef".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     });
@@ -167,11 +167,11 @@ pub fn testWsCache() {
     let mut cacheSymbolId5 = ArrayCacheBySymbolById::new(Value::Int(5));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1419: bool = true;
-        while { if !__for_first_1419 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1419 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_5: bool = true;
+        while { if !__for_first_5 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_5 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+                m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
                 m.insert("id".to_string(), to_string_val(&i));
                 m.insert("i".to_string(), i.clone());
             m
@@ -180,42 +180,42 @@ pub fn testWsCache() {
     }
     assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("6".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("6".into()));
         m.insert("i".to_string(), Value::Int(6));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("7".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("7".into()));
         m.insert("i".to_string(), Value::Int(7));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("8".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("8".into()));
         m.insert("i".to_string(), Value::Int(8));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("9".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("9".into()));
         m.insert("i".to_string(), Value::Int(9));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("10".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("10".into()));
         m.insert("i".to_string(), Value::Int(10));
     m
 })])))));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1420: bool = true;
-        while { if !__for_first_1420 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1420 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_6: bool = true;
+        while { if !__for_first_6 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_6 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+                m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
                 m.insert("id".to_string(), to_string_val(&i));
                 m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
@@ -224,120 +224,120 @@ pub fn testWsCache() {
     }
     assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("6".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("6".into()));
         m.insert("i".to_string(), Value::Int(16));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("7".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("7".into()));
         m.insert("i".to_string(), Value::Int(17));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("8".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("8".into()));
         m.insert("i".to_string(), Value::Int(18));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("9".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("9".into()));
         m.insert("i".to_string(), Value::Int(19));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("10".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("10".into()));
         m.insert("i".to_string(), Value::Int(20));
     m
 })])))));
     let mut middle: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("8".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("8".into()));
             m.insert("i".to_string(), Value::Int(28));
         m
     });
     cacheSymbolId5.append(middle.clone());
     assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("6".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("6".into()));
         m.insert("i".to_string(), Value::Int(16));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("7".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("7".into()));
         m.insert("i".to_string(), Value::Int(17));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("9".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("9".into()));
         m.insert("i".to_string(), Value::Int(19));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("10".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("10".into()));
         m.insert("i".to_string(), Value::Int(20));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("8".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("8".into()));
         m.insert("i".to_string(), Value::Int(28));
     m
 })])))));
     let mut otherMiddle: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("7".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("7".into()));
             m.insert("i".to_string(), Value::Int(27));
         m
     });
     cacheSymbolId5.append(otherMiddle.clone());
     assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("6".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("6".into()));
         m.insert("i".to_string(), Value::Int(16));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("9".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("9".into()));
         m.insert("i".to_string(), Value::Int(19));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("10".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("10".into()));
         m.insert("i".to_string(), Value::Int(20));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("8".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("8".into()));
         m.insert("i".to_string(), Value::Int(28));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("7".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("7".into()));
         m.insert("i".to_string(), Value::Int(27));
     m
 })])))));
     {
                 let mut i: Value = Value::Int(30);
-        let mut __for_first_1421: bool = true;
-        while { if !__for_first_1421 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1421 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_7: bool = true;
+        while { if !__for_first_7 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_7 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+                m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
                 m.insert("id".to_string(), to_string_val(&i));
                 m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
@@ -346,122 +346,122 @@ pub fn testWsCache() {
     }
     assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("8".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("8".into()));
         m.insert("i".to_string(), Value::Int(28));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("7".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("7".into()));
         m.insert("i".to_string(), Value::Int(27));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("30".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("30".into()));
         m.insert("i".to_string(), Value::Int(40));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("31".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("31".into()));
         m.insert("i".to_string(), Value::Int(41));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("32".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("32".into()));
         m.insert("i".to_string(), Value::Int(42));
     m
 })])))));
     let mut first: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("8".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("8".into()));
             m.insert("i".to_string(), Value::Int(38));
         m
     });
     cacheSymbolId5.append(first.clone());
     assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("7".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("7".into()));
         m.insert("i".to_string(), Value::Int(27));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("30".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("30".into()));
         m.insert("i".to_string(), Value::Int(40));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("31".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("31".into()));
         m.insert("i".to_string(), Value::Int(41));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("32".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("32".into()));
         m.insert("i".to_string(), Value::Int(42));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("8".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("8".into()));
         m.insert("i".to_string(), Value::Int(38));
     m
 })])))));
     let mut another: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("30".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("30".into()));
             m.insert("i".to_string(), Value::Int(50));
         m
     });
     cacheSymbolId5.append(another.clone());
     assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("7".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("7".into()));
         m.insert("i".to_string(), Value::Int(27));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("31".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("31".into()));
         m.insert("i".to_string(), Value::Int(41));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("32".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("32".into()));
         m.insert("i".to_string(), Value::Int(42));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("8".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("8".into()));
         m.insert("i".to_string(), Value::Int(38));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("30".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("30".into()));
         m.insert("i".to_string(), Value::Int(50));
     m
 })])))));
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById limit with symbol set
-    let mut symbol: Value = Value::Str("BTC/USDT".to_string());
+    let mut symbol: Value = Value::Str("BTC/USDT".into());
     let mut cacheSymbolId2 = ArrayCacheBySymbolById::new(Value::Null);
     let mut initialLength: Value = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1422: bool = true;
-        while { if !__for_first_1422 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1422 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_8: bool = true;
+        while { if !__for_first_8 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_8 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -478,8 +478,8 @@ pub fn testWsCache() {
     let mut appendItemsLength: Value = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1423: bool = true;
-        while { if !__for_first_1423 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1423 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_9: bool = true;
+        while { if !__for_first_9 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_9 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -497,13 +497,13 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&outsideLimit, &limited)))));
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById limit with symbol undefined
-    symbol = Value::Str("BTC/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
     let mut cacheSymbolId4 = ArrayCacheBySymbolById::new(Value::Null);
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1424: bool = true;
-        while { if !__for_first_1424 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1424 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_10: bool = true;
+        while { if !__for_first_10 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_10 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -520,8 +520,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1425: bool = true;
-        while { if !__for_first_1425 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1425 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_11: bool = true;
+        while { if !__for_first_11 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_11 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -540,26 +540,26 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById, same order should not increase the limit
     let mut cacheSymbolId7 = ArrayCacheBySymbolById::new(Value::Null);
-    symbol = Value::Str("BTC/USDT".to_string());
-    let mut otherSymbol: Value = Value::Str("ETH/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
+    let mut otherSymbol: Value = Value::Str("ETH/USDT".into());
     cacheSymbolId7.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("singleId".to_string()));
+            m.insert("id".to_string(), Value::Str("singleId".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
     cacheSymbolId7.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("singleId".to_string()));
+            m.insert("id".to_string(), Value::Str("singleId".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
     cacheSymbolId7.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), otherSymbol.clone());
-            m.insert("id".to_string(), Value::Str("singleId".to_string()));
+            m.insert("id".to_string(), Value::Str("singleId".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
@@ -574,8 +574,8 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1426: bool = true;
-        while { if !__for_first_1426 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1426 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_12: bool = true;
+        while { if !__for_first_12 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_12 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
@@ -584,8 +584,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1427: bool = true;
-        while { if !__for_first_1427 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1427 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_13: bool = true;
+        while { if !__for_first_13 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_13 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
@@ -598,12 +598,12 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated
     let mut cacheSymbolId8 = ArrayCacheBySymbolById::new(Value::Null);
-    symbol = Value::Str("BTC/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
     outsideLimit = Value::Int(5);
     cacheSymbolId8.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("oneId".to_string()));
+            m.insert("id".to_string(), Value::Str("oneId".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     })); // create first order
@@ -611,7 +611,7 @@ pub fn testWsCache() {
     cacheSymbolId8.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("oneId".to_string()));
+            m.insert("id".to_string(), Value::Str("oneId".into()));
             m.insert("i".to_string(), Value::Int(4));
         m
     })); // first order is closed
@@ -619,7 +619,7 @@ pub fn testWsCache() {
     cacheSymbolId8.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("twoId".to_string()));
+            m.insert("id".to_string(), Value::Str("twoId".into()));
             m.insert("i".to_string(), Value::Int(5));
         m
     })); // create second order
@@ -627,7 +627,7 @@ pub fn testWsCache() {
     cacheSymbolId8.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("twoId".to_string()));
+            m.insert("id".to_string(), Value::Str("twoId".into()));
             m.insert("i".to_string(), Value::Int(6));
         m
     })); // second order is closed
@@ -636,20 +636,20 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById, watch all orders, and watchOrders (symbol) work independently
     let mut cacheSymbolId9 = ArrayCacheBySymbolById::new(Value::Null);
-    symbol = Value::Str("BTC/USDT".to_string());
-    let mut symbol2: Value = Value::Str("ETH/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
+    let mut symbol2: Value = Value::Str("ETH/USDT".into());
     outsideLimit = Value::Int(5);
     cacheSymbolId9.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("one".to_string()));
+            m.insert("id".to_string(), Value::Str("one".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     })); // create first order
     cacheSymbolId9.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("id".to_string(), Value::Str("two".to_string()));
+            m.insert("id".to_string(), Value::Str("two".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     })); // create second order
@@ -658,14 +658,14 @@ pub fn testWsCache() {
     cacheSymbolId9.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("id".to_string(), Value::Str("one".to_string()));
+            m.insert("id".to_string(), Value::Str("one".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     })); // update first order
     cacheSymbolId9.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("id".to_string(), Value::Str("two".to_string()));
+            m.insert("id".to_string(), Value::Str("two".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     })); // update second order
@@ -674,14 +674,14 @@ pub fn testWsCache() {
     cacheSymbolId9.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("id".to_string(), Value::Str("two".to_string()));
+            m.insert("id".to_string(), Value::Str("two".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     })); // update second order
     cacheSymbolId9.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("id".to_string(), Value::Str("three".to_string()));
+            m.insert("id".to_string(), Value::Str("three".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     })); // create third order
@@ -689,19 +689,19 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
     let mut cacheSymbolSide = ArrayCacheBySymbolBySide::new(Value::Null);
-    symbol = Value::Str("BTC/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
     outsideLimit = Value::Int(5);
     cacheSymbolSide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     })); // create first position
     cacheSymbolSide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(0));
         m
     })); // first position is closed
@@ -709,7 +709,7 @@ pub fn testWsCache() {
     cacheSymbolSide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     })); // create first position
@@ -717,12 +717,12 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
     let mut cacheSymbolSide2 = ArrayCacheBySymbolBySide::new(Value::Null);
-    symbol = Value::Str("BTC/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
     outsideLimit = Value::Int(5);
     cacheSymbolSide2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     })); // create first position
@@ -730,7 +730,7 @@ pub fn testWsCache() {
     cacheSymbolSide2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(0));
         m
     })); // first position is closed
@@ -738,7 +738,7 @@ pub fn testWsCache() {
     cacheSymbolSide2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(3));
         m
     })); // create second position
@@ -746,14 +746,14 @@ pub fn testWsCache() {
     cacheSymbolSide2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(2));
         m
     })); // second position is reduced
     cacheSymbolSide2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     })); // second position is reduced
@@ -761,19 +761,19 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolBySide, watchPositions, and watchPosition (symbol) work independently
     let mut cacheSymbolSide3 = ArrayCacheBySymbolBySide::new(Value::Null);
-    symbol = Value::Str("BTC/USDT".to_string());
-    symbol2 = Value::Str("ETH/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
+    symbol2 = Value::Str("ETH/USDT".into());
     cacheSymbolSide3.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     })); // create first position
     cacheSymbolSide3.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     })); // create second position
@@ -782,14 +782,14 @@ pub fn testWsCache() {
     cacheSymbolSide3.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(2));
         m
     })); // update first position
     cacheSymbolSide3.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(2));
         m
     })); // update second position
@@ -798,7 +798,7 @@ pub fn testWsCache() {
     cacheSymbolSide3.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(3));
         m
     })); // update second position
@@ -806,42 +806,42 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolBySide, watchPositions does not override
     let mut cacheSymbolSide4 = ArrayCacheBySymbolBySide::new(Value::Null);
-    symbol = Value::Str("BTC/USDT".to_string());
-    symbol2 = Value::Str("ETH/USDT".to_string());
-    let mut symbol3: Value = Value::Str("XRP/USDT".to_string());
+    symbol = Value::Str("BTC/USDT".into());
+    symbol2 = Value::Str("ETH/USDT".into());
+    let mut symbol3: Value = Value::Str("XRP/USDT".into());
     cacheSymbolSide4.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     })); // create first position
     cacheSymbolSide4.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(2));
         m
     })); // create second position
     cacheSymbolSide4.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol3.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(3));
         m
     })); // create short position
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("symbol".to_string())), &symbol)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("symbol".to_string())), &symbol2)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("symbol".into())), &symbol)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("symbol".into())), &symbol2)))));
     cacheSymbolSide4.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol2.clone());
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(4));
         m
     })); // update first position
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("contracts".to_string())), &Value::Int(1)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("symbol".to_string())), &symbol)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("contracts".to_string())), &Value::Int(3)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("symbol".to_string())), &symbol3)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("contracts".to_string())), &Value::Int(4)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("symbol".to_string())), &symbol2)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("contracts".into())), &Value::Int(1)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("symbol".into())), &symbol)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("contracts".into())), &Value::Int(3)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("symbol".into())), &symbol3)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("contracts".into())), &Value::Int(4)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("symbol".into())), &symbol2)))));
     let mut arrayLength: Value = get_array_length(&cacheSymbolSide4);
     assert!(ccxt::runtime::is_true(&(Value::Bool(arrayLength.as_f64() == Some(3.0)))));
     // ----------------------------------------------------------------------------
@@ -851,15 +851,15 @@ pub fn testWsCache() {
     let mut cacheClearById = ArrayCacheBySymbolById::new(Value::Null);
     cacheClearById.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("a".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     }));
     cacheClearById.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("b".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
@@ -868,28 +868,28 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&cacheClearById.get_limit(Value::Null, Value::Int(10)), &Value::Int(0)))))); // no phantom updates
     cacheClearById.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("a".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
     cacheClearById.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("b".into()));
             m.insert("i".to_string(), Value::Int(4));
         m
     }));
     assert!(ccxt::runtime::is_true(&(equals(cacheClearById.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("a".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("a".into()));
         m.insert("i".to_string(), Value::Int(3));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("b".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("b".into()));
         m.insert("i".to_string(), Value::Int(4));
     m
 })])))));
@@ -910,15 +910,15 @@ pub fn testWsCache() {
     let mut cacheClearBySide = ArrayCacheBySymbolBySide::new(Value::Null);
     cacheClearBySide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     }));
     cacheClearBySide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("symbol".to_string(), Value::Str("ETH/USDT".into()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(2));
         m
     }));
@@ -927,40 +927,40 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(clearedBySideLength.as_f64() == Some(0.0)))));
     cacheClearBySide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(3));
         m
     }));
     cacheClearBySide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("symbol".to_string(), Value::Str("ETH/USDT".into()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(4));
         m
     }));
     let mut reappendedBySideLength: Value = get_array_length(&cacheClearBySide);
     assert!(ccxt::runtime::is_true(&(Value::Bool(reappendedBySideLength.as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(0)), &Value::Str("contracts".to_string())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(1)), &Value::Str("contracts".to_string())), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(0)), &Value::Str("contracts".into())), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(1)), &Value::Str("contracts".into())), &Value::Int(4))))));
     // ----------------------------------------------------------------------------
     // test a falsy maxSize means unbounded, it must not swallow rows
     let mut cacheUnbounded = ArrayCache::new(Value::Int(0));
     cacheUnbounded.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(1));
         m
     }));
     cacheUnbounded.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(2));
         m
     }));
     cacheUnbounded.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("data".to_string(), Value::Int(3));
         m
     }));
@@ -971,80 +971,80 @@ pub fn testWsCache() {
     let mut cachePartial = ArrayCacheBySymbolById::new(Value::Null);
     cachePartial.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("a1".to_string()));
-            m.insert("status".to_string(), Value::Str("open".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("a1".into()));
+            m.insert("status".to_string(), Value::Str("open".into()));
             m.insert("amount".to_string(), Value::Int(5));
             m.insert("fee".to_string(), Value::Int(7));
         m
     }));
     cachePartial.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("a1".to_string()));
-            m.insert("status".to_string(), Value::Str("closed".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("a1".into()));
+            m.insert("status".to_string(), Value::Str("closed".into()));
         m
     }));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cachePartial).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("status".to_string())).as_str() == Some("closed")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("amount".to_string())), &Value::Int(5))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("fee".to_string())), &Value::Int(7))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("status".into())).as_str() == Some("closed")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("amount".into())), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("fee".into())), &Value::Int(7))))));
     // ----------------------------------------------------------------------------
     // test the symbol and the id are matched as two separate fields - concatenating
     // them makes ('BTC/USDT1', '2') collide with ('BTC/USDT', '12')
     let mut cacheColliding = ArrayCacheBySymbolById::new(Value::Null);
     cacheColliding.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT1".to_string()));
-            m.insert("id".to_string(), Value::Str("2".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT1".into()));
+            m.insert("id".to_string(), Value::Str("2".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     }));
     cacheColliding.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("12".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("12".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheColliding).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(0)), &Value::Str("i".to_string())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(1)), &Value::Str("i".to_string())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(0)), &Value::Str("i".into())), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(1)), &Value::Str("i".into())), &Value::Int(2))))));
     // ----------------------------------------------------------------------------
     // test two symbols may share one order id - matching on the id alone splices
     // out the wrong row, so assert the positional contents and not just the count
     let mut cacheSharedId = ArrayCacheBySymbolById::new(Value::Null);
     cacheSharedId.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("shared".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("shared".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     }));
     cacheSharedId.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("shared".to_string()));
+            m.insert("symbol".to_string(), Value::Str("ETH/USDT".into()));
+            m.insert("id".to_string(), Value::Str("shared".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
     cacheSharedId.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("shared".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("shared".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
     assert!(ccxt::runtime::is_true(&(equals(cacheSharedId.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("shared".to_string()));
+        m.insert("symbol".to_string(), Value::Str("ETH/USDT".into()));
+        m.insert("id".to_string(), Value::Str("shared".into()));
         m.insert("i".to_string(), Value::Int(2));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-        m.insert("id".to_string(), Value::Str("shared".to_string()));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        m.insert("id".to_string(), Value::Str("shared".into()));
         m.insert("i".to_string(), Value::Int(3));
     m
 })])))));
@@ -1055,8 +1055,8 @@ pub fn testWsCache() {
     let mut cacheTimestampLimited = ArrayCacheByTimestamp::new(Value::Int(3));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1428: bool = true;
-        while { if !__for_first_1428 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1428 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_14: bool = true;
+        while { if !__for_first_14 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_14 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
         cacheTimestampLimited.append(Value::from(vec![(match (&(i), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), i.clone(), i.clone(), i.clone()]));
     }
     }
@@ -1079,40 +1079,40 @@ pub fn testWsCache() {
     let mut cacheByOutcome = ArrayCacheByOutcomeById::new(Value::Null);
     cacheByOutcome.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
-            m.insert("outcome".to_string(), Value::Str("yes".to_string()));
-            m.insert("id".to_string(), Value::Str("o1".to_string()));
+            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".into()));
+            m.insert("outcome".to_string(), Value::Str("yes".into()));
+            m.insert("id".to_string(), Value::Str("o1".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     }));
     cacheByOutcome.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
-            m.insert("outcome".to_string(), Value::Str("no".to_string()));
-            m.insert("id".to_string(), Value::Str("o1".to_string()));
+            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".into()));
+            m.insert("outcome".to_string(), Value::Str("no".into()));
+            m.insert("id".to_string(), Value::Str("o1".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
     cacheByOutcome.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
-            m.insert("outcome".to_string(), Value::Str("yes".to_string()));
-            m.insert("id".to_string(), Value::Str("o1".to_string()));
+            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".into()));
+            m.insert("outcome".to_string(), Value::Str("yes".into()));
+            m.insert("id".to_string(), Value::Str("o1".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
     assert!(ccxt::runtime::is_true(&(equals(cacheByOutcome.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
-        m.insert("outcome".to_string(), Value::Str("no".to_string()));
-        m.insert("id".to_string(), Value::Str("o1".to_string()));
+        m.insert("symbol".to_string(), Value::Str("TRUMP-2024".into()));
+        m.insert("outcome".to_string(), Value::Str("no".into()));
+        m.insert("id".to_string(), Value::Str("o1".into()));
         m.insert("i".to_string(), Value::Int(2));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
-        m.insert("outcome".to_string(), Value::Str("yes".to_string()));
-        m.insert("id".to_string(), Value::Str("o1".to_string()));
+        m.insert("symbol".to_string(), Value::Str("TRUMP-2024".into()));
+        m.insert("outcome".to_string(), Value::Str("yes".into()));
+        m.insert("id".to_string(), Value::Str("o1".into()));
         m.insert("i".to_string(), Value::Int(3));
     m
 })])))));
@@ -1123,22 +1123,22 @@ pub fn testWsCache() {
     let mut cacheNumericId = ArrayCacheBySymbolById::new(Value::Null);
     cacheNumericId.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Int(1));
-            m.insert("status".to_string(), Value::Str("open".to_string()));
+            m.insert("status".to_string(), Value::Str("open".into()));
             m.insert("amount".to_string(), Value::Int(5));
         m
     }));
     cacheNumericId.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Int(1));
-            m.insert("status".to_string(), Value::Str("closed".to_string()));
+            m.insert("status".to_string(), Value::Str("closed".into()));
         m
     }));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheNumericId).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("status".to_string())).as_str() == Some("closed")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("amount".to_string())), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("status".into())).as_str() == Some("closed")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("amount".into())), &Value::Int(5))))));
     // ----------------------------------------------------------------------------
     // test eviction removes the emptied outer bucket too - a stream of short-lived
     // symbols used to leak one empty object per symbol into the hashmap forever,
@@ -1146,12 +1146,12 @@ pub fn testWsCache() {
     let mut cacheEvictBuckets = ArrayCacheBySymbolById::new(Value::Int(3));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1429: bool = true;
-        while { if !__for_first_1429 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1429 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_15: bool = true;
+        while { if !__for_first_15 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_15 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
         cacheEvictBuckets.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".to_string()), to_string_val(&i))), Value::Str("/USDT".to_string()))));
-                m.insert("id".to_string(), Value::Str("x".to_string()));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), to_string_val(&i)).into()), Value::Str("/USDT".into())).into()));
+                m.insert("id".to_string(), Value::Str("x".into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -1159,7 +1159,7 @@ pub fn testWsCache() {
     }
     let mut evictedLength: Value = get_array_length(&cacheEvictBuckets);
     assert!(ccxt::runtime::is_true(&(Value::Bool(evictedLength.as_f64() == Some(3.0)))));
-    let mut bucketKeys: Value = object_keys(&get_value(&cacheEvictBuckets, &Value::Str("hashmap".to_string())));
+    let mut bucketKeys: Value = object_keys(&get_value(&cacheEvictBuckets, &Value::Str("hashmap".into())));
     let mut bucketCount: Value = Value::Int(bucketKeys.len() as i64);
     assert!(ccxt::runtime::is_true(&(Value::Bool(bucketCount.as_f64() == Some(3.0))))); // no empty leftover buckets
     // ----------------------------------------------------------------------------
@@ -1169,44 +1169,44 @@ pub fn testWsCache() {
     let mut cacheTwoScopes = ArrayCacheBySymbolById::new(Value::Null);
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("a".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     }));
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("b".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
-    let mut symbolScopeFirst: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    let mut symbolScopeFirst: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".into()), Value::Int(100));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&symbolScopeFirst, &Value::Int(2))))));
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("a".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
     let mut globalScope: Value = cacheTwoScopes.get_limit(Value::Null, Value::Int(100));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&globalScope, &Value::Int(2)))))); // distinct ids a and b since no global poll happened - id a must not double-count
-    let mut symbolScopeSecond: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    let mut symbolScopeSecond: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".into()), Value::Int(100));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&symbolScopeSecond, &Value::Int(1)))))); // id a since the last symbol-scoped poll
     // the inverse direction: a global poll (and the append that fires its
     // deferred reset) must not erase the symbol scope's window
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("d".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("d".into()));
             m.insert("i".to_string(), Value::Int(4));
         m
     }));
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("e".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("e".into()));
             m.insert("i".to_string(), Value::Int(5));
         m
     }));
@@ -1214,36 +1214,36 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&globalScopeSecond, &Value::Int(2)))))); // ids d and e since the first global poll - id a was consumed by it
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("d".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("d".into()));
             m.insert("i".to_string(), Value::Int(6));
         m
     }));
-    let mut symbolScopeThird: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    let mut symbolScopeThird: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".into()), Value::Int(100));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&symbolScopeThird, &Value::Int(2)))))); // ids d, e since the last symbol poll - the global poll in between must not reset this window
     // ----------------------------------------------------------------------------
     // the BySide twin of the two-scope case, covering both directions
     let mut sideTwoScopes = ArrayCacheBySymbolBySide::new(Value::Null);
     sideTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     }));
     sideTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
     }));
-    let mut sideSymbolFirst: Value = sideTwoScopes.get_limit(Value::Str("BTC/USDT:USDT".to_string()), Value::Int(100));
+    let mut sideSymbolFirst: Value = sideTwoScopes.get_limit(Value::Str("BTC/USDT:USDT".into()), Value::Int(100));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&sideSymbolFirst, &Value::Int(2))))));
     sideTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+            m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(2));
         m
     }));
@@ -1251,12 +1251,12 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&sideGlobal, &Value::Int(2)))))); // long and short distinct since no global poll - the re-updated long must not double-count
     sideTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
-            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+            m.insert("side".to_string(), Value::Str("short".into()));
             m.insert("contracts".to_string(), Value::Int(2));
         m
     }));
-    let mut sideSymbolSecond: Value = sideTwoScopes.get_limit(Value::Str("BTC/USDT:USDT".to_string()), Value::Int(100));
+    let mut sideSymbolSecond: Value = sideTwoScopes.get_limit(Value::Str("BTC/USDT:USDT".into()), Value::Int(100));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&sideSymbolSecond, &Value::Int(2)))))); // long and short since the last symbol poll - the global poll must not reset this window
     // ----------------------------------------------------------------------------
     // eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
@@ -1265,31 +1265,31 @@ pub fn testWsCache() {
     let mut cacheEvictSeen = ArrayCacheBySymbolById::new(Value::Int(2));
     cacheEvictSeen.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("a".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     }));
     cacheEvictSeen.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("b".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
     cacheEvictSeen.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("c".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("c".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
     })); // evicts id a
-    let mut evictSymbolCount: Value = cacheEvictSeen.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    let mut evictSymbolCount: Value = cacheEvictSeen.get_limit(Value::Str("BTC/USDT".into()), Value::Int(100));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&evictSymbolCount, &Value::Int(2)))))); // ids b and c - the evicted id a no longer counts
     cacheEvictSeen.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("id".to_string(), Value::Str("d".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("id".to_string(), Value::Str("d".into()));
             m.insert("i".to_string(), Value::Int(4));
         m
     })); // evicts id b

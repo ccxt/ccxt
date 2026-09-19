@@ -10,16 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMyLiquidations(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMyLiquidations".to_string());
-    if (get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || (get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+    let mut method: Value = Value::Str("fetchMyLiquidations".into());
+    if (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
         return Value::Bool(true);
     }
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_my_liquidations", vec![code.clone()]).await;
     assert!(ccxt::runtime::is_true(&((matches!(&items, Value::Arr(_))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1464: bool = true;
-        while { if !__for_first_1464 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1464 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(items.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_50: bool = true;
+        while { if !__for_first_50 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_50 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(items.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&items, &i), code.clone());
     }
     }

@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testIso8601() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Int(514862627000)).as_str() == Some("1986-04-26T01:23:47.000Z")))));
@@ -22,8 +22,8 @@ pub fn testIso8601() {
     // assert!(ccxt::runtime::is_true(&(exchange.iso8601 () === undefined)));
     // todo: assert!(ccxt::runtime::is_true(&(exchange.iso8601 () === undefined)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Null) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("a".to_string())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("a".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -67,9 +67,9 @@ pub fn testIso8601() {
     // zero is a valid timestamp
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Int(0)).as_str() == Some("1970-01-01T00:00:00.000Z")))));
     // plain-integer strings are accepted
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("1755432123456".to_string())).as_str() == Some("2025-08-17T12:02:03.456Z")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("1755432123456".into())).as_str() == Some("2025-08-17T12:02:03.456Z")))));
     // strings that are not a plain integer are rejected
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("123abc".to_string())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Str("123abc".into())) == Value::Null))));
     // non-integer numbers are floored
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.iso8601(Value::Float(514862627559.9)).as_str() == Some("1986-04-26T01:23:47.559Z")))));
     // last representable millisecond of year 9999
@@ -84,22 +84,22 @@ pub fn testIso8601() {
 pub fn testParse8601() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.000Z".to_string())).as_f64() == Some(514862627000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.559Z".to_string())).as_f64() == Some(514862627559.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.062Z".to_string())).as_f64() == Some(514862627062.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.06Z".to_string())).as_f64() == Some(514862627060.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.6Z".to_string())).as_f64() == Some(514862627600.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.000Z".into())).as_f64() == Some(514862627000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.559Z".into())).as_f64() == Some(514862627559.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.062Z".into())).as_f64() == Some(514862627062.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.06Z".into())).as_f64() == Some(514862627060.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.6Z".into())).as_f64() == Some(514862627600.0)))));
     // a negative offset is a zone like any other
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.559-04:00".to_string())).as_f64() == Some(514877027559.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.559+00:00".to_string())).as_f64() == Some(514862627559.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1977-13-13T00:00:00.000Z".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T25:71:47.000Z".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("3333".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("Sr90".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("".to_string())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.559-04:00".into())).as_f64() == Some(514877027559.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T01:23:47.559+00:00".into())).as_f64() == Some(514862627559.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1977-13-13T00:00:00.000Z".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("1986-04-26T25:71:47.000Z".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("3333".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("Sr90".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("".into())) == Value::Null))));
     // assert!(ccxt::runtime::is_true(&(exchange.parse8601 () === undefined)));
     // todo: assert!(ccxt::runtime::is_true(&(exchange.parse8601 () === undefined)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Null) == Value::Null))));
@@ -112,17 +112,17 @@ pub fn testParse8601() {
 pub fn testParseDate() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_date(Value::Str("1986-04-26 00:00:00".to_string()), &[]).as_f64() == Some(514857600000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_date(Value::Str("1986-04-26T01:23:47.000Z".to_string()), &[]).as_f64() == Some(514862627000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_date(Value::Str("1986-13-13 00:00:00".to_string()), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_date(Value::Str("1986-04-26 00:00:00".into()), &[]).as_f64() == Some(514857600000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_date(Value::Str("1986-04-26T01:23:47.000Z".into()), &[]).as_f64() == Some(514862627000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_date(Value::Str("1986-13-13 00:00:00".into()), &[]) == Value::Null))));
 }
 pub fn testMicroseconds() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut value: Value = exchange.microseconds();
@@ -133,7 +133,7 @@ pub fn testMicroseconds() {
 pub fn testMilliseconds() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut value: Value = exchange.milliseconds();
@@ -144,7 +144,7 @@ pub fn testMilliseconds() {
 pub fn testSeconds() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut value: Value = exchange.seconds();
@@ -155,28 +155,28 @@ pub fn testSeconds() {
 pub fn testConvertExpireDate() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     // callers write this into expiryDatetime, which types.ts documents with milliseconds
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("260503".to_string())).as_str() == Some("2026-05-03T00:00:00.000Z")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("240426".to_string())).as_str() == Some("2024-04-26T00:00:00.000Z")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("260503".into())).as_str() == Some("2026-05-03T00:00:00.000Z")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("240426".into())).as_str() == Some("2024-04-26T00:00:00.000Z")))));
     // both spellings of midnight parse to the same instant
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".to_string()))).as_f64() == Some(1777766400000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("2026-05-03T00:00:00Z".to_string())).as_f64() == exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".to_string()))).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".into()))).as_f64() == Some(1777766400000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse8601(Value::Str("2026-05-03T00:00:00Z".into())).as_f64() == exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".into()))).as_f64()))));
     // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
     // invariant the change exists to establish, and it fails on the old spelling
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("260503".to_string())).as_str() == exchange.iso8601(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".to_string())))).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("260503".into())).as_str() == exchange.iso8601(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".into())))).as_str()))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Null) == Value::Null))));
 }
 pub fn testYymmdd() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.yymmdd(testMs.clone(), &[Value::Str("_".to_string())]);
+    let mut value: Value = exchange.yymmdd(testMs.clone(), &[Value::Str("_".into())]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_str() == Some("25_06_17")))));
     let mut value2: Value = exchange.yymmdd(exchange.milliseconds(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(value2.len() as i64).as_f64() == Some(6.0)))));
@@ -186,35 +186,35 @@ pub fn testYymmdd() {
 pub fn testYyyymmdd() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.yyyymmdd(testMs.clone(), &[Value::Str("_".to_string())]);
+    let mut value: Value = exchange.yyyymmdd(testMs.clone(), &[Value::Str("_".into())]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_str() == Some("2025_06_17")))));
     let mut value2: Value = exchange.yyyymmdd(exchange.milliseconds(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(value2.len() as i64).as_f64() == Some(10.0)))));
-    let mut intNum: Value = exchange.parse_to_int(replace_str(&(replace_str(&value2, &Value::Str("-".to_string()), &Value::Str("".to_string()))), &Value::Str("-".to_string()), &Value::Str("".to_string())));
+    let mut intNum: Value = exchange.parse_to_int(replace_str(&(replace_str(&value2, &Value::Str("-".into()), &Value::Str("".into()))), &Value::Str("-".into()), &Value::Str("".into())));
     assert!(ccxt::runtime::is_true(&(intNum.as_f64().unwrap_or(f64::NAN) > Value::Int(20260000).as_f64().unwrap_or(f64::NAN) && intNum.as_f64().unwrap_or(f64::NAN) < Value::Int(20360000).as_f64().unwrap_or(f64::NAN)))); // date between 2026 and 2036
 }
 pub fn testYmd() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.ymd(testMs.clone(), &[Value::Str("_".to_string())]);
+    let mut value: Value = exchange.ymd(testMs.clone(), &[Value::Str("_".into())]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_str() == Some("2025_06_17")))));
 }
 pub fn testYmdhms() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.ymdhms(testMs.clone(), &[Value::Str("_".to_string())]);
+    let mut value: Value = exchange.ymdhms(testMs.clone(), &[Value::Str("_".into())]);
     assert!(ccxt::runtime::is_true(&(Value::Bool((value.as_str() == Some("2025-06-17_01:24:16")) || (value.as_str() == Some("2025-06-17_01:24:17")))))); // todo: php/py rounds up to 17
 }
 pub fn testDatetime() {

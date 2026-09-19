@@ -10,14 +10,14 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTradingFees(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTradingFees".to_string());
+    let mut method: Value = Value::Str("fetchTradingFees".into());
     let mut fees: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trading_fees", vec![]).await;
     let mut symbols: Value = object_keys(&fees);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), symbols.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1476: bool = true;
-        while { if !__for_first_1476 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1476 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_62: bool = true;
+        while { if !__for_first_62 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_62 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut symbol: Value = get_value(&symbols, &i);
         testTradingFee(exchange.clone(), skippedProperties.clone(), method.clone(), symbol.clone(), get_value(&fees, &symbol));
     }

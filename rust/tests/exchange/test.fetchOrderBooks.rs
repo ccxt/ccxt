@@ -10,8 +10,8 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchOrderBooks".to_string());
-    let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".to_string()));
+    let mut method: Value = Value::Str("fetchOrderBooks".into());
+    let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".into()));
     assert!(ccxt::runtime::is_true(&((symbols != Value::Null))));
     let mut symbol: Value = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::from(vec![symbol.clone()])]).await;
@@ -20,8 +20,8 @@ pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Val
     assert!(ccxt::runtime::is_true(&((Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1469: bool = true;
-        while { if !__for_first_1469 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1469 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_55: bool = true;
+        while { if !__for_first_55 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_55 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut symbolInner: Value = get_value(&orderBookKeys, &i);
         testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&orderBooks, &symbolInner), symbolInner.clone());
     }
