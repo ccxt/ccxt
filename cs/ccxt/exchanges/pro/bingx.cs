@@ -1836,24 +1836,24 @@ public partial class bingx : ccxt.bingx
         }
         object stored = this.orders;
         Dictionary<string, object> parsedOrder = this.parseOrder(data);
-        if (!isTrue(isSpot))
+        if (!isSpot)
         {
             // The envelope T is the order update time; o.T is the trade time.
             Int64? updateTimestamp = this.safeInteger(message, "T");
-            if (isTrue(isTrue((!isEqual(updateTimestamp, null))) && isTrue((isGreaterThan(updateTimestamp, 0)))))
+            if ((!isEqual(updateTimestamp, null)) && (isGreaterThan(updateTimestamp, 0)))
             {
                 string? orderId = this.safeString(parsedOrder, "id");
-                if (isTrue(!isEqual(orderId, null)))
+                if ((orderId != null))
                 {
                     // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
                     // Match both id and symbol: several cached orders can share a symbol.
-                    for (int i = 0; isLessThan(i, getArrayLength(stored)); postFixIncrement(ref i))
+                    for (int i = 0; i < getArrayLength(stored); i++)
                     {
                         object previousOrder = getValue(stored, i);
-                        if (isTrue(isTrue((isEqual(getValue(previousOrder, "id"), orderId))) && isTrue((isEqual(getValue(previousOrder, "symbol"), getValue(parsedOrder, "symbol"))))))
+                        if ((isEqual(getValue(previousOrder, "id"), orderId)) && (isEqual(getValue(previousOrder, "symbol"), (parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedOrder)["symbol"] : null))))
                         {
                             Int64? previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
-                            if (isTrue(isTrue((!isEqual(previousTimestamp, null))) && isTrue((isLessThan(updateTimestamp, previousTimestamp)))))
+                            if ((!isEqual(previousTimestamp, null)) && (isLessThan(updateTimestamp, previousTimestamp)))
                             {
                                 return;
                             }
