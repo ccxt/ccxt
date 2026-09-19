@@ -4564,7 +4564,7 @@ func (this *Binance) TokenizedConvertHistory(optionalArgs ...any) any {
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var response any = this.SapiGetEquityTokenizedHistory(this.Extend(request, params))
 	//
 	//     {
@@ -15149,7 +15149,7 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	params = SafeMapTyped(isPortfolioMarginparamsVariable, 1)
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
@@ -17133,7 +17133,7 @@ func (this *Binance) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) a
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var response any = nil
 	if EvalTruthy(isPortfolioMargin) {
 
@@ -17798,7 +17798,7 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
 		if EvalTruthy(isPortfolioMargin) {
@@ -19164,7 +19164,7 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}

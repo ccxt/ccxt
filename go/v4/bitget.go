@@ -4805,7 +4805,7 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var response any = nil
 	if uta == true {
 
@@ -5044,7 +5044,7 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
 	}
@@ -6269,7 +6269,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		if spotMethod != nil && *spotMethod == "publicSpotGetV2SpotMarketFillsHistory" {
 			requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 			request = SafeMapTyped(requestparamsVariable, 0)
-			params = GetValue(requestparamsVariable, 1)
+			params = SafeMapTyped(requestparamsVariable, 1)
 			if !IsEqual(since, nil) {
 				request["startTime"] = since
 			}
@@ -6290,7 +6290,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		if swapMethod != nil && *swapMethod == "publicMixGetV2MixMarketFillsHistory" {
 			requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 			request = SafeMapTyped(requestparamsVariable, 0)
-			params = GetValue(requestparamsVariable, 1)
+			params = SafeMapTyped(requestparamsVariable, 1)
 			if !IsEqual(since, nil) {
 				request["startTime"] = since
 			}
@@ -9572,7 +9572,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isTrigger bool = (trigger != nil && *trigger == true) || planTypeDefined
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
@@ -10136,7 +10136,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	params = this.Omit(params, []any{"stop", "trigger", "trailing"})
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
@@ -10464,7 +10464,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
@@ -10643,7 +10643,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
@@ -10887,7 +10887,7 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
@@ -12206,7 +12206,7 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
@@ -12916,7 +12916,7 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PrivateSpotGetV2SpotAccountTransferRecords(this.Extend(request, params)))
 	PanicOnError(response)
@@ -13540,7 +13540,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	} else {
@@ -14404,7 +14404,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = SafeMapTyped(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = SafeMapTyped(productTypeparamsVariable, 1)
