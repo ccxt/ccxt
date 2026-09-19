@@ -547,7 +547,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (outcomeSymbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" outcome() requires an outcomeSymbol argument".into()))));
         }
-        if (self.pred().outcomes.clone() == Value::Null) || is_true(&self.is_empty(self.pred().outcomes.clone())) {
+        if (self.pred().outcomes.clone() == Value::Null) || self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" outcomes not loaded - call loadOutcomes () or an outcome-addressed method first".into()))));
         }
         if (in_op(&self.pred().outcomes, &outcomeSymbol)) {
@@ -686,7 +686,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_195: bool = true;
             while { if !__for_first_195 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_195 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawParts.len() as i64) as f64) } {
             let mut w: Value = rawParts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if ((w.len() as i64) as f64) > ((0i64) as f64) && !is_true(&self.in_array(w.clone(), stopWords.clone())) {
+            if ((w.len() as i64) as f64) > ((0i64) as f64) && !(self.in_array(w.clone(), stopWords.clone()).as_bool() == Some(true)) {
                 append_to_array(&mut parts, w);
             }
         }
@@ -930,13 +930,13 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_202: bool = true;
                 while { if !__for_first_202 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_202 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
-                if is_true(&reload) || !is_true(&self.has_outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
+                if is_true(&reload) || !(self.has_outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                     append_to_array(&mut missing, outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 }
             }
             }
             let mut missingLength: Value = Value::Int(missing.len() as i64);
-            let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !is_true(&self.is_empty(self.pred().outcomes.clone()));
+            let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
             let mut loadAll: Value = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]);
             if (missingLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (loadAll.as_bool() == Some(true)) && !wasWarm && !is_true(&reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
@@ -947,7 +947,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_203: bool = true;
                     while { if !__for_first_203 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_203 = false; i.as_f64().unwrap_or(f64::NAN) < missingLength.as_f64().unwrap_or(f64::NAN) } {
-                    if !is_true(&self.has_outcome(missing.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
+                    if !(self.has_outcome(missing.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                         append_to_array(&mut stillMissing, missing.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                     }
                 }
@@ -960,7 +960,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             return self.pred().outcomes.clone();
         }
-        if !is_true(&reload) && (self.pred().outcomes.clone() != Value::Null) && !is_true(&self.is_empty(self.pred().outcomes.clone())) {
+        if !is_true(&reload) && (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true)) {
             return self.pred().outcomes.clone();
         }
         self.load_markets(&[reload, params]).await;
@@ -1009,16 +1009,16 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" loadOutcome() requires an outcomeSymbol argument".into()))));
         }
         if !is_true(&reload) {
-            if is_true(&self.has_outcome(outcomeSymbol.clone())) {
+            if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
                 return self.safe_outcome(outcomeSymbol.clone(), &[]);
             }
-            let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !is_true(&self.is_empty(self.pred().outcomes.clone()));
+            let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            if !wasWarm && (self.markets.clone() != Value::Null) && !is_true(&self.is_empty(self.markets.clone())) {
+            if !wasWarm && (self.markets.clone() != Value::Null) && !(self.is_empty(self.markets.clone()).as_bool() == Some(true)) {
                 self.populate_outcomes();
-                if is_true(&self.has_outcome(outcomeSymbol.clone())) {
+                if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
                     return self.safe_outcome(outcomeSymbol.clone(), &[]);
                 }
             }
@@ -1029,7 +1029,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
                 self.load_outcomes(&[]).await;
-                if is_true(&self.has_outcome(outcomeSymbol.clone())) {
+                if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
                     return self.safe_outcome(outcomeSymbol.clone(), &[]);
                 }
             }
@@ -1129,7 +1129,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     panic!("{}", e);
                 }
             }
-            if is_true(&self.has_outcome(outcomeSymbol.clone())) {
+            if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
                 return self.safe_outcome(outcomeSymbol.clone(), &[]);
             }
         }

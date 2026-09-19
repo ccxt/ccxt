@@ -2209,7 +2209,7 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6799,7 +6799,7 @@ impl BingxCore {
         if (address != Value::Null) {
             let mut isPrefixed: bool = (starts_with(&address, &Value::Str("0x".into()))) || (starts_with(&address, &Value::Str("0X".into())));
             let mut evmNetworks: Value = Value::from(vec![Value::Str("BEP20".into()), Value::Str("BSC".into()), Value::Str("ERC20".into()), Value::Str("ETH".into()), Value::Str("HECO".into()), Value::Str("MATIC".into()), Value::Str("POLYGON".into()), Value::Str("ARBITRUM".into()), Value::Str("ARB".into()), Value::Str("OPTIMISM".into()), Value::Str("AVAXC".into()), Value::Str("BASE".into()), Value::Str("FTM".into()), Value::Str("LINEA".into()), Value::Str("ZKSYNC".into()), Value::Str("OPBNB".into())]);
-            if !isPrefixed && is_true(&self.in_array(networkCode.clone(), evmNetworks)) {
+            if !isPrefixed && self.in_array(networkCode.clone(), evmNetworks).as_bool() == Some(true) {
                 address = Value::Str(format!("{}{}", Value::Str("0x".into()), address).into());
             }
         }
@@ -7141,7 +7141,7 @@ impl BingxCore {
         if (type_var == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)".into()))));
         }
-        if !is_true(&self.in_array(type_var.clone(), Value::from(vec![Value::Int(1), Value::Int(2)]))) {
+        if !(self.in_array(type_var.clone(), Value::from(vec![Value::Int(1), Value::Int(2)])).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -7512,7 +7512,7 @@ impl BingxCore {
             let mut __for_first_299: bool = true;
             while { if !__for_first_299 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_299 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseCodes.len() as i64) as f64) } {
             let mut code: Value = responseCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (codes == Value::Null) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
+            if (codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true) {
                 let mut entry: Value = get_value(&response, &code);
                 let mut entry: Value = get_value(&response, &code);
                 if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(entry.clone(), &[])); }
@@ -8418,7 +8418,7 @@ impl BingxCore {
             access = get_value(&section, &Value::Int(3));
         }
         let mut flatAccountPaths: Value = Value::from(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
-        if !is_true(&self.in_array(path.clone(), flatAccountPaths)) {
+        if !(self.in_array(path.clone(), flatAccountPaths).as_bool() == Some(true)) {
             if (type_var.as_str() == Some("spot")) && (version.as_str() == Some("v3")) {
                 url = Value::Str(format!("{}{}", url, Value::Str("/api".into())).into());
             }  else {

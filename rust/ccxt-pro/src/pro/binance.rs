@@ -664,7 +664,7 @@ impl BinanceCore {
 }
 
     pub fn is_spot_url(&self, mut client: Value) -> Value {
-        return Value::Bool(is_true(&(Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("/stream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64))) || is_true(&(Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("demo-stream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64))));
+        return Value::Bool((Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("/stream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) || (Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("demo-stream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)));
 
     Value::Null
 }
@@ -868,7 +868,7 @@ impl BinanceCore {
         let mut messageHashes: Value = Value::from(vec![]);
         let mut streamHash: Value = Value::Str("liquidations".into());
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true)]);
-        if is_true(&self.is_empty(symbols.clone())) {
+        if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             append_to_array(&mut subscriptionHashes, Value::Str(format!("{}{}", Value::Str("!".into()), Value::Str("forceOrder@arr".into())).into()));
             append_to_array(&mut messageHashes, Value::Str("liquidations".into()));
         }  else {
@@ -884,7 +884,7 @@ impl BinanceCore {
             streamHash = Value::Str(format!("{}{}", streamHash, Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into())).into());
         }
         let mut firstMarket: Value = Value::Null;
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             firstMarket = self.get_market_from_symbols(&[symbols.clone()]);
         }
         let mut resolvedAuth: Value = self.resolve_auth_type(Value::Str("watchLiquidationsForSymbols".into()), &[firstMarket, params.clone()]);
@@ -1129,7 +1129,7 @@ impl BinanceCore {
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut messageHashes: Value = Value::from(vec![Value::Str("myLiquidations".into())]);
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_56: bool = true;
@@ -1695,7 +1695,7 @@ impl BinanceCore {
                         let mut conditional: Value = Value::Null;
                         if (timestamp.is_none()) {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = Value::Bool(is_true(&(((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) <= nonce.as_f64().unwrap_or(f64::NAN))) && is_true(&(((match (&(u), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= nonce.as_f64().unwrap_or(f64::NAN))));
+                            conditional = Value::Bool((((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) <= nonce.as_f64().unwrap_or(f64::NAN)) && (((match (&(u), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= nonce.as_f64().unwrap_or(f64::NAN)));
                         }  else {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
                             conditional = (Value::Bool(((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64() == nonce.as_f64()));
@@ -3180,7 +3180,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
         // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
         let mut isOptionTicker: bool = (marketType.as_str() == Some("option")) && !isMarkPrice && !isBidAsk;
-        if isMarkPrice && !is_true(&self.in_array(marketType.clone(), Value::from(vec![Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())]))) {
+        if isMarkPrice && !(self.in_array(marketType.clone(), Value::from(vec![Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())])).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &methodName), Value::Str("() does not support ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
@@ -6230,7 +6230,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut market: Value = Value::Null;
         let mut messageHash: Value = Value::Str("".into());
         symbols = self.market_symbols(&[symbols.clone()]);
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(&[symbols.clone()]);
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
@@ -6423,7 +6423,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash.clone()]);
             }
         }
@@ -6839,7 +6839,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         // accumulate order fees
                         let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
                         let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
-                        if !is_true(&self.is_empty(fees.clone())) {
+                        if !(self.is_empty(fees.clone()).as_bool() == Some(true)) {
                             let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: Value = Value::Int(0);
@@ -7038,7 +7038,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash.clone()]);
             }
         }

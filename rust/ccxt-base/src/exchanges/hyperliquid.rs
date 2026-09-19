@@ -793,7 +793,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             self.initialize_client().await;
         }
         let mut request: Value = Value::Map({
@@ -5402,9 +5402,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[]);
         let mut nonce: Value = self.milliseconds();
-        if is_true(&self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())]))) {
+        if self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())])).as_bool() == Some(true) {
             // handle swap <> spot account transfer
-            if !is_true(&self.in_array(toAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())]))) {
+            if !(self.in_array(toAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())])).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" transfer() only support spot <> swap transfer".into()))));
             }
             let mut strAmount: Value = self.number_to_string(amount.clone());

@@ -5640,8 +5640,8 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.is_empty_string(self.privateKey.clone())) {
-            if !is_true(&self.is_empty_string(self.apiKey.clone())) || !is_true(&self.is_empty_string(self.secret.clone())) {
+        if self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true) {
+            if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.secret.clone()).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str("after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.".into()))));
             }
             return Value::Bool(false);

@@ -1720,7 +1720,7 @@ impl BingxCore {
         let mut market: Value = Value::Null;
         let mut messageHash: Value = Value::Str("".into());
         symbols = self.market_symbols(&[symbols.clone()]);
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into());
         }
@@ -1934,7 +1934,7 @@ impl BingxCore {
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut filteredSymbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[filteredSymbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash]);
             }
         }
@@ -2355,7 +2355,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if !is_true(&self.handle_error_message(client.clone(), message.clone())) {
+        if !(self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
         // public subscriptions

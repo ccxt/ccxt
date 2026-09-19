@@ -9696,8 +9696,8 @@ impl HtxCore {
         let mut toAccountId: Value = self.convert_type_to_account(toAccount.clone());
         let mut toCross: bool = toAccountId.as_str() == Some("cross");
         let mut fromCross: bool = fromAccountId.as_str() == Some("cross");
-        let mut toIsolated: bool = (self.ids.clone() != Value::Null) && is_true(&self.in_array(toAccountId.clone(), self.ids.clone()));
-        let mut fromIsolated: bool = (self.ids.clone() != Value::Null) && is_true(&self.in_array(fromAccountId.clone(), self.ids.clone()));
+        let mut toIsolated: bool = (self.ids.clone() != Value::Null) && self.in_array(toAccountId.clone(), self.ids.clone()).as_bool() == Some(true);
+        let mut fromIsolated: bool = (self.ids.clone() != Value::Null) && self.in_array(fromAccountId.clone(), self.ids.clone()).as_bool() == Some(true);
         let mut fromSpot: bool = fromAccountId.as_str() == Some("pro");
         let mut toSpot: bool = toAccountId.as_str() == Some("pro");
         if fromSpot && toSpot {

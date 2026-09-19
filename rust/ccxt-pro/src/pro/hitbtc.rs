@@ -1899,7 +1899,7 @@ impl HitbtcCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_true(&self.handle_error(client.clone(), message.clone())) {
+        if self.handle_error(client.clone(), message.clone()).as_bool() == Some(true) {
             return;
         }
         let mut channel: Value = self.safe_string2(message.clone(), Value::Str("ch".into()), Value::Str("method".into()), &[]);

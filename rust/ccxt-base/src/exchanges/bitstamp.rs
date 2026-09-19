@@ -2081,7 +2081,7 @@ impl BitstampCore {
     pub fn construct_currency_object(&self, mut id: Value, mut code: Value, mut name: Value, mut precision: Value, mut minCost: Value, mut originalPayload: Value) -> Value {
         let mut currencyType: Value = Value::Str("crypto".into());
         let mut description: Value = self.describe();
-        if is_true(&self.is_fiat(code.clone())) {
+        if self.is_fiat(code.clone()).as_bool() == Some(true) {
             currencyType = Value::Str("fiat".into());
         }
         let mut tickSize: Value = self.parse_number(self.parse_precision(&[self.number_to_string(precision)]), &[]);
@@ -2955,7 +2955,7 @@ impl BitstampCore {
     m
 })]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            if (codes != Value::Null) && !is_true(&self.in_array(code.clone(), codes.clone())) {
+            if (codes != Value::Null) && !(self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 continue;
             }
             if (code != Value::Null) {
@@ -4146,7 +4146,7 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.is_fiat(code.clone())) {
+        if self.is_fiat(code.clone()).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fiat fetchDepositAddress() for ".into())).into()), code).into()), Value::Str(" is not supported!".into()))));
         }
         let mut name: Value = self.get_currency_name(code.clone());
@@ -4202,7 +4202,7 @@ impl BitstampCore {
         });
         let mut currency: Value = Value::Null;
         let mut response: Value = Value::Null;
-        if !is_true(&self.is_fiat(code.clone())) {
+        if !(self.is_fiat(code.clone()).as_bool() == Some(true)) {
             let mut name: Value = self.get_currency_name(code.clone());
             if (code.as_str() == Some("XRP")) {
                 if (tag != Value::Null) {

@@ -6876,7 +6876,7 @@ impl CoinexCore {
                 continue;
             }
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            if (codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone())) {
+            if (codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true) {
                 if (code != Value::Null) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(item.clone(), &[])); }
                 }

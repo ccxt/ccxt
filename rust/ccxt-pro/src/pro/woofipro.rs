@@ -1479,7 +1479,7 @@ impl WoofiproCore {
         }
         let mut messageHashes: Value = Value::from(vec![]);
         symbols = self.market_symbols(&[symbols.clone()]);
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
             }

@@ -1454,7 +1454,7 @@ impl BybitCore {
                 m
             });
             let mut selectedLimits: Value = self.safe_list2(limits, market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::Str("default".into()), &[Value::from(vec![])]);
-            if !is_true(&self.in_array(limit.clone(), selectedLimits.clone())) {
+            if !(self.in_array(limit.clone(), selectedLimits.clone()).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols(): for ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets limit can be one of: ".into())).into()), json_stringify(&selectedLimits))));
             }
         }
@@ -2148,7 +2148,7 @@ impl BybitCore {
                 if executionFast {
                     execType = Value::Str("Trade".into());
                 }
-                if (execTypes != Value::Null) && !is_true(&self.in_array(execType, execTypes.clone())) {
+                if (execTypes != Value::Null) && !(self.in_array(execType, execTypes.clone()).as_bool() == Some(true)) {
                     continue;
                 }
                 parsed = self.parse_trade(rawTrade, &[]);
@@ -2199,7 +2199,7 @@ impl BybitCore {
         }
         let mut method: Value = Value::Str("watchPositions".into());
         let mut messageHash: Value = Value::Str("".into());
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             symbols = self.market_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into());
         }
@@ -2364,7 +2364,7 @@ impl BybitCore {
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash]);
             }
         }
@@ -2393,7 +2393,7 @@ impl BybitCore {
         let mut method: Value = Value::Str("watchPositions".into());
         let mut messageHash: Value = Value::Str("unsubscribe:positions".into());
         let mut subHash: Value = Value::Str("positions".into());
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchPositions() does not support a symbol parameter, you must unwatch all orders".into()))));
         }
         let mut url: Value = self.get_url_by_market_type(&[Value::Null, Value::Bool(true), method.clone(), params.clone()]).await;

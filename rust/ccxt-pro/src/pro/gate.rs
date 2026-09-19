@@ -2006,7 +2006,7 @@ impl GateCore {
         let mut market: Value = Value::Null;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut payload: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str("!".into()), Value::Str("all".into())).into())]);
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(&[symbols.clone()]);
         }
         let mut type_var: Value = Value::Null;
@@ -2023,7 +2023,7 @@ impl GateCore {
             m
         })]);
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into());
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
             }
@@ -2182,7 +2182,7 @@ impl GateCore {
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash]);
             }
         }
@@ -2434,7 +2434,7 @@ impl GateCore {
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse.clone()]);
         let mut payload: Value = Value::from(vec![]);
         let mut messageHash: Value = Value::Str("".into());
-        if is_true(&self.is_empty(symbols.clone())) {
+        if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             if (typeId.as_str() != Some("futures")) && !(matches!(&isInverse, Value::Bool(true))) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.".into()))));
             }

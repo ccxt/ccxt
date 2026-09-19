@@ -1430,7 +1430,7 @@ impl HashkeyCore {
         let mut spotMarkets: Value = self.safe_list_k(response.clone(), "symbols", &[Value::from(vec![])]);
         let mut swapMarkets: Value = self.safe_list_k(response.clone(), "contracts", &[Value::from(vec![])]);
         let mut markets: Value = self.array_concat(spotMarkets, swapMarkets);
-        if is_true(&self.is_empty(markets.clone())) {
+        if self.is_empty(markets.clone()).as_bool() == Some(true) {
             markets = Value::from(vec![response]); // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return self.parse_markets(markets);

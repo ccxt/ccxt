@@ -3408,7 +3408,7 @@ impl KucoinCore {
         let mut requestMarginables: bool = is_true(&credentialsSet) && is_true(&self.safe_bool_k(params.clone(), "marginables", &[Value::Bool(true)]));
         params = self.omit(params.clone(), Value::Str("marginables".into()), &[]);
         let mut fetchContractMarkets: bool = false;
-        if is_true(&self.in_array(Value::Str("swap".into()), types.clone())) || is_true(&self.in_array(Value::Str("future".into()), types.clone())) || is_true(&self.in_array(Value::Str("contract".into()), types.clone())) {
+        if is_true(&self.in_array(Value::Str("swap".into()), types.clone())) || self.in_array(Value::Str("future".into()), types.clone()).as_bool() == Some(true) || self.in_array(Value::Str("contract".into()), types.clone()).as_bool() == Some(true) {
             fetchContractMarkets = true;
         }
         let mut fetchSpotMarkets: Value = self.in_array(Value::Str("spot".into()), types);
@@ -4087,7 +4087,7 @@ impl KucoinCore {
     m
 }));
         let mut uta: Value = Value::Bool(false);
-        if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             uta = self.is_uta_enabled(&[]).await;
         }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchCurrencies".into()), Value::Str("uta".into()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -12511,7 +12511,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             while { if !__for_first_896 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_896 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut item: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "currency", &[]), &[]);
-            if (code != Value::Null) && ((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone()))) {
+            if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 if !(in_op(&borrowRateHistories, &code)) {
                     if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::from(vec![])); }
                 }
@@ -15053,7 +15053,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
 }) });
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
         let mut tradeType: Value = self.safe_string_k(query.clone(), "tradeType", &[]);
-        if !is_true(&self.is_empty(query.clone())) {
+        if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
             if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && (path.as_str() != Some("orders/multi-cancel")) {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(query.clone(), &[])).into())).into());
             }  else {

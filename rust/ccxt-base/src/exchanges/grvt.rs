@@ -1472,7 +1472,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //            ...
         //
         let mut promises: Value = Value::from(vec![marketsPromise]);
-        if !is_true(&self.is_empty_string(self.apiKey.clone())) || !is_true(&self.is_empty_string(self.privateKey.clone())) {
+        if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true)) {
             append_to_array(&mut promises, self.sign_in(&[]).await);
         }
         let mut results: Value = promise_all(&promises).await;
@@ -2777,7 +2777,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.load_markets_and_sign_in().await;
         let mut currency: Value = self.currency(code.clone());
         let mut defaultFromAccountId: Value = self.safe_string_k(self.options.clone(), "userMainAccountId", &[]);
-        if is_true(&self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())]))) && is_true(&self.in_array(toAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())]))) {
+        if is_true(&self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())]))) && self.in_array(toAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())])).as_bool() == Some(true) {
             let mut tradingAccountId: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("transfer".into()), Value::Str("tradingAccountId".into()), &[]); tradingAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut fundingAccountId: Value = Value::Null;

@@ -881,7 +881,7 @@ impl HtxCore {
         if (limit == Value::Null) {
             limit = self.safe_integer_k(options, "depth", &[Value::Int(150)]);
         }
-        if !is_true(&self.in_array(limit.clone(), allowedLimits)) {
+        if !(self.in_array(limit.clone(), allowedLimits).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook market accepts limits of 5, 20, 150 or 400 only".into()))));
         }
         let mut messageHash: Value = Value::Null;
@@ -2119,7 +2119,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut market: Value = Value::Null;
         let mut messageHash: Value = Value::Str("".into());
-        if (!is_true(&self.is_empty(symbols.clone()))) && (symbols != Value::Null) {
+        if (!(self.is_empty(symbols.clone()).as_bool() == Some(true))) && (symbols != Value::Null) {
             market = self.get_market_from_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into());
         }
@@ -2270,7 +2270,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         }
         let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
-        if is_true(&self.is_empty(rawPositions.clone())) {
+        if self.is_empty(rawPositions.clone()).as_bool() == Some(true) {
             let mut prefixes: Value = Value::from(vec![Value::Str("cross:positions".into()), Value::Str("isolated:positions".into())]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -2334,7 +2334,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
                 let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
                 let mut positions: Value = self.filter_by_array(marginModePositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-                if !is_true(&self.is_empty(positions.clone())) {
+                if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                     client.resolve(&[positions, messageHash.clone()]);
                 }
             }

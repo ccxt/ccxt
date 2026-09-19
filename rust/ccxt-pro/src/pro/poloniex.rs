@@ -444,7 +444,7 @@ impl PoloniexCore {
             m
         });
         let mut marketIds: Value = Value::from(vec![]);
-        if is_true(&self.is_empty(symbols.clone())) {
+        if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             append_to_array(&mut marketIds, Value::Str("all".into()));
         }  else {
             if (symbols == Value::Null) {
@@ -1524,7 +1524,7 @@ impl PoloniexCore {
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut tickers: Value = self.filter_by_array(newTickers.clone(), Value::Str("symbol".into()), &[symbols]);
-            if !is_true(&self.is_empty(tickers.clone())) {
+            if !(self.is_empty(tickers.clone()).as_bool() == Some(true)) {
                 client.resolve(&[tickers, messageHash]);
             }
         }

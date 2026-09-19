@@ -1979,7 +1979,7 @@ impl CoinbaseCore {
         let mut datetime: Value = self.safe_string_k(transaction.clone(), "created_at", &[]);
         let mut resource: Value = self.safe_string_k(transaction.clone(), "resource", &[]);
         let mut type_var: Value = resource;
-        if !is_true(&self.in_array(type_var.clone(), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]))) {
+        if !(self.in_array(type_var.clone(), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())])).as_bool() == Some(true)) {
             if is_true(&crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into()))) {
                 type_var = Value::Str("deposit".into());
             }  else if is_true(&crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into()))) {
@@ -2372,7 +2372,7 @@ impl CoinbaseCore {
         //        num_products: '646'
         //    }
         //
-        if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             append_to_array(&mut spotUnresolvedPromises, self.v3_private_get_brokerage_transaction_summary(&[params.clone()]).await);
         }
         //
@@ -2570,8 +2570,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stablePairs: Value = self.safe_list_k(self.options.clone(), "stablePairs", &[Value::from(vec![])]);
         let mut defaultTakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
         let mut defaultMakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
-        let mut takerFee: Value = (if is_true(&self.in_array(id.clone(), stablePairs.clone())) { Value::Float(0.00001) } else { self.safe_number_k(feeTier.clone(), "taker_fee_rate", &[defaultTakerFee]) });
-        let mut makerFee: Value = (if is_true(&self.in_array(id.clone(), stablePairs)) { Value::Int(0) } else { self.safe_number_k(feeTier, "maker_fee_rate", &[defaultMakerFee]) });
+        let mut takerFee: Value = (if self.in_array(id.clone(), stablePairs.clone()).as_bool() == Some(true) { Value::Float(0.00001) } else { self.safe_number_k(feeTier.clone(), "taker_fee_rate", &[defaultTakerFee]) });
+        let mut makerFee: Value = (if self.in_array(id.clone(), stablePairs).as_bool() == Some(true) { Value::Int(0) } else { self.safe_number_k(feeTier, "maker_fee_rate", &[defaultMakerFee]) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -3567,7 +3567,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_529 { b = (match (&(b), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_529 = false; b.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = balances.as_array().and_then(|__arr| match &b { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut type_var: Value = self.safe_string_k(balance.clone(), "type", &[]);
-            if is_true(&self.in_array(type_var.clone(), accounts.clone())) {
+            if self.in_array(type_var.clone(), accounts.clone()).as_bool() == Some(true) {
                 let mut value: Value = self.safe_dict_k(balance.clone(), "balance", &[]);
                 if (value != Value::Null) {
                     let mut currencyId: Value = self.safe_string_k(value.clone(), "currency", &[]);
@@ -3587,7 +3587,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                     }
                 }
-            }  else if is_true(&self.in_array(type_var, v3Accounts.clone())) {
+            }  else if self.in_array(type_var, v3Accounts.clone()).as_bool() == Some(true) {
                 let mut available: Value = self.safe_dict_k(balance.clone(), "available_balance", &[]);
                 let mut hold: Value = self.safe_dict_k(balance, "hold", &[]);
                 if (available != Value::Null) && (hold != Value::Null) {
@@ -7041,7 +7041,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut authorizationString: Value = Value::Null;
             if (authorization != Value::Null) {
                 authorizationString = authorization;
-            }  else if (self.token.as_str() != Some("")) && !is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+            }  else if (self.token.as_str() != Some("")) && !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) {
                 authorizationString = Value::Str(format!("{}{}", Value::Str("Bearer ".into()), self.token.clone()).into());
             }  else {
                 self.check_required_credentials(&[]);

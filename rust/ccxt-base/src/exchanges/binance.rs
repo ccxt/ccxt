@@ -6705,7 +6705,7 @@ impl BinanceCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: bool = (marketId != Value::Null) && is_true(&((Value::Int(marketId.as_str().and_then(|__s| __s.find("-C")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) || (Value::Int(marketId.as_str().and_then(|__s| __s.find("-P")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64))));
+        let mut isOption: bool = (marketId != Value::Null) && ((Value::Int(marketId.as_str().and_then(|__s| __s.find("-C")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) || (Value::Int(marketId.as_str().and_then(|__s| __s.find("-P")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)));
         if isOption && ((self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId))) {
             return self.create_expired_option_market(marketId.clone());
         }
@@ -6937,7 +6937,7 @@ impl BinanceCore {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7246,7 +7246,7 @@ impl BinanceCore {
         }
         let mut loadAllOptions: Value = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("loadAllOptions".into()), &[Value::Bool(false)]);
         if (loadAllOptions.as_bool() == Some(true)) {
-            if !is_true(&self.in_array(Value::Str("option".into()), rawFetchMarkets.clone())) {
+            if !(self.in_array(Value::Str("option".into()), rawFetchMarkets.clone()).as_bool() == Some(true)) {
                 append_to_array(&mut rawFetchMarkets, Value::Str("option".into()));
             }
         }
@@ -7273,7 +7273,7 @@ impl BinanceCore {
             let mut marketType: Value = fetchMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (marketType.as_str() == Some("spot")) {
                 append_to_array(&mut promisesRaw, self.public_get_exchange_info(&[params.clone()]).await);
-                if (fetchMargins.as_bool() == Some(true)) && is_true(&self.check_required_credentials(&[Value::Bool(false)])) && (!isDemoEnv) {
+                if (fetchMargins.as_bool() == Some(true)) && self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) && (!isDemoEnv) {
                     append_to_array(&mut promisesRaw, self.sapi_get_margin_all_pairs(&[params.clone()]).await);
                     append_to_array(&mut promisesRaw, self.sapi_get_margin_isolated_all_pairs(&[params.clone()]).await);
                 }
@@ -9719,7 +9719,7 @@ impl BinanceCore {
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), uppercaseType.clone()); }
         let mut validOrderTypes: Value = self.safe_list(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
-        if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes)) {
+        if !(self.in_array(uppercaseType.clone(), validOrderTypes).as_bool() == Some(true)) {
             if (initialUppercaseType.as_str() != uppercaseType.as_str()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
             }  else {
@@ -11118,7 +11118,7 @@ impl BinanceCore {
             if (stock.as_bool() == Some(true)) {
                 validOrderTypes = Value::from(vec![Value::Str("LIMIT".into()), Value::Str("MARKET".into())]);
             }
-            if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes)) {
+            if !(self.in_array(uppercaseType.clone(), validOrderTypes).as_bool() == Some(true)) {
                 if (initialUppercaseType.as_str() != uppercaseType.as_str()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
                 }  else {
@@ -19037,7 +19037,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (market == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingLimits() could not resolve market".into()))));
             }
-            if (symbols == Value::Null) || is_true(&(self.in_array(symbol.clone(), symbols.clone()))) {
+            if (symbols == Value::Null) || self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true) {
                 if (symbol != Value::Null) {
                     if let Value::Dict(__d) = &mut tradingLimits { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), market.as_map().and_then(|__m| __m.get("limits")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)); }
                 }

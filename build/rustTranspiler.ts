@@ -4885,7 +4885,317 @@ export class RustTranspilerBuilder {
         if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(s)) return boolLocals.includes(s);
         const call = /^([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
         if (call) return RUST_BOOL_RUNTIME_FNS.has(call[1]);
-        return false;
+        // D-32: the printer's native ordered/equality compares
+        // (`x.as_f64().unwrap_or(f64::NAN) > y…`, `x == Value::Null`,
+        // `x.as_str() == Some(..)`), `matches!` predicates and the
+        // `Option` tests the narrowing passes emit are Rust `bool`s too.
+        if (/^matches!\(/.test(s) || /^!\s*matches!\(/.test(s)) return true;
+        if (/\.(?:is_some|is_none)\(\)$/.test(s)) return true;
+        return this.topLevelRustComparisonIndex(s) >= 0;
+    }
+
+    /**
+     * Index of a top-level Rust comparison operator in `s` (`==`, `!=`, `<=`,
+     * `>=`, `<`, `>`), or -1. Skips string bodies, bracketed sub-expressions,
+     * `->`/`=>` arrows, `<<`/`>>` shifts and `::<` generics; `<`/`>` count
+     * only with the printer's spacing (`a > b`, `a >= b`) so a `Vec<Value>`
+     * in the text is never read as a compare.
+     */
+    private topLevelRustComparisonIndex(s: string): number {
+        let depth = 0; let i = 0;
+        while (i < s.length) {
+            const c = s[i];
+            if (c === '"') {
+                i += 1;
+                while (i < s.length && s[i] !== '"') {
+                    if (s[i] === '\\') i += 1;
+                    i += 1;
+                }
+            } else if (c === '(' || c === '[' || c === '{') {
+                depth += 1;
+            } else if (c === ')' || c === ']' || c === '}') {
+                depth -= 1;
+            } else if (depth === 0) {
+                const nxt = i + 1 < s.length ? s[i + 1] : '';
+                const prv = i > 0 ? s[i - 1] : '';
+                if ((c === '=' && nxt === '=') || (c === '!' && nxt === '=')) return i;
+                if (c === '<' || c === '>') {
+                    if (nxt === '=') return i;                       // <= / >=
+                    if (nxt === c) { i += 2; continue; }             // << / >>
+                    if (prv === '-' || nxt === '-' || prv === '=' || prv === ':') { i += 1; continue; }
+                    if (prv === ' ' && nxt === ' ') return i;
+                }
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
+    /** Bodies of `fn <name>(…)` in `src` (brace-matched, string-aware). */
+    private rustFnBodies(src: string, name: string): string[] {
+        const out: string[] = [];
+        const rx = new RegExp(`\\bfn\\s+${name}\\s*(?:<[^>{}()]*>)?\\s*\\(`, 'g');
+        let m: RegExpExecArray | null;
+        while ((m = rx.exec(src)) !== null) {
+            const open = src.indexOf('{', m.index + m[0].length);
+            if (open < 0) continue;
+            let depth = 0; let i = open;
+            while (i < src.length) {
+                const c = src[i];
+                if (c === '"') { i = this.endOfRustStringLiteral(src, i); continue; }
+                if (c === '{') depth += 1;
+                else if (c === '}') { depth -= 1; if (depth === 0) break; }
+                i += 1;
+            }
+            out.push(src.slice(open, i + 1));
+        }
+        return out;
+    }
+
+    /** True when every return path of `body` is a `Value::Bool(..)` box or
+     *  `Value::Null`. Those two variants are exactly the ones `is_truthy`
+     *  reads by payload (`Bool(b) -> b`, `Null -> false`) and `as_bool()`
+     *  maps to `Some(b)` / `None`, so a call to such a method satisfies
+     *  `is_true(&m(…)) == (m(…).as_bool() == Some(true))`. */
+    private rustBodyReturnsBoolNullOnly(body: string): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        for (const r of inner.matchAll(/\breturn\s+([^;]*);/g)) {
+            const t = r[1].trim();
+            if (!(t.startsWith('Value::Bool(') || t === 'Value::Null')) return false;
+        }
+        let depth = 0; let lastSemi = -1;
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') depth -= 1;
+            else if (c === ';' && depth === 0) lastSemi = i;
+        }
+        const tail = inner.slice(lastSemi + 1).trim();
+        return tail === '' || tail.startsWith('Value::Bool(') || tail === 'Value::Null';
+    }
+
+    /** Emitted signature index for the D-32 call fold: method names whose Rust
+     *  declaration returns a native `bool` / `Option<bool>` — plus, in
+     *  `boolBoxed`, the names whose every body returns only `Value::Bool(..)` /
+     *  `Value::Null` (so `is_true(&m(…))` is `m(…).as_bool() == Some(true)`).
+     *  The generated base files are written before the per-exchange pass, so
+     *  they are read once (memoized); names DEFINED in the file being
+     *  post-processed win over a same-named base method — an inherent `fn`
+     *  shadows the trait method. */
+    private rustEmittedBoolReturnMethods(content: string, candidates: string[]): { bool: Set<string>, optionBool: Set<string>, boolBoxed: Set<string> } {
+        const bool = new Set<string>();
+        const optionBool = new Set<string>();
+        const own = new Set<string>();
+        const collect = (src: string, into: Set<string>, intoOpt: Set<string>, exclude: Set<string>) => {
+            const rx = /\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(([^()]*)\)\s*->\s*(Option<bool>|bool)(?![A-Za-z0-9_])/g;
+            let m: RegExpExecArray | null;
+            while ((m = rx.exec(src)) !== null) {
+                // `async fn` returns a future, not the declared type.
+                if (/(?:^|[^\w])async\s+$/.test(src.slice(Math.max(0, m.index - 8), m.index))) continue;
+                if (exclude.has(m[1])) continue;
+                if (m[3] === 'bool') into.add(m[1]);
+                else intoOpt.add(m[1]);
+            }
+        };
+        // Own-file definitions first: everything it declares is either bool or
+        // excluded from the base index below.
+        const ownRx = /\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g;
+        let om: RegExpExecArray | null;
+        while ((om = ownRx.exec(content)) !== null) own.add(om[1]);
+        if (this._rustBoolReturnMethods === null) {
+            const cached = { bool: new Set<string>(), optionBool: new Set<string>(), src: [] as string[] };
+            for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+                try {
+                    const src = fs.readFileSync(file, 'utf8');
+                    cached.src.push(src);
+                    collect(src, cached.bool, cached.optionBool, new Set<string>());
+                } catch (_) { /* base not generated yet */ }
+            }
+            this._rustBoolReturnMethods = cached;
+        }
+        const base = this._rustBoolReturnMethods;
+        collect(content, bool, optionBool, new Set<string>());
+        for (const n of base.bool) if (!own.has(n)) bool.add(n);
+        for (const n of base.optionBool) if (!own.has(n)) optionBool.add(n);
+        // Bool-only-returning callees, probed per candidate name (whole-file
+        // scans would be O(names × size) on every exchange).
+        const boolBoxed = new Set<string>();
+        for (const name of candidates) {
+            if (name === undefined || boolBoxed.has(name)) continue;
+            const bodies = own.has(name)
+                ? this.rustFnBodies(content, name)
+                : base.src.flatMap(src => this.rustFnBodies(src, name));
+            if (bodies.length === 0) continue;
+            if (bodies.every(b => this.rustBodyReturnsBoolNullOnly(b))) boolBoxed.add(name);
+        }
+        return { bool, optionBool, boolBoxed };
+    }
+
+    /** The method called by an `is_true(&…)` argument — `self.<m>(…)` or
+     *  `<m>(…)`, optionally parenthesised — else undefined. The call must span
+     *  the whole argument, so a logical/compare text is never mistaken for it. */
+    private rustCalledMethodName(inner: string): string | undefined {
+        const s = this.stripOuterParens(inner.trim());
+        const m = /^(?:self\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
+        if (m === null) return undefined;
+        const open = m[0].length - 1;
+        if (this.closeParenAt(s, open) !== s.length - 1) return undefined;
+        return m[1];
+    }
+
+    /**
+     * The `is_true(&…)` site at [start, end) sits in a provably `bool` slot:
+     * an operand of `&&`/`||`, a `!` operand (returns 'negated'), a
+     * `Value::Bool(…)` box, an assert body, or a whole if/while/ternary
+     * condition. Any other position (a `Value` argument, `let x: Value = …`,
+     * `return`) keeps the helper — the `is_true(` marker is what the boxing
+     * passes key on.
+     */
+    private rustIsTrueBoolSlot(content: string, start: number, end: number): 'bool' | 'negated' | undefined {
+        const before = content.slice(Math.max(0, start - 400), start);
+        const after = content.slice(end, end + 40);
+        if (/(?:&&|\|\|)\s*$/.test(before)) return 'bool';
+        if (/Value::Bool\(\s*$/.test(before)) return 'bool';
+        if (/assert!?\(\s*$/.test(before)) return 'bool';
+        if (/!\s*$/.test(before)) return 'negated';
+        const back = before.replace(/[\s(]+$/, '');
+        if (/(?:^|[^\w])(?:if|while)$/.test(back) && /^\s*\)*\s*\{/.test(after)) return 'bool';
+        return undefined;
+    }
+
+    /**
+     * D-32: `is_true(&<call>)` over a call whose emitted Rust signature returns
+     * a native `bool` prints bare (the wrapper is the identity through
+     * `IsTruthy for bool`); over a call returning `Option<bool>` it prints
+     * `<call> == Some(true)` (`is_truthy` on the boxed variant is exactly that
+     * comparison — `None` is `Value::Null` and `Some(b)` is `Value::Bool(b)`).
+     * The callee types come from `rustEmittedBoolReturnMethods`, so the fold
+     * fires in the same regen that retypes the method (typed-return unit) and
+     * covers the hand-written `-> bool` base methods today. Sites outside a
+     * proven bool slot keep the helper. Runs after the boxing passes.
+     */
+    dropNativeCallIsTrue(content: string): string {
+        // Collect the `is_true(&…)` sites first: the callee probe is run only
+        // for the names actually called here.
+        const sites: Array<{ start: number, end: number, inner: string, name: string | undefined, slot: string | undefined }> = [];
+        let i = 0;
+        while (i < content.length) {
+            const c = content[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(content, i); continue; }
+            if (c === '/' && content[i + 1] === '/') {
+                const nl = content.indexOf('\n', i);
+                i = nl < 0 ? content.length : nl;
+                continue;
+            }
+            if (c === 'i' && content.startsWith('is_true(&', i) && !/[A-Za-z0-9_:]/.test(content[i - 1] ?? '')) {
+                const open = i + 'is_true('.length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) { i += 1; continue; }
+                const inner = content.slice(open + 2, close);
+                sites.push({
+                    start: i,
+                    end: close + 1,
+                    inner,
+                    name: this.rustCalledMethodName(inner),
+                    slot: this.rustIsTrueBoolSlot(content, i, close + 1),
+                });
+                i = close + 1;
+                continue;
+            }
+            i += 1;
+        }
+        if (sites.length === 0) return content;
+        const index = this.rustEmittedBoolReturnMethods(content, sites.map(s => s.name));
+        if (index.bool.size === 0 && index.optionBool.size === 0 && index.boolBoxed.size === 0) return content;
+        let out = ''; let at = 0; let changed = false;
+        for (const s of sites) {
+            const name = s.name;
+            if (name === undefined || s.slot === undefined) continue;
+            let text: string | undefined;
+            const call = this.stripOuterParens(s.inner.trim());
+            if (index.bool.has(name)) {
+                text = call;
+            } else if (index.optionBool.has(name)) {
+                text = `${call} == Some(true)`;
+            } else if (index.boolBoxed.has(name)) {
+                text = `${call}.as_bool() == Some(true)`;
+            }
+            if (text === undefined) continue;
+            // A comparison binds looser than `!`: keep it parenthesised there.
+            if (s.slot === 'negated' && !index.bool.has(name)) text = `(${text})`;
+            out += content.slice(at, s.start) + text;
+            at = s.end;
+            changed = true;
+        }
+        if (!changed) return content;
+        return out + content.slice(at);
+    }
+
+    private _rustBoolReturnMethods: { bool: Set<string>, optionBool: Set<string>, src: string[] } | null = null;
+
+    /**
+     * D-32: `is_true(&x)` over a local the printer declares with an `Option`
+     * payload type — the typed shadows the batch-D param/return units emit
+     * (`let x: Option<bool> = …`, `let x: Option<f64> = ….as_f64()`). The
+     * runtime's `is_truthy` on the boxed value is exactly these native tests:
+     *
+     *   Option<bool>  ->  x == Some(true)                (None = Value::Null)
+     *   Option<f64>   ->  x.is_some_and(|v| v != 0.0)    (Float(f) truthy iff f != 0)
+     *   Option<i64>   ->  x.is_some_and(|v| v != 0)
+     *
+     * A name qualifies only with exactly ONE `: Option<…>` declaration in its
+     * fn and no other `let` binding of the name (scope ambiguity keeps the
+     * helper), and only in a proven bool slot. Sites before the declaration are
+     * left alone. Idempotent.
+     */
+    dropOptionShadowIsTrue(content: string): string {
+        if (!content.includes(': Option<')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [];
+        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
+        let hm: RegExpExecArray | null;
+        while ((hm = headerRe.exec(masked)) !== null) headers.push(hm.index + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const to = headers[h + 1];
+            const region = masked.slice(from, to);
+            const declRe = /let (?:mut )?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(Option<bool>|Option<f64>|Option<i64>)\s*=/g;
+            const declared = new Map<string, string>();
+            let dm: RegExpExecArray | null;
+            while ((dm = declRe.exec(region)) !== null) declared.set(dm[1], dm[2]);
+            for (const [name, kind] of declared) {
+                const declCount = (region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length;
+                if (declCount !== 1) continue;
+                const declAt = region.search(new RegExp(`let (?:mut )?${name}\\s*:`));
+                const siteRe = new RegExp(`is_true\\(&\\s*\\(?\\s*${name}\\s*\\)?\\s*\\)`, 'g');
+                let sm: RegExpExecArray | null;
+                while ((sm = siteRe.exec(region)) !== null) {
+                    if (sm.index < declAt) continue;
+                    const start = from + sm.index;
+                    const end = start + sm[0].length;
+                    const slot = this.rustIsTrueBoolSlot(content, start, end);
+                    if (slot === undefined) continue;
+                    const native = kind === 'Option<bool>'
+                        ? `${name} == Some(true)`
+                        : kind === 'Option<f64>'
+                            ? `${name}.is_some_and(|v| v != 0.0)`
+                            : `${name}.is_some_and(|v| v != 0)`;
+                    rewrites.push({ start, end, text: slot === 'negated' ? `(${native})` : native });
+                }
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
     }
 
     /**
@@ -8591,6 +8901,10 @@ impl std::ops::DerefMut for ${coreName} {
                 // bool-valued `Value` (one decl, every assignment a
                 // `Value::Bool` box / `safe_bool*` default).
                 rustContent = this.dropBoolValuedIsTrue(rustContent);
+                // D-32: bool/`Option<bool>` callees and `Option`-typed shadow
+                // locals make the remaining `is_true` sites native.
+                rustContent = this.dropNativeCallIsTrue(rustContent);
+                rustContent = this.dropOptionShadowIsTrue(rustContent);
                 // Last: drop `.clone()` on the value arg of
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
@@ -9312,6 +9626,9 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.collapseNumericBoxAccessors(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
         finalFile = this.dropBoolValuedIsTrue(finalFile);
+        // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
+        finalFile = this.dropNativeCallIsTrue(finalFile);
+        finalFile = this.dropOptionShadowIsTrue(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);

@@ -1769,7 +1769,7 @@ impl BtseCore {
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if (symbols == Value::Null) || is_true(&self.in_array(symbol.clone(), symbols.clone())) {
+            if (symbols == Value::Null) || self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true) {
                 let mut levels: Value = self.safe_list_k(entry.clone(), "riskLimits", &[Value::from(vec![])]);
                 let mut tiers: Value = Value::from(vec![]);
                 {

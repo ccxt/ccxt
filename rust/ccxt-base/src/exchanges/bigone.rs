@@ -978,7 +978,7 @@ impl BigoneCore {
         if (self.safe_bool_k(rawCurrency.clone(), "is_fiat", &[]).as_bool() == Some(true)) {
             type_var = Value::Str("fiat".into());
         }  else if (chainLength == 0.0) {
-            if is_true(&self.is_leveraged_currency(id.clone(), &[])) {
+            if self.is_leveraged_currency(id.clone(), &[]).as_bool() == Some(true) {
                 type_var = Value::Str("leveraged".into());
             }  else {
                 type_var = Value::Str("other".into());

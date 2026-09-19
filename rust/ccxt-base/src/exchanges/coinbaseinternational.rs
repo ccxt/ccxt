@@ -866,7 +866,7 @@ impl CoinbaseinternationalCore {
             let mut network: Value = self.safe_string2(params.clone(), Value::Str("networkCode".into()), Value::Str("network".into()), &[]);
             if (network == Value::Null) {
                 // find default network
-                if is_true(&self.is_empty(networks.clone())) {
+                if self.is_empty(networks.clone()).as_bool() == Some(true) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress network not found for currency ".into())).into()), currencyCode).into()), Value::Str(" please specify networkId in params".into()))));
                 }
                 let mut defaultNetwork: Value = self.find_default_network(networks);
@@ -1792,7 +1792,7 @@ impl CoinbaseinternationalCore {
         //    ]
         //
         let mut positions: Value = self.parse_positions(response, &[]);
-        if is_true(&self.is_empty(symbols.clone())) {
+        if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return positions;
         }
         symbols = self.market_symbols(&[symbols.clone()]);

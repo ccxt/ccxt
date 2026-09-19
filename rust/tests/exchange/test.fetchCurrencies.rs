@@ -60,7 +60,7 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
         }
         // check at least X% of currencies are active
         let mut inactiveCurrenciesPercentage: Value = (match (&(((match ((numInactiveCurrencies).as_f64(), (currenciesLength).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&skipActive) || is_true(&(inactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN) < maxInactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN)))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&skipActive) || (inactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN) < maxInactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN))))));
         detectCurrencyConflicts(exchange, currencies);
     }
     return Value::Bool(true);

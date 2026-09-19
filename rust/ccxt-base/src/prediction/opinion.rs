@@ -2418,7 +2418,7 @@ impl OpinionCore {
  * @returns {string} the apiKey
  */
     pub async fn load_api_key(&mut self) -> Value {
-        let mut hasDirectApiKey: bool = !is_true(&self.is_empty_string(self.apiKey.clone()));
+        let mut hasDirectApiKey: bool = !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true));
         if hasDirectApiKey {
             return self.apiKey.clone();
         }
@@ -2470,7 +2470,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @returns {string} the websocket url
  */
     pub fn opinion_ws_url(&self) -> Value {
-        let mut hasDirectApiKey: bool = !is_true(&self.is_empty_string(self.apiKey.clone()));
+        let mut hasDirectApiKey: bool = !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true));
         let mut apiKey: Value = (if (hasDirectApiKey) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "apiKey", &[]) });
         if (apiKey == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first".into()))));
@@ -3121,7 +3121,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
-                let mut hasDirectApiKey: bool = !is_true(&self.is_empty_string(self.apiKey.clone()));
+                let mut hasDirectApiKey: bool = !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true));
                 let mut apiKey: Value = (if (hasDirectApiKey) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "apiKey", &[]) });
                 if (apiKey == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &path), Value::Str(" requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first".into()))));

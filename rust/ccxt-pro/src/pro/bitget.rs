@@ -1839,7 +1839,7 @@ impl BitgetCore {
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchPositions".into()), Value::Str("uta".into()), &[Value::Bool(false)]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         symbols = self.market_symbols(&[symbols.clone()]);
-        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(&[symbols.clone()]);
             { let __destr_tmp = self.get_inst_type(Value::Str("watchPositions".into()), market.clone(), &[uta.clone(), params.clone()]); instType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         }
@@ -1990,7 +1990,7 @@ impl BitgetCore {
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-            if !is_true(&self.is_empty(positions.clone())) {
+            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions.clone(), messageHash]);
             }
         }
@@ -2548,7 +2548,7 @@ impl BitgetCore {
         //         "stpMode": "none"
         //     }
         //
-        let mut isSpot: bool = !is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("posMode"))));
+        let mut isSpot: bool = !(matches!(&order, Value::Dict(__d) if __d.contains_key("posMode")));
         let mut isMargin: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("loanType"));
         let mut category: Option<String> = self.safe_string_lower_k(order.clone(), "category", &[]).as_str().map(str::to_owned);
         if (category.as_deref() == Some("spot")) {

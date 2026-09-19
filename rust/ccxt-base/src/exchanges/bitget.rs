@@ -5692,7 +5692,7 @@ impl BitgetCore {
         if (uta != Value::Null) {
             return Value::from(vec![uta, params.clone()]);
         }
-        if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+        if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             // use the api to determine if the account is uta or not
             let mut accountIsUTa: Value = Value::Bool(false);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -5932,9 +5932,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut supportMarginCoins: Value = self.safe_list_k(market.clone(), "supportMarginCoins", &[Value::from(vec![])]);
             let mut settleId: Value = Value::Null;
-            if is_true(&self.in_array(baseId.clone(), supportMarginCoins.clone())) {
+            if self.in_array(baseId.clone(), supportMarginCoins.clone()).as_bool() == Some(true) {
                 settleId = baseId.clone();
-            }  else if is_true(&self.in_array(quoteId.clone(), supportMarginCoins.clone())) {
+            }  else if self.in_array(quoteId.clone(), supportMarginCoins.clone()).as_bool() == Some(true) {
                 settleId = quoteId.clone();
             }  else {
                 settleId = self.safe_string(supportMarginCoins, Value::Int(0), &[]);

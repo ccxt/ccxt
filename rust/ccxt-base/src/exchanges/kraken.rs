@@ -2934,7 +2934,7 @@ impl KrakenCore {
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
-        if is_true(&self.in_array(typeParsed.clone(), Value::from(vec![Value::Str("stop loss".into()), Value::Str("take profit".into())]))) {
+        if self.in_array(typeParsed.clone(), Value::from(vec![Value::Str("stop loss".into()), Value::Str("take profit".into())])).as_bool() == Some(true) {
             typeParsed = (if (price == Value::Null) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
         }
         let mut amendId: Option<String> = self.safe_string_k(order.clone(), "amend_id", &[]).as_str().map(str::to_owned);

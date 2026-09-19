@@ -676,7 +676,7 @@ impl CexCore {
         let mut request: Value = self.deep_extend(message, &[params.clone()]);
         let mut ticker: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut tickerSymbol: Value = crate::value::get_value_k(&ticker, "symbol");
-        if (symbols != Value::Null) && !is_true(&self.in_array(tickerSymbol.clone(), symbols.clone())) {
+        if (symbols != Value::Null) && !(self.in_array(tickerSymbol.clone(), symbols.clone()).as_bool() == Some(true)) {
             return Box::pin(self.watch_tickers(&[symbols.clone(), params])).await;
         }
         if is_true(&self.newUpdates) {
