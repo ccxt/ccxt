@@ -43,11 +43,11 @@ impl CoinspotCore {
 impl crate::exchange::DerivedExchange for CoinspotCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::parse_ticker(self, ticker, &[market.clone()])
+        CoinspotCore::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::parse_trade(self, trade, &[market.clone()])
+        CoinspotCore::parse_trade(self, trade, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinspotCore.
@@ -55,7 +55,7 @@ impl crate::exchange::DerivedExchange for CoinspotCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        CoinspotCore::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinspotCore.
@@ -910,7 +910,7 @@ impl CoinspotCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_value2(response.clone(), Value::Str("balance".to_string()), Value::Str("balances".to_string()), &[]);
+        let mut balances: Value = self.safe_value2(response, Value::Str("balance".to_string()), Value::Str("balances".to_string()), &[]);
         if is_true(&(matches!(&balances, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -929,7 +929,7 @@ impl CoinspotCore {
                     let mut balance: Value = get_value(&currencies, &currencyId);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
+                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance, "balance", &[]));
                     if (code != Value::Null) {
                         add_element_to_object(&mut result, &code, account.clone());
                     }
@@ -947,14 +947,14 @@ impl CoinspotCore {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balances.clone(), currencyId.clone(), &[]));
+                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balances.clone(), currencyId, &[]));
                 if (code != Value::Null) {
-                    add_element_to_object(&mut result, &code, account.clone());
+                    add_element_to_object(&mut result, &code, account);
                 }
             }
             }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -1006,7 +1006,7 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1014,7 +1014,7 @@ impl CoinspotCore {
         });
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.private_post_orders(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("buyorders".to_string()), Value::Str("sellorders".to_string()), Value::Str("rate".to_string()), Value::Str("amount".to_string())]);
+        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("buyorders".to_string()), Value::Str("sellorders".to_string()), Value::Str("rate".to_string()), Value::Str("amount".to_string())]);
 
     Value::Null
 }
@@ -1034,7 +1034,7 @@ impl CoinspotCore {
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
@@ -1046,16 +1046,16 @@ impl CoinspotCore {
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last.clone());
+        m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1077,7 +1077,7 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut response: Value = self.public_get_latest(&[params.clone()]).await;
         let mut id: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".to_string())]);
         id = to_lower(&id);
@@ -1097,11 +1097,11 @@ impl CoinspotCore {
         //         }
         //     }
         //
-        let mut ticker: Value = self.safe_dict(prices.clone(), id.clone(), &[Value::Map({
+        let mut ticker: Value = self.safe_dict(prices, id, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(ticker.clone(), &[market.clone()]);
+        return self.parse_ticker(ticker, &[market]);
 
     Value::Null
 }
@@ -1166,7 +1166,7 @@ impl CoinspotCore {
             }
         }
         }
-        return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+        return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols]);
 
     Value::Null
 }
@@ -1209,7 +1209,7 @@ impl CoinspotCore {
         //     }
         //
         let mut trades: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
-        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        return self.parse_trades(trades, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -1291,8 +1291,8 @@ impl CoinspotCore {
             add_element_to_object(get_value_mut(&mut sellTrades, &i), &Value::Str("side".to_string()), Value::Str("sell".to_string()));
         }
         }
-        let mut trades: Value = self.array_concat(buyTrades.clone(), sellTrades.clone());
-        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut trades: Value = self.array_concat(buyTrades, sellTrades);
+        return self.parse_trades(trades, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -1328,19 +1328,19 @@ impl CoinspotCore {
         let mut priceString: Value = Value::Null;
         let mut fee: Value = Value::Null;
         let mut audTotal: Value = self.safe_string_k(trade.clone(), "audtotal", &[]);
-        let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal.clone()]);
+        let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "market", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("/".to_string())]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".to_string())]);
         let mut solddate: Value = self.safe_integer_k(trade.clone(), "solddate", &[]);
         if (solddate != Value::Null) {
             priceString = self.safe_string_k(trade.clone(), "rate", &[]);
-            timestamp = solddate.clone();
+            timestamp = solddate;
         }  else {
             priceString = crate::precise::Precise::stringDiv(&costString, &amountString);
             let mut createdString: Value = self.safe_string_k(trade.clone(), "created", &[]);
-            timestamp = self.parse8601(createdString.clone());
+            timestamp = self.parse8601(createdString);
             let mut audfeeExGst: Value = self.safe_string_k(trade.clone(), "audfeeExGst", &[]);
             let mut audGst: Value = self.safe_string_k(trade.clone(), "audGst", &[]);
             // The transaction fee which consumers pay is inclusive of GST by default
@@ -1349,25 +1349,25 @@ impl CoinspotCore {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
-                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId.clone(), &[]));
+                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId, &[]));
                 m
             });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), trade);
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.parse_number(priceString, &[]));
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("cost".to_string(), self.parse_number(costString, &[]));
-        m.insert("fee".to_string(), fee.clone());
+        m.insert("fee".to_string(), fee);
     m
 }), &[market.clone()]);
 
@@ -1407,8 +1407,8 @@ impl CoinspotCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), amount.clone());
-                m.insert("rate".to_string(), price.clone());
+                m.insert("amount".to_string(), amount);
+                m.insert("rate".to_string(), price);
             m
         });
         let mut response: Value = Value::Null;
@@ -1500,15 +1500,15 @@ impl CoinspotCore {
         let mut isVersionedApi: bool = matches!(&api, Value::Arr(_));
         let mut version: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut accessType: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { api.clone() });
-        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
-        let mut fullPath: Value = (if is_true(&(version != Value::Null)) { Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &version), endpoint)) } else { endpoint.clone() });
+        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path, params.clone())));
+        let mut fullPath: Value = (if is_true(&(version != Value::Null)) { Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &version), endpoint)) } else { endpoint });
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &accessType), &fullPath);
         if (accessType.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
             let __ws_arg_7 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("nonce".to_string(), nonce.clone());
+                    m.insert("nonce".to_string(), nonce);
                 m
             }), &[params.clone()]);
             body = self.json(__ws_arg_7);
@@ -1522,10 +1522,10 @@ impl CoinspotCore {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
-        m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("url".to_string(), url);
+        m.insert("method".to_string(), method);
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 
