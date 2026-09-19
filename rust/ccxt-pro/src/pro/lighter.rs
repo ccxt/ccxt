@@ -781,7 +781,7 @@ impl LighterCore {
         if (symbols != Value::Null) {
             symbolsLength = Value::Int(symbols.len() as i64);
         }
-        if is_true(&(symbols == Value::Null)) || is_true(&(symbolsLength.as_f64() == Some(0.0))) {
+        if (symbols == Value::Null) || (symbolsLength.as_f64() == Some(0.0)) {
             append_to_array(&mut messageHashes, self.get_message_hash(Value::Str("ticker".to_string()), &[]));
         }  else {
             {
@@ -953,7 +953,7 @@ impl LighterCore {
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
         let mut isMakerAsk: Value = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]);
-        let mut side: Value = (if is_true(&(isMakerAsk.as_bool() == Some(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -1156,21 +1156,21 @@ impl LighterCore {
                 // Own trades should use the account's order side
                 side = Value::Str("buy".to_string());
                 order = self.safe_string_k(trade.clone(), "bid_id", &[]);
-                takerOrMaker = (if is_true(&(isMakerAsk.as_bool() == Some(true))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+                takerOrMaker = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
             }  else if (askAccountId.as_f64() == accountIndex.as_f64()) {
                 side = Value::Str("sell".to_string());
                 order = self.safe_string_k(trade.clone(), "ask_id", &[]);
-                takerOrMaker = (if is_true(&(isMakerAsk.as_bool() == Some(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+                takerOrMaker = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
             }
         }
         // public trades use Lighter's taker-side convention
         if (side == Value::Null) {
-            side = (if is_true(&(isMakerAsk.as_bool() == Some(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut fee: Value = Value::Null;
         if (takerOrMaker != Value::Null) {
-            let mut feeRateRaw: Value = (if is_true(&(takerOrMaker.as_str() == Some("maker"))) { self.safe_string_k(trade.clone(), "maker_fee", &[]) } else { self.safe_string_k(trade.clone(), "taker_fee", &[]) });
-            let mut feeRate: Value = (if is_true(&(feeRateRaw != Value::Null)) { crate::precise::Precise::stringDiv(&feeRateRaw, &Value::Str("1000000".to_string())) } else { Value::Str("0".to_string()) });
+            let mut feeRateRaw: Value = (if (takerOrMaker.as_str() == Some("maker")) { self.safe_string_k(trade.clone(), "maker_fee", &[]) } else { self.safe_string_k(trade.clone(), "taker_fee", &[]) });
+            let mut feeRate: Value = (if (feeRateRaw != Value::Null) { crate::precise::Precise::stringDiv(&feeRateRaw, &Value::Str("1000000".to_string())) } else { Value::Str("0".to_string()) });
             let mut feeAmount: Value = crate::precise::Precise::stringMul(&costString, &feeRate);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1399,7 +1399,7 @@ impl LighterCore {
         //
         let mut timestamp: Value = self.safe_integer_k(liquidation.clone(), "timestamp", &[]);
         let mut isMakerAsk: Value = self.safe_bool_k(liquidation.clone(), "is_maker_ask", &[]);
-        let mut side: Value = (if is_true(&(isMakerAsk.as_bool() == Some(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut contracts: Value = self.safe_string_k(liquidation.clone(), "size", &[]);
         let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
         let mut price: Value = self.safe_string_k(liquidation.clone(), "price", &[]);

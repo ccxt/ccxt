@@ -765,7 +765,7 @@ impl CoinoneCore {
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut isWithdrawEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "withdraw_status", &[Value::Str("".to_string())]).as_str() == Some("normal"));
         let mut isDepositEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "deposit_status", &[Value::Str("".to_string())]).as_str() == Some("normal"));
-        let mut type_var: Value = (if is_true(&(code.as_str() != Some("KRW"))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
+        let mut type_var: Value = (if (code.as_str() != Some("KRW")) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1302,7 +1302,7 @@ impl CoinoneCore {
             feeCostString = crate::precise::Precise::stringAbs(&feeCostString);
             let mut feeRateString: Value = self.safe_string_k(trade.clone(), "feeRate", &[]);
             feeRateString = crate::precise::Precise::stringAbs(&feeRateString);
-            let mut feeCurrencyCode: Value = (if is_true(&(side.as_str() == Some("sell"))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+            let mut feeCurrencyCode: Value = (if (side.as_str() == Some("sell")) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.clone());
@@ -1547,7 +1547,7 @@ impl CoinoneCore {
             quote = self.safe_currency_code(quoteId.clone(), &[]);
         }
         let mut symbol: Value = Value::Null;
-        if is_true(&(base != Value::Null)) && is_true(&(quote != Value::Null)) {
+        if (base != Value::Null) && (quote != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             market = self.safe_market(&[symbol.clone(), market.clone(), Value::Str("/".to_string())]);
         }
@@ -1556,7 +1556,7 @@ impl CoinoneCore {
             timestamp = self.safe_integer2(order.clone(), Value::Str("ordered_at".to_string()), Value::Str("updated_at".to_string()), &[]); // v2.1 sends milliseconds
         }
         let mut side: Value = self.safe_string_lower2(order.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[]);
-        if is_true(&(side.as_str() == Some("limit"))) || is_true(&(side.as_str() == Some("market"))) || is_true(&(side.as_str() == Some("stop_limit"))) {
+        if (side.as_str() == Some("limit")) || (side.as_str() == Some("market")) || (side.as_str() == Some("stop_limit")) {
             side = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]); // in v2.1 rows the type field carries the order type, the side lives in side
         }
         if (side.as_str() == Some("ask")) {
@@ -1569,7 +1569,7 @@ impl CoinoneCore {
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
         // https://github.com/ccxt/ccxt/pull/7067
         if (status.as_str() == Some("live")) {
-            if is_true(&(remainingString != Value::Null)) && is_true(&(amountString != Value::Null)) {
+            if (remainingString != Value::Null) && (amountString != Value::Null) {
                 let mut isLessThan: Value = crate::precise::Precise::stringLt(&remainingString, &amountString);
                 if is_true(&isLessThan) {
                     status = Value::Str("canceled".to_string());
@@ -1580,7 +1580,7 @@ impl CoinoneCore {
         let mut fee: Value = Value::Null;
         let mut feeCostString: Value = self.safe_string_k(order.clone(), "fee", &[]);
         if (feeCostString != Value::Null) {
-            let mut feeCurrencyCode: Value = (if is_true(&(side.as_str() == Some("sell"))) { quote.clone() } else { base.clone() });
+            let mut feeCurrencyCode: Value = (if (side.as_str() == Some("sell")) { quote.clone() } else { base.clone() });
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.clone());
@@ -1755,7 +1755,7 @@ impl CoinoneCore {
         let mut price: Value = self.safe_number_k(params.clone(), "price", &[]);
         let mut qty: Value = self.safe_number_k(params.clone(), "qty", &[]);
         let mut isAsk: Value = self.safe_integer_k(params.clone(), "is_ask", &[]);
-        if is_true(&(price == Value::Null)) || is_true(&(qty == Value::Null)) || is_true(&(isAsk == Value::Null)) {
+        if (price == Value::Null) || (qty == Value::Null) || (isAsk == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1826,7 +1826,7 @@ impl CoinoneCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&walletAddress, &key);
             let mut value: Value = get_value(&walletAddress, &key);
-            if is_true(&(value == Value::Null)) || is_true(&(value == Value::Null)) || is_true(&(value.as_str() == Some(""))) || (is_equal(&value, &Value::Str("-1".to_string()))) {
+            if (value == Value::Null) || (value == Value::Null) || (value.as_str() == Some("")) || (is_equal(&value, &Value::Str("-1".to_string()))) {
                 continue;
             }
             let mut parts: Value = split(&key, &Value::Str("_".to_string()));
@@ -1849,7 +1849,7 @@ impl CoinoneCore {
             self.check_address(&[address.clone()]);
             add_element_to_object(&mut depositAddress, &Value::Str("address".to_string()), address.clone());
             add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), address.clone());
-            if is_true(&((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo")))) {
+            if ((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo"))) {
                 add_element_to_object(&mut depositAddress, &Value::Str("tag".to_string()), value.clone());
                 add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), Value::from(vec![address.clone(), value.clone()]));
             }

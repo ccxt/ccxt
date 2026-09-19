@@ -1023,7 +1023,7 @@ impl BitteamCore {
         });
         let mut blockChain: Value = self.safe_string_k(currency.clone(), "blockChain", &[]);
         // if only one blockChain
-        if is_true(&(blockChain != Value::Null)) && is_true(&(blockChain.as_str() != Some(""))) {
+        if (blockChain != Value::Null) && (blockChain.as_str() != Some("")) {
             fee = self.parse_number(withdrawCommissionFixed.clone(), &[]);
             add_element_to_object(&mut feesByNetworkId, &blockChain, fee.clone());
         }  else {
@@ -1980,7 +1980,7 @@ impl BitteamCore {
         //
         let mut tickers: Value = Value::from(vec![]);
         let mut rawTickers: Value = Value::from(vec![]);
-        if is_true(&(matches!(&response, Value::Arr(_)))) {
+        if (matches!(&response, Value::Arr(_))) {
             rawTickers = response.clone();
         }
         {
@@ -2308,7 +2308,7 @@ impl BitteamCore {
         let mut bestAskVolume: Value = Value::Null;
         let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[]);
         let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[]);
-        if is_true(&(bids != Value::Null)) && is_true(&(matches!(&bids, Value::Arr(_)))) && is_true(&(asks != Value::Null)) && is_true(&(matches!(&asks, Value::Arr(_)))) {
+        if (bids != Value::Null) && (matches!(&bids, Value::Arr(_))) && (asks != Value::Null) && (matches!(&asks, Value::Arr(_))) {
             let mut bestBid: Value = self.safe_dict(bids.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3103,7 +3103,7 @@ impl BitteamCore {
         }
         if (code.as_f64() != Some(200.0)) {
             if (code.as_f64() == Some(404.0)) {
-                if is_true(&(Value::Int(url.as_str().and_then(|__s| __s.find("/ccxt/order/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) && is_true(&(method.as_str() == Some("GET"))) {
+                if (Value::Int(url.as_str().and_then(|__s| __s.find("/ccxt/order/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) && (method.as_str() == Some("GET")) {
                     let mut parts: Value = split(&url, &Value::Str("/order/".to_string()));
                     let mut orderId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                     panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), orderId)), Value::Str(" not found".to_string()))));

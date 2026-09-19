@@ -1082,7 +1082,7 @@ impl Bit2cCore {
         //
         let mut orderUnified: Value = Value::Null;
         let mut isNewOrder: bool = false;
-        if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("NewOrder")))) {
+        if (matches!(&order, Value::Dict(__d) if __d.contains_key("NewOrder"))) {
             orderUnified = order.as_map().and_then(|__m| __m.get("NewOrder")).cloned().unwrap_or(Value::Null);
             isNewOrder = true;
         }  else {
@@ -1324,8 +1324,8 @@ impl Bit2cCore {
             market = self.safe_market(&[marketId.clone(), market.clone()]);
             market = self.safe_market(&[reference_parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), market.clone()]);
             let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
-            makerOrTaker = (if is_true(&(isMaker.as_bool() == Some(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
-            orderId = (if is_true(&(isMaker.as_bool() == Some(true))) { reference_parts.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) } else { reference_parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) });
+            makerOrTaker = (if (isMaker.as_bool() == Some(true)) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            orderId = (if (isMaker.as_bool() == Some(true)) { reference_parts.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) } else { reference_parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) });
             let mut action: Option<i64> = self.safe_integer_k(trade.clone(), "action", &[]).as_i64();
             if (action == Some(0)) {
                 side = Value::Str("buy".to_string());
@@ -1348,7 +1348,7 @@ impl Bit2cCore {
             amount = self.safe_string_k(trade.clone(), "amount", &[]);
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
             if (side != Value::Null) {
-                if is_true(&(side != Value::Null)) && is_true(&(side.as_str() != Some(""))) {
+                if (side != Value::Null) && (side.as_str() != Some("")) {
                     side = Value::Str("buy".to_string());
                 }  else {
                     side = Value::Str("sell".to_string());

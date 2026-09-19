@@ -44,7 +44,7 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     let mut codesLength: Value = Value::Int(codesTotal.len() as i64);
     let mut freeLength: Value = Value::Int(codesFree.len() as i64);
     let mut usedLength: Value = Value::Int(codesUsed.len() as i64);
-    assert!(ccxt::runtime::is_true(&((is_true(&(codesLength.as_f64() == freeLength.as_f64())) || is_true(&(codesLength.as_f64() == usedLength.as_f64()))))));
+    assert!(ccxt::runtime::is_true(&(((codesLength.as_f64() == freeLength.as_f64()) || (codesLength.as_f64() == usedLength.as_f64())))));
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1432: bool = true;

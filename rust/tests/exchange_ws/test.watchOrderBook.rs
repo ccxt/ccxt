@@ -20,7 +20,7 @@ pub async fn testWatchOrderBook(mut exchange: Value, mut skippedProperties: Valu
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut idle: Value = Value::Bool(false);
-    while is_true(&(now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN))) && !is_true(&idle) {
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
         let mut startTime: Value = exchange.milliseconds();
@@ -36,7 +36,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // refresh the deadline on every path, otherwise a stream of temporary
         // failures would loop forever
         now = exchange.milliseconds();
-        if is_true(&(success.as_bool() == Some(true))) && is_true(&(response != Value::Null)) {
+        if (success.as_bool() == Some(true)) && (response != Value::Null) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), symbol.clone());
             let mut elapsed: Value = (match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if elapsed.as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {

@@ -1409,7 +1409,7 @@ impl DeribitCore {
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), timestamp.clone());
         m.insert("expiryDatetime".to_string(), datetime.clone());
-        m.insert("optionType".to_string(), (if is_true(&(optionType.as_str() == Some("C"))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) }));
+        m.insert("optionType".to_string(), (if (optionType.as_str() == Some("C")) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) }));
         m.insert("strike".to_string(), self.parse_number(strike, &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1451,8 +1451,8 @@ impl DeribitCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: bool = is_true(&(marketId != Value::Null)) && ((ends_with(&marketId, &Value::Str("-C".to_string()))) || (ends_with(&marketId, &Value::Str("-P".to_string()))));
-        if isOption && (is_true(&(self.markets_by_id.clone() == Value::Null)) || !(in_op(&self.markets_by_id, &marketId))) {
+        let mut isOption: bool = (marketId != Value::Null) && ((ends_with(&marketId, &Value::Str("-C".to_string()))) || (ends_with(&marketId, &Value::Str("-P".to_string()))));
+        if isOption && ((self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId))) {
             return self.create_expired_option_market(marketId.clone());
         }
         return self.super_safe_market(marketId.clone(), market.clone(), delimiter.clone(), marketType.clone());
@@ -1614,7 +1614,7 @@ impl DeribitCore {
         let mut updateTime: Value = self.safe_integer_product(response.clone(), Value::Str("usIn".to_string()), Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(locked.as_deref() == Some("false"))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
+        m.insert("status".to_string(), (if (locked.as_deref() == Some("false")) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
         m.insert("updated".to_string(), updateTime.clone());
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1893,7 +1893,7 @@ impl DeribitCore {
                         if matches!(&option, Value::Bool(true)) {
                             strike = self.safe_number_k(market.clone(), "strike", &[]);
                             optionType = self.safe_string_k(market.clone(), "option_type", &[]);
-                            let mut letter: Value = (if is_true(&(optionType.as_str() == Some("call"))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
+                            let mut letter: Value = (if (optionType.as_str() == Some("call")) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
                             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.number_to_string(strike.clone()))), Value::Str("-".to_string()))), letter));
                         }
                     }
@@ -1990,7 +1990,7 @@ impl DeribitCore {
             m
         });
         let mut summaries: Value = Value::from(vec![]);
-        if is_true(&(matches!(&balance, Value::Dict(__d) if __d.contains_key("summaries")))) {
+        if (matches!(&balance, Value::Dict(__d) if __d.contains_key("summaries"))) {
             summaries = self.safe_list_k(balance.clone(), "summaries", &[Value::from(vec![])]);
         }  else {
             summaries = Value::from(vec![balance.clone()]);
@@ -2416,7 +2416,7 @@ impl DeribitCore {
             let mut requestType: Value = Value::Null;
             if (type_var.as_str() == Some("spot")) {
                 requestType = Value::Str("spot".to_string());
-            }  else if (type_var.as_str() == Some("future")) || is_true(&(type_var.as_str() == Some("contract"))) {
+            }  else if (type_var.as_str() == Some("future")) || (type_var.as_str() == Some("contract")) {
                 requestType = Value::Str("future".to_string());
             }  else if (type_var.as_str() == Some("option")) {
                 requestType = Value::Str("option".to_string());
@@ -2630,7 +2630,7 @@ impl DeribitCore {
         let mut takerOrMaker: Value = Value::Null;
         if (liquidity.is_some()) {
             // M = maker, T = taker, MT = both
-            takerOrMaker = (if is_true(&(liquidity.as_deref() == Some("M"))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if (liquidity.as_deref() == Some("M")) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
@@ -2707,7 +2707,7 @@ impl DeribitCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("end_timestamp".to_string(), until.clone()); }
         }
         let mut response: Value = Value::Null;
-        if is_true(&(since == Value::Null)) && !is_true(&(matches!(&request, Value::Dict(__d) if __d.contains_key("end_timestamp")))) {
+        if (since == Value::Null) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("end_timestamp"))) {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_get_last_trades_by_instrument(&[__ws_arg_7]).await;
         }  else {
@@ -3253,14 +3253,14 @@ impl DeribitCore {
         let mut isStopMarket: bool = type_var.as_str() == Some("stop_market");
         let mut isTakeLimit: bool = type_var.as_str() == Some("take_limit");
         let mut isTakeMarket: bool = type_var.as_str() == Some("take_market");
-        let mut isStopLossOrder: bool = isStopLimit || isStopMarket || is_true(&(stopLossPrice != Value::Null));
-        let mut isTakeProfitOrder: bool = isTakeLimit || isTakeMarket || is_true(&(takeProfitPrice != Value::Null));
+        let mut isStopLossOrder: bool = isStopLimit || isStopMarket || (stopLossPrice != Value::Null);
+        let mut isTakeProfitOrder: bool = isTakeLimit || isTakeMarket || (takeProfitPrice != Value::Null);
         if isStopLossOrder && isTakeProfitOrder {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified".to_string()))));
         }
         let mut isStopOrder: bool = isStopLossOrder || isTakeProfitOrder;
-        let mut isLimitOrder: bool = is_true(&(type_var.as_str() == Some("limit"))) || isStopLimit || isTakeLimit;
-        let mut isMarketOrder: Value = Value::Bool(is_true(&(type_var.as_str() == Some("market"))) || isStopMarket || isTakeMarket);
+        let mut isLimitOrder: bool = (type_var.as_str() == Some("limit")) || isStopLimit || isTakeLimit;
+        let mut isMarketOrder: Value = Value::Bool((type_var.as_str() == Some("market")) || isStopMarket || isTakeMarket);
         let mut exchangeSpecificPostOnly: Value = self.safe_value_k(params.clone(), "post_only", &[]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificPostOnly.clone(), &[params.clone()]);
         if isLimitOrder {
@@ -3274,7 +3274,7 @@ impl DeribitCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("trailing_stop".to_string())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trigger_offset".to_string(), self.parse_to_numeric(trailingAmount.clone())); }
         }  else if isStopOrder {
-            let mut triggerPrice: Value = (if is_true(&(stopLossPrice != Value::Null)) { stopLossPrice.clone() } else { takeProfitPrice.clone() });
+            let mut triggerPrice: Value = (if (stopLossPrice != Value::Null) { stopLossPrice.clone() } else { takeProfitPrice.clone() });
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trigger_price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trigger".to_string(), trigger.clone()); }
             if isStopLossOrder {
@@ -4046,7 +4046,7 @@ impl DeribitCore {
         let mut contract: Value = self.safe_string_k(position.clone(), "instrument_name", &[]);
         market = self.safe_market(&[contract.clone(), market.clone()]);
         let mut side: Value = self.safe_string_k(position.clone(), "direction", &[]);
-        side = (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
+        side = (if (side.as_str() == Some("buy")) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
         let mut unrealizedPnl: Value = self.safe_string_k(position.clone(), "floating_profit_loss", &[]);
         let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initial_margin", &[]);
         let mut notionalString: Value = self.safe_string_k(position.clone(), "size_currency", &[]);
@@ -4695,7 +4695,7 @@ impl DeribitCore {
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("end_timestamp".to_string(), time.clone()); }
         }
-        if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("isDeribitPaginationCall")))) {
+        if (matches!(&params, Value::Dict(__d) if __d.contains_key("isDeribitPaginationCall"))) {
             params = self.omit(params.clone(), Value::Str("isDeribitPaginationCall".to_string()), &[]);
             if (limit == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a limit argument".to_string()))));
@@ -5436,7 +5436,7 @@ impl DeribitCore {
         let mut openInterest: Value = self.safe_number_k(interest.clone(), "open_interest", &[]);
         let mut openInterestAmount: Value = Value::Null;
         let mut openInterestValue: Value = Value::Null;
-        if is_true(&(market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) || (is_true(&(market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
+        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || ((market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
             openInterestAmount = openInterest.clone();
         }  else {
             openInterestValue = openInterest.clone();
@@ -5507,7 +5507,7 @@ impl DeribitCore {
 }
 
     pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_true(&(response == Value::Null)) || is_true(&(response == Value::Null)) {
+        if (response == Value::Null) || (response == Value::Null) {
             return Value::Null;
         }
         //

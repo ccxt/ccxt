@@ -625,7 +625,7 @@ impl CoinoneCore {
         let mut isSellerMaker: Value = self.safe_bool_k(trade.clone(), "is_seller_maker", &[]);
         let mut side: Value = Value::Null;
         if (isSellerMaker != Value::Null) {
-            side = (if is_true(&(isSellerMaker.as_bool() == Some(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if (isSellerMaker.as_bool() == Some(true)) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "qty", &[]);

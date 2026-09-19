@@ -1170,7 +1170,7 @@ impl GeminiCore {
         let mut id: Value = self.safe_string(rawCurrency.clone(), Value::Int(0), &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut fiatFlag: Option<String> = self.safe_string(rawCurrency.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
-        let mut isFiat: bool = is_true(&(fiatFlag.is_some())) && is_true(&(fiatFlag.as_deref() != Some("")));
+        let mut isFiat: bool = (fiatFlag.is_some()) && (fiatFlag.as_deref() != Some(""));
         let mut type_var: Value = (if isFiat { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]);
         let mut networks: Value = Value::Map({
@@ -1420,7 +1420,7 @@ impl GeminiCore {
 }));
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
-        if is_true(&(matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test")))) {
+        if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test"))) {
             return Value::from(vec![]);
         }
         let mut fetchUsdtMarkets: Value = self.safe_list_k(self.options.clone(), "fetchUsdtMarkets", &[Value::from(vec![])]);
@@ -1468,7 +1468,7 @@ impl GeminiCore {
         let mut brokenPairs: Value = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]);
         let mut marketIds: Value = Value::from(vec![]);
         let mut allMarketIds: Value = Value::from(vec![]);
-        if is_true(&(matches!(&marketIdsRaw, Value::Arr(_)))) {
+        if (matches!(&marketIdsRaw, Value::Arr(_))) {
             allMarketIds = marketIdsRaw.clone();
         }
         {
@@ -1903,7 +1903,7 @@ impl GeminiCore {
         let mut quoteId: Value = Value::Null;
         let mut base: Value = Value::Null;
         let mut quote: Value = Value::Null;
-        if is_true(&(marketId != Value::Null)) && is_true(&(market == Value::Null)) {
+        if (marketId != Value::Null) && (market == Value::Null) {
             let mut idLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if (idLength.as_f64() == Some(7.0)) {
                 baseId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
@@ -1916,7 +1916,7 @@ impl GeminiCore {
             quote = self.safe_currency_code(quoteId.clone(), &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         }
-        if is_true(&(symbol == Value::Null)) && is_true(&(market != Value::Null)) {
+        if (symbol == Value::Null) && (market != Value::Null) {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             baseId = self.safe_string_upper(market.clone(), Value::Str("baseId".to_string()), &[]);
             quoteId = self.safe_string_upper(market.clone(), Value::Str("quoteId".to_string()), &[]);
@@ -2550,9 +2550,9 @@ impl GeminiCore {
             let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
             if (timeInForce.is_some()) {
-                if is_true(&(timeInForce.as_deref() == Some("IOC"))) || is_true(&(timeInForce.as_deref() == Some("immediate-or-cancel"))) {
+                if (timeInForce.as_deref() == Some("IOC")) || (timeInForce.as_deref() == Some("immediate-or-cancel")) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("options".to_string(), Value::from(vec![Value::Str("immediate-or-cancel".to_string())])); }
-                }  else if is_true(&(timeInForce.as_deref() == Some("FOK"))) || is_true(&(timeInForce.as_deref() == Some("fill-or-kill"))) {
+                }  else if (timeInForce.as_deref() == Some("FOK")) || (timeInForce.as_deref() == Some("fill-or-kill")) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("options".to_string(), Value::from(vec![Value::Str("fill-or-kill".to_string())])); }
                 }  else if (timeInForce.as_deref() == Some("PO")) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("options".to_string(), Value::from(vec![Value::Str("maker-or-cancel".to_string())])); }
@@ -2978,7 +2978,7 @@ impl GeminiCore {
             }
         }
         url = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &url);
-        if is_true(&(method.as_str() == Some("POST"))) || is_true(&(method.as_str() == Some("DELETE"))) {
+        if (method.as_str() == Some("POST")) || (method.as_str() == Some("DELETE")) {
             body = json_stringify(&query);
         }
         return Value::Map({
@@ -3104,7 +3104,7 @@ impl GeminiCore {
         //     ]
         //
         let mut candles: Value = Value::from(vec![]);
-        if is_true(&(matches!(&response, Value::Arr(_)))) {
+        if (matches!(&response, Value::Arr(_))) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);

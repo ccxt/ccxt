@@ -1086,7 +1086,7 @@ impl BullishCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "availableQuantity", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "lockedQuantity", &[])); }
             let mut code: Value = self.safe_currency_code(assetId.clone(), &[]);
-            if is_true(&(tradingAccountId != Value::Null)) && is_true(&(code != Value::Null)) {
+            if (tradingAccountId != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &code, account.clone());
             }
             add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
@@ -1122,7 +1122,7 @@ impl BullishCore {
         }
         let mut subscribeHash: Value = Value::Str("positions".to_string());
         let mut messageHash: Value = subscribeHash.clone();
-        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), join(&symbols, &Value::Str(",".to_string()))))));
         }

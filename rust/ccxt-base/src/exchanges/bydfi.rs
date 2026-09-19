@@ -1425,7 +1425,7 @@ impl BydfiCore {
             m
         });
         let mut startTime: Value = since.clone();
-        let mut numberOfCandles: Value = (if is_true(&((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)))) { limit.clone() } else { maxLimit.clone() });
+        let mut numberOfCandles: Value = (if ((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0))) { limit.clone() } else { maxLimit.clone() });
         let mut until: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("until".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut now: Value = self.milliseconds();
@@ -1912,8 +1912,8 @@ impl BydfiCore {
             }
         }
         type_var = to_upper(&type_var);
-        let mut isMarketOrder: Value = (Value::Bool(is_true(&(type_var.as_str() == Some("MARKET"))) || is_true(&(type_var.as_str() == Some("STOP_MARKET"))) || is_true(&(type_var.as_str() == Some("TAKE_PROFIT_MARKET"))) || is_true(&(type_var.as_str() == Some("TRAILING_STOP_MARKET")))));
-        if matches!(&isMarketOrder, Value::Bool(true)) {
+        let mut isMarketOrder: Value = (Value::Bool((type_var.as_str() == Some("MARKET")) || (type_var.as_str() == Some("STOP_MARKET")) || (type_var.as_str() == Some("TAKE_PROFIT_MARKET")) || (type_var.as_str() == Some("TRAILING_STOP_MARKET"))));
+        if is_true(&isMarketOrder) {
             if (type_var.as_str() == Some("MARKET")) {
                 if isStopLossOrder {
                     type_var = Value::Str("STOP_MARKET".to_string());
@@ -1941,16 +1941,16 @@ impl BydfiCore {
         if is_true(&hedged) {
             params = self.omit(params.clone(), Value::Str("reduceOnly".to_string()), &[]);
             if (side.as_str() == Some("buy")) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionSide".to_string(), (if is_true(&(reduceOnly.as_bool() == Some(true))) { Value::Str("SHORT".to_string()) } else { Value::Str("LONG".to_string()) })); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionSide".to_string(), (if (reduceOnly.as_bool() == Some(true)) { Value::Str("SHORT".to_string()) } else { Value::Str("LONG".to_string()) })); }
             }  else if (side.as_str() == Some("sell")) {
-                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionSide".to_string(), (if is_true(&(reduceOnly.as_bool() == Some(true))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) })); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionSide".to_string(), (if (reduceOnly.as_bool() == Some(true)) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) })); }
             }
         }
         let mut closePosition: Value = self.safe_bool_k(params.clone(), "closePosition", &[Value::Bool(false)]);
         if (closePosition.as_bool() != Some(true)) {
             params = self.omit(params.clone(), Value::Str("closePosition".to_string()), &[]);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
-        }  else if is_true(&(type_var.as_str() != Some("STOP_MARKET"))) && is_true(&(type_var.as_str() != Some("TAKE_PROFIT_MARKET"))) {
+        }  else if (type_var.as_str() != Some("STOP_MARKET")) && (type_var.as_str() != Some("TAKE_PROFIT_MARKET")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() closePosition is only supported for stopLoss and takeProfit market orders".to_string()))));
         }
         let mut timeInForce: Value = self.handle_time_in_force(&[params.clone()]);
@@ -2156,7 +2156,7 @@ impl BydfiCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&(id == Value::Null)) && is_true(&(clientOrderId.is_none())) {
+        if (id == Value::Null) && (clientOrderId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an id argument or a clientOrderId parameter".to_string()))));
         }  else if (id != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
@@ -2366,7 +2366,7 @@ impl BydfiCore {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        if is_true(&(id == Value::Null)) && is_true(&(clientOrderId.is_none())) {
+        if (id == Value::Null) && (clientOrderId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() requires an id argument or a clientOrderId parameter".to_string()))));
         }  else if (id != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
@@ -2612,8 +2612,8 @@ impl BydfiCore {
         let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("createTime".to_string()), Value::Str("ctime".to_string()), &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "orderType", &[]);
         let mut stopPrice: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("stopPrice".to_string()), Value::Str("activatePrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
-        let mut isStopLossOrder: bool = is_true(&(rawType.as_str() == Some("STOP"))) || is_true(&(rawType.as_str() == Some("STOP_MARKET"))) || is_true(&(rawType.as_str() == Some("TRAILING_STOP_MARKET")));
-        let mut isTakeProfitOrder: bool = is_true(&(rawType.as_str() == Some("TAKE_PROFIT"))) || is_true(&(rawType.as_str() == Some("TAKE_PROFIT_MARKET")));
+        let mut isStopLossOrder: bool = (rawType.as_str() == Some("STOP")) || (rawType.as_str() == Some("STOP_MARKET")) || (rawType.as_str() == Some("TRAILING_STOP_MARKET"));
+        let mut isTakeProfitOrder: bool = (rawType.as_str() == Some("TAKE_PROFIT")) || (rawType.as_str() == Some("TAKE_PROFIT_MARKET"));
         let mut rawTimeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut timeInForce: Value = self.parse_order_time_in_force(rawTimeInForce.clone());
         let mut postOnly: Value = Value::Null;
@@ -3793,7 +3793,7 @@ impl BydfiCore {
 }
 
     pub async fn fetch_transactions_helper(&mut self, mut type_var: Value, mut code: Value, mut since: Value, mut limit: Value, mut params: Value) -> Value {
-        let mut methodName: Value = (if is_true(&(type_var.as_str() == Some("deposit"))) { Value::Str("fetchDeposits".to_string()) } else { Value::Str("fetchWithdrawals".to_string()) });
+        let mut methodName: Value = (if (type_var.as_str() == Some("deposit")) { Value::Str("fetchDeposits".to_string()) } else { Value::Str("fetchWithdrawals".to_string()) });
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a code argument".to_string()))));
         }

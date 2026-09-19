@@ -1108,7 +1108,7 @@ impl CoinbaseinternationalCore {
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut rawSide: Option<String> = self.safe_string_lower(delta.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut side: Value = (if is_true(&(rawSide.as_deref() == Some("buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+        let mut side: Value = (if (rawSide.as_deref() == Some("buy")) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
         let mut price: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
         let mut amount: Value = self.safe_float(delta.clone(), Value::Int(2), &[]);
         let mut bookside: Value = get_value(&orderbook, &side);

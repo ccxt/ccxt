@@ -620,7 +620,7 @@ impl ParadexCore {
             m
         });
         let mut messageHashes: Value = Value::from(vec![]);
-        if (symbols != Value::Null) && is_true(&(matches!(&symbols, Value::Arr(_)))) {
+        if (symbols != Value::Null) && (matches!(&symbols, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_585: bool = true;

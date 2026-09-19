@@ -483,7 +483,7 @@ impl IndependentreserveCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("checksum".to_string()), &[Value::Bool(true)]);
-        if (is_equal(&checksum, &Value::Bool(true))) && is_true(&(receivedSnapshot.as_bool() == Some(true))) {
+        if (is_equal(&checksum, &Value::Bool(true))) && (receivedSnapshot.as_bool() == Some(true)) {
             let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
             let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
             let mut asksLength: Value = get_array_length(&storedAsks);
@@ -574,7 +574,7 @@ impl IndependentreserveCore {
                 m.insert("OrderBookChange".to_string(), Value::Str("handle_order_book".to_string()).clone());
             m
         });
-        let mut handler: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(handlers.clone(), event.clone(), &[]) });
+        let mut handler: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(handlers.clone(), event.clone(), &[]) });
         if (handler != Value::Null) {
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             return;

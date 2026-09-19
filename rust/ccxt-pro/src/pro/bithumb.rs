@@ -393,8 +393,8 @@ impl BithumbCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut symbolsLength: Value = (if is_true(&(symbols == Value::Null)) { Value::Int(0) } else { Value::Int(symbols.len() as i64) });
-        if isGenerationTwo && is_true(&(symbolsLength.as_f64() == Some(0.0))) {
+        let mut symbolsLength: Value = (if (symbols == Value::Null) { Value::Int(0) } else { Value::Int(symbols.len() as i64) });
+        if isGenerationTwo && (symbolsLength.as_f64() == Some(0.0)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires symbols for the generation 2 API".to_string()))));
         }
         if (symbols == Value::Null) {
@@ -793,7 +793,7 @@ impl BithumbCore {
             m
         })]);
         let mut obLimit: Value = self.safe_integer_k(options.clone(), "limit", &[Value::Int(1000)]);
-        if !(in_op(&self.orderbooks, &symbol)) || is_true(&(streamType.as_deref() == Some("SNAPSHOT"))) {
+        if !(in_op(&self.orderbooks, &symbol)) || (streamType.as_deref() == Some("SNAPSHOT")) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -818,10 +818,10 @@ impl BithumbCore {
             let mut bidSize: Value = self.safe_number_k(entry.clone(), "bid_size", &[]);
             let mut askPrice: Value = self.safe_number_k(entry.clone(), "ask_price", &[]);
             let mut askSize: Value = self.safe_number_k(entry, "ask_size", &[]);
-            if is_true(&(bidPrice != Value::Null)) && is_true(&(bidSize != Value::Null)) {
+            if (bidPrice != Value::Null) && (bidSize != Value::Null) {
                 bids.store(bidPrice.clone(), bidSize.clone());
             }
-            if is_true(&(askPrice != Value::Null)) && is_true(&(askSize != Value::Null)) {
+            if (askPrice != Value::Null) && (askSize != Value::Null) {
                 asks.store(askPrice.clone(), askSize.clone());
             }
         }
@@ -851,7 +851,7 @@ impl BithumbCore {
         //    }
         //
         let mut sideId: Option<String> = self.safe_string_k(delta.clone(), "orderType", &[]).as_str().map(str::to_owned);
-        let mut side: Value = (if is_true(&(sideId.as_deref() == Some("bid"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+        let mut side: Value = (if (sideId.as_deref() == Some("bid")) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
         let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
@@ -1065,7 +1065,7 @@ impl BithumbCore {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string())]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), (if is_true(&(sideId.as_deref() == Some("1"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if (sideId.as_deref() == Some("1")) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "contPrice", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "contQty", &[]));
@@ -1089,7 +1089,7 @@ impl BithumbCore {
             let mut errorName: Value = self.safe_string_k(error.clone(), "name", &[Value::Str("Error".to_string())]);
             let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[Value::Str("".to_string())]);
             let mut addedMessage: Value = Value::Null;
-            if is_true(&(((errorMessage.len() as i64) as f64) > ((0i64) as f64))) {
+            if (((errorMessage.len() as i64) as f64) > ((0i64) as f64)) {
                 addedMessage = (Value::Str(format!("{}{}", Value::Str(" ".to_string()), errorMessage)));
             }  else {
                 addedMessage = Value::Str("".to_string());
@@ -1102,7 +1102,7 @@ impl BithumbCore {
         }
         let mut errorCode: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if is_true(&(errorCode.as_deref() == Some("UP"))) || is_true(&(errorCode.as_deref() == Some("0000"))) {
+            if (errorCode.as_deref() == Some("UP")) || (errorCode.as_deref() == Some("0000")) {
                 return Value::Bool(true);
             }
             if (errorCode.as_deref() != Some("0000")) {
@@ -1409,7 +1409,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut sideId: Option<String> = self.safe_string_k(order.clone(), "ask_bid", &[]).as_str().map(str::to_owned);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         if (sideId.is_some()) {
-            side = (if is_true(&(sideId.as_deref() == Some("BID"))) { (Value::Str("buy".to_string())) } else { (Value::Str("sell".to_string())) });
+            side = (if (sideId.as_deref() == Some("BID")) { (Value::Str("buy".to_string())) } else { (Value::Str("sell".to_string())) });
         }
         let mut typeId: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;

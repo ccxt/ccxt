@@ -475,7 +475,7 @@ impl BtcboxCore {
     m
 })]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".to_string()))), quote));
-            let mut fee: Value = (if is_true(&(id.as_str() == Some("BTC"))) { self.parse_number(Value::Str("0.0005".to_string()), &[]) } else { self.parse_number(Value::Str("0.0010".to_string()), &[]) });
+            let mut fee: Value = (if (id.as_str() == Some("BTC")) { self.parse_number(Value::Str("0.0005".to_string()), &[]) } else { self.parse_number(Value::Str("0.0010".to_string()), &[]) });
             let mut details: Value = self.safe_dict(result2Data.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

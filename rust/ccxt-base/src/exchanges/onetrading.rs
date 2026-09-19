@@ -1038,7 +1038,7 @@ impl OnetradingCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut tierObject: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
+            let mut tierObject: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), spotFees.clone());
@@ -1128,8 +1128,8 @@ impl OnetradingCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut makerFee: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
-            let mut takerFee: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { spotTakerFee.clone() } else { futuresTakerFee.clone() });
+            let mut makerFee: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
+            let mut takerFee: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { spotTakerFee.clone() } else { futuresTakerFee.clone() });
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1446,7 +1446,7 @@ impl OnetradingCore {
             m
         });
         let mut lowercaseUnit: Value = self.safe_string(units.clone(), unit.clone(), &[]);
-        if is_true(&(period == Value::Null)) || is_true(&(lowercaseUnit == Value::Null)) {
+        if (period == Value::Null) || (lowercaseUnit == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing period/unit".to_string()))));
         }
         let mut timeframe: Value = Value::Str(format!("{}{}", period, lowercaseUnit));

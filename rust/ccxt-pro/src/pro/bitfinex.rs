@@ -336,9 +336,9 @@ impl BitfinexCore {
             m
         })]).await;
         let mut checksum: Value = self.safe_bool_k(self.options.clone(), "checksum", &[Value::Bool(true)]);
-        if is_true(&(checksum.as_bool() == Some(true))) && is_true(&(channel.as_str() == Some("book"))) {
+        if (checksum.as_bool() == Some(true)) && (channel.as_str() == Some("book")) {
             let mut sub: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
-            if is_true(&(sub != Value::Null)) && (!is_equal(&crate::value::get_value_k(&sub, "checksum"), &Value::Bool(true))) {
+            if (sub != Value::Null) && (!is_equal(&crate::value::get_value_k(&sub, "checksum"), &Value::Bool(true))) {
                 add_element_to_object(get_value_mut(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash), &Value::Str("checksum".to_string()), Value::Bool(true));
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -550,7 +550,7 @@ impl BitfinexCore {
         let mut data: Value = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut ohlcvs: Value = Value::from(vec![]);
         let mut first: Value = self.safe_list(data.clone(), Value::Int(0), &[]);
-        if is_true(&(matches!(&first, Value::Arr(_)))) {
+        if (matches!(&first, Value::Arr(_))) {
             // snapshot
             ohlcvs = data.clone();
         }  else {
@@ -907,7 +907,7 @@ impl BitfinexCore {
         let mut maker: Value = self.safe_integer(trade.clone(), Value::Int(8), &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (maker != Value::Null) {
-            takerOrMaker = (if is_true(&(maker.as_f64() == Value::Int(-1).as_f64())) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if (maker.as_f64() == Value::Int(-1).as_f64()) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1023,7 +1023,7 @@ impl BitfinexCore {
     m
 }));
         if (limit != Value::Null) {
-            if is_true(&(limit.as_f64() != Some(25.0))) && is_true(&(limit.as_f64() != Some(100.0))) {
+            if (limit.as_f64() != Some(25.0)) && (limit.as_f64() != Some(100.0)) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 25 or 100".to_string()))));
             }
         }
@@ -1107,8 +1107,8 @@ impl BitfinexCore {
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta2: Value = get_value(&delta, &Value::Int(2));
-                    let mut size: Value = (if is_true(&(delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) { negate(&delta2) } else { delta2.clone() });
-                    let mut side: Value = (if is_true(&(delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
+                    let mut size: Value = (if (delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { negate(&delta2) } else { delta2.clone() });
+                    let mut side: Value = (if (delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
                     let mut bookside: Value = get_value(&orderbook, &side);
                     let mut bookside: Value = get_value(&orderbook, &side);
                     let mut idString: Value = self.safe_string(delta.clone(), Value::Int(0), &[]);
@@ -1130,8 +1130,8 @@ impl BitfinexCore {
                     }
                     let mut counter: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
                     let mut price: Value = self.safe_number(delta.clone(), Value::Int(0), &[]);
-                    let mut size: Value = (if is_true(&(amount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) { negate(&amount) } else { amount.clone() });
-                    let mut side: Value = (if is_true(&(amount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
+                    let mut size: Value = (if (amount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { negate(&amount) } else { amount.clone() });
+                    let mut side: Value = (if (amount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
                     let mut bookside: Value = get_value(&orderbook, &side);
                     let mut bookside: Value = get_value(&orderbook, &side);
                     bookside.store_array(Value::from(vec![price.clone(), size.clone(), counter.clone()]));
@@ -1147,8 +1147,8 @@ impl BitfinexCore {
             if isRaw {
                 let mut price: Value = self.safe_string(deltas.clone(), Value::Int(1), &[]);
                 let mut deltas2: Value = get_value(&deltas, &Value::Int(2));
-                let mut size: Value = (if is_true(&(deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) { negate(&deltas2) } else { deltas2.clone() });
-                let mut side: Value = (if is_true(&(deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
+                let mut size: Value = (if (deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { negate(&deltas2) } else { deltas2.clone() });
+                let mut side: Value = (if (deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 // price = 0 means that you have to remove the order from your book
@@ -1772,7 +1772,7 @@ impl BitfinexCore {
         //        }
         //    }
         //
-        if is_true(&(matches!(&message, Value::Arr(_)))) {
+        if (matches!(&message, Value::Arr(_))) {
             if (message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null).as_str() == Some("hb")) {
                 return;
             }

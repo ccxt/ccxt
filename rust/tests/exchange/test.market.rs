@@ -82,7 +82,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         m
     });
     // temporary: only test QUANTO markets where that prop exists (todo: add in type later)
-    if is_true(&(matches!(&market, Value::Dict(__d) if __d.contains_key("quanto")))) {
+    if (matches!(&market, Value::Dict(__d) if __d.contains_key("quanto"))) {
         add_element_to_object(&mut format, &Value::Str("quanto".to_string()), Value::Bool(false)); // whether the market is QUANTO or not
     }
     // define locals
@@ -92,11 +92,11 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut future: Value = market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null);
     let mut option: Value = market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null);
     let mut index: Value = exchange.safe_bool(market.clone(), Value::Str("index".to_string()), &[]); // todo: unify
-    let mut isIndex: Value = Value::Bool(is_true(&(index != Value::Null)) && is_true(&index));
+    let mut isIndex: Value = Value::Bool((index != Value::Null) && is_true(&index));
     let mut linear: Value = market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null);
     let mut inverse: Value = market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null);
     let mut quanto: Value = exchange.safe_bool(market.clone(), Value::Str("quanto".to_string()), &[]); // todo: unify
-    let mut isQuanto: bool = is_true(&(quanto != Value::Null)) && is_true(&quanto);
+    let mut isQuanto: bool = (quanto != Value::Null) && is_true(&quanto);
     let mut isInactiveMarket: bool = market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() == Some(false);
     //
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("margin".to_string())]);
@@ -108,7 +108,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         append_to_array(&mut emptyAllowedFor, Value::Str("settle".to_string()));
         append_to_array(&mut emptyAllowedFor, Value::Str("settleId".to_string()));
     }
-    if is_true(&(future.as_bool() != Some(true))) && is_true(&(option.as_bool() != Some(true))) {
+    if (future.as_bool() != Some(true)) && (option.as_bool() != Some(true)) {
         append_to_array(&mut emptyAllowedFor, Value::Str("expiry".to_string()));
         append_to_array(&mut emptyAllowedFor, Value::Str("expiryDatetime".to_string()));
     }
@@ -161,7 +161,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     }
     }
     // check if 'subType' is consistent
-    if is_true(&(swap.as_bool() == Some(true))) || is_true(&(future.as_bool() == Some(true))) {
+    if (swap.as_bool() == Some(true)) || (future.as_bool() == Some(true)) {
         let mut checkedSubTypes: Value = Value::from(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
@@ -186,16 +186,16 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut isPrediction: bool = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("prediction");
     if isPrediction {
         // prediction markets trade outcome shares — neither spot nor a derivative contract
-        assert!(ccxt::runtime::is_true(&((is_true(&(spot.as_bool() != Some(true))) && is_true(&(contract.as_bool() != Some(true))) && is_true(&(future.as_bool() != Some(true))) && is_true(&(swap.as_bool() != Some(true))) && is_true(&(option.as_bool() != Some(true)))))));
+        assert!(ccxt::runtime::is_true(&(((spot.as_bool() != Some(true)) && (contract.as_bool() != Some(true)) && (future.as_bool() != Some(true)) && (swap.as_bool() != Some(true)) && (option.as_bool() != Some(true))))));
     }  else if (spot.as_bool() == Some(true)) {
-        assert!(ccxt::runtime::is_true(&((is_true(&(contract.as_bool() != Some(true))) && is_true(&(linear == Value::Null)) && is_true(&(inverse == Value::Null)) && is_true(&(option.as_bool() != Some(true))) && is_true(&(swap.as_bool() != Some(true))) && is_true(&(future.as_bool() != Some(true)))))));
+        assert!(ccxt::runtime::is_true(&(((contract.as_bool() != Some(true)) && (linear == Value::Null) && (inverse == Value::Null) && (option.as_bool() != Some(true)) && (swap.as_bool() != Some(true)) && (future.as_bool() != Some(true))))));
     }  else {
         // if not spot, any of the below should be true
-        assert!(ccxt::runtime::is_true(&((is_true(&(contract.as_bool() == Some(true))) && (is_true(&(future.as_bool() == Some(true))) || is_true(&(swap.as_bool() == Some(true))) || is_true(&(option.as_bool() == Some(true))) || is_true(&(isIndex.as_bool() == Some(true))))))));
+        assert!(ccxt::runtime::is_true(&(((contract.as_bool() == Some(true)) && ((future.as_bool() == Some(true)) || (swap.as_bool() == Some(true)) || (option.as_bool() == Some(true)) || (isIndex.as_bool() == Some(true)))))));
     }
     let mut contractSize: Value = exchange.safe_string(market.clone(), Value::Str("contractSize".to_string()), &[]);
     // contract fields
-    if is_true(&(contract.as_bool() == Some(true))) && !isInactiveMarket {
+    if (contract.as_bool() == Some(true)) && !isInactiveMarket {
         if isQuanto {
             assert!(ccxt::runtime::is_true(&((linear.as_bool() == Some(false)))));
             assert!(ccxt::runtime::is_true(&((inverse.as_bool() == Some(false)))));
@@ -210,25 +210,25 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         // contract size should be above zero
         assert!(ccxt::runtime::is_true(&(Value::Bool((in_op(&skippedProperties, &Value::Str("contractSize".to_string()))) || is_true(&ccxt::precise::Precise::stringGt(&contractSize, &Value::Str("0".to_string())))))));
         // settle should be defined
-        assert!(ccxt::runtime::is_true(&(((in_op(&skippedProperties, &Value::Str("settle".to_string()))) || is_true(&((market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) != Value::Null) && (market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null) != Value::Null)))))));
+        assert!(ccxt::runtime::is_true(&(((in_op(&skippedProperties, &Value::Str("settle".to_string()))) || ((market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) != Value::Null) && (market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null) != Value::Null))))));
     }  else if (contract.as_bool() != Some(true)) {
         // linear & inverse needs to be undefined
         assert!(ccxt::runtime::is_true(&(((linear == Value::Null) && (inverse == Value::Null) && (quanto == Value::Null)))));
         // contract size should be undefined
         assert!(ccxt::runtime::is_true(&((contractSize == Value::Null))));
         // settle should be undefined
-        assert!(ccxt::runtime::is_true(&((is_true(&(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) == Value::Null)) && is_true(&(market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null) == Value::Null))))));
+        assert!(ccxt::runtime::is_true(&(((market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) == Value::Null) && (market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null) == Value::Null)))));
     }
     // future, swap and option should be mutually exclusive
     if (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-        assert!(ccxt::runtime::is_true(&((is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) && is_true(&(market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) && is_true(&(isIndex.as_bool() != Some(true)))))));
+        assert!(ccxt::runtime::is_true(&(((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (isIndex.as_bool() != Some(true))))));
     }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-        assert!(ccxt::runtime::is_true(&((is_true(&(future.as_bool() != Some(true))) && is_true(&(option.as_bool() != Some(true)))))));
+        assert!(ccxt::runtime::is_true(&(((future.as_bool() != Some(true)) && (option.as_bool() != Some(true))))));
     }  else if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-        assert!(ccxt::runtime::is_true(&((is_true(&(future.as_bool() != Some(true))) && is_true(&(swap.as_bool() != Some(true)))))));
+        assert!(ccxt::runtime::is_true(&(((future.as_bool() != Some(true)) && (swap.as_bool() != Some(true))))));
     }
     // check specific fields for options & futures
-    if is_true(&(option.as_bool() == Some(true))) || is_true(&(future.as_bool() == Some(true))) {
+    if (option.as_bool() == Some(true)) || (future.as_bool() == Some(true)) {
         // future or option markets need 'expiry' and 'expiryDatetime'
         assert!(ccxt::runtime::is_true(&((market.as_map().and_then(|__m| __m.get("expiry")).cloned().unwrap_or(Value::Null) != Value::Null))));
         assert!(ccxt::runtime::is_true(&((market.as_map().and_then(|__m| __m.get("expiryDatetime")).cloned().unwrap_or(Value::Null) != Value::Null))));
@@ -250,7 +250,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         }
     }  else if (spot.as_bool() == Some(true)) {
         // otherwise, expiry needs to be undefined
-        assert!(ccxt::runtime::is_true(&((is_true(&(market.as_map().and_then(|__m| __m.get("expiry")).cloned().unwrap_or(Value::Null) == Value::Null)) && is_true(&(market.as_map().and_then(|__m| __m.get("expiryDatetime")).cloned().unwrap_or(Value::Null) == Value::Null))))));
+        assert!(ccxt::runtime::is_true(&(((market.as_map().and_then(|__m| __m.get("expiry")).cloned().unwrap_or(Value::Null) == Value::Null) && (market.as_map().and_then(|__m| __m.get("expiryDatetime")).cloned().unwrap_or(Value::Null) == Value::Null)))));
     }
     // check precisions
     let mut precisionKeys: Value = object_keys(&market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null));

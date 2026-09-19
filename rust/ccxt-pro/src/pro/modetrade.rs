@@ -762,7 +762,7 @@ impl ModetradeCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if is_true(&(timeframe.as_str() != Some("1m"))) && is_true(&(timeframe.as_str() != Some("5m"))) && is_true(&(timeframe.as_str() != Some("15m"))) && is_true(&(timeframe.as_str() != Some("30m"))) && is_true(&(timeframe.as_str() != Some("1h"))) && is_true(&(timeframe.as_str() != Some("1d"))) && is_true(&(timeframe.as_str() != Some("1w"))) && is_true(&(timeframe.as_str() != Some("1M"))) {
+        if (timeframe.as_str() != Some("1m")) && (timeframe.as_str() != Some("5m")) && (timeframe.as_str() != Some("15m")) && (timeframe.as_str() != Some("30m")) && (timeframe.as_str() != Some("1h")) && (timeframe.as_str() != Some("1d")) && (timeframe.as_str() != Some("1w")) && (timeframe.as_str() != Some("1M")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
@@ -1125,7 +1125,7 @@ impl ModetradeCore {
             self.load_markets(&[]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
+        let mut topic: Value = (if (trigger.as_bool() == Some(true)) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
@@ -1174,7 +1174,7 @@ impl ModetradeCore {
             self.load_markets(&[]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
+        let mut topic: Value = (if (trigger.as_bool() == Some(true)) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
         params = self.omit(params.clone(), Value::Str("stop".to_string()), &[]);
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         if (symbol != Value::Null) {
@@ -1279,7 +1279,7 @@ impl ModetradeCore {
         let mut priceString: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut price: Value = self.safe_number_k(order.clone(), "price", &[]);
         let mut avgPrice: Value = self.safe_number_k(order.clone(), "avgPrice", &[]);
-        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".to_string()))) && is_true(&(avgPrice != Value::Null)) {
+        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".to_string()))) && (avgPrice != Value::Null) {
             price = avgPrice.clone();
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
@@ -1357,7 +1357,7 @@ impl ModetradeCore {
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut data: Value = self.safe_value_k(message, "data", &[]);
-        if is_true(&(matches!(&data, Value::Arr(_)))) {
+        if (matches!(&data, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_500: bool = true;
@@ -1365,7 +1365,7 @@ impl ModetradeCore {
                 let mut order: Value = get_value(&data, &i);
                 let mut order: Value = get_value(&data, &i);
                 let mut tradeIdStr: Value = self.safe_string_k(data.clone(), "tradeId", &[]);
-                let mut tradeId: Value = (if is_true(&(tradeIdStr == Value::Null)) { Value::Null } else { self.omit_zero(tradeIdStr.clone()) });
+                let mut tradeId: Value = (if (tradeIdStr == Value::Null) { Value::Null } else { self.omit_zero(tradeIdStr.clone()) });
                 if (tradeId != Value::Null) {
                     self.handle_my_trade(client.clone(), order.clone());
                 }
@@ -1375,7 +1375,7 @@ impl ModetradeCore {
         }  else {
             // executionreport
             let mut tradeIdStr: Value = self.safe_string_k(data.clone(), "tradeId", &[]);
-            let mut tradeId: Value = (if is_true(&(tradeIdStr == Value::Null)) { Value::Null } else { self.omit_zero(tradeIdStr.clone()) });
+            let mut tradeId: Value = (if (tradeIdStr == Value::Null) { Value::Null } else { self.omit_zero(tradeIdStr.clone()) });
             if (tradeId != Value::Null) {
                 self.handle_my_trade(client.clone(), data.clone());
             }
@@ -1397,7 +1397,7 @@ impl ModetradeCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
+            let mut order: Value = (if (orderId == Value::Null) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone(), &[]) });
             if (order != Value::Null) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
@@ -1488,7 +1488,7 @@ impl ModetradeCore {
         }
         let mut messageHashes: Value = Value::from(vec![]);
         symbols = self.market_symbols(&[symbols.clone()]);
-        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
+        if (symbols != Value::Null) && !is_true(&self.is_empty(symbols.clone())) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_501: bool = true;
@@ -1506,7 +1506,7 @@ impl ModetradeCore {
         self.set_positions_cache(client.clone(), symbols.clone(), &[]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
-        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(self.positions.clone() == Value::Null)) {
+        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".to_string())])).await;
             return self.filter_by_symbols_since_limit(snapshot.clone(), &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
@@ -1785,7 +1785,7 @@ impl ModetradeCore {
             let mut value: Value = get_value(&balances, &key);
             let mut code: Value = self.safe_currency_code(key.clone(), &[]);
             let mut account: Value = self.account();
-            if is_true(&(code != Value::Null)) && (in_op(&self.balance, &code)) {
+            if (code != Value::Null) && (in_op(&self.balance, &code)) {
                 account = get_value(&self.balance, &code);
             }
             let mut total: Value = self.safe_string_k(value.clone(), "holding", &[]);
@@ -1860,7 +1860,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut method: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
+        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
@@ -1888,7 +1888,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut splitNameLength: f64 = ((splitTopic.len() as i64) as f64);
                 if (splitNameLength == 2.0) {
                     let mut splitNameFirst: Value = self.safe_string(splitName.clone(), Value::Int(0), &[]);
-                    method = (if is_true(&(splitNameFirst == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), splitNameFirst.clone(), &[]) });
+                    method = (if (splitNameFirst == Value::Null) { Value::Null } else { self.safe_value(methods.clone(), splitNameFirst.clone(), &[]) });
                     if (method != Value::Null) {
                         self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     }

@@ -1192,7 +1192,7 @@ impl HashkeyCore {
         let mut account: Value = self.account();
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balanceUpdate.clone(), "f", &[])); }
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balanceUpdate.clone(), "l", &[])); }
-        if is_true(&(type_var != Value::Null)) && is_true(&(code != Value::Null)) {
+        if (type_var != Value::Null) && (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account.clone());
         }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
@@ -1291,7 +1291,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_true(&(matches!(&message, Value::Arr(_)))) {
+        if (matches!(&message, Value::Arr(_))) {
             message = self.safe_dict(message.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1306,13 +1306,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.handle_trades(client.clone(), message.clone());
         }  else if (topic.as_deref() == Some("depth")) {
             self.handle_order_book(client.clone(), message.clone());
-        }  else if is_true(&(topic.as_deref() == Some("contractExecutionReport"))) || is_true(&(topic.as_deref() == Some("executionReport"))) {
+        }  else if (topic.as_deref() == Some("contractExecutionReport")) || (topic.as_deref() == Some("executionReport")) {
             self.handle_order(client.clone(), message.clone());
         }  else if (topic.as_deref() == Some("ticketInfo")) {
             self.handle_my_trade(client.clone(), message.clone(), &[]);
         }  else if (topic.as_deref() == Some("outboundContractPositionInfo")) {
             self.handle_position(client.clone(), message.clone());
-        }  else if is_true(&(topic.as_deref() == Some("outboundAccountInfo"))) || is_true(&(topic.as_deref() == Some("outboundContractAccountInfo"))) {
+        }  else if (topic.as_deref() == Some("outboundAccountInfo")) || (topic.as_deref() == Some("outboundContractAccountInfo")) {
             self.handle_balance(client.clone(), message.clone());
         }
 }

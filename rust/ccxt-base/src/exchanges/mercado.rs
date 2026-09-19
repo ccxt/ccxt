@@ -598,7 +598,7 @@ impl MercadoCore {
             let mut quoteId: Value = Value::Str("BRL".to_string());
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
+            if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
             let mut id: Value = Value::Str(format!("{}{}", quote, base));
@@ -852,7 +852,7 @@ impl MercadoCore {
         }
         let mut to: Option<i64> = self.safe_integer_k(params.clone(), "to", &[]).as_i64();
         let mut response: Value = Value::Null;
-        if is_true(&(since != Value::Null)) && is_true(&(to.is_some())) {
+        if (since != Value::Null) && (to.is_some()) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
         }  else if (since != Value::Null) {
@@ -1103,8 +1103,8 @@ impl MercadoCore {
         let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
         let mut order_type: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("order_type")))) {
-            side = (if is_true(&(order_type.as_deref() == Some("1"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        if (matches!(&order, Value::Dict(__d) if __d.contains_key("order_type"))) {
+            side = (if (order_type.as_deref() == Some("1")) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "coin_pair", &[]);
@@ -1235,7 +1235,7 @@ impl MercadoCore {
             }
             if (code.as_str() == Some("XRP")) {
                 if (tag == Value::Null) {
-                    if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("destination_tag")))) {
+                    if !(matches!(&params, Value::Dict(__d) if __d.contains_key("destination_tag"))) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag argument or destination_tag parameter to withdraw ".to_string()))), code)));
                     }
                 }  else {
@@ -1533,7 +1533,7 @@ impl MercadoCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if is_true(&(api.as_str() == Some("public"))) || is_true(&(api.as_str() == Some("v4Public"))) || is_true(&(api.as_str() == Some("v4PublicNet"))) {
+        if (api.as_str() == Some("public")) || (api.as_str() == Some("v4Public")) || (api.as_str() == Some("v4PublicNet")) {
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())));
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));

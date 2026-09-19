@@ -647,7 +647,7 @@ impl IndodaxCore {
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut isMaintenance: Option<i64> = self.safe_integer_k(market.clone(), "is_maintenance", &[]).as_i64();
-            let mut inMaintenance: bool = is_true(&(isMaintenance.is_some())) && is_true(&(isMaintenance != Some(0)));
+            let mut inMaintenance: bool = (isMaintenance.is_some()) && (isMaintenance != Some(0));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -1148,7 +1148,7 @@ impl IndodaxCore {
         //    }
         //
         let mut side: Value = Value::Null;
-        if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("type")))) {
+        if (matches!(&order, Value::Dict(__d) if __d.contains_key("type"))) {
             side = order.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[Value::Str("open".to_string())]));
@@ -1164,10 +1164,10 @@ impl IndodaxCore {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut quoteId: Value = market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
             let mut baseId: Value = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null);
-            if is_true(&(market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr"))) && is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("order_rp")))) {
+            if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (matches!(&order, Value::Dict(__d) if __d.contains_key("order_rp"))) {
                 quoteId = Value::Str("rp".to_string());
             }
-            if is_true(&(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr"))) && is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("remain_rp")))) {
+            if (market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (matches!(&order, Value::Dict(__d) if __d.contains_key("remain_rp"))) {
                 baseId = Value::Str("rp".to_string());
             }
             cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".to_string()), quoteId)), &[]);
@@ -1295,7 +1295,7 @@ impl IndodaxCore {
 })]);
         let mut rawOrders: Value = openOrdersResult.as_map().and_then(|__m| __m.get("orders")).cloned().unwrap_or(Value::Null);
         // { success: 1, return: { orders: null }} if no orders
-        if is_true(&(rawOrders == Value::Null)) || is_true(&(rawOrders == Value::Null)) {
+        if (rawOrders == Value::Null) || (rawOrders == Value::Null) {
             return Value::from(vec![]);
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
@@ -1786,7 +1786,7 @@ impl IndodaxCore {
                 m.insert("request_id".to_string(), to_string_val(&requestId));
             m
         });
-        if is_true(&(tag != Value::Null)) && is_true(&(tag.as_str() != Some(""))) {
+        if (tag != Value::Null) && (tag.as_str() != Some("")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("withdraw_memo".to_string(), tag.clone()); }
         }
         let __ws_arg_13 = self.extend(request, &[params.clone()]);
@@ -1864,7 +1864,7 @@ impl IndodaxCore {
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "withdraw_address", &[]));
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_n(transaction.clone(), Value::from(vec![Value::Str("amount".to_string()), Value::Str("withdraw_amount".to_string()), Value::Str("deposit_amount".to_string())]), &[]));
-        m.insert("type".to_string(), (if is_true(&(depositId.is_none())) { Value::Str("withdraw".to_string()) } else { Value::Str("deposit".to_string()) }));
+        m.insert("type".to_string(), (if (depositId.is_none()) { Value::Str("withdraw".to_string()) } else { Value::Str("deposit".to_string()) }));
         m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
         m.insert("updated".to_string(), Value::Null);
@@ -1969,7 +1969,7 @@ impl IndodaxCore {
             let mut marketId: Value = get_value(&addressKeys, &i);
             let mut code: Value = self.safe_currency_code(marketId.clone(), &[]);
             let mut address: Value = self.safe_string(addresses.clone(), marketId.clone(), &[]);
-            if is_true(&(address != Value::Null)) && (is_true(&(codes == Value::Null)) || is_true(&(self.in_array(code.clone(), codes.clone())))) {
+            if (address != Value::Null) && ((codes == Value::Null) || is_true(&(self.in_array(code.clone(), codes.clone())))) {
                 self.check_address(&[address.clone()]);
                 let mut network: Value = Value::Null;
                 if (in_op(&networks, &marketId)) {
@@ -2078,7 +2078,7 @@ impl IndodaxCore {
         // or
         // [{ data, ... }, { ... }, ... ]
         // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
-        if is_true(&(matches!(&response, Value::Arr(_)))) {
+        if (matches!(&response, Value::Arr(_))) {
             return Value::Null;
         }
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[Value::Str("".to_string())]);

@@ -669,7 +669,7 @@ impl HollaexCore {
         }
         let mut stored: Value = self.orders.clone();
         let mut rawOrders: Value = Value::Null;
-        if !is_true(&(matches!(&data, Value::Arr(_)))) {
+        if !(matches!(&data, Value::Arr(_))) {
             rawOrders = Value::from(vec![data.clone()]);
         }  else {
             rawOrders = data.clone();
@@ -762,11 +762,11 @@ impl HollaexCore {
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            if is_true(&(code != Value::Null)) && (in_op(&self.balance, &code)) {
+            if (code != Value::Null) && (in_op(&self.balance, &code)) {
                 account = get_value(&self.balance, &code);
             }
             let mut second: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut freeOrTotal: Value = (if is_true(&(second.as_deref() == Some("available"))) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
+            let mut freeOrTotal: Value = (if (second.as_deref() == Some("available")) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key.clone(), &[]));
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());

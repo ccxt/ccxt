@@ -432,7 +432,7 @@ impl ToobitCore {
                 m.insert("outboundContractPositionInfo".to_string(), Value::Str("handle_positions".to_string()).clone());
             m
         });
-        let mut method: Value = (if is_true(&(topic == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), topic.clone(), &[]) });
+        let mut method: Value = (if (topic == Value::Null) { Value::Null } else { self.safe_value(methods.clone(), topic.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }  else {
@@ -443,7 +443,7 @@ impl ToobitCore {
                 let mut item: Value = get_value(&message, &i);
                 let mut item: Value = get_value(&message, &i);
                 let mut event: Value = self.safe_string_k(item.clone(), "e", &[]);
-                let mut method2: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
+                let mut method2: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
                 if (method2 != Value::Null) {
                     self.dispatch_ws_handler(&method2, &[client.clone(), item.clone()]);
                 }
@@ -1175,10 +1175,10 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(subscriptionHash == Value::Null)) || (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash)) {
+        if (subscriptionHash == Value::Null) || (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash)) {
             return;
         }
-        let mut type_var: Value = (if is_true(&(marketType.as_str() == Some("spot"))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
+        let mut type_var: Value = (if (marketType.as_str() == Some("spot")) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".to_string())));
         if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             client.future(&[messageHash.clone()]);
@@ -1223,7 +1223,7 @@ impl ToobitCore {
         let mut channel: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_list_k(message.clone(), "B", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        let mut type_var: Value = (if is_true(&(channel.as_deref() == Some("outboundContractAccountInfo"))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut type_var: Value = (if (channel.as_deref() == Some("outboundContractAccountInfo")) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         if !(in_op(&self.balance, &type_var)) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1245,7 +1245,7 @@ impl ToobitCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("info".to_string(), balance.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "l", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "f", &[])); }
-            if is_true(&(type_var != Value::Null)) && is_true(&(code != Value::Null)) {
+            if (type_var != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account.clone());
             }
         }
@@ -1260,7 +1260,7 @@ impl ToobitCore {
                 m.insert("type".to_string(), marketType.clone());
             m
         })]).await;
-        let mut type_var: Value = (if is_true(&(marketType.as_str() == Some("spot"))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
+        let mut type_var: Value = (if (marketType.as_str() == Some("spot")) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let __ws_arg_4 = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1653,7 +1653,7 @@ impl ToobitCore {
         let mut cache: Value = get_value(&self.positions, &accountType);
         // handleMessage's fallback dispatches one item at a time
         let mut rawPositions: Value = message.clone();
-        if !is_true(&(matches!(&message, Value::Arr(_)))) {
+        if !(matches!(&message, Value::Arr(_))) {
             rawPositions = Value::from(vec![message.clone()]);
         }
         let mut newPositions: Value = Value::from(vec![]);

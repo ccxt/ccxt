@@ -1144,9 +1144,9 @@ impl BtcturkCore {
         if (type_var.as_str() != Some("market")) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
-        if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("clientOrderId")))) {
+        if (matches!(&params, Value::Dict(__d) if __d.contains_key("clientOrderId"))) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newClientOrderId".to_string(), params.as_map().and_then(|__m| __m.get("clientOrderId")).cloned().unwrap_or(Value::Null)); }
-        }  else if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("newClientOrderId")))) {
+        }  else if !(matches!(&params, Value::Dict(__d) if __d.contains_key("newClientOrderId"))) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("newClientOrderId".to_string(), self.uuid(&[])); }
         }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
@@ -1462,7 +1462,7 @@ impl BtcturkCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" is an abstract base API for BTCExchange, BTCTurk".to_string()))));
         }
         let mut url: Value = add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), &path);
-        if is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE"))) {
+        if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
             }
@@ -1498,9 +1498,9 @@ impl BtcturkCore {
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[Value::Str("0".to_string())]).as_str().map(str::to_owned);
         let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
-        let mut output: Value = (if is_true(&(message == Value::Null)) { body.clone() } else { message.clone() });
+        let mut output: Value = (if (message == Value::Null) { body.clone() } else { message.clone() });
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), output)));
-        if is_true(&(errorCode.as_deref() != Some("0"))) && is_true(&(errorCode.as_deref() != Some("SUCCESS"))) {
+        if (errorCode.as_deref() != Some("0")) && (errorCode.as_deref() != Some("SUCCESS")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), output)));
         }
         return Value::Null;

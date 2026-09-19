@@ -527,7 +527,7 @@ impl CexCore {
         //  update trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
-        if !is_true(&(matches!(&trade, Value::Arr(_)))) {
+        if !(matches!(&trade, Value::Arr(_))) {
             trade = split(&trade, &Value::Str(":".to_string()));
         }
         let mut side: Value = self.safe_string(trade.clone(), Value::Int(0), &[]);
@@ -1425,7 +1425,7 @@ impl CexCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
-        let mut depth: Value = (if is_true(&(limit == Value::Null)) { Value::Int(0) } else { limit.clone() });
+        let mut depth: Value = (if (limit == Value::Null) { Value::Int(0) } else { limit.clone() });
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("order-book-subscribe".to_string()));
