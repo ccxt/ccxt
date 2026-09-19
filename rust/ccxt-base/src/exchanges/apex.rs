@@ -1925,7 +1925,7 @@ impl ApexCore {
             triggerPrice = takeProfitPrice.clone();
         }
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        if is_true(&isMarket) && is_true(&(price == Value::Null)) {
+        if matches!(&isMarket, Value::Bool(true)) && is_true(&(price == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".to_string()))));
         }
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
@@ -1933,7 +1933,7 @@ impl ApexCore {
         if (timeInForce == Value::Null) {
             timeInForce = Value::Str("GOOD_TIL_CANCEL".to_string());
         }
-        if !is_true(&isMarket) {
+        if !(matches!(&isMarket, Value::Bool(true))) {
             if is_true(&postOnly) {
                 timeInForce = Value::Str("POST_ONLY".to_string());
             }  else if (timeInForce.as_str() == Some("ioc")) {

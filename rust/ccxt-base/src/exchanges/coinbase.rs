@@ -2781,7 +2781,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tradingDisabled: Value = self.safe_bool_k(market.clone(), "is_disabled", &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut type_var: Value = Value::Null;
-        if is_true(&isSwap) {
+        if matches!(&isSwap, Value::Bool(true)) {
             type_var = Value::Str("swap".to_string());
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote));
         }  else {
@@ -2806,7 +2806,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), isSwap.clone());
-        m.insert("future".to_string(), Value::Bool(!is_true(&isSwap)));
+        m.insert("future".to_string(), Value::Bool(!(matches!(&isSwap, Value::Bool(true)))));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(tradingDisabled.as_bool() != Some(true)));
         m.insert("contract".to_string(), Value::Bool(true));
@@ -7076,7 +7076,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut isCloudAPiKey: bool = is_true(&(Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || (starts_with(&self.secret, &Value::Str("-----BEGIN".to_string())));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 let mut isV2CloudAPiKey: Value = Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || is_true(&self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)])) || (ends_with(&self.secret, &Value::Str("=".to_string()))));
-                if isCloudAPiKey || is_true(&isV2CloudAPiKey) {
+                if isCloudAPiKey || matches!(&isV2CloudAPiKey, Value::Bool(true)) {
                     if isCloudAPiKey && (starts_with(&self.apiKey, &Value::Str("-----BEGIN".to_string()))) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string()))));
                     }

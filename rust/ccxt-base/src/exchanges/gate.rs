@@ -3574,7 +3574,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut margin: Value = Value::Bool(leverage.is_some());
             let mut buyStart: Value = self.safe_integer_product(spotMarket.clone(), Value::Str("buy_start".to_string()), Value::Int(1000), &[]); // buy_start is the trading start time, while sell_start is offline orders start time
             let mut createdTs: Value = (if is_true(&(buyStart.as_f64() != Some(0.0))) { buyStart.clone() } else { Value::Null });
-            let mut active: Value = Value::Bool(is_true(&(tradeStatus.as_deref() == Some("tradable"))) || (is_true(&margin) && is_true(&(marginStatus == Some(1)))));
+            let mut active: Value = Value::Bool(is_true(&(tradeStatus.as_deref() == Some("tradable"))) || (matches!(&margin, Value::Bool(true)) && is_true(&(marginStatus == Some(1)))));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -3631,7 +3631,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(market.clone(), "min_quote_amount", &[]));
-        m.insert("max".to_string(), (if is_true(&margin) { self.safe_number_k(market.clone(), "max_quote_amount", &[]) } else { Value::Null }));
+        m.insert("max".to_string(), (if matches!(&margin, Value::Bool(true)) { self.safe_number_k(market.clone(), "max_quote_amount", &[]) } else { Value::Null }));
     m
 }));
     m
@@ -3884,7 +3884,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("trading")));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), isLinear.clone());
-        m.insert("inverse".to_string(), Value::Bool(!is_true(&isLinear)));
+        m.insert("inverse".to_string(), Value::Bool(!(matches!(&isLinear, Value::Bool(true)))));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0002".to_string()), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.clone(), &[]));

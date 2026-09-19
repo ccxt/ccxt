@@ -4505,7 +4505,7 @@ impl BybitCore {
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCoin", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCoin", &[]);
-            let mut defaultSettledId: Value = (if is_true(&linear) { quoteId.clone() } else { baseId.clone() });
+            let mut defaultSettledId: Value = (if matches!(&linear, Value::Bool(true)) { quoteId.clone() } else { baseId.clone() });
             let mut settleId: Value = self.safe_string_k(market.clone(), "settleCoin", &[defaultSettledId.clone()]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -4532,14 +4532,14 @@ impl BybitCore {
             let mut swap: Value = Value::Bool(linearPerpetual || inversePerpetual);
             let mut future: Value = Value::Bool(inverseFutures || linearFutures);
             let mut type_var: Value = Value::Null;
-            if is_true(&swap) {
+            if matches!(&swap, Value::Bool(true)) {
                 type_var = Value::Str("swap".to_string());
-            }  else if is_true(&future) {
+            }  else if matches!(&future, Value::Bool(true)) {
                 type_var = Value::Str("future".to_string());
             }
             let mut expiry: Value = Value::Null;
             // some swaps have deliveryTime meaning delisting time
-            if !is_true(&swap) {
+            if !(matches!(&swap, Value::Bool(true))) {
                 expiry = self.omit_zero(self.safe_string_k(market.clone(), "deliveryTime", &[]));
                 if (expiry != Value::Null) {
                     expiry = (match &expiry { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
@@ -4550,7 +4550,7 @@ impl BybitCore {
             if (expiry != Value::Null) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
             }
-            let mut contractSize: Value = (if is_true(&inverse) { self.safe_number2(lotSizeFilter.clone(), Value::Str("minTradingQty".to_string()), Value::Str("minOrderQty".to_string()), &[]) } else { self.parse_number(Value::Str("1".to_string()), &[]) });
+            let mut contractSize: Value = (if matches!(&inverse, Value::Bool(true)) { self.safe_number2(lotSizeFilter.clone(), Value::Str("minTradingQty".to_string()), Value::Str("minOrderQty".to_string()), &[]) } else { self.parse_number(Value::Str("1".to_string()), &[]) });
             let mut parsedMarket: Value = self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -4606,7 +4606,7 @@ impl BybitCore {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), (if is_true(&linear) { self.safe_number_k(lotSizeFilter, "minNotionalValue", &[]) } else { Value::Null }));
+        m.insert("min".to_string(), (if matches!(&linear, Value::Bool(true)) { self.safe_number_k(lotSizeFilter, "minNotionalValue", &[]) } else { Value::Null }));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -4741,7 +4741,7 @@ impl BybitCore {
             let mut isActive: Value = (Value::Bool(status.as_deref() == Some("Trading")));
             let mut isInverse: Value = Value::Bool(base.as_str() == settle.as_str());
             let mut loadExpiredOptions: Value = self.handle_option(Value::Str("fetchMarkets".to_string()), Value::Str("loadExpiredOptions".to_string()), &[]);
-            if is_true(&isActive) || (is_equal(&loadAllOptions, &Value::Bool(true))) || (is_equal(&loadExpiredOptions, &Value::Bool(true))) {
+            if matches!(&isActive, Value::Bool(true)) || (is_equal(&loadAllOptions, &Value::Bool(true))) || (is_equal(&loadExpiredOptions, &Value::Bool(true))) {
                 append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -4761,7 +4761,7 @@ impl BybitCore {
         m.insert("option".to_string(), Value::Bool(true));
         m.insert("active".to_string(), isActive.clone());
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(!is_true(&isInverse)));
+        m.insert("linear".to_string(), Value::Bool(!(matches!(&isInverse, Value::Bool(true)))));
         m.insert("inverse".to_string(), isInverse.clone());
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFee", &[self.parse_number(Value::Str("0.0006".to_string()), &[])]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFee", &[self.parse_number(Value::Str("0.0001".to_string()), &[])]));
@@ -5786,7 +5786,7 @@ impl BybitCore {
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }  else {
             let mut lastLiquidityInd: Value = self.safe_string_k(trade.clone(), "lastLiquidityInd", &[]);
             if (lastLiquidityInd.as_str() == Some("UNKNOWN")) {
@@ -6509,7 +6509,7 @@ impl BybitCore {
         let mut stopLossPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "stopLoss", &[]));
         let mut triggerDirection: Option<String> = self.safe_string_k(order.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
         let mut isAscending: bool = triggerDirection.as_deref() == Some("1");
-        let mut isStopOrderType2: bool = is_true(&(triggerPrice != Value::Null)) && is_true(&reduceOnly);
+        let mut isStopOrderType2: bool = is_true(&(triggerPrice != Value::Null)) && reduceOnly.as_bool() == Some(true);
         if is_true(&(stopLossPrice == Value::Null)) && (isStopOrderType2) {
             // check if order is stop order type 2 - stopLossPrice
             if isAscending && is_true(&(side.as_str() == Some("buy"))) {
@@ -9771,7 +9771,7 @@ impl BybitCore {
         if (positionIdx.is_some()) {
             hedged = (Value::Bool(positionIdx.as_deref() != Some("0")));
         }
-        if is_true(&(hedged != Value::Null)) && is_true(&hedged) {
+        if is_true(&(hedged != Value::Null)) && hedged.as_bool() == Some(true) {
             side = (if is_true(&(positionIdx.as_deref() == Some("1"))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
         }  else if (side != Value::Null) {
             if (side.as_str() == Some("Buy")) {
@@ -9806,7 +9806,7 @@ impl BybitCore {
             if (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC")) {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 let mut useMarkPrice: Value = self.safe_bool_k(self.options.clone(), "useMarkPriceForPositionCollateral", &[Value::Bool(false)]);
-                let mut price: Value = (if is_true(&useMarkPrice) { markPrice.clone() } else { entryPrice.clone() });
+                let mut price: Value = (if useMarkPrice.as_bool() == Some(true) { markPrice.clone() } else { entryPrice.clone() });
                 let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&price, &liquidationPrice));
                 collateralString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&difference, &size), &maintenanceMarginString), &unrealisedPnl);
             }  else {

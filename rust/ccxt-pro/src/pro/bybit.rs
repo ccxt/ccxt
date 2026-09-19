@@ -570,13 +570,13 @@ impl BybitCore {
             let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
             let mut isUnifiedMargin: Value = self.safe_bool(unified.clone(), Value::Int(0), &[Value::Bool(false)]);
             let mut isUnifiedAccount: Value = self.safe_bool(unified.clone(), Value::Int(1), &[Value::Bool(false)]);
-            if is_true(&isUsdcSettled) && is_true(&(isUnifiedMargin.as_bool() != Some(true))) && is_true(&(isUnifiedAccount.as_bool() != Some(true))) {
+            if isUsdcSettled.as_bool() == Some(true) && is_true(&(isUnifiedMargin.as_bool() != Some(true))) && is_true(&(isUnifiedAccount.as_bool() != Some(true))) {
                 url = crate::value::get_value_k(&get_value(&url, &accessibility), "usdc");
             }  else {
                 url = crate::value::get_value_k(&get_value(&url, &accessibility), "contract");
             }
         }  else {
-            if is_true(&isSpot) {
+            if isSpot.as_bool() == Some(true) {
                 url = crate::value::get_value_k(&get_value(&url, &accessibility), "spot");
             }  else if is_true(&(type_var.as_str() == Some("swap"))) || is_true(&(type_var.as_str() == Some("future"))) {
                 let mut subType: Value = Value::Null;

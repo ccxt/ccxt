@@ -3543,7 +3543,7 @@ impl KucoinCore {
             let mut takerCoefficient: Value = self.safe_string_k(ticker.clone(), "takerCoefficient", &[]);
             let mut hasCrossMargin: Value = (Value::Bool(in_op(&crossById, &id)));
             let mut hasIsolatedMargin: Value = (Value::Bool(in_op(&isolatedById, &id)));
-            let mut isMarginable: Value = Value::Bool(is_true(&self.safe_bool_k(market.clone(), "isMarginEnabled", &[Value::Bool(false)])) || is_true(&hasCrossMargin) || is_true(&hasIsolatedMargin));
+            let mut isMarginable: Value = Value::Bool(is_true(&self.safe_bool_k(market.clone(), "isMarginEnabled", &[Value::Bool(false)])) || matches!(&hasCrossMargin, Value::Bool(true)) || matches!(&hasIsolatedMargin, Value::Bool(true)));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -3708,7 +3708,7 @@ impl KucoinCore {
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut expiry: Value = self.safe_integer_k(market.clone(), "expireDate", &[]);
             let mut future: Value = Value::Bool(self.safe_string_k(market.clone(), "nextFundingRateTime", &[]) == Value::Null);
-            let mut swap: Value = Value::Bool(!is_true(&future));
+            let mut swap: Value = Value::Bool(!(matches!(&future, Value::Bool(true))));
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
             let mut settleId: Value = self.safe_string_k(market.clone(), "settleCurrency", &[]);
@@ -3717,7 +3717,7 @@ impl KucoinCore {
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
             let mut type_var: Value = Value::Str("swap".to_string());
-            if is_true(&future) {
+            if matches!(&future, Value::Bool(true)) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[Value::Str("".to_string())])));
                 type_var = Value::Str("future".to_string());
             }
@@ -4061,7 +4061,7 @@ impl KucoinCore {
         let mut migrated: Value = self.safe_bool_k(self.options.clone(), "hf", &[Value::Bool(false)]);
         let mut loadedHf: Value = Value::Null;
         if (migrated != Value::Null) {
-            if is_true(&migrated) {
+            if migrated.as_bool() == Some(true) {
                 loadedHf = Value::Bool(true);
             }  else {
                 loadedHf = Value::Bool(false);
@@ -6630,7 +6630,7 @@ impl KucoinCore {
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if (cost != Value::Null) {
             params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
-            if is_true(&(isSpot.as_bool() == Some(true))) && is_true(&isMarketOrder) {
+            if is_true(&(isSpot.as_bool() == Some(true))) && matches!(&isMarketOrder, Value::Bool(true)) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("sizeUnit".to_string(), Value::Str("QUOTECCY".to_string())); }
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), self.market_order_amount_to_precision(symbol.clone(), cost.clone())); }
             }  else {
@@ -6644,7 +6644,7 @@ impl KucoinCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("sizeUnit".to_string(), sizeUnit.clone()); }
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }
-        if !is_true(&isMarketOrder) {
+        if !(matches!(&isMarketOrder, Value::Bool(true))) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         let mut postOnly: Value = Value::Null;
@@ -6658,7 +6658,7 @@ impl KucoinCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("postOnly".to_string(), Value::Bool(true)); }
         }
         if (isContract.as_bool() == Some(true)) {
-            if !is_true(&isUnified) {
+            if !(matches!(&isUnified, Value::Bool(true))) {
                 if (marginMode != Value::Null) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marginMode".to_string(), to_upper(&marginMode)); }
                     if (marginMode.as_str() == Some("isolated")) {
@@ -8095,7 +8095,7 @@ impl KucoinCore {
         }
         params = self.omit(params.clone(), Value::Str("marketType".to_string()), &[]);
         let mut isContract: Value = Value::Bool(is_true(&(marketType.as_str() != Some("spot"))) && is_true(&(marketType.as_str() != Some("margin"))));
-        if !is_true(&isContract) && is_true(&(symbol == Value::Null)) {
+        if !(matches!(&isContract, Value::Bool(true))) && is_true(&(symbol == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint".to_string()))));
         }
         let mut marginMode: Value = Value::Null;

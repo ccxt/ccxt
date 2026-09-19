@@ -1543,7 +1543,7 @@ impl PolymarketCore {
                 let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), marketSlug.clone(), outcomeLabel.clone());
                 let mut winnerRaw: Value = Value::Null;
                 let mut settleFractionRaw: Value = Value::Null;
-                if is_true(&marketResolved) && is_true(&(outcomePrice != Value::Null)) {
+                if matches!(&marketResolved, Value::Bool(true)) && is_true(&(outcomePrice != Value::Null)) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the

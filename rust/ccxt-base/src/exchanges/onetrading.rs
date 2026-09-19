@@ -850,7 +850,7 @@ impl OnetradingCore {
         let mut type_var: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut isPerp: Value = Value::Bool(type_var.as_deref() == Some("PERP"));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-        if is_true(&isPerp) {
+        if matches!(&isPerp, Value::Bool(true)) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote));
         }
         return self.safe_market_structure(&[Value::Map({
@@ -859,21 +859,21 @@ impl OnetradingCore {
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
-        m.insert("settle".to_string(), (if is_true(&isPerp) { quote.clone() } else { Value::Null }));
+        m.insert("settle".to_string(), (if matches!(&isPerp, Value::Bool(true)) { quote.clone() } else { Value::Null }));
         m.insert("baseId".to_string(), baseId.clone());
         m.insert("quoteId".to_string(), quoteId.clone());
-        m.insert("settleId".to_string(), (if is_true(&isPerp) { quoteId.clone() } else { Value::Null }));
-        m.insert("type".to_string(), (if is_true(&isPerp) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) }));
-        m.insert("spot".to_string(), Value::Bool(!is_true(&isPerp)));
+        m.insert("settleId".to_string(), (if matches!(&isPerp, Value::Bool(true)) { quoteId.clone() } else { Value::Null }));
+        m.insert("type".to_string(), (if matches!(&isPerp, Value::Bool(true)) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) }));
+        m.insert("spot".to_string(), Value::Bool(!(matches!(&isPerp, Value::Bool(true)))));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), isPerp.clone());
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("ACTIVE"))));
         m.insert("contract".to_string(), isPerp.clone());
-        m.insert("linear".to_string(), (if is_true(&isPerp) { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if is_true(&isPerp) { Value::Bool(false) } else { Value::Null }));
-        m.insert("contractSize".to_string(), (if is_true(&isPerp) { self.parse_number(Value::Str("1".to_string()), &[]) } else { Value::Null }));
+        m.insert("linear".to_string(), (if matches!(&isPerp, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if matches!(&isPerp, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
+        m.insert("contractSize".to_string(), (if matches!(&isPerp, Value::Bool(true)) { self.parse_number(Value::Str("1".to_string()), &[]) } else { Value::Null }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);

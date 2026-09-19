@@ -4005,13 +4005,13 @@ impl HtxCore {
             let mut id: Value = Value::Null;
             let mut lowercaseId: Value = Value::Null;
             let mut contract: Value = (Value::Bool(in_op(&market, &Value::Str("contract_code".to_string()))));
-            let mut spot: Value = Value::Bool(!is_true(&contract));
+            let mut spot: Value = Value::Bool(!(matches!(&contract, Value::Bool(true))));
             let mut swap: Value = Value::Bool(false);
             let mut future: Value = Value::Bool(false);
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
             // check if parsed market is contract
-            if is_true(&contract) {
+            if matches!(&contract, Value::Bool(true)) {
                 id = self.safe_string_k(market.clone(), "contract_code", &[]);
                 if (id == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".to_string()))));
@@ -4020,10 +4020,10 @@ impl HtxCore {
                 let mut delivery_date: Option<String> = self.safe_string_k(market.clone(), "delivery_date", &[]).as_str().map(str::to_owned);
                 let mut business_type: Option<String> = self.safe_string_k(market.clone(), "business_type", &[]).as_str().map(str::to_owned);
                 future = Value::Bool(delivery_date.is_some());
-                swap = Value::Bool(!is_true(&future));
+                swap = Value::Bool(!(future.as_bool() == Some(true)));
                 linear = Value::Bool(business_type.is_some());
-                inverse = Value::Bool(!is_true(&linear));
-                if is_true(&swap) {
+                inverse = Value::Bool(!(linear.as_bool() == Some(true)));
+                if swap.as_bool() == Some(true) {
                     type_var = Value::Str("swap".to_string());
                     if (id == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".to_string()))));
@@ -4031,11 +4031,11 @@ impl HtxCore {
                     let mut parts: Value = split(&id, &Value::Str("-".to_string()));
                     baseId = self.safe_string_lower(market.clone(), Value::Str("symbol".to_string()), &[]);
                     quoteId = self.safe_string_lower(parts.clone(), Value::Int(1), &[]);
-                    settleId = (if is_true(&inverse) { baseId.clone() } else { quoteId.clone() });
-                }  else if is_true(&future) {
+                    settleId = (if inverse.as_bool() == Some(true) { baseId.clone() } else { quoteId.clone() });
+                }  else if future.as_bool() == Some(true) {
                     type_var = Value::Str("future".to_string());
                     baseId = self.safe_string_lower(market.clone(), Value::Str("symbol".to_string()), &[]);
-                    if is_true(&inverse) {
+                    if inverse.as_bool() == Some(true) {
                         quoteId = Value::Str("USD".to_string());
                         settleId = baseId.clone();
                     }  else {
@@ -4066,13 +4066,13 @@ impl HtxCore {
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut expiry: Value = Value::Null;
-            if is_true(&contract) {
+            if matches!(&contract, Value::Bool(true)) {
                 if (inverse.as_bool() == Some(true)) {
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), base))));
                 }  else if (linear.as_bool() == Some(true)) {
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), quote))));
                 }
-                if is_true(&future) {
+                if future.as_bool() == Some(true) {
                     expiry = self.safe_integer_k(market.clone(), "delivery_time", &[]);
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".to_string()), self.yymmdd(expiry.clone(), &[])))));
                 }
@@ -4081,7 +4081,7 @@ impl HtxCore {
             let mut minCost: Value = self.safe_number_k(market.clone(), "min-order-value", &[]);
             let mut maxAmount: Value = self.safe_number_k(market.clone(), "max-order-amt", &[]);
             let mut minAmount: Value = self.safe_number_k(market.clone(), "min-order-amt", &[]);
-            if is_true(&contract) {
+            if matches!(&contract, Value::Bool(true)) {
                 if (linear.as_bool() == Some(true)) {
                     minAmount = contractSize.clone();
                 }  else if (inverse.as_bool() == Some(true)) {
@@ -4094,7 +4094,7 @@ impl HtxCore {
             let mut maker: Value = Value::Null;
             let mut taker: Value = Value::Null;
             let mut active: Value = Value::Null;
-            if is_true(&spot) {
+            if matches!(&spot, Value::Bool(true)) {
                 pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "price-precision", &[])]), &[]);
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amount-precision", &[])]), &[]);
                 costPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "value-precision", &[])]), &[]);
@@ -4143,7 +4143,7 @@ impl HtxCore {
                     m.insert("settleId".to_string(), settleId.clone());
                     m.insert("type".to_string(), type_var.clone());
                     m.insert("spot".to_string(), spot.clone());
-                    m.insert("margin".to_string(), Value::Bool((is_true(&spot) && hasLeverage)));
+                    m.insert("margin".to_string(), Value::Bool((matches!(&spot, Value::Bool(true)) && hasLeverage)));
                     m.insert("swap".to_string(), swap.clone());
                     m.insert("future".to_string(), future.clone());
                     m.insert("option".to_string(), Value::Bool(false));

@@ -2023,12 +2023,12 @@ impl BitstampCore {
                     m.insert("spot".to_string(), isSpot.clone());
                     m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
-                    m.insert("swap".to_string(), Value::Bool(!is_true(&isSpot)));
+                    m.insert("swap".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), (Value::Bool(self.safe_string_k(market.clone(), "trading", &[]).as_str() == Some("Enabled"))));
-                    m.insert("contract".to_string(), Value::Bool(!is_true(&isSpot)));
-                    m.insert("linear".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Bool(true) }));
-                    m.insert("inverse".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Bool(false) }));
+                    m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
+                    m.insert("linear".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
+                    m.insert("inverse".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
                     m.insert("contractSize".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);

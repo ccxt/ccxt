@@ -1342,7 +1342,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut maker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (maker != Value::Null) {
-            takerOrMaker = (if is_true(&maker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if maker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]);
         let mut fee: Value = Value::Null;

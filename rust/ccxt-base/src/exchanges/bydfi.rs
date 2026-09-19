@@ -1913,7 +1913,7 @@ impl BydfiCore {
         }
         type_var = to_upper(&type_var);
         let mut isMarketOrder: Value = (Value::Bool(is_true(&(type_var.as_str() == Some("MARKET"))) || is_true(&(type_var.as_str() == Some("STOP_MARKET"))) || is_true(&(type_var.as_str() == Some("TAKE_PROFIT_MARKET"))) || is_true(&(type_var.as_str() == Some("TRAILING_STOP_MARKET")))));
-        if is_true(&isMarketOrder) {
+        if matches!(&isMarketOrder, Value::Bool(true)) {
             if (type_var.as_str() == Some("MARKET")) {
                 if isStopLossOrder {
                     type_var = Value::Str("STOP_MARKET".to_string());

@@ -2043,7 +2043,7 @@ impl AsterCore {
         let mut contractSize: Value = Value::Null;
         let mut contractType: Option<String> = self.safe_string_k(market.clone(), "contractType", &[]).as_str().map(str::to_owned);
         let mut isContract: Value = Value::Bool(contractType.is_some());
-        if is_true(&isContract) {
+        if matches!(&isContract, Value::Bool(true)) {
             // currently, there is only perpetuals, not futures
             spot = Value::Bool(false);
             swap = Value::Bool(true);
@@ -2083,7 +2083,7 @@ impl AsterCore {
         m.insert("baseId".to_string(), baseId.clone());
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), settleId.clone());
-        m.insert("type".to_string(), (if is_true(&isContract) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) }));
+        m.insert("type".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) }));
         m.insert("spot".to_string(), spot.clone());
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), swap.clone());
@@ -2318,17 +2318,17 @@ impl AsterCore {
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
             if (side == Value::Null) {
                 let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "buyer", &[]);
                 if (isBuyer != Value::Null) {
-                    side = (if is_true(&isBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+                    side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
                 }
             }
         }
         let mut isBuyerMaker: Value = self.safe_bool2(trade.clone(), Value::Str("isBuyerMaker".to_string()), Value::Str("m".to_string()), &[]);
         if (isBuyerMaker != Value::Null) {
-            side = (if is_true(&isBuyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3744,14 +3744,14 @@ impl AsterCore {
             }
         }  else if isStopLoss {
             stopPrice = stopLossPrice.clone();
-            if is_true(&isMarketOrder) {
+            if matches!(&isMarketOrder, Value::Bool(true)) {
                 uppercaseType = Value::Str("STOP_MARKET".to_string());
             }  else if isLimitOrder {
                 uppercaseType = Value::Str("STOP".to_string());
             }
         }  else if isTakeProfit {
             stopPrice = takeProfitPrice.clone();
-            if is_true(&isMarketOrder) {
+            if matches!(&isMarketOrder, Value::Bool(true)) {
                 uppercaseType = Value::Str("TAKE_PROFIT_MARKET".to_string());
             }  else if isLimitOrder {
                 uppercaseType = Value::Str("TAKE_PROFIT".to_string());
@@ -4953,7 +4953,7 @@ impl AsterCore {
         let mut marginMode: Value = Value::Null;
         let mut collateralString: Value = Value::Null;
         let mut walletBalance: Value = Value::Null;
-        if is_true(&isolated) {
+        if isolated.as_bool() == Some(true) {
             marginMode = Value::Str("isolated".to_string());
             walletBalance = self.safe_string_k(position.clone(), "isolatedWallet", &[]);
             collateralString = crate::precise::Precise::stringAdd(&walletBalance, &unrealizedPnlString);

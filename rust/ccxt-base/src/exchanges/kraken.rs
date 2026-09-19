@@ -1174,7 +1174,7 @@ impl KrakenCore {
             if (base == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing base".to_string()))));
             }
-            if is_true(&spot) && (in_op(&cachedCurrencies, &base)) {
+            if matches!(&spot, Value::Bool(true)) && (in_op(&cachedCurrencies, &base)) {
                 let mut currency: Value = self.safe_dict(cachedCurrencies.clone(), base.clone(), &[]);
                 let mut currencyPrecision: Value = self.safe_number_k(currency.clone(), "precision", &[]);
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
@@ -2237,7 +2237,7 @@ impl KrakenCore {
         let mut maker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (maker != Value::Null) {
-            takerOrMaker = (if is_true(&maker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if maker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         if (datetime == Value::Null) {
             datetime = self.iso8601(timestamp.clone());

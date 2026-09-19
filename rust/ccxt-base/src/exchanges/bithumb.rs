@@ -2653,7 +2653,7 @@ impl BithumbCore {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Null;
         if (generation.as_f64() == Some(2.0)) {
-            if is_true(&twap) {
+            if twap.as_bool() == Some(true) {
                 if (market != Value::Null) {
                     if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), self.get_gen2_market_id(market.clone())); }
                 }
@@ -3061,7 +3061,7 @@ impl BithumbCore {
         let mut response: Value = Value::Null;
         if (generation.as_f64() == Some(2.0)) {
             let mut twap: Value = self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)]);
-            if is_true(&twap) {
+            if twap.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".to_string(), Value::Str("progress".to_string())); }
             }  else {
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".to_string(), Value::Str("wait".to_string())); }
@@ -3129,7 +3129,7 @@ impl BithumbCore {
         });
         let mut twap: Value = self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("twap".to_string()), &[]);
-        if !is_true(&twap) {
+        if !(twap.as_bool() == Some(true)) {
             let mut clientOrderIds: Value = self.safe_list2(params.clone(), Value::Str("client_order_ids".to_string()), Value::Str("clientOrderIds".to_string()), &[]);
             if (clientOrderIds != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("client_order_ids".to_string(), clientOrderIds.clone()); }
@@ -3146,7 +3146,7 @@ impl BithumbCore {
         }
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Null;
-        if is_true(&twap) {
+        if twap.as_bool() == Some(true) {
             let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_v1_twap(&[__ws_arg_27]).await;
             //
@@ -3304,7 +3304,7 @@ impl BithumbCore {
         let mut response: Value = Value::Null;
         let mut twap: Value = self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("twap".to_string()), &[]);
-        if is_true(&twap) {
+        if twap.as_bool() == Some(true) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("algo_order_id".to_string(), id.clone()); }
         }  else {
             let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), &[]);
@@ -3316,7 +3316,7 @@ impl BithumbCore {
             }
         }
         if (generation.as_f64() == Some(2.0)) {
-            if is_true(&twap) {
+            if twap.as_bool() == Some(true) {
                 let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_delete_v1_twap(&[__ws_arg_29]).await;
             }  else {

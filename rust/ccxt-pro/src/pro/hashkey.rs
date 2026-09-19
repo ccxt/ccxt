@@ -929,9 +929,9 @@ impl HashkeyCore {
         if (isBuyerMaker != Value::Null) {
             if isPublicTrade {
                 takerOrMaker = Value::Str("taker".to_string());
-                side = (if is_true(&isBuyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+                side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
             }  else {
-                takerOrMaker = (if is_true(&isBuyerMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+                takerOrMaker = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
                 side = self.safe_string_lower(trade.clone(), Value::Str("S".to_string()), &[]);
             }
         }

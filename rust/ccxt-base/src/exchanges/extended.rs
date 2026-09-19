@@ -1142,11 +1142,11 @@ impl ExtendedCore {
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(!is_true(&isSpot)));
+        m.insert("swap".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active.clone());
-        m.insert("contract".to_string(), Value::Bool(!is_true(&isSpot)));
+        m.insert("contract".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
         m.insert("linear".to_string(), linear.clone());
         m.insert("inverse".to_string(), inverse.clone());
         m.insert("taker".to_string(), self.safe_number_k(self.fees.clone(), "taker", &[]));
@@ -1918,7 +1918,7 @@ impl ExtendedCore {
         let mut isTaker: Value = self.safe_bool_k(trade.clone(), "isTaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isTaker != Value::Null) {
-            takerOrMaker = (if is_true(&isTaker) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if isTaker.as_bool() == Some(true) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2908,7 +2908,7 @@ impl ExtendedCore {
         let mut now: Value = self.milliseconds();
         let mut status: Value = Value::Str("pending".to_string());
         if (validSignature != Value::Null) {
-            status = (if is_true(&validSignature) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+            status = (if validSignature.as_bool() == Some(true) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2945,7 +2945,7 @@ impl ExtendedCore {
         let mut validSignature: Value = self.safe_bool_k(transfer.clone(), "validSignature", &[]);
         let mut status: Value = Value::Null;
         if (validSignature != Value::Null) {
-            status = (if is_true(&validSignature) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+            status = (if validSignature.as_bool() == Some(true) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
         }  else {
             status = self.parse_transaction_status(self.safe_string_k(transfer.clone(), "status", &[]));
         }
@@ -3879,7 +3879,7 @@ impl ExtendedCore {
                 let mut stopLossTriggerPriceType: Value = self.safe_string_k(stopLoss.clone(), "triggerPriceType", &[]);
                 let mut stopLossExecutionPrice: Value = self.safe_string_k(stopLoss.clone(), "price", &[]);
                 let mut stopLossType: Value = self.safe_string_k(stopLoss.clone(), "type", &[]);
-                let mut stopLossSettlement: Value = self.create_order_settlement_data(Value::Bool(!is_true(&isBuy)), amountString.clone(), stopLossExecutionPrice.clone(), &[settlementParams.clone()]);
+                let mut stopLossSettlement: Value = self.create_order_settlement_data(Value::Bool(!(matches!(&isBuy, Value::Bool(true)))), amountString.clone(), stopLossExecutionPrice.clone(), &[settlementParams.clone()]);
                 let mut requestStopLoss: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossTrigger.clone()));
@@ -3911,7 +3911,7 @@ impl ExtendedCore {
                 let mut takeProfitTriggerPriceType: Value = self.safe_string_k(takeProfit.clone(), "triggerPriceType", &[]);
                 let mut takeProfitExecutionPrice: Value = self.safe_string_k(takeProfit.clone(), "price", &[]);
                 let mut takeProfitType: Value = self.safe_string_k(takeProfit.clone(), "type", &[]);
-                let mut takeProfitSettlement: Value = self.create_order_settlement_data(Value::Bool(!is_true(&isBuy)), amountString.clone(), takeProfitExecutionPrice.clone(), &[settlementParams.clone()]);
+                let mut takeProfitSettlement: Value = self.create_order_settlement_data(Value::Bool(!(matches!(&isBuy, Value::Bool(true)))), amountString.clone(), takeProfitExecutionPrice.clone(), &[settlementParams.clone()]);
                 let mut requestTakeProfit: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), takeProfitTrigger.clone()));
@@ -3959,7 +3959,7 @@ impl ExtendedCore {
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPriceStr.clone()));
                     m
                 });
-                if is_true(&isBuy) {
+                if matches!(&isBuy, Value::Bool(true)) {
                     add_element_to_object(&mut trigger, &Value::Str("direction".to_string()), (if isStopLossOrder { Value::Str("UP".to_string()) } else { Value::Str("DOWN".to_string()) }));
                 }  else {
                     add_element_to_object(&mut trigger, &Value::Str("direction".to_string()), (if isStopLossOrder { Value::Str("DOWN".to_string()) } else { Value::Str("UP".to_string()) }));

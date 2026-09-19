@@ -1238,7 +1238,7 @@ impl GrvtCore {
     pub fn uses_private_key(&self) -> Value {
         let mut privateKeyDefined: Value = Value::Bool((self.privateKey.clone() != Value::Null) && (self.privateKey.as_str() != Some("")));
         let mut apiKeyDefined: bool = (self.apiKey.clone() != Value::Null) && (self.apiKey.as_str() != Some(""));
-        if is_true(&privateKeyDefined) && apiKeyDefined {
+        if matches!(&privateKeyDefined, Value::Bool(true)) && apiKeyDefined {
             panic!("{}", crate::exchange_errors::exchange_error("You should provide either \"privateKey\" or \"apikey & secret\""));
         }
         return privateKeyDefined;
@@ -1524,7 +1524,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isSpot: Value = (Value::Bool(type_var.as_str() == Some("spot")));
         let mut isSwap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
         let mut isFuture: Value = (Value::Bool(type_var.as_str() == Some("future")));
-        let mut isContract: Value = Value::Bool(is_true(&isSwap) || is_true(&isFuture));
+        let mut isContract: Value = Value::Bool(matches!(&isSwap, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true)));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -1543,8 +1543,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Null);
         m.insert("contract".to_string(), isContract.clone());
-        m.insert("linear".to_string(), (if is_true(&isSwap) { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if is_true(&isSwap) { Value::Bool(false) } else { Value::Null }));
+        m.insert("linear".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1988,7 +1988,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isTakerBuyer: Value = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]);
         let mut side: Value = Value::Null;
         if (isTakerBuyer != Value::Null) {
-            side = (if is_true(&isTakerBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if isTakerBuyer.as_bool() == Some(true) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
             takerOrMaker = Value::Str("taker".to_string());
         }  else {
             let mut isTaker: bool = self.safe_bool_k(trade.clone(), "is_taker", &[]).as_bool() == Some(true);
@@ -3097,7 +3097,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             timeInForce = self.safe_string(tifMap.clone(), timeInForce.clone(), &[timeInForce.clone()]);
         }
         add_element_to_object(&mut orderRequest, &Value::Str("time_in_force".to_string()), timeInForce.clone());
-        if !is_true(&isMarketOrder) {
+        if !(matches!(&isMarketOrder, Value::Bool(true))) {
             if is_true(&postOnly) {
                 timeInForce = Value::Str("POST_ONLY".to_string());
             }  else if (timeInForce.as_str() == Some("ioc")) {

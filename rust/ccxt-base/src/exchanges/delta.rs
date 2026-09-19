@@ -1457,7 +1457,7 @@ impl DeltaCore {
             let mut expiry: Value = self.parse8601(expiryDatetime.clone());
             let mut contractSize: Value = self.safe_number_k(market.clone(), "contract_value", &[]);
             let mut amountPrecision: Value = Value::Null;
-            if is_true(&spot) {
+            if matches!(&spot, Value::Bool(true)) {
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(productSpecs.clone(), "underlying_precision", &[])]), &[]); // seems inverse of 'impact_size'
             }  else {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
@@ -1466,11 +1466,11 @@ impl DeltaCore {
             let mut linear: Value = (Value::Bool(settle.as_str() == quote.as_str()));
             let mut optionType: Value = Value::Null;
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-            if is_true(&swap) || is_true(&future) || is_true(&option) {
+            if matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)) || matches!(&option, Value::Bool(true)) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
-                if is_true(&future) || is_true(&option) {
+                if matches!(&future, Value::Bool(true)) || matches!(&option, Value::Bool(true)) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
-                    if is_true(&option) {
+                    if matches!(&option, Value::Bool(true)) {
                         type_var = Value::Str("option".to_string());
                         let mut letter: Value = Value::Str("C".to_string());
                         optionType = Value::Str("call".to_string());
@@ -1508,12 +1508,12 @@ impl DeltaCore {
         m.insert("future".to_string(), future.clone());
         m.insert("option".to_string(), option.clone());
         m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("live"))));
-        m.insert("contract".to_string(), Value::Bool(!is_true(&spot)));
-        m.insert("linear".to_string(), (if is_true(&spot) { Value::Null } else { linear.clone() }));
-        m.insert("inverse".to_string(), (if is_true(&spot) { Value::Null } else { Value::Bool(!is_true(&linear)) }));
+        m.insert("contract".to_string(), Value::Bool(!(matches!(&spot, Value::Bool(true)))));
+        m.insert("linear".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { linear.clone() }));
+        m.insert("inverse".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(!(matches!(&linear, Value::Bool(true)))) }));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "taker_commission_rate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "maker_commission_rate", &[]));
-        m.insert("contractSize".to_string(), (if is_true(&spot) { Value::Null } else { contractSize.clone() }));
+        m.insert("contractSize".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { contractSize.clone() }));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
         m.insert("strike".to_string(), self.parse_number(strike, &[]));

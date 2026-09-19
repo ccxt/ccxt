@@ -1381,12 +1381,12 @@ impl DigifinexCore {
             let mut isAllowed: Value = self.safe_integer_k(market.clone(), "is_allow", &[Value::Int(1)]);
             let mut type_var: Value = (if is_true(&(defaultType.as_deref() == Some("margin"))) { Value::Str("margin".to_string()) } else { Value::Str("spot".to_string()) });
             let mut spot: Value = Value::Bool(settle == Value::Null);
-            let mut swap: Value = Value::Bool(!is_true(&spot));
+            let mut swap: Value = Value::Bool(!(matches!(&spot, Value::Bool(true))));
             let mut margin: Value = (if is_true(&(marginMode != Value::Null)) { Value::Bool(true) } else { Value::Null });
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut isInverse: Value = Value::Null;
             let mut isLinear: Value = Value::Null;
-            if is_true(&swap) {
+            if matches!(&swap, Value::Bool(true)) {
                 type_var = Value::Str("swap".to_string());
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
                 isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]);
@@ -2786,10 +2786,10 @@ impl DigifinexCore {
                 orderType = Value::Int(0);
             }
             if (timeInForce.as_deref() == Some("FOK")) {
-                orderType = (if is_true(&isMarketOrder) { Value::Int(15) } else { Value::Int(9) });
+                orderType = (if matches!(&isMarketOrder, Value::Bool(true)) { Value::Int(15) } else { Value::Int(9) });
             }  else if (timeInForce.as_deref() == Some("IOC")) {
-                orderType = (if is_true(&isMarketOrder) { Value::Int(13) } else { Value::Int(4) });
-            }  else if is_true(&(timeInForce.as_deref() == Some("GTC"))) || is_true(&(isMarketOrder)) {
+                orderType = (if matches!(&isMarketOrder, Value::Bool(true)) { Value::Int(13) } else { Value::Int(4) });
+            }  else if is_true(&(timeInForce.as_deref() == Some("GTC"))) || matches!(&isMarketOrder, Value::Bool(true)) {
                 orderType = Value::Int(14);
             }  else if (timeInForce.as_deref() == Some("PO")) {
                 postOnly = Value::Bool(true);
@@ -2814,7 +2814,7 @@ impl DigifinexCore {
             let mut quantity: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrderRequest".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if is_true(&isMarketOrder) && is_true(&(side.as_str() == Some("buy"))) {
+            if matches!(&isMarketOrder, Value::Bool(true)) && is_true(&(side.as_str() == Some("buy"))) {
                 let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                 if (cost != Value::Null) {

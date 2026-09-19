@@ -1205,10 +1205,10 @@ impl BtseCore {
         let mut type_var: Value = Value::Str("spot".to_string());
         let mut expiry: Value = Value::Null;
         let mut contractSize: Value = Value::Null;
-        if !is_true(&isSpot) {
+        if !(matches!(&isSpot, Value::Bool(true))) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), quote))));
             contractSize = self.safe_string_k(market.clone(), "contractSize", &[]);
-            if is_true(&isFuture) {
+            if matches!(&isFuture, Value::Bool(true)) {
                 expiry = self.safe_integer_k(market.clone(), "contractEndTime", &[]);
                 symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".to_string()), self.yymmdd(expiry.clone(), &[])))));
                 type_var = Value::Str("future".to_string());
@@ -1220,7 +1220,7 @@ impl BtseCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if is_true(&isSpot) {
+        if matches!(&isSpot, Value::Bool(true)) {
             fees = self.safe_dict_k(self.fees.clone(), "spot", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1232,20 +1232,20 @@ impl BtseCore {
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
-        m.insert("settle".to_string(), (if is_true(&isSpot) { Value::Null } else { quote.clone() }));
+        m.insert("settle".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { quote.clone() }));
         m.insert("baseId".to_string(), baseId.clone());
         m.insert("quoteId".to_string(), quoteId.clone());
-        m.insert("settleId".to_string(), (if is_true(&isSpot) { Value::Null } else { quoteId.clone() }));
+        m.insert("settleId".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { quoteId.clone() }));
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), isSpot.clone());
-        m.insert("margin".to_string(), (if is_true(&isSpot) { Value::Bool(false) } else { Value::Null }));
+        m.insert("margin".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
         m.insert("swap".to_string(), isSwap.clone());
         m.insert("future".to_string(), isFuture.clone());
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active.clone());
-        m.insert("contract".to_string(), Value::Bool(is_true(&isSwap) || is_true(&isFuture)));
-        m.insert("linear".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Bool(true) }));
-        m.insert("inverse".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Bool(false) }));
+        m.insert("contract".to_string(), Value::Bool(matches!(&isSwap, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true))));
+        m.insert("linear".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
+        m.insert("inverse".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
         m.insert("taker".to_string(), fees.as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), fees.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
@@ -2726,8 +2726,8 @@ impl BtseCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut isTriggerOrder: bool = is_true(&(triggerPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null));
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
-        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (is_true(&isMarketOrder) || isLimitOrder);
-        let mut isAlgoOrder: bool = isConditionalOrder || (!is_true(&isMarketOrder) && !isLimitOrder);
+        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
+        let mut isAlgoOrder: bool = isConditionalOrder || (!(matches!(&isMarketOrder, Value::Bool(true))) && !isLimitOrder);
         if isLimitOrder || is_true(&(type_var.as_str() == Some("PEG"))) || is_true(&(type_var.as_str() == Some("OCO"))) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for ".to_string()))), type_var)), Value::Str(" orders".to_string()))));
@@ -2736,7 +2736,7 @@ impl BtseCore {
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        let mut needsQuoteSize: bool = (is_true(&isMarketOrder) || is_true(&(type_var.as_str() == Some("TRAILING")))) && is_true(&(upperSide.as_str() == Some("BUY")));
+        let mut needsQuoteSize: bool = (matches!(&isMarketOrder, Value::Bool(true)) || is_true(&(type_var.as_str() == Some("TRAILING")))) && is_true(&(upperSide.as_str() == Some("BUY")));
         if needsQuoteSize {
             let mut quoteAmount: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
@@ -2959,8 +2959,8 @@ impl BtseCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut isTriggerOrder: bool = is_true(&(triggerPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null));
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
-        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (is_true(&isMarketOrder) || isLimitOrder);
-        let mut isAlgoOrder: bool = isConditionalOrder || (!is_true(&isMarketOrder) && !isLimitOrder);
+        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
+        let mut isAlgoOrder: bool = isConditionalOrder || (!(matches!(&isMarketOrder, Value::Bool(true))) && !isLimitOrder);
         if isLimitOrder || is_true(&(type_var.as_str() == Some("OCO"))) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for ".to_string()))), type_var)), Value::Str(" orders".to_string()))));

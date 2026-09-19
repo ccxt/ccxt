@@ -961,7 +961,7 @@ impl ModetradeCore {
         let mut takerOrMaker: Value = Value::Null;
         let mut maker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
         if (maker != Value::Null) {
-            takerOrMaker = (if is_true(&maker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if maker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

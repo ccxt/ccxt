@@ -1353,12 +1353,12 @@ impl WhitebitCore {
         let mut settleId: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut swap: Value = Value::Bool(is_true(&(typeId.as_deref() == Some("futures"))) || is_true(&(typeId.as_deref() == Some("tradfiFutures"))));
-        let mut margin: Value = Value::Bool(is_true(&(isCollateral.as_bool() == Some(true))) && !is_true(&swap));
+        let mut margin: Value = Value::Bool(is_true(&(isCollateral.as_bool() == Some(true))) && !(matches!(&swap, Value::Bool(true))));
         let mut contract: Value = Value::Bool(false);
         let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "stockPrec", &[])]), &[]);
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
-        if is_true(&swap) {
+        if matches!(&swap, Value::Bool(true)) {
             settleId = quoteId.clone();
             settle = self.safe_currency_code(settleId.clone(), &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
@@ -1373,7 +1373,7 @@ impl WhitebitCore {
         let mut taker: Value = crate::precise::Precise::stringDiv(&takerFeeRate, &Value::Str("100".to_string()));
         let mut makerFeeRate: Value = self.safe_string_k(market.clone(), "makerFee", &[]);
         let mut maker: Value = crate::precise::Precise::stringDiv(&makerFeeRate, &Value::Str("100".to_string()));
-        let mut isSpot: Value = Value::Bool(!is_true(&swap));
+        let mut isSpot: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1396,7 +1396,7 @@ impl WhitebitCore {
         m.insert("inverse".to_string(), inverse.clone());
         m.insert("taker".to_string(), self.parse_number(taker, &[]));
         m.insert("maker".to_string(), self.parse_number(maker, &[]));
-        m.insert("contractSize".to_string(), (if is_true(&isSpot) { Value::Null } else { self.parse_number(Value::Str("1".to_string()), &[]) }));
+        m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.parse_number(Value::Str("1".to_string()), &[]) }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);

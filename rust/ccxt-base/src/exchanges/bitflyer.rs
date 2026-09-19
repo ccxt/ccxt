@@ -630,20 +630,20 @@ impl BitflyerCore {
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
             let mut swap: Value = (Value::Bool(marketType.as_deref() == Some("FX")));
             let mut future: Value = (Value::Bool(marketType.as_deref() == Some("Futures")));
-            let mut spot: Value = Value::Bool(!is_true(&swap) && !is_true(&future));
+            let mut spot: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && !(matches!(&future, Value::Bool(true))));
             let mut type_var: Value = Value::Str("spot".to_string());
             let mut settle: Value = Value::Null;
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
             let mut expiry: Value = Value::Null;
-            if is_true(&spot) {
+            if matches!(&spot, Value::Bool(true)) {
                 baseId = self.safe_string(currencies.clone(), Value::Int(0), &[]);
                 quoteId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
-            }  else if is_true(&swap) {
+            }  else if matches!(&swap, Value::Bool(true)) {
                 type_var = Value::Str("swap".to_string());
                 baseId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
                 quoteId = self.safe_string(currencies.clone(), Value::Int(2), &[]);
-            }  else if is_true(&future) {
+            }  else if matches!(&future, Value::Bool(true)) {
                 let mut alias: Value = self.safe_string_k(market.clone(), "alias", &[]);
                 if (alias == Value::Null) {
                     // no alias:
@@ -670,13 +670,13 @@ impl BitflyerCore {
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut taker: Value = self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null);
             let mut maker: Value = self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null);
-            let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future));
-            if is_true(&contract) {
+            let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)));
+            if matches!(&contract, Value::Bool(true)) {
                 maker = Value::Int(0);
                 taker = Value::Int(0);
                 settle = Value::Str("JPY".to_string());
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
-                if is_true(&future) {
+                if matches!(&future, Value::Bool(true)) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
                 }
             }
@@ -698,8 +698,8 @@ impl BitflyerCore {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), contract.clone());
-                    m.insert("linear".to_string(), (if is_true(&spot) { Value::Null } else { Value::Bool(true) }));
-                    m.insert("inverse".to_string(), (if is_true(&spot) { Value::Null } else { Value::Bool(false) }));
+                    m.insert("linear".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
+                    m.insert("inverse".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
                     m.insert("taker".to_string(), taker.clone());
                     m.insert("maker".to_string(), maker.clone());
                     m.insert("contractSize".to_string(), Value::Null);

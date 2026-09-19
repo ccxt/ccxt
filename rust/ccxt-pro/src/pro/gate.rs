@@ -2448,7 +2448,7 @@ impl GateCore {
         let mut payload: Value = Value::from(vec![]);
         let mut messageHash: Value = Value::Str("".to_string());
         if is_true(&self.is_empty(symbols.clone())) {
-            if (typeId.as_str() != Some("futures")) && !is_true(&isInverse) {
+            if (typeId.as_str() != Some("futures")) && !(matches!(&isInverse, Value::Bool(true))) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.".to_string()))));
             }
             messageHash = Value::Str("myLiquidations".to_string());

@@ -859,9 +859,9 @@ impl ZebpayCore {
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut depositAllowed: Value = Value::Bool(self.safe_bool_k(chain.clone(), "isDepositEnabled", &[]).as_bool() == Some(true));
-            deposit = (if is_true(&(depositAllowed)) { depositAllowed.clone() } else { deposit.clone() });
+            deposit = (if matches!(&depositAllowed, Value::Bool(true)) { depositAllowed.clone() } else { deposit.clone() });
             let mut withdrawAllowed: Value = Value::Bool(self.safe_bool_k(chain.clone(), "isWithdrawEnabled", &[]).as_bool() == Some(true));
-            withdraw = (if is_true(&(withdrawAllowed)) { withdrawAllowed.clone() } else { withdraw.clone() });
+            withdraw = (if matches!(&withdrawAllowed, Value::Bool(true)) { withdrawAllowed.clone() } else { withdraw.clone() });
             let mut withdrawFeeString: Value = self.safe_string_k(chain.clone(), "withdrawalFee", &[]);
             if (withdrawFeeString != Value::Null) {
                 minWithdrawFeeString = (if is_true(&(minWithdrawFeeString == Value::Null)) { withdrawFeeString.clone() } else { crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString) });
@@ -880,7 +880,7 @@ impl ZebpayCore {
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
-        m.insert("active".to_string(), Value::Bool(is_true(&depositAllowed) && is_true(&withdrawAllowed)));
+        m.insert("active".to_string(), Value::Bool(matches!(&depositAllowed, Value::Bool(true)) && matches!(&withdrawAllowed, Value::Bool(true))));
         m.insert("deposit".to_string(), depositAllowed.clone());
         m.insert("withdraw".to_string(), withdrawAllowed.clone());
         m.insert("fee".to_string(), self.parse_number(withdrawFeeString, &[]));

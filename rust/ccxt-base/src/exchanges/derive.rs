@@ -1542,8 +1542,8 @@ impl DeriveCore {
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
         }
-        let mut contractSize: Value = (if is_true(&(spot)) { Value::Null } else { Value::Int(1) });
-        let mut isContract: Value = Value::Bool(is_true(&swap) || is_true(&option));
+        let mut contractSize: Value = (if spot.as_bool() == Some(true) { Value::Null } else { Value::Int(1) });
+        let mut isContract: Value = Value::Bool(swap.as_bool() == Some(true) || option.as_bool() == Some(true));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -2259,7 +2259,7 @@ impl DeriveCore {
         });
         if (reduceOnly != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reduce_only".to_string(), reduceOnly.clone()); }
-            if is_true(&reduceOnly) && is_true(&(postOnly.as_bool() == Some(true))) {
+            if reduceOnly.as_bool() == Some(true) && is_true(&(postOnly.as_bool() == Some(true))) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string()))));
             }
         }
@@ -2442,7 +2442,7 @@ impl DeriveCore {
         });
         if (reduceOnly != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reduce_only".to_string(), reduceOnly.clone()); }
-            if is_true(&reduceOnly) && is_true(&(postOnly.as_bool() == Some(true))) {
+            if reduceOnly.as_bool() == Some(true) && is_true(&(postOnly.as_bool() == Some(true))) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string()))));
             }
         }

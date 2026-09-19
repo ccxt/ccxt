@@ -2041,10 +2041,10 @@ impl BackpackCore {
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }  else if (isBuyerMaker != Value::Null) {
             takerOrMaker = Value::Str("taker".to_string());
-            side = (if is_true(&isBuyerMaker) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
         let mut fee: Value = Value::Null;

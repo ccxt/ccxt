@@ -2073,12 +2073,12 @@ impl CoinbaseinternationalCore {
         let mut fees: Value = self.fees.clone();
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".to_string()))), quoteId));
         let mut settleId: Value = Value::Null;
-        if !is_true(&isSpot) {
+        if !(matches!(&isSpot, Value::Bool(true))) {
             settleId = quoteId.clone();
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), quoteId))));
         }
-        let mut isLinear: Value = (if is_true(&isSpot) { Value::Null } else { (Value::Bool(settleId.as_str() == quoteId.as_str())) });
-        let mut isInverse: Value = (if is_true(&isSpot) { Value::Null } else { (Value::Bool(settleId.as_str() != quoteId.as_str())) });
+        let mut isLinear: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { (Value::Bool(settleId.as_str() == quoteId.as_str())) });
+        let mut isInverse: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { (Value::Bool(settleId.as_str() != quoteId.as_str())) });
         if (marketId == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".to_string()))));
         }
@@ -2093,19 +2093,19 @@ impl CoinbaseinternationalCore {
         m.insert("baseId".to_string(), baseId.clone());
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), settleId.clone());
-        m.insert("type".to_string(), (if is_true(&isSpot) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) }));
+        m.insert("type".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) }));
         m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(!is_true(&isSpot)));
+        m.insert("swap".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(self.safe_string_k(market.clone(), "trading_state", &[]).as_str() == Some("TRADING")));
-        m.insert("contract".to_string(), Value::Bool(!is_true(&isSpot)));
+        m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
         m.insert("linear".to_string(), isLinear.clone());
         m.insert("inverse".to_string(), isInverse.clone());
         m.insert("taker".to_string(), fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null));
-        m.insert("contractSize".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Int(1) }));
+        m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Int(1) }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2128,7 +2128,7 @@ impl CoinbaseinternationalCore {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), (if is_true(&isSpot) { Value::Null } else { self.safe_number_k(market.clone(), "position_limit_qty", &[]) }));
+        m.insert("max".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.safe_number_k(market.clone(), "position_limit_qty", &[]) }));
     m
 }));
         m.insert("price".to_string(), Value::Map({

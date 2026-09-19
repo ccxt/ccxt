@@ -937,9 +937,9 @@ impl KrakenfuturesCore {
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
             let mut expiry: Value = Value::Null;
-            if !is_true(&index) {
+            if !(matches!(&index, Value::Bool(true))) {
                 linear = (Value::Bool(Value::Int(marketType.as_str().and_then(|__s| __s.find("_vanilla")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
-                inverse = Value::Bool(!is_true(&linear));
+                inverse = Value::Bool(!(linear.as_bool() == Some(true)));
                 let mut settleTime: Value = self.safe_string_k(market.clone(), "lastTradingTime", &[]);
                 type_var = (if is_true(&(settleTime == Value::Null)) { Value::Str("swap".to_string()) } else { Value::Str("future".to_string()) });
                 expiry = self.parse8601(settleTime.clone());
@@ -961,8 +961,8 @@ impl KrakenfuturesCore {
             let mut cvtp: Value = self.safe_string_k(market.clone(), "contractValueTradePrecision", &[]);
             let mut amountPrecision: Value = self.parse_number(self.integer_precision_to_amount(cvtp.clone()), &[]);
             let mut pricePrecision: Value = self.safe_number_k(market.clone(), "tickSize", &[]);
-            let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future) || is_true(&index));
-            let mut swapOrFutures: bool = is_true(&swap) || is_true(&future);
+            let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)) || matches!(&index, Value::Bool(true)));
+            let mut swapOrFutures: bool = matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true));
             if swapOrFutures {
                 let mut exchangeType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
                 if (exchangeType.as_deref() == Some("futures_inverse")) {
@@ -974,9 +974,9 @@ impl KrakenfuturesCore {
                     settleId = quoteId.clone();
                     inverse = Value::Bool(false);
                 }
-                linear = Value::Bool(!is_true(&inverse));
+                linear = Value::Bool(!(inverse.as_bool() == Some(true)));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
-                if is_true(&future) {
+                if matches!(&future, Value::Bool(true)) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
                 }
             }

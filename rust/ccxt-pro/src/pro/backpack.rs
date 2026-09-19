@@ -1234,7 +1234,7 @@ impl BackpackCore {
         let mut takerOrMaker: Value = Value::Null;
         if (isBuyerMaker != Value::Null) {
             takerOrMaker = Value::Str("taker".to_string());
-            if is_true(&isBuyerMaker) {
+            if isBuyerMaker.as_bool() == Some(true) {
                 side = Value::Str("sell".to_string());
             }  else {
                 side = Value::Str("buy".to_string());

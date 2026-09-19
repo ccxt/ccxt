@@ -999,7 +999,7 @@ impl BitvavoCore {
         let mut networksArray: Value = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]);
         let mut deposit: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]).as_str() == Some("OK"));
         let mut withdrawal: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]).as_str() == Some("OK"));
-        let mut active: Value = Value::Bool(is_true(&deposit) && is_true(&withdrawal));
+        let mut active: Value = Value::Bool(matches!(&deposit, Value::Bool(true)) && matches!(&withdrawal, Value::Bool(true)));
         let mut withdrawFee: Value = self.safe_number_k(rawCurrency.clone(), "withdrawalFee", &[]);
         let mut precision: Value = self.safe_string_k(rawCurrency.clone(), "decimals", &[Value::Str("8".to_string())]);
         let mut minWithdraw: Value = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]);
@@ -1970,7 +1970,7 @@ impl BitvavoCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]); // trigger when price crosses from above to below this value
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]); // trigger when price crosses from below to above this value
         params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-        if is_true(&isMarketOrder) {
+        if matches!(&isMarketOrder, Value::Bool(true)) {
             let mut cost: Value = Value::Null;
             if (price != Value::Null) {
                 let mut priceString: Value = self.number_to_string(price.clone());
@@ -1997,12 +1997,12 @@ impl BitvavoCore {
             if (stopLossPrice != Value::Null) {
                 triggerPrice = stopLossPrice.clone();
             }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), (if is_true(&isMarketOrder) { Value::Str("stopLoss".to_string()) } else { Value::Str("stopLossLimit".to_string()) })); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), (if matches!(&isMarketOrder, Value::Bool(true)) { Value::Str("stopLoss".to_string()) } else { Value::Str("stopLossLimit".to_string()) })); }
         }  else if isTakeProfit {
             if (takeProfitPrice != Value::Null) {
                 triggerPrice = takeProfitPrice.clone();
             }
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), (if is_true(&isMarketOrder) { Value::Str("takeProfit".to_string()) } else { Value::Str("takeProfitLimit".to_string()) })); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), (if matches!(&isMarketOrder, Value::Bool(true)) { Value::Str("takeProfit".to_string()) } else { Value::Str("takeProfitLimit".to_string()) })); }
         }
         if (triggerPrice != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerAmount".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }

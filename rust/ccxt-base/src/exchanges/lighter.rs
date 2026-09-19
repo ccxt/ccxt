@@ -1360,7 +1360,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("timeInForce".to_string())]), &[]);
         let mut orderTypeNum: Value = Value::Null;
         let mut timeInForceNum: Value = Value::Null;
-        if is_true(&isMarketOrder) {
+        if matches!(&isMarketOrder, Value::Bool(true)) {
             orderTypeNum = Value::Int(1);
             timeInForceNum = Value::Int(0);
         }  else {
@@ -1375,7 +1375,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             timeInForceNum = Value::Int(2);
             orderExpiry = Value::Int(-1);
         }  else {
-            if !is_true(&isMarketOrder) {
+            if !(matches!(&isMarketOrder, Value::Bool(true))) {
                 if (timeInForce.as_deref() == Some("ioc")) {
                     timeInForceNum = Value::Int(0);
                     orderExpiry = Value::Int(0);
@@ -1400,14 +1400,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isConditional {
             amountStr = self.number_to_string(amount.clone());
             if (stopLossPrice != Value::Null) {
-                if is_true(&isMarketOrder) {
+                if matches!(&isMarketOrder, Value::Bool(true)) {
                     orderTypeNum = Value::Int(2);
                 }  else {
                     orderTypeNum = Value::Int(3);
                 }
                 triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice.clone());
             }  else if (takeProfitPrice != Value::Null) {
-                if is_true(&isMarketOrder) {
+                if matches!(&isMarketOrder, Value::Bool(true)) {
                     orderTypeNum = Value::Int(4);
                 }  else {
                     orderTypeNum = Value::Int(5);
@@ -1990,7 +1990,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isUSDC: Value = (Value::Bool(code.as_str() == Some("USDC")));
         let mut depositMin: Value = Value::Null;
         let mut withdrawMin: Value = Value::Null;
-        if is_true(&isUSDC) {
+        if matches!(&isUSDC, Value::Bool(true)) {
             depositMin = self.safe_number_k(rawCurrency.clone(), "min_transfer_amount", &[]);
             withdrawMin = self.safe_number_k(rawCurrency.clone(), "min_withdrawal_amount", &[]);
         }
@@ -3161,7 +3161,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut side: Value = Value::Null;
         if (isAsk != Value::Null) {
-            side = (if is_true(&isAsk) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if isAsk.as_bool() == Some(true) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
         if (type_var == Value::Null) {
@@ -3979,7 +3979,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut takerOrMaker: Value = Value::Null;
         if (side != Value::Null) && (isMakerAsk != Value::Null) {
-            let mut isMaker: Value = (if is_true(&(side.as_str() == Some("sell"))) { isMakerAsk.clone() } else { Value::Bool(!is_true(&isMakerAsk)) });
+            let mut isMaker: Value = (if is_true(&(side.as_str() == Some("sell"))) { isMakerAsk.clone() } else { Value::Bool(!(isMakerAsk.as_bool() == Some(true))) });
             takerOrMaker = (if is_true(&isMaker) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         return self.safe_trade(Value::Map({
