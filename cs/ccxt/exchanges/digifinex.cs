@@ -5118,7 +5118,7 @@ public partial class digifinex : Exchange
         string pathPart = ((bool) (isEqual(endpoint, "spot"))) ? "/v3" : "/swap/v2";
         string request = ("/" + this.implodeParams(path, parameters));
         string payload = (pathPart + request);
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), payload);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), payload);
         object query = this.omit(parameters, this.extractParams(path));
         string? urlencoded = null;
         if (signed && ((pathPart == "/swap/v2")) && (isEqual(method, "POST")))
@@ -5205,7 +5205,7 @@ public partial class digifinex : Exchange
             throw new BadResponse ((string)feedback) ;
         }
         List<object> unknownError = new List<object>() {typeof(ExchangeError), feedback};
-        var ExceptionClassmessageVariable = this.safeValue((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, unknownError);
         var ExceptionClass = ((IList<object>) ExceptionClassmessageVariable)[0];
         var message = ((IList<object>) ExceptionClassmessageVariable)[1];
         throwDynamicException(ExceptionClass, message);return null;

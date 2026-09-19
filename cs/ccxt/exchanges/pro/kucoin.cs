@@ -203,7 +203,7 @@ public partial class kucoin : ccxt.kucoin
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
+        string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
         var client = this.client(url);
         if (!(inOp(((WebSocketClient)client).subscriptions, messageHash)))
         {
@@ -246,7 +246,7 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<object> getUtaUrl()
     {
         string? utaToken = await this.authenticateUta();
-        return add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "?token="), utaToken);
+        return add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "?token="), utaToken);
     }
 
     public async virtual Task<string?> authenticateUta()
@@ -259,7 +259,7 @@ public partial class kucoin : ccxt.kucoin
         Int64 now = this.milliseconds();
         bool expired = isGreaterThanOrEqual((subtract(now, lastUpdate)), refreshInterval);
         string messageHash = "utaToken";
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);
         if (((utaToken == null)) || expired)
         {
@@ -565,7 +565,7 @@ public partial class kucoin : ccxt.kucoin
             { "symbols", this.marketIds(symbols) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
+        string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
         var client = this.client(url);
         object messageHashWithSymbols = add(add(channel, ":"), String.Join(",", ((IList<object>)symbols).ToArray()));
         if (!(inOp(((WebSocketClient)client).subscriptions, messageHashWithSymbols)))

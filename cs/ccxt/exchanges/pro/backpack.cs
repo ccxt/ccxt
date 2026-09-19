@@ -63,7 +63,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
@@ -83,7 +83,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
         this.checkRequiredCredentials();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         string instruction = "subscribe";
         string ts = ((object)this.nonce()).ToString();
         string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";

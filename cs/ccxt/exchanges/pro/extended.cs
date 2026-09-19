@@ -66,7 +66,7 @@ public partial class extended : ccxt.extended
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ("orderbook:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbooks/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbooks/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -155,7 +155,7 @@ public partial class extended : ccxt.extended
     public async virtual Task<object> watchPrivate(object messageHash, object subscription = null)
     {
         this.checkRequiredCredentials();
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/account");
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/account");
         if (((this.clients == null)) || !(inOp(this.clients, url)))
         {
             Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
@@ -600,7 +600,7 @@ public partial class extended : ccxt.extended
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ("fundingRate:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/funding/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/funding/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -678,7 +678,7 @@ public partial class extended : ccxt.extended
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ("markPrice:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/prices/mark/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/prices/mark/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -745,7 +745,7 @@ public partial class extended : ccxt.extended
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = ("trades:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/publicTrades/"), (market.ContainsKey("id") ? market["id"] : null));
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/publicTrades/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -862,7 +862,7 @@ public partial class extended : ccxt.extended
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, parameters));
-        object url = add(add(add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query);
+        object url = add(add(add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query);
         object ohlcv = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolVar },
@@ -959,9 +959,9 @@ public partial class extended : ccxt.extended
         }
         string feedback = ((this.id + " ") + this.json(message));
         string? errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
         string? errorMessage = this.safeString(error, "message");
-        this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
 

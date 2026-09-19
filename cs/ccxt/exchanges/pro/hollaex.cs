@@ -502,7 +502,7 @@ public partial class hollaex : ccxt.hollaex
     public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },
@@ -529,7 +529,7 @@ public partial class hollaex : ccxt.hollaex
             // that would trigger a new connection on each received message
             ((IDictionary<string,object>)this.options)["ws-expires"] = expires;
         }
-        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         string auth = (("CONNECT" + "/stream") + (expires));
         string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
@@ -558,7 +558,7 @@ public partial class hollaex : ccxt.hollaex
             if (!isEqual(error, null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), error, feedback);
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), error, feedback);
             }
         } catch(Exception e)
         {

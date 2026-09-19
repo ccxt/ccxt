@@ -1137,7 +1137,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)(this.id + " watchExecuteRequest() requires requestIdString")) ;
         }
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "gateway"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "gateway"));
         string messageHash = ("execute:" + (requestIdString));
         return await this.watch(url, messageHash, request, messageHash);
     }
@@ -1145,7 +1145,7 @@ public partial class nado : ccxt.nado
     public async virtual Task<object> watchPublic(object streamType, object market, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", streamType },
         };
@@ -1179,7 +1179,7 @@ public partial class nado : ccxt.nado
     public async virtual Task<object> watchPrivate(object streamType, object stream, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         var client = this.client(url);
         object clientSubscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if ((clientSubscription != null))
@@ -1206,7 +1206,7 @@ public partial class nado : ccxt.nado
     public async virtual Task<object> unWatchPrivate(object stream, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         Int64 id = ((Int64)this.requestId());
         string unsubscribeHash = ("unsubscribe:" + (messageHash));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1230,7 +1230,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         var client = this.client(url);
         string messageHash = "authenticated";
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
@@ -1318,7 +1318,7 @@ public partial class nado : ccxt.nado
     public async virtual Task<object> watchPublicMultiple(object streamType, object markets, object messageHashes, object parameters = null, object subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         var client = this.client(url);
         for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
@@ -1351,7 +1351,7 @@ public partial class nado : ccxt.nado
     public async virtual Task<object> unWatchPublic(object streamType, object market, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         Int64 id = ((Int64)this.requestId());
         Dictionary<string, object> request = this.createPublicSubscriptionRequest("unsubscribe", streamType, market, id, parameters);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1370,7 +1370,7 @@ public partial class nado : ccxt.nado
     public async virtual Task<object> unWatchPublicMultiple(object streamType, object markets, object messageHashes, object parameters = null, object subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         var client = this.client(url);
         List<object> results = new List<object>() {};
         for (int i = 0; i < getArrayLength(messageHashes); i++)
@@ -2097,7 +2097,7 @@ public partial class nado : ccxt.nado
 
     public override object ping(WebSocketClient client)
     {
-        string? gatewayUrl = ((string)getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "gateway"));
+        string? gatewayUrl = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "gateway"));
         if (isEqual(client.url, gatewayUrl))
         {
             // the v2 gateway is kept alive with protocol-level ping frames,

@@ -105,7 +105,7 @@ public partial class okx : ccxt.okx
         string sandboxSuffix = ((bool) (isEqual(isSandbox, true))) ? "?brokerId=9999" : "";
         bool isBusiness = (isEqual(access, "business"));
         bool isPublic = (isEqual(access, "public"));
-        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if (isBusiness || (((string)channel).IndexOf("candle", StringComparison.Ordinal) > -1) || (isEqual(channel, "orders-algo")))
         {
             return add(add(url, "/business"), sandboxSuffix);
@@ -2818,12 +2818,12 @@ public partial class okx : ccxt.okx
                 string feedback = ((this.id + " ") + this.json(message));
                 if ((errorCode != "1"))
                 {
-                    this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
                 }
                 string? messageString = this.safeString(message, "msg");
                 if ((messageString != null))
                 {
-                    this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
                 } else
                 {
                     List<object> data = this.safeList(message, "data", new List<object>() {});
@@ -2833,12 +2833,12 @@ public partial class okx : ccxt.okx
                         errorCode = this.safeString(d, "sCode");
                         if ((errorCode != null))
                         {
-                            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
                         }
                         messageString = this.safeString(d, "sMsg");
                         if ((messageString != null))
                         {
-                            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+                            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
                         }
                     }
                 }

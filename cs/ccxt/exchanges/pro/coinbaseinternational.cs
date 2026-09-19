@@ -109,7 +109,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             messageHash = add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
             productIds = new List<object>() {((string)(market.ContainsKey("id") ? market["id"] : null))};
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         if ((url == null))
         {
             throw new NotSupported ((string)(this.id + " is not supported in sandbox environment")) ;
@@ -170,7 +170,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         if ((url == null))
         {
             throw new NotSupported ((string)(this.id + " is not supported in sandbox environment")) ;
@@ -876,8 +876,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         try
         {
             string feedback = (((this.id + " ") + errMsg) + reason);
-            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), reason, feedback);
-            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), reason, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), reason, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), reason, feedback);
             throw new ExchangeError ((string)feedback) ;
         } catch(Exception e)
         {

@@ -3785,7 +3785,7 @@ public partial class grvt : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), path);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), path);
         string queryString = "";
         if (isEqual(method, "GET"))
         {
@@ -3869,7 +3869,7 @@ public partial class grvt : Exchange
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
                 throw new ExchangeError ((string)feedback) ;
             } else
             {
@@ -3877,7 +3877,7 @@ public partial class grvt : Exchange
                 if ((message != null))
                 {
                     string feedback = ((this.id + " ") + (body));
-                    this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
                     throw new ExchangeError ((string)feedback) ;
                 } else
                 {

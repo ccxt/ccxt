@@ -1108,7 +1108,7 @@ public partial class coinspot : Exchange
         object accessType = ((bool) isVersionedApi) ? getValue(api, 1) : api;
         string endpoint = ("/" + this.implodeParams(path, parameters));
         string fullPath = ((bool) ((version != null))) ? (("/" + (version)) + endpoint) : endpoint;
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), accessType), fullPath);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), accessType), fullPath);
         if (isEqual(accessType, "private"))
         {
             this.checkRequiredCredentials();

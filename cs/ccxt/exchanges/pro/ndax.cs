@@ -56,7 +56,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbol);
         string name = "SubscribeLevel1";
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
@@ -137,7 +137,7 @@ public partial class ndax : ccxt.ndax
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "SubscribeTrades";
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
@@ -242,7 +242,7 @@ public partial class ndax : ccxt.ndax
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "SubscribeTicker";
         string messageHash = ((((name + ":") + (timeframeVar)) + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
@@ -406,7 +406,7 @@ public partial class ndax : ccxt.ndax
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "SubscribeLevel2";
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar;
         Dictionary<string, object> payload = new Dictionary<string, object>() {

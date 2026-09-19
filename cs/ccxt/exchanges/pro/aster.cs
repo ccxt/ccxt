@@ -179,7 +179,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -239,7 +239,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -334,7 +334,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -395,7 +395,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -533,7 +533,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -588,7 +588,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(this.id + " unWatchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -722,7 +722,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -778,7 +778,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1062,7 +1062,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1117,7 +1117,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1265,7 +1265,7 @@ public partial class aster : ccxt.aster
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
         string? type = this.safeString(firstMarket, "type", "swap");
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1330,7 +1330,7 @@ public partial class aster : ccxt.aster
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
         string? type = this.safeString(firstMarket, "type", "swap");
-        object url = getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1507,7 +1507,7 @@ public partial class aster : ccxt.aster
             }
         } catch(Exception error)
         {
-            object url = add(add(getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type), "/"), listenKey);
+            object url = add(add(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type), "/"), listenKey);
             var client = this.client(url);
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (int i = 0; i < messageHashes.Count; i++)
@@ -1530,7 +1530,7 @@ public partial class aster : ccxt.aster
         type ??= "spot";
         IDictionary<string, object> listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
         string? listenKey = this.safeString(listenKeyOptions, type);
-        object url = add(add(getValue(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type), "/"), listenKey);
+        object url = add(add(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type), "/"), listenKey);
         return url;
     }
 

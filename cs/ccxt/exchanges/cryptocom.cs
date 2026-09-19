@@ -4224,7 +4224,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), ((string)type)), "/"), path);
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), ((string)type)), "/"), path);
         object query = this.omit(parameters, this.extractParams(path));
         if ((access == "public"))
         {
@@ -4279,7 +4279,7 @@ public partial class cryptocom : Exchange
         if ((errorCode != "0"))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;

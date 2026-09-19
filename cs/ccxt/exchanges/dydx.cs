@@ -2820,7 +2820,7 @@ public partial class dydx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? pathWithParams = this.implodeParams(path, parameters);
-        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section);
+        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section);
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         url = add(url, ("/" + pathWithParams));
@@ -2870,8 +2870,8 @@ public partial class dydx : Exchange
             if (isGreaterThan(errorCodeNum, 0))
             {
                 string feedback = ((this.id + " ") + this.json(response));
-                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-                this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
         }

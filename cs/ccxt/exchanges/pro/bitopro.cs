@@ -47,7 +47,7 @@ public partial class bitopro : ccxt.bitopro
 
     public async virtual Task<object> watchPublic(object path, object messageHash, object marketId)
     {
-        object url = add(add(add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "public"), "/"), path), "/"), marketId);
+        object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "public"), "/"), path), "/"), marketId);
         return await this.watch(url, messageHash, null, messageHash);
     }
 
@@ -229,7 +229,7 @@ public partial class bitopro : ccxt.bitopro
             Dictionary<string, object> market = this.market(symbol);
             messageHash = add(add(messageHash, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         }
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private"), "/"), "user-trades");
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private"), "/"), "user-trades");
         this.authenticate(url);
         object trades = await this.watch(url, messageHash, null, messageHash);
         if (this.newUpdates)
@@ -481,7 +481,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         string messageHash = "ACCOUNT_BALANCE";
-        object url = add(add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private"), "/"), "account-balance");
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private"), "/"), "account-balance");
         this.authenticate(url);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }

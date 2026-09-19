@@ -6840,10 +6840,10 @@ public partial class mexc : Exchange
         {
             if ((section == "broker"))
             {
-                url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), ((string)access)), "/"), path);
+                url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), ((string)access)), "/"), path);
             } else
             {
-                url = add(add(add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), ((string)access)), "/api/"), this.version), "/"), path);
+                url = add(add(add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), ((string)access)), "/api/"), this.version), "/"), path);
             }
             object urlParams = parameters;
             if ((access == "private"))
@@ -6884,7 +6884,7 @@ public partial class mexc : Exchange
             }
         } else if ((section == "contract") || (section == "spot2"))
         {
-            url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), ((string)access)), "/"), this.implodeParams(path, parameters));
+            url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), ((string)access)), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if ((access == "public"))
             {
@@ -6954,8 +6954,8 @@ public partial class mexc : Exchange
         if (((responseCode != null)) && ((responseCode != "200")) && ((responseCode != "0")))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), responseCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), responseCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

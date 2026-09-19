@@ -1200,7 +1200,7 @@ public partial class bitbank : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = (this.implodeHostname(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/");
+        object url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/");
         if ((isEqual(api, "public")) || (isEqual(api, "markets")))
         {
             url = add(url, this.implodeParams(path, parameters));
@@ -1339,7 +1339,7 @@ public partial class bitbank : Exchange
             };
             string? code = this.safeString(data, "code");
             string? message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, message);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, message);
             throw new ExchangeError ((string)((this.id + " ") + this.json(response))) ;
         }
         return null;

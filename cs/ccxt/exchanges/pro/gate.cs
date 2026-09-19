@@ -2182,10 +2182,10 @@ public partial class gate : ccxt.gate
             string? messageHash = this.safeString(((WebSocketClient)client).subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, this.json(message));
-                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, this.json(errs));
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, this.json(message));
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, this.json(errs));
                 string? errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
-                this.throwBroadlyMatchedException(getValue((((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad"), errorMessage, this.json(message));
+                this.throwBroadlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad"), errorMessage, this.json(message));
                 throw new ExchangeError ((string)this.json(message)) ;
             } catch(Exception e)
             {
@@ -2461,7 +2461,7 @@ public partial class gate : ccxt.gate
 
     public virtual object getUrlByMarket(object market)
     {
-        object baseUrl = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(market, "type"));
+        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(market, "type"));
         if (isEqual(getValue(market, "contract"), true))
         {
             return ((bool) (isEqual(getValue(market, "linear"), true))) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc");
@@ -2492,7 +2492,7 @@ public partial class gate : ccxt.gate
     public virtual object getUrlByMarketType(object type, object isInverse = null)
     {
         isInverse ??= false;
-        object api = (((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object api = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object url = this.safeValue(api, type);
         if ((isEqual(type, "swap")) || (isEqual(type, "future")))
         {

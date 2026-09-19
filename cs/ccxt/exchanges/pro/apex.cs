@@ -304,7 +304,7 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = ((object)this.milliseconds()).ToString();
-            url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "&timestamp="), timeStamp);
+            url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "&timestamp="), timeStamp);
             ((IDictionary<string,object>)this.options)["wsPublicUrl"] = url;
         }
         return url;
@@ -316,7 +316,7 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = ((object)this.milliseconds()).ToString();
-            url = add(add(getValue(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "&timestamp="), timeStamp);
+            url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "&timestamp="), timeStamp);
             ((IDictionary<string,object>)this.options)["wsPrivateUrl"] = url;
         }
         return url;
@@ -1071,9 +1071,9 @@ public partial class apex : ccxt.apex
             if ((code != null) && (code != "0"))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
                 string? msg = this.safeString2(message, "retMsg", "ret_msg");
-                this.throwBroadlyMatchedException((((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
             bool? success = this.safeBool(message, "success");

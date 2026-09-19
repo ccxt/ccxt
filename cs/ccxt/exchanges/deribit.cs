@@ -4560,7 +4560,7 @@ public partial class deribit : Exchange
                 { "Authorization", (((((((("deri-hmac-sha256 id=" + (this.apiKey)) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };
         }
-        object url = add(getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), request);
+        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), request);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
