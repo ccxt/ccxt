@@ -291,13 +291,16 @@
             "fetchCurrencies": "todo, returns only 1",
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4034",
-                "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
+                "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
+            },
+            "fetchTrades": {
+                "cost": "absent market.precision.amount",
+                "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540",
+                "sideSequence": "todo check, eg https://bit2c.co.il/Exchanges/BtcNis/trades.json",
+                "amountPriceCost": "todo check"
             },
             "fetchTicker": {
                 "lastBetweenBidAsk": "very low volume exchange"
-            },
-            "fetchTrades": {
-                "sideSequence": "todo check, eg https://bit2c.co.il/Exchanges/BtcNis/trades.json"
             }
         }
     },
@@ -321,10 +324,13 @@
                 "spread": "ask equals to bid",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:291"
             },
+            "fetchTickers": "todo fix parsing",
+            "fetchTrades": {
+                "amountPriceCost": "todo"
+            },
             "fetchTicker": {
                 "lastBetweenBidAsk": "very low volume exchange"
-            },
-            "fetchTickers": "todo fix parsing"
+            }
         }
     },
     "bitfinex": {
@@ -432,18 +438,27 @@
                 "quoteVolume": "incorrect",
                 "compareOHLC": "todo"
             },
+            "orderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
+            },
             "watchTrades":{
-                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
-                "timestampSort": "messed order coming from exchange"
+                "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
+                "timestamp": "messed order coming from exchange",
+                "cost": "assertAmountPriceCost fails: https://app.travis-ci.com/github/ccxt/ccxt/builds/273689721#L4102"
+            },
+            "watchTradesForSymbols":{
+                "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
+                "timestamp": "messed order coming from exchange",
+                "cost": "same as watchTrades"
+            },
+            "ohlcv": {
+                "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
             "watchOrderBook": {
                 "spread": "bid>ask issue, https://github.com/ccxt/ccxt/actions/runs/14356838751/job/40248419588?pr=25638#step:9:437"
-            },
-            "watchOrderBookForSymbols": {
-                "spread": "same"
             }
         }
     },
@@ -557,6 +572,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "need directional parsing, eg https://www.bitrue.com/api/v1/trades?symbol=BTCUSDT&limit=12000"
+            },
+            "watchTrades": {
+                "amountPriceCost": "todo check"
             }
         }
     },
@@ -613,11 +631,13 @@
         "until": "2026-03-30",
         "skipMethods": {
             "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined"
+                "precision":"not provided",
+                "active": "not provided",
+                "info": "null"
             },
             "fetchTrades": {
                 "side": "side is undefined",
+                "cost": "calculation minor precision issue: https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L4610",
                 "requireBothSides": "same",
                 "sideSequence": "todo check"
             },
@@ -1206,6 +1226,7 @@
             },
             "fetchTickers": "requires custom param",
             "fetchTrades": {
+                "cost": "precision needs rewrite for deribit, like it's for bitmex",
                 "side": "todo fix"
             }
         }
@@ -1345,6 +1366,9 @@
             },
             "fetchOHLCV": {
                 "compareOHLCV": "api engine broken : https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1479"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check, eg https://api.foxbit.com.br/rest/v3/markets/btcusdt/trades/history?page_size=200"
             }
         }
     },
@@ -2348,8 +2372,9 @@
     "tokocrypto": {
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195",
+                "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2573,6 +2598,12 @@
             "loadMarkets": {
                 "active": "is undefined"
             },
+            "watchTrades": {
+                "cost": "absent market.precision.amount"
+            },
+            "watchTradesForSymbols": {
+                "cost": "same as above"
+            },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
             }
@@ -2598,6 +2629,9 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "watchTrades": {
+                "amountPriceCost": "todo check"
             }
         }
     },
@@ -2658,7 +2692,8 @@
                 "takerOrMaker": "todo fix"
             },
             "fetchTrades": {
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "amountPriceCost": "todo"
             }
         }
     },
@@ -2716,7 +2751,8 @@
             },
             "fetchTrades": {
                 "side": "not provided",
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "amountPriceCost": "todo"
             },
             "watchTrades": {
                 "side": "not provided"
