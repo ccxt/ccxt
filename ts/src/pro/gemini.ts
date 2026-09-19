@@ -156,7 +156,7 @@ export default class gemini extends geminiRest {
         }, market);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "trade",
@@ -183,7 +183,7 @@ export default class gemini extends geminiRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "l2_updates",
@@ -241,7 +241,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    handleTradesForMultidata (client: Client, trades: any, timestamp: Int) {
+    handleTradesForMultidata (client: Client, trades: any[], timestamp: Int): void {
         if (trades !== undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const storesForSymbols: Dict = {};
@@ -308,7 +308,7 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): Dict {
         //
         //     {
         //         "type": "candles_15m_updates",
@@ -404,7 +404,7 @@ export default class gemini extends geminiRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
         const changes = this.safeList (message, 'changes', []);
         const marketId = this.safeStringLower (message, 'symbol');
@@ -464,7 +464,7 @@ export default class gemini extends geminiRest {
         return this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
-    handleBidsAsksForMultidata (client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int) {
+    handleBidsAsksForMultidata (client: Client, rawBidAskChanges: any[], timestamp: Int, nonce: Int): void {
         //
         // {
         //     eventId: '1683002916916153',
@@ -528,7 +528,7 @@ export default class gemini extends geminiRest {
         client.resolve (bidsAsksDict, messageHash);
     }
 
-    async helperForWatchMultipleConstruct (itemHashName:string, symbols: Strings = undefined, params: Dict = {}) {
+    async helperForWatchMultipleConstruct (itemHashName: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -561,7 +561,7 @@ export default class gemini extends geminiRest {
         return await this.watchMultiple (url, messageHashes, undefined);
     }
 
-    handleOrderBookForMultidata (client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int) {
+    handleOrderBookForMultidata (client: Client, rawOrderBookChanges: any[], timestamp: Int, nonce: Int): void {
         //
         // rawOrderBookChanges
         //
@@ -609,7 +609,7 @@ export default class gemini extends geminiRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleL2Updates (client: Client, message: any) {
+    handleL2Updates (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "l2_updates",
@@ -683,7 +683,7 @@ export default class gemini extends geminiRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleHeartbeat (client: Client, message: any) {
+    handleHeartbeat (client: Client, message: Dict): Dict {
         //
         //     {
         //         "type": "heartbeat",
@@ -697,7 +697,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    handleSubscription (client: Client, message: any) {
+    handleSubscription (client: Client, message: Dict): Dict {
         //
         //     {
         //         "type": "subscription_ack",
@@ -711,7 +711,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: any[]): void {
         //
         //     [
         //         {
@@ -810,7 +810,7 @@ export default class gemini extends geminiRest {
         }, market);
     }
 
-    parseWsOrderStatus (status: any) {
+    parseWsOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'accepted': 'open',
             'booked': 'open',
@@ -822,7 +822,7 @@ export default class gemini extends geminiRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrderType (type: any) {
+    parseWsOrderType (type: Str): Str {
         const types: Dict = {
             'exchange limit': 'limit',
             'market buy': 'market',
@@ -831,7 +831,7 @@ export default class gemini extends geminiRest {
         return this.safeString (types, type, type);
     }
 
-    handleError (client: Client, message: any) {
+    handleError (client: Client, message: Dict): void {
         //
         //     {
         //         "reason": "NoValidTradingPairs",
@@ -841,7 +841,7 @@ export default class gemini extends geminiRest {
         throw new ExchangeError (this.json (message));
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any): void {
         //
         //  public
         //     {
@@ -942,7 +942,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<void> {
         const url = this.safeString (params, 'url');
         if (url === undefined) {
             return;

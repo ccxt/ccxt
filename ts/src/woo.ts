@@ -967,7 +967,7 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseTokenAndFeeTemp (item: any, feeTokenKeys: any, feeAmountKeys: any) {
+    parseTokenAndFeeTemp (item: Dict, feeTokenKeys: string[], feeAmountKeys: string[]): FeeString {
         const feeCost = this.safeStringN (item, feeAmountKeys);
         let fee: FeeString = undefined;
         if (feeCost !== undefined) {
@@ -1558,7 +1558,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    encodeMarginMode (mode: any) {
+    encodeMarginMode (mode: Str): Str {
         const modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
@@ -2104,7 +2104,7 @@ export default class woo extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2269,7 +2269,7 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -2753,7 +2753,7 @@ export default class woo extends Exchange {
         return this.parseAccounts (rows, params);
     }
 
-    override parseAccount (account: any) {
+    override parseAccount (account: Dict) {
         //
         //     {
         //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2888,7 +2888,7 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (this.extend (data, { 'network': this.safeString (request, 'network') }), currency);
     }
 
-    getDedicatedNetworkId (currency: any, params: Dict): any {
+    getDedicatedNetworkId (currency: CurrencyInterface, params: Dict): any {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
@@ -3048,7 +3048,7 @@ export default class woo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
@@ -4143,7 +4143,7 @@ export default class woo extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'REDUCE', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: any, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, type: string, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4771,7 +4771,7 @@ export default class woo extends Exchange {
         } as ADL;
     }
 
-    defaultNetworkCodeForCurrency (code: any) { // TODO: can be moved into base as an unified method
+    defaultNetworkCodeForCurrency (code: string): Str { // TODO: can be moved into base as an unified method
         const currencyItem = this.currency (code);
         const networks = currencyItem['networks'];
         const networkKeys = Object.keys (networks);
@@ -4785,7 +4785,7 @@ export default class woo extends Exchange {
         return this.safeString (networkKeys, 0);
     }
 
-    override setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean): void {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
