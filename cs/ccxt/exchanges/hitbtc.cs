@@ -1029,7 +1029,7 @@ public partial class hitbtc : Exchange
         return this.parseCurrencies(enhancedArray);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         object currencyId = getValue(currency, "_coin_id");
         string? code = this.safeCurrencyCode(currencyId);
@@ -2836,7 +2836,7 @@ public partial class hitbtc : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // limit
@@ -2999,7 +2999,7 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(config, symbols, "symbol"));
     }
 
-    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
+    public override object parseMarginMode(object marginMode, object market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         return new Dictionary<string, object>() {
@@ -4047,7 +4047,7 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(response, market));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");

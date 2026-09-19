@@ -1782,22 +1782,22 @@ public partial class PredictionExchange : BaseExchange
         return this.omit(orderbook, "symbol");
     }
 
-    public virtual Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parsePredictionTicker() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, object market = null)
+    public virtual Dictionary<string, object> parsePredictionOrder(object order, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parsePredictionOrder() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, object market = null)
+    public virtual Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parsePredictionTrade() is not supported yet")) ;
     }
 
-    public virtual object parsePredictionPosition(IDictionary<string, object> position, object market = null)
+    public virtual object parsePredictionPosition(object position, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parsePredictionPosition() is not supported yet")) ;
     }

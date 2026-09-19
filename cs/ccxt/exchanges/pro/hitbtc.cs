@@ -723,7 +723,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public override object parseWsTrades(IList<object> trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public override object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
@@ -1035,7 +1035,7 @@ public partial class hitbtc : ccxt.hitbtc
         (client as WebSocketClient).resolve(orders, add(add(messageHash, "::"), symbol));
     }
 
-    public override object parseWsOrderTrade(IDictionary<string, object> trade, object market = null)
+    public override object parseWsOrderTrade(object trade, object market = null)
     {
         //
         //    {

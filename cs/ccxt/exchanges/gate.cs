@@ -2871,7 +2871,7 @@ public partial class gate : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
@@ -6159,7 +6159,7 @@ public partial class gate : Exchange
         return this.safeString(statuses, status, ((string)status));
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // SPOT
@@ -8523,7 +8523,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }
 
-    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
+    public override object parseBorrowInterest(object info, object market = null)
     {
         string? marketId = this.safeString(info, "currency_pair");
         market = this.safeMarket(marketId, market);
@@ -9772,7 +9772,7 @@ public partial class gate : Exchange
         throw new NullResponse ((string)((this.id + " fetchGreeks() could not find greeks for ") + (symbol))) ;
     }
 
-    public override object parseGreeks(IDictionary<string, object> greeks, object market = null)
+    public override object parseGreeks(object greeks, object market = null)
     {
         //
         //     {
@@ -9931,7 +9931,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbols, marketIdRequest, "spot"));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString2(leverage, "currency_pair", "id");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -10076,7 +10076,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(response), null, "name"));
     }
 
-    public override object parseOption(IDictionary<string, object> chain, object currency = null, object market = null)
+    public override object parseOption(object chain, object currency = null, object market = null)
     {
         //
         //     {

@@ -719,7 +719,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }, market);
     }
 
-    public override object parseWsOrderTrade(IDictionary<string, object> trade, object market = null)
+    public override object parseWsOrderTrade(object trade, object market = null)
     {
         //
         //    {

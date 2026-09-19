@@ -470,7 +470,7 @@ public partial class hyperliquid : Exchange
         return this.parseCurrencies(tokens);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         // const id = i;
         string? id = this.safeString(rawCurrency, "index");
@@ -3750,7 +3750,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrdersWs error

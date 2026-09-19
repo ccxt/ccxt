@@ -721,7 +721,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> ticker, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1271,7 +1271,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
     {
         //
         //     {
@@ -1524,7 +1524,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
     {
         string? tokenId = this.safeString(trade, "tokenId");
         object outcomeObj = this.safeOutcome(tokenId, ((object)market));
@@ -1675,7 +1675,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(IDictionary<string, object> position, object market = null)
+    public override object parsePredictionPosition(object position, object market = null)
     {
         string? tokenId = this.safeString(position, "tokenId");
         object outcomeObj = this.safeOutcome(tokenId, ((object)market));

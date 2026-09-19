@@ -722,7 +722,7 @@ public partial class bitso : Exchange
         return this.parseCurrencies(metadata);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "code");
         string? code = this.safeCurrencyCode(currencyId);
@@ -1449,7 +1449,7 @@ public partial class bitso : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //

@@ -821,7 +821,7 @@ public partial class derive : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
@@ -1325,7 +1325,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitVar));
     }
 
-    public override IList<object> parseTrades(IList<object> trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public override IList<object> parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
@@ -2321,7 +2321,7 @@ public partial class derive : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> rawOrder, object market = null)
+    public override Dictionary<string, object> parseOrder(object rawOrder, object market = null)
     {
         //
         // {

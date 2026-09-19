@@ -413,7 +413,7 @@ public partial class revolutx : Exchange
      * @param {object} currency the raw currency data from the exchange
      * @returns {object} a [currency structure]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? id = this.safeString2(currency, "id", "symbol", "");
         string? code = this.safeCurrencyCode(id);
@@ -979,7 +979,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         string? orderId = this.safeString2(order, "id", "venue_order_id");
         string? clientOrderId = this.safeString(order, "client_order_id");

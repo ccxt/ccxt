@@ -398,7 +398,7 @@ public partial class bitopro : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         string? currencyId = this.safeString(rawCurrency, "currency");
@@ -1133,7 +1133,7 @@ public partial class bitopro : Exchange
         return ((bool) ((status == null))) ? null : this.safeString(statuses, status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder

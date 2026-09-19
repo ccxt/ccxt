@@ -571,7 +571,7 @@ public partial class bigone : Exchange
         return this.parseCurrencies(currenciesData);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "symbol");
         string? code = this.safeCurrencyCode(id);
@@ -1593,7 +1593,7 @@ public partial class bigone : Exchange
         return this.safeString(types, ((string)type), type);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //    {

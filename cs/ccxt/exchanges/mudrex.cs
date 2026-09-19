@@ -984,7 +984,7 @@ public partial class mudrex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         string? oms = this.safeString(order, "symbol");
         market = this.safeMarket(oms, market);

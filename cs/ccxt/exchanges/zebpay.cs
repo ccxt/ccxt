@@ -492,7 +492,7 @@ public partial class zebpay : Exchange
         return this.parseCurrencies(rows);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
@@ -1536,7 +1536,7 @@ public partial class zebpay : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(responseData, market));
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //      {
@@ -2073,7 +2073,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         IDictionary<string, object> info = this.safeDict(leverage, "info");

@@ -740,7 +740,7 @@ public partial class bitmex : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? asset = this.safeString(currency, "asset");
         string? code = this.safeCurrencyCode(asset);
@@ -2339,7 +2339,7 @@ public partial class bitmex : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -2923,7 +2923,7 @@ public partial class bitmex : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(leverages, symbols, "symbol"));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         return new Dictionary<string, object>() {
@@ -3988,7 +3988,7 @@ public partial class bitmex : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(response, symbols));
     }
 
-    public override object parseADLRank(IDictionary<string, object> info, object market = null)
+    public override object parseADLRank(object info, object market = null)
     {
         //
         // fetchPositionsADLRank

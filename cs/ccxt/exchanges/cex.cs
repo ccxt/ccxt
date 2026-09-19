@@ -410,7 +410,7 @@ public partial class cex : Exchange
         return this.parseCurrencies(this.toArray(data));
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
@@ -1325,7 +1325,7 @@ public partial class cex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //                "orderId": "1313003",

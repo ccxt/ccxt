@@ -1396,7 +1396,7 @@ public partial class phemex : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
@@ -3024,7 +3024,7 @@ public partial class phemex : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         bool? isSwap = this.safeBool(market, "swap", false);
         bool hasPnl = ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnl"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnlRv"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("totalPnlRv")));
@@ -6097,7 +6097,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,((string)code), "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -6259,7 +6259,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbols, false));
     }
 
-    public override object parseADLRank(IDictionary<string, object> info, object market = null)
+    public override object parseADLRank(object info, object market = null)
     {
         //
         // fetchPositionADLRank: linear

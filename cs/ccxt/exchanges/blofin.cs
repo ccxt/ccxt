@@ -1709,7 +1709,7 @@ public partial class blofin : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // response similar for REST & WS
@@ -3247,7 +3247,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "instId");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -3442,7 +3442,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
+    public override object parseMarginMode(object marginMode, object market = null)
     {
         return new Dictionary<string, object>() {
             { "info", marginMode },
@@ -3597,7 +3597,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbols));
     }
 
-    public override object parseADLRank(IDictionary<string, object> info, object market = null)
+    public override object parseADLRank(object info, object market = null)
     {
         //
         // fetchPositionsADLRank

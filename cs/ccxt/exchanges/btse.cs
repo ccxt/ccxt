@@ -2943,7 +2943,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder - spot
@@ -3858,7 +3858,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
+    public override object parseMarginMode(object marginMode, object market = null)
     {
         //
         //     {

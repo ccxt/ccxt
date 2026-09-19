@@ -4728,7 +4728,7 @@ public partial class binance : Exchange
         return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         //
         //    {
@@ -8007,7 +8007,7 @@ public partial class binance : Exchange
         return this.safeString(types, ((string)type), type);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // spot
@@ -14969,7 +14969,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(leverages, symbols, "symbol"));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         bool? marginModeRaw = this.safeBool(leverage, "isolated");
@@ -16209,7 +16209,7 @@ public partial class binance : Exchange
         };
     }
 
-    public override object parseIsolatedBorrowRate(IDictionary<string, object> info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //    {
@@ -16440,7 +16440,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }
 
-    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
+    public override object parseBorrowInterest(object info, object market = null)
     {
         string? symbol = this.safeString(info, "isolatedSymbol");
         Int64? timestamp = this.safeInteger(info, "interestAccuredTime");
@@ -17251,7 +17251,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(response, symbols));
     }
 
-    public override object parseGreeks(IDictionary<string, object> greeks, object market = null)
+    public override object parseGreeks(object greeks, object market = null)
     {
         //
         //     {
@@ -17453,7 +17453,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(getValue(response, 0), market));
     }
 
-    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
+    public override object parseMarginMode(object marginMode, object market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
@@ -17524,7 +17524,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToOption(this.parseOption(chain, null, market));
     }
 
-    public override object parseOption(IDictionary<string, object> chain, object currency = null, object market = null)
+    public override object parseOption(object chain, object currency = null, object market = null)
     {
         //
         //     {
@@ -17947,7 +17947,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,((string)code), fromCurrencyKey, toCurrencyKey, since, limit));
     }
 
-    public override object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -18153,7 +18153,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(response, market));
     }
 
-    public override object parseLongShortRatio(IDictionary<string, object> info, object market = null)
+    public override object parseLongShortRatio(object info, object market = null)
     {
         //
         // linear
@@ -18300,7 +18300,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(responseList, symbols));
     }
 
-    public override object parseADLRank(IDictionary<string, object> info, object market = null)
+    public override object parseADLRank(object info, object market = null)
     {
         //
         // fetchADLRank

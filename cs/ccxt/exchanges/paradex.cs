@@ -1900,7 +1900,7 @@ public partial class paradex : Exchange
         return token;
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // {
@@ -3504,7 +3504,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(this.safeDict(configs, 0), market));
     }
 
-    public override object parseMarginMode(IDictionary<string, object> rawMarginMode, object market = null)
+    public override object parseMarginMode(object rawMarginMode, object market = null)
     {
         string? marketId = this.safeString(rawMarginMode, "market");
         market = this.safeMarket(marketId, market);
@@ -3587,7 +3587,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(this.safeDict(configs, 0), market));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "market");
         market = this.safeMarket(marketId, market);
@@ -3762,7 +3762,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(results, symbols));
     }
 
-    public override object parseGreeks(IDictionary<string, object> greeks, object market = null)
+    public override object parseGreeks(object greeks, object market = null)
     {
         //
         //     {

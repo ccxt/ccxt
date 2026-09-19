@@ -656,7 +656,7 @@ public partial class delta : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "symbol");
         Int64? numericId = this.safeInteger(rawCurrency, "id");
@@ -2040,7 +2040,7 @@ public partial class delta : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
@@ -3333,7 +3333,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(result, market));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "index_symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -3625,7 +3625,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToGreeks(this.parseGreeks(result, market));
     }
 
-    public override object parseGreeks(IDictionary<string, object> greeks, object market = null)
+    public override object parseGreeks(object greeks, object market = null)
     {
         //
         //     {
@@ -3815,7 +3815,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(result, market));
     }
 
-    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
+    public override object parseMarginMode(object marginMode, object market = null)
     {
         object symbol = null;
         if ((market != null))
@@ -3926,7 +3926,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToOption(this.parseOption(result, null, market));
     }
 
-    public override object parseOption(IDictionary<string, object> chain, object currency = null, object market = null)
+    public override object parseOption(object chain, object currency = null, object market = null)
     {
         //
         //     {
@@ -4191,7 +4191,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(result, symbols));
     }
 
-    public override object parseADLRank(IDictionary<string, object> info, object market = null)
+    public override object parseADLRank(object info, object market = null)
     {
         //
         // fetchPositionsADLRank

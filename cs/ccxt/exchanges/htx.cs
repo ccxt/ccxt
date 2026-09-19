@@ -4267,7 +4267,7 @@ public partial class htx : Exchange
         return this.parseCurrencies(data);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         if (!(this.options.ContainsKey("networkNamesByChainIds")))
         {
@@ -5839,7 +5839,7 @@ public partial class htx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // spot
@@ -8484,7 +8484,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToIsolatedBorrowRates(this.parseIsolatedBorrowRates(data));
     }
 
-    public override object parseIsolatedBorrowRate(IDictionary<string, object> info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -8894,7 +8894,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }
 
-    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
+    public override object parseBorrowInterest(object info, object market = null)
     {
         // isolated
         //    {
@@ -11240,7 +11240,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbols));
     }
 
-    public override object parseADLRank(IDictionary<string, object> info, object market = null)
+    public override object parseADLRank(object info, object market = null)
     {
         //
         // fetchPositionADLRank linear

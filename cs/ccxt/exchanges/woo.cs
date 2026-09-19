@@ -1495,7 +1495,7 @@ public partial class woo : Exchange
         return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "_coin_id");
         string? code = this.safeCurrencyCode(currencyId);
@@ -2346,7 +2346,7 @@ public partial class woo : Exchange
         return this.safeString(timeInForces, ((string)timeInForce));
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -4409,7 +4409,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         market = this.safeMarket(marketId, market);
@@ -4972,7 +4972,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,((string)code), "sellAsset", "buyAsset", since, limit));
     }
 
-    public override object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -5163,7 +5163,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(positions, symbols));
     }
 
-    public override object parseADLRank(IDictionary<string, object> info, object market = null)
+    public override object parseADLRank(object info, object market = null)
     {
         //
         // fetchPositionsADLRank

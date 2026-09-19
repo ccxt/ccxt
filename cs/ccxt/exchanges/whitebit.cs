@@ -949,7 +949,7 @@ public partial class whitebit : Exchange
         return this.parseCurrencies(enhancedArray);
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         string? id = this.safeString(rawCurrency, "_coin_id");
@@ -3051,7 +3051,7 @@ public partial class whitebit : Exchange
         return this.safeString(types, ((string)type), type);
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder, fetchOpenOrders, cancelOrder
@@ -3993,7 +3993,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }
 
-    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
+    public override object parseBorrowInterest(object info, object market = null)
     {
         //
         //     {
@@ -4505,7 +4505,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,((string)code), "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
         // fetchConvertQuote

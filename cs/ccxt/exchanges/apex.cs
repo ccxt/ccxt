@@ -576,7 +576,7 @@ public partial class apex : Exchange
         return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? currencyId = this.safeString(currency, "token");
         string? code = this.safeCurrencyCode(currencyId);
@@ -1257,7 +1257,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // {
