@@ -3049,7 +3049,7 @@ class grvt extends Exchange {
             'clientOrderId' => $this->safe_string($metadata, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimeStamp' => null,
+            'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer_product($stateObj, 'update_time', 0.000001),
             'status' => $this->parse_order_status($this->safe_string($stateObj, 'status')),
             'symbol' => $this->safe_string($market, 'symbol'),

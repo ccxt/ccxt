@@ -974,8 +974,8 @@ public partial class derive : Exchange
         object symbol = add(add(bs, "/"), quote);
         string? settleId = null;
         string? settle = null;
-        object expiry = null;
-        object strike = null;
+        Int64? expiry = null;
+        Int64? strike = null;
         string? optionType = null;
         string? optionLetter = null;
         if (isTrue(isEqual(type, "erc20")))
@@ -1154,7 +1154,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -1339,7 +1339,7 @@ public partial class derive : Exchange
             {
                 continue;
             }
-            object parsed = this.parseTrade(rawTrade, market);
+            Dictionary<string, object> parsed = this.parseTrade(rawTrade, market);
             Dictionary<string, object> trade = this.extend(parsed, parameters);
             ((IList<object>)result).Add(trade);
         }
@@ -1348,7 +1348,7 @@ public partial class derive : Exchange
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades & fetchMyTrades
@@ -1531,8 +1531,8 @@ public partial class derive : Exchange
         object accountHash = this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string DOMAIN_SEPARATOR = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
-        object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
-        object prefix = this.base16ToBinary("1901");
+        byte[] binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
+        byte[] prefix = this.base16ToBinary("1901");
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex");
     }
 
@@ -1546,8 +1546,8 @@ public partial class derive : Exchange
     {
         string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
-        object x19 = this.base16ToBinary("19");
-        object newline = this.base16ToBinary("0a");
+        byte[] x19 = this.base16ToBinary("19");
+        byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
@@ -1555,7 +1555,7 @@ public partial class derive : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
-        object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
@@ -1619,7 +1619,7 @@ public partial class derive : Exchange
         Int64 nonce = this.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         Int64? signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
-        object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string TRADE_MODULE_ADDRESS = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         string? priceString = this.numberToString(price);
@@ -1771,7 +1771,7 @@ public partial class derive : Exchange
         {
             rawOrder = this.safeDict(result, "order", new Dictionary<string, object>() {});
         }
-        object order = this.parseOrder(rawOrder, market);
+        Dictionary<string, object> order = this.parseOrder(rawOrder, market);
         ((IDictionary<string,object>)order)["type"] = type;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -1812,7 +1812,7 @@ public partial class derive : Exchange
         Int64 nonce = this.milliseconds();
         double? signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         // TODO: subaccount id / trade module address
-        object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string TRADE_MODULE_ADDRESS = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         string priceString = ((string)this.numberToString(price));
@@ -1936,7 +1936,7 @@ public partial class derive : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
         IDictionary<string, object> rawOrder = this.safeDict(result, "order", new Dictionary<string, object>() {});
-        object order = this.parseOrder(rawOrder, market);
+        Dictionary<string, object> order = this.parseOrder(rawOrder, market);
         return ccxt.BaseExchange.ToOrder(order);
     }
 
@@ -2321,7 +2321,7 @@ public partial class derive : Exchange
         return null;
     }
 
-    public override object parseOrder(object rawOrder, object market = null)
+    public override Dictionary<string, object> parseOrder(object rawOrder, object market = null)
     {
         //
         // {
@@ -2709,7 +2709,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         // {
@@ -2999,7 +2999,7 @@ public partial class derive : Exchange
             {
                 object balance = getValue(collaterals, j);
                 string? code = this.safeCurrencyCode(this.safeString(balance, "currency"));
-                object account = this.safeDict(result, code);
+                IDictionary<string, object> account = this.safeDict(result, code);
                 if (isTrue(isEqual(account, null)))
                 {
                     account = this.account();

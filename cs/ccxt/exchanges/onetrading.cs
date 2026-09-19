@@ -740,7 +740,7 @@ public partial class onetrading : Exchange
         IDictionary<string, object> firstSpotTier = this.safeDict(spotTiers, 0, new Dictionary<string, object>() {});
         IDictionary<string, object> firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -812,7 +812,7 @@ public partial class onetrading : Exchange
         futuresTakerFee = Precise.stringDiv(futuresTakerFee, "100");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // const tiers = this.parseFeeTiers (feeTiers);
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -853,7 +853,7 @@ public partial class onetrading : Exchange
         };
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -991,7 +991,7 @@ public partial class onetrading : Exchange
         IList<object> rawTickers = this.toArray(response);
         for (int i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(rawTickers, i));
+            Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -1145,7 +1145,7 @@ public partial class onetrading : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1195,7 +1195,7 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcv, market,((string)timeframeVar), since, limitVar));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1355,7 +1355,7 @@ public partial class onetrading : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder

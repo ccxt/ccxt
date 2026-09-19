@@ -68,6 +68,7 @@ function helper_test_fetch_trades_side_sequence($exchange, $skipped_properties, 
         $last_ts = null;
         $last_price = null;
         $last_side = null;
+        $last_trade = null;
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
             $ts = $trade['timestamp'];
@@ -79,17 +80,22 @@ function helper_test_fetch_trades_side_sequence($exchange, $skipped_properties, 
             $is_same_side = $side === $last_side;
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
             if ($is_same_ts && $is_same_side && !$is_same_price) {
+                $pair = array(
+                    'previous' => $last_trade,
+                    'current' => $trade,
+                );
                 $price_increasing = Precise::string_gt($price, $last_price);
                 $price_decreasing = Precise::string_lt($price, $last_price);
                 if ($price_increasing) {
-                    assert($side === 'buy', 'Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' . log_template($exchange, $method, $trade));
+                    assert($side === 'buy', 'Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' . log_template($exchange, $method, $pair));
                 } elseif ($price_decreasing) {
-                    assert($side === 'sell', 'Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' . log_template($exchange, $method, $trade));
+                    assert($side === 'sell', 'Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' . log_template($exchange, $method, $pair));
                 }
             }
             $last_price = $price;
             $last_ts = $ts;
             $last_side = $side;
+            $last_trade = $trade;
         }
         return true;
     }) ();

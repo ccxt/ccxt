@@ -771,8 +771,8 @@ public partial class lighter : Exchange
     {
         string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
-        object x19 = this.base16ToBinary("19");
-        object newline = this.base16ToBinary("0a");
+        byte[] x19 = this.base16ToBinary("19");
+        byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
@@ -780,14 +780,14 @@ public partial class lighter : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
-        object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
-    public virtual object signL1AndPrepareTxInfo(object txInfo, object message, object privateKey)
+    public virtual string? signL1AndPrepareTxInfo(object txInfo, object message, object privateKey)
     {
         object hashMessage = this.hashMessage(message);
         object signature = this.signHash(hashMessage, privateKey);
@@ -843,7 +843,7 @@ public partial class lighter : Exchange
         var txType = ((IList<object>) txTypetxInfomessageToSignVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfomessageToSignVariable)[1];
         var messageToSign = ((IList<object>) txTypetxInfomessageToSignVariable)[2];
-        object newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
+        string? newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", newTxInfo },
@@ -882,7 +882,7 @@ public partial class lighter : Exchange
         var txType = ((IList<object>) txTypetxInfomessageToSignVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfomessageToSignVariable)[1];
         var messageToSign = ((IList<object>) txTypetxInfomessageToSignVariable)[2];
-        object newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
+        string? newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", newTxInfo },
@@ -974,8 +974,8 @@ public partial class lighter : Exchange
         string? timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
         bool postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "timeInForce"});
-        object orderTypeNum = null;
-        object timeInForceNum = null;
+        int? orderTypeNum = null;
+        int? timeInForceNum = null;
         if (isTrue(isMarketOrder))
         {
             orderTypeNum = 1;
@@ -1679,11 +1679,11 @@ public partial class lighter : Exchange
         //         ]
         //     }
         //
-        object result = this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "remaining_base_amount");
+        Dictionary<string, object> result = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "remaining_base_amount"));
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -1918,7 +1918,7 @@ public partial class lighter : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2290,7 +2290,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -2636,7 +2636,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -2677,7 +2677,7 @@ public partial class lighter : Exchange
         //
         string? marketId = this.safeString(order, "market_index");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeTimestamp(order, "timestamp");
+        Int64? timestamp = this.safeTimestamp(order, "timestamp");
         bool? isAsk = this.safeBool(order, "is_ask");
         if (isTrue(isEqual(isAsk, null)))
         {
@@ -3440,7 +3440,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit, parameters));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         //     {

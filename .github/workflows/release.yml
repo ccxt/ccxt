@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   manual-job:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, release ]
     environment: Prod
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
@@ -44,31 +44,48 @@ jobs:
           fetch-depth: 2
           clean: false
           fetch-tags: true
-      - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          # cache: true
-          ini-values: |
-            zend.assertions=1
-            display_errors=On
+      # - name: Setup PHP with PECL extension
+      #   uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: '8.5'
+      #     # cache: true
+      #     ini-values: |
+      #       zend.assertions=1
+      #       display_errors=On
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
-      - name: create usr/share/dotnet folder
-        run: |
-          sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
-          run: |
-            sudo mkdir -p /usr/share/dotnet
+          dotnet-version: '10.0.302'
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'   # or '20' – but match what :lib is targeting
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.x'
+          cache-dependency-path: go/go.sum
+      - name: Resolve Cargo target directory
+        run: |
+          # The self-hosted runner provides rust/target as an untracked symlink into a
+          # per-instance cache, so concurrent jobs never share a build directory. The
+          # symlink is created before the job starts and can point at a directory that
+          # does not exist yet; cargo's own create_dir_all then fails ENOTDIR on the
+          # dangling link. Materialise it and resolve to an absolute path; fall back to
+          # a run-private directory anywhere else.
+          if [ -L rust/target ]; then
+            rust_target=$(readlink -f rust/target)
+            mkdir -p "$rust_target"
+          else
+            rust_target="$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            mkdir -p "$rust_target"
+          fi
+          printf 'CARGO_TARGET_DIR=%s\n' "$rust_target" >> "$GITHUB_ENV"
+          printf 'Cargo target: %s\n' "$rust_target"
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
@@ -95,16 +112,11 @@ jobs:
         run: npm run force-transpileJava
       - name: Build Java
         run: npm run buildJava
-      - name: Install Rust toolchain
-        run: |
-          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-          fi
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Transpile Rust
         run: npm run transpileRust
       - name: Build Rust
-        run: npm run buildRust
+        # the runners share CARGO_HOME; cargo-heal.sh re-extracts a crate whose unpacked sources got corrupted
+        run: build/utils/cargo-heal.sh npm run buildRust
       - name: Check Python syntax
         run: npm run check-python-syntax
       - name: Check PHP syntax
@@ -268,10 +280,32 @@ jobs:
       - name: Deploy Python Package
         run: python -m build --outdir python/dist
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-            packages-dir: 'python/dist'
-            print_hash: true
+        # pypa/gh-action-pypi-publish runs its upload inside a Docker container action,
+        # and the self-hosted release runner has no docker (`docker: command not found`).
+        # Trusted Publishing itself does not need docker: mint a short-lived PyPI API
+        # token from the ambient OIDC token, then upload with twine, which is already
+        # installed by the Install Python build tools step. This is PyPI's documented
+        # manual flow and keeps the same trusted-publisher identity -- no API secret.
+        env:
+          PYTHON_DIST_DIR: python/dist
+        run: |
+          set -euo pipefail
+          # id-token: write is already granted at the workflow level; without it these
+          # two variables are unset and the mint below cannot be attempted.
+          : "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:?OIDC token unavailable (needs id-token: write)}"
+          : "${ACTIONS_ID_TOKEN_REQUEST_URL:?OIDC token unavailable (needs id-token: write)}"
+
+          oidc_token=$(curl -fsS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=pypi" | jq -er '.value')
+
+          api_token=$(curl -fsS -X POST https://pypi.org/_/oidc/mint-token \
+            -d "{\"token\":\"${oidc_token}\"}" | jq -er '.token')
+          # Mask before any later command can echo it.
+          echo "::add-mask::${api_token}"
+
+          TWINE_USERNAME=__token__ TWINE_PASSWORD="${api_token}" \
+            python -m twine upload --non-interactive --disable-progress-bar \
+              "${PYTHON_DIST_DIR}"/*
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: NuGet login (OIDC - temp API key)

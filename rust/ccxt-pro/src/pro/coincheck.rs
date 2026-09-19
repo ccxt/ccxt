@@ -406,8 +406,8 @@ impl CoincheckCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_271: bool = true;
-            while { if !__for_first_271 { i = add(&i, &Value::Int(1)); } __for_first_271 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_276: bool = true;
+            while { if !__for_first_276 { i = add(&i, &Value::Int(1)); } __for_first_276 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut data: Value = self.safe_value(message.clone(), i.clone(), &[]);
             let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
             stored.append(trade.clone());

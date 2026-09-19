@@ -3342,6 +3342,9 @@ export default class bithumb extends Exchange {
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
         if (api === 'public') {
+            headers = {
+                'OPEN-API-PARTNER': 'CCXT',
+            };
             if (hasQuery) {
                 url += '?' + this.urlencode (query);
             }
@@ -3351,6 +3354,7 @@ export default class bithumb extends Exchange {
             if (isVersionedApi) {
                 headers = {
                     'Accept': 'application/json',
+                    'OPEN-API-PARTNER': 'CCXT',
                 };
                 const request: Dict = {
                     'access_key': this.apiKey,
@@ -3392,6 +3396,7 @@ export default class bithumb extends Exchange {
                     'Api-Key': this.apiKey,
                     'Api-Sign': signature64,
                     'Api-Nonce': nonce,
+                    'OPEN-API-PARTNER': 'CCXT',
                 };
             }
         }

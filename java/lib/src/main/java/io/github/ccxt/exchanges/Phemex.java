@@ -745,8 +745,8 @@ public class Phemex extends PhemexApi
                     put( "11028", BadSymbol.class );
                     put( "11029", ExchangeError.class );
                     put( "11030", ExchangeError.class );
-                    put( "11031", DDoSProtection.class );
-                    put( "11032", DDoSProtection.class );
+                    put( "11031", InvalidOrder.class );
+                    put( "11032", InvalidOrder.class );
                     put( "11033", DuplicateOrderId.class );
                     put( "11034", InvalidOrder.class );
                     put( "11035", InvalidOrder.class );
@@ -2921,7 +2921,7 @@ public class Phemex extends PhemexApi
             }};
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        Object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"))));
+        Object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), market)));
         Boolean postOnly = (Helpers.isEqual(timeInForce, "PO"));
         final Object finalClientOrderId = clientOrderId;
         final Object finalTimeInForce = timeInForce;
@@ -3821,6 +3821,17 @@ public class Phemex extends PhemexApi
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+                Object numRows = Helpers.getArrayLength(rows);
+                if (Helpers.isTrue(Helpers.isLessThan(numRows, 1)))
+                {
+                    if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+                    {
+                        throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")) ;
+                    } else
+                    {
+                        throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
+                    }
+                }
                 order = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(order, market);

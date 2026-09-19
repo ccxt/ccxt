@@ -19,7 +19,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
-from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -498,8 +497,8 @@ class phemex(Exchange, ImplicitAPI):
                     '11028': BadSymbol,  # TE_CURRENCY_INVALID Invalid currency ID or name
                     '11029': ExchangeError,  # TE_ACTION_INVALID Unrecognized request type
                     '11030': ExchangeError,  # TE_ACTION_BY_INVALID
-                    '11031': DDoSProtection,  # TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
-                    '11032': DDoSProtection,  # TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
+                    '11031': InvalidOrder,  # TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
+                    '11032': InvalidOrder,  # TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
                     '11033': DuplicateOrderId,  # TE_ORDER_ID_DUPLICATE Duplicated order ID
                     '11034': InvalidOrder,  # TE_SIDE_INVALID Invalid side
                     '11035': InvalidOrder,  # TE_ORD_TYPE_INVALID Invalid OrderType
@@ -2361,7 +2360,7 @@ class phemex(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(order, 'feeCurrency')),
             }
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        triggerPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'))))
+        triggerPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'), market)))
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
@@ -3059,6 +3058,12 @@ class phemex(Exchange, ImplicitAPI):
             order = self.safe_dict(data, 0, {})
         elif market['spot'] is True:
             rows = self.safe_list(data, 'rows', [])
+            numRows = len(rows)
+            if numRows < 1:
+                if clientOrderId is not None:
+                    raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found')
+                else:
+                    raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
             order = self.safe_dict(rows, 0, {})
         return self.parse_order(order, market)
 

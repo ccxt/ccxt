@@ -94,7 +94,7 @@ func (this *Deepcoin) Describe() any {
 }
 func (this *Deepcoin) Ping(client any) any {
 	var url any = client.(ccxt.ClientInterface).GetUrl()
-	if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(url, "private"), 0)) {
+	if ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(url, "private"), 0) {
 		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	}
 	return "ping"
@@ -105,7 +105,7 @@ func (this *Deepcoin) HandlePong(client any, message any) any {
 }
 func (this *Deepcoin) RequestId() any {
 	this.LockId()
-	var previousValue any = this.SafeInteger(this.Options, "lastRequestId", 0)
+	var previousValue *int64 = this.SafeInteger(this.Options, "lastRequestId", 0)
 	var newValue any = this.Sum(previousValue, 1)
 	ccxt.AddElementToObject(this.Options, "lastRequestId", newValue)
 	this.UnlockId()
@@ -117,11 +117,11 @@ func (this *Deepcoin) CreatePublicRequest(market any, requestId any, topicID any
 	unWatch := ccxt.GetArg(optionalArgs, 1, false)
 	_ = unWatch
 	var marketId any = ccxt.GetValue(market, "symbol") // spot markets use symbol with slash
-	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "type"), "swap")) {
+	if ccxt.IsEqual(ccxt.GetValue(market, "type"), "swap") {
 		marketId = ccxt.Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")) // swap markets use symbol without slash
 	}
 	var action string = "1" // subscribe
-	if ccxt.IsTrue(unWatch) {
+	if ccxt.EvalTruthy(unWatch) {
 		action = "0" // unsubscribe
 	}
 	var request map[string]any = map[string]any{
@@ -176,12 +176,12 @@ func (this *Deepcoin) unWatchPublicBody(ch chan any, market any, messageHash any
 	_ = suffix
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), ccxt.GetValue(market, "type"))
 	var requestId any = this.RequestId()
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsTrue(ccxt.IsEqual(existingSubscription, nil)) {
+	if ccxt.IsEqual(existingSubscription, nil) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id, " no subscription for "), messageHash)))
 	}
-	var subId any = this.SafeInteger(existingSubscription, "id")
+	var subId *int64 = this.SafeInteger(existingSubscription, "id")
 	var request any = this.CreatePublicRequest(market, subId, topicID, suffix, true) // unsubscribe message uses the same id as the original subscribe message
 	var unsubHash any = ccxt.Add("unsubscribe::", messageHash)
 	subscription = this.Extend(subscription, map[string]any{
@@ -234,8 +234,8 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
 	// settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
 	var messageHash string = "authenticate"
-	var client any = this.Client("authenticationFlights")
-	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+	var client ccxt.ClientInterface = this.Client("authenticationFlights")
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		// a flight is already in progress - wake when the leader
 		// settles it: the listenKey is then in the bucket
 
@@ -265,18 +265,18 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}
 			}()
 			// try block:
-			var listenKeyExpiryTimestamp any = this.SafeInteger(this.Options, "listenKeyExpiryTimestamp", time)
+			var listenKeyExpiryTimestamp *int64 = this.SafeInteger(this.Options, "listenKeyExpiryTimestamp", time)
 			var expired bool = ccxt.IsGreaterThan((ccxt.Subtract(time, listenKeyExpiryTimestamp)), 60000) // 1 minute before expiry
-			listenKey = this.SafeString(this.Options, "listenKey")
+			listenKey = ccxt.DerefScalar(this.SafeString(this.Options, "listenKey"))
 			var response any = nil
-			if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+			if ccxt.IsEqual(listenKey, nil) {
 
 				response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params))
 				ccxt.PanicOnError(response)
-			} else if ccxt.IsTrue(expired) {
-				var method any = this.SafeString(this.Options, "method", "privateGetDeepcoinListenkeyExtend")
-				var getNewKey bool = (ccxt.IsEqual(method, "privateGetDeepcoinListenkeyAcquire"))
-				if ccxt.IsTrue(getNewKey) {
+			} else if expired {
+				var method *string = this.SafeString(this.Options, "method", "privateGetDeepcoinListenkeyExtend")
+				var getNewKey bool = (method != nil && *method == "privateGetDeepcoinListenkeyAcquire")
+				if getNewKey {
 
 					response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params))
 					ccxt.PanicOnError(response)
@@ -289,10 +289,10 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 					ccxt.PanicOnError(response)
 				}
 			}
-			if ccxt.IsTrue(!ccxt.IsEqual(response, nil)) {
+			if !ccxt.IsEqual(response, nil) {
 				var data any = this.SafeDict(response, "data", map[string]any{})
-				listenKey = this.SafeString(data, "listenkey")
-				if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+				listenKey = ccxt.DerefScalar(this.SafeString(data, "listenkey"))
+				if ccxt.IsEqual(listenKey, nil) {
 					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
 				}
 				listenKeyExpiryTimestamp = this.SafeTimestamp(data, "expire_time")
@@ -336,7 +336,7 @@ func (this *Deepcoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes25312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes25312)
@@ -369,7 +369,7 @@ func (this *Deepcoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes27112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes27112)
@@ -419,9 +419,9 @@ func (this *Deepcoin) HandleTicker(client any, message any) {
 	var response any = this.SafeList(message, "r", []any{})
 	var first any = this.SafeDict(response, 0, map[string]any{})
 	var data any = this.SafeDict(first, "d", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedTicker any = this.ParseWsTicker(data, market)
 	var messageHash any = ccxt.Add(ccxt.Add("ticker", "::"), symbol)
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
@@ -452,16 +452,16 @@ func (this *Deepcoin) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger(ticker, "U")
-	var high any = this.SafeNumber(ticker, "H")
-	var low any = this.SafeNumber(ticker, "L")
-	var open any = this.SafeNumber(ticker, "O")
-	var last any = this.SafeNumber(ticker, "N")
-	var bid any = this.SafeNumber(ticker, "BP1")
-	var ask any = this.SafeNumber(ticker, "AP1")
-	var baseVolume any = this.SafeNumber(ticker, "V")
-	var quoteVolume any = this.SafeNumber(ticker, "T")
-	if ccxt.IsTrue(ccxt.IsEqual(this.SafeBool(market, "inverse"), true)) {
+	var timestamp *int64 = this.SafeInteger(ticker, "U")
+	var high *float64 = this.SafeNumber(ticker, "H")
+	var low *float64 = this.SafeNumber(ticker, "L")
+	var open *float64 = this.SafeNumber(ticker, "O")
+	var last *float64 = this.SafeNumber(ticker, "N")
+	var bid *float64 = this.SafeNumber(ticker, "BP1")
+	var ask *float64 = this.SafeNumber(ticker, "AP1")
+	var baseVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "V"))
+	var quoteVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "T"))
+	if ccxt.IsEqual(this.SafeBool(market, "inverse"), true) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume
 		quoteVolume = temp
@@ -515,7 +515,7 @@ func (this *Deepcoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes39812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39812)
@@ -525,7 +525,7 @@ func (this *Deepcoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.WatchPublicAsync(market, messageHash, "2", params))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -552,7 +552,7 @@ func (this *Deepcoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes42012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes42012)
@@ -592,15 +592,15 @@ func (this *Deepcoin) HandleTrades(client any, message any) {
 	var response any = this.SafeList(message, "r", []any{})
 	var first any = this.SafeDict(response, 0, map[string]any{})
 	var data any = this.SafeDict(first, "d", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
-	if !ccxt.IsTrue((ccxt.InOp(this.Trades, symbol))) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	var symbol *string = this.SafeSymbol(marketId, market)
+	if !(ccxt.InOp(this.Trades, symbol)) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
 	}
 	var strored any = ccxt.GetValue(this.Trades, symbol)
-	if ccxt.IsTrue(!ccxt.IsEqual(data, nil)) {
+	if !ccxt.IsEqual(data, nil) {
 		var trade any = this.ParseWsTrade(data, market)
 		strored.(ccxt.Appender).Append(trade)
 	}
@@ -643,12 +643,12 @@ func (this *Deepcoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var direction any = this.SafeString(trade, "D")
-	var timestamp any = this.SafeTimestamp2(trade, "TT", "T")
-	var matchRole any = this.SafeString(trade, "m")
+	var direction *string = this.SafeString(trade, "D")
+	var timestamp *int64 = this.SafeTimestamp2(trade, "TT", "T")
+	var matchRole *string = this.SafeString(trade, "m")
 	var fee any = nil
-	var feeCost any = this.SafeString(trade, "F")
-	if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
+	var feeCost *string = this.SafeString(trade, "F")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "f")),
@@ -670,7 +670,7 @@ func (this *Deepcoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Deepcoin) ParseTradeSide(direction any) any {
+func (this *Deepcoin) ParseTradeSide(direction any) *string {
 	var sides map[string]any = map[string]any{
 		"0": "buy",
 		"1": "sell",
@@ -713,7 +713,7 @@ func (this *Deepcoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes56212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56212)
@@ -721,13 +721,13 @@ func (this *Deepcoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var interval any = this.SafeString(timeframes, timeframe, timeframe)
+	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv", "::"), symbol), "::"), timeframe)
 	var suffix any = ccxt.Add("_", interval)
 
 	ohlcv := (<-this.WatchPublicAsync(market, messageHash, "11", params, suffix))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -757,7 +757,7 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = timeframe
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes58912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes58912)
@@ -765,7 +765,7 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var interval any = this.SafeString(timeframes, timeframe, timeframe)
+	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv", "::"), symbol), "::"), timeframe)
 	var suffix any = ccxt.Add("_", interval)
 	var subscription map[string]any = map[string]any{
@@ -805,20 +805,20 @@ func (this *Deepcoin) HandleOHLCV(client any, message any) {
 	var response any = this.SafeList(message, "r", []any{})
 	var first any = this.SafeDict(response, 0, map[string]any{})
 	var data any = this.SafeDict(first, "d", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
-	var interval any = this.SafeString(data, "P")
+	var symbol *string = this.SafeSymbol(marketId, market)
+	var interval *string = this.SafeString(data, "P")
 	var timeframe any = this.FindTimeframe(interval)
-	if !ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol))) {
+	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
-	if !ccxt.IsTrue((ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe))) {
-		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
 	}
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
-	if ccxt.IsTrue(!ccxt.IsEqual(data, nil)) {
+	if !ccxt.IsEqual(data, nil) {
 		var ohlcv any = this.ParseWsOHLCV(data, market)
 		stored.(ccxt.Appender).Append(ohlcv)
 	}
@@ -867,7 +867,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes68912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes68912)
@@ -906,7 +906,7 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes71112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes71112)
@@ -940,18 +940,18 @@ func (this *Deepcoin) OrderBookSuffix(market any, methodName any, optionalArgs .
 	// tick was rejected accepted the next coarser level
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbol any = this.SafeString(market, "symbol")
+	var symbol *string = this.SafeString(market, "symbol")
 	var aggregation any = nil
-	aggregationparamsVariable := this.HandleOptionAndParams(params, methodName, "aggregation")
+	var aggregationparamsVariable []any = this.HandleOptionAndParams(params, methodName, "aggregation")
 	aggregation = ccxt.GetValue(aggregationparamsVariable, 0)
 	params = ccxt.GetValue(aggregationparamsVariable, 1)
-	if ccxt.IsTrue(ccxt.IsEqual(aggregation, nil)) {
+	if ccxt.IsEqual(aggregation, nil) {
 		var precision any = this.SafeDict(market, "precision", map[string]any{})
-		var tickSize any = this.SafeNumber(precision, "price")
-		if ccxt.IsTrue(ccxt.IsEqual(tickSize, nil)) {
+		var tickSize *float64 = this.SafeNumber(precision, "price")
+		if tickSize == nil {
 			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires a params[\"aggregation\"] price level for "), symbol), " because the market has no price precision")))
 		}
-		aggregation = this.NumberToString(tickSize)
+		aggregation = ccxt.DerefScalar(this.NumberToString(tickSize))
 	}
 	return []any{ccxt.Add("_", aggregation), params}
 }
@@ -975,16 +975,16 @@ func (this *Deepcoin) HandleOrderBook(client any, message any) {
 	var response any = this.SafeList(message, "r", []any{})
 	var first any = this.SafeDict(response, 0, map[string]any{})
 	var data any = this.SafeDict(first, "d", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
-	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
+	var symbol *string = this.SafeSymbol(marketId, market)
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var typeVar any = this.SafeString(message, "t")
-	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(orderbook, "timestamp"), nil)) {
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "f")) {
+	var typeVar *string = this.SafeString(message, "t")
+	if ccxt.IsEqual(ccxt.GetValue(orderbook, "timestamp"), nil) {
+		if typeVar != nil && *typeVar == "f" {
 			// snapshot
 			this.HandleOrderBookSnapshot(client, message)
 		} else {
@@ -1001,9 +1001,9 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 	var entries any = this.SafeList(message, "r", []any{})
 	var first any = this.SafeDict(entries, 0, map[string]any{})
 	var data any = this.SafeDict(first, "d", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var orderedEntries map[string]any = map[string]any{
 		"bids": []any{},
@@ -1012,20 +1012,20 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(entries)); i++ {
 		var entry any = ccxt.GetValue(entries, i)
 		var entryData any = this.SafeDict(entry, "d", map[string]any{})
-		var side any = this.SafeString(entryData, "D")
-		var price any = this.SafeNumber(entryData, "P")
-		var volume any = this.SafeNumber(entryData, "V")
-		if ccxt.IsTrue(ccxt.IsEqual(side, "0")) {
+		var side *string = this.SafeString(entryData, "D")
+		var price *float64 = this.SafeNumber(entryData, "P")
+		var volume *float64 = this.SafeNumber(entryData, "V")
+		if side != nil && *side == "0" {
 			// bid
 			retRes81216 := ccxt.GetValue(orderedEntries, "bids")
 			ccxt.AppendToArray(&retRes81216, []any{price, volume})
-		} else if ccxt.IsTrue(ccxt.IsEqual(side, "1")) {
+		} else if side != nil && *side == "1" {
 			// ask
 			retRes81516 := ccxt.GetValue(orderedEntries, "asks")
 			ccxt.AppendToArray(&retRes81516, []any{price, volume})
 		}
 	}
-	var timestamp any = this.SafeInteger(message, "mt", 0)
+	var timestamp *int64 = this.SafeInteger(message, "mt", 0)
 	var snapshot any = this.ParseOrderBook(orderedEntries, symbol, timestamp)
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var cachedMessages any = orderbook.(ccxt.OrderBookInterface).GetCache()
@@ -1053,8 +1053,8 @@ func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook 
 	//         "mt": 1760975816446
 	//     }
 	//
-	var timestamp any = this.SafeInteger(message, "mt", 0)
-	if ccxt.IsTrue(ccxt.IsGreaterThan(timestamp, ccxt.GetValue(orderbook, "timestamp"))) {
+	var timestamp *int64 = this.SafeInteger(message, "mt", 0)
+	if ccxt.IsGreaterThan(timestamp, ccxt.GetValue(orderbook, "timestamp")) {
 		var response any = this.SafeList(message, "r", []any{})
 		this.HandleDeltas(orderbook, response)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -1065,13 +1065,13 @@ func (this *Deepcoin) HandleDelta(orderbook any, entry any) {
 	var data any = this.SafeDict(entry, "d", map[string]any{})
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
-	var side any = this.SafeString(data, "D")
-	var price any = this.SafeNumber(data, "P")
-	var volume any = this.SafeNumber(data, "V")
-	if ccxt.IsTrue(ccxt.IsEqual(side, "0")) {
+	var side *string = this.SafeString(data, "D")
+	var price *float64 = this.SafeNumber(data, "P")
+	var volume *float64 = this.SafeNumber(data, "V")
+	if side != nil && *side == "0" {
 		// bid
 		bids.(ccxt.IOrderBookSide).Store(price, volume)
-	} else if ccxt.IsTrue(ccxt.IsEqual(side, "1")) {
+	} else if side != nil && *side == "1" {
 		// ask
 		asks.(ccxt.IOrderBookSide).Store(price, volume)
 	}
@@ -1105,19 +1105,19 @@ func (this *Deepcoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var messageHash any = "myTrades"
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes88612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes88612)
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		symbol = this.Symbol(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
 	}
 
 	trades := (<-this.WatchPrivateAsync(messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1158,14 +1158,14 @@ func (this *Deepcoin) HandleMyTrade(client any, message any) {
 	var result any = this.SafeList(message, "result", []any{})
 	var first any = this.SafeDict(result, 0, map[string]any{})
 	var data any = this.SafeDict(first, "data", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var messageHash string = "myTrades"
 	var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) || ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)))) {
-		if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
-			var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) || (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)) {
+		if ccxt.IsEqual(this.MyTrades, nil) {
+			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var stored any = this.MyTrades
@@ -1204,19 +1204,19 @@ func (this *Deepcoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var messageHash any = "orders"
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes96512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes96512)
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		symbol = this.Symbol(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
 	}
 
 	orders := (<-this.WatchPrivateAsync(messageHash, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1257,14 +1257,14 @@ func (this *Deepcoin) HandleOrder(client any, message any) {
 	var result any = this.SafeList(message, "result", []any{})
 	var first any = this.SafeDict(result, 0, map[string]any{})
 	var data any = this.SafeDict(first, "data", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var messageHash string = "orders"
 	var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) || ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)))) {
-		if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-			var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
+	if (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) || (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)) {
+		if ccxt.IsEqual(this.Orders, nil) {
+			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var parsed any = this.ParseWsOrder(data, market)
@@ -1298,9 +1298,9 @@ func (this *Deepcoin) ParseWsOrder(order any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var state any = this.SafeString(order, "Or")
-	var timestamp any = this.SafeTimestamp(order, "IT")
-	var direction any = this.SafeString(order, "D")
+	var state *string = this.SafeString(order, "Or")
+	var timestamp *int64 = this.SafeTimestamp(order, "IT")
+	var direction *string = this.SafeString(order, "D")
 	return this.SafeOrder(map[string]any{
 		"id":                  this.SafeString(order, "OS"),
 		"clientOrderId":       nil,
@@ -1329,7 +1329,7 @@ func (this *Deepcoin) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Deepcoin) ParseWsOrderStatus(status any) any {
+func (this *Deepcoin) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"1": "closed",
 		"4": "open",
@@ -1365,7 +1365,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes110612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes110612)
@@ -1376,7 +1376,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	var messageHashes any = []any{}
-	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
@@ -1389,7 +1389,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	positions := (<-this.WatchMultiple(url, messageHashes, params, []any{"private"}))
 	ccxt.PanicOnError(positions)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 
 		ch <- positions
 		return nil
@@ -1425,13 +1425,13 @@ func (this *Deepcoin) HandlePosition(client any, message any) {
 	var result any = this.SafeList(message, "result", []any{})
 	var first any = this.SafeDict(result, 0, map[string]any{})
 	var data any = this.SafeDict(first, "data", map[string]any{})
-	var marketId any = this.SafeString(data, "I")
+	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var messageHash string = "positions"
 	var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) || ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)))) {
-		if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
+	if (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) || (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)) {
+		if ccxt.IsEqual(this.Positions, nil) {
 			this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 		}
 		var parsed any = this.ParseWsPosition(data, market)
@@ -1458,9 +1458,9 @@ func (this *Deepcoin) ParseWsPosition(position any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger(position, "U")
-	var direction any = this.SafeString(position, "p")
-	var marginMode any = this.SafeString(position, "i")
+	var timestamp *int64 = this.SafeInteger(position, "U")
+	var direction *string = this.SafeString(position, "p")
+	var marginMode *string = this.SafeString(position, "i")
 	return this.SafePosition(map[string]any{
 		"symbol":                      this.SafeString(market, "symbol"),
 		"id":                          nil,
@@ -1493,7 +1493,7 @@ func (this *Deepcoin) ParseWsPosition(position any, optionalArgs ...any) any {
 	})
 }
 func (this *Deepcoin) ParsePositionSide(direction any) any {
-	if ccxt.IsTrue(ccxt.IsEqual(direction, nil)) {
+	if ccxt.IsEqual(direction, nil) {
 		return direction
 	}
 	var directions map[string]any = map[string]any{
@@ -1503,7 +1503,7 @@ func (this *Deepcoin) ParsePositionSide(direction any) any {
 	return this.SafeString(directions, direction, direction)
 }
 func (this *Deepcoin) ParseWsMarginMode(marginMode any) any {
-	if ccxt.IsTrue(ccxt.IsEqual(marginMode, nil)) {
+	if ccxt.IsEqual(marginMode, nil) {
 		return marginMode
 	}
 	var modes map[string]any = map[string]any{
@@ -1513,29 +1513,29 @@ func (this *Deepcoin) ParseWsMarginMode(marginMode any) any {
 	return this.SafeString(modes, marginMode, marginMode)
 }
 func (this *Deepcoin) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(ccxt.IsEqual(message, "pong")) {
+	if ccxt.IsEqual(message, "pong") {
 		this.HandlePong(client, message)
 	} else {
-		var m any = this.SafeString(message, "m")
-		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(m, nil))) && ccxt.IsTrue((!ccxt.IsEqual(m, "Success")))) {
+		var m *string = this.SafeString(message, "m")
+		if (m != nil) && (m == nil || *m != "Success") {
 			this.HandleErrorMessage(client, message)
 		}
-		var action any = this.SafeString2(message, "a", "action")
-		if ccxt.IsTrue(ccxt.IsEqual(action, "RecvTopicAction")) {
+		var action *string = this.SafeString2(message, "a", "action")
+		if action != nil && *action == "RecvTopicAction" {
 			this.HandleSubscriptionStatus(client, message)
-		} else if ccxt.IsTrue(ccxt.IsEqual(action, "PO")) {
+		} else if action != nil && *action == "PO" {
 			this.HandleTicker(client, message)
-		} else if ccxt.IsTrue(ccxt.IsEqual(action, "PMT")) {
+		} else if action != nil && *action == "PMT" {
 			this.HandleTrades(client, message)
-		} else if ccxt.IsTrue(ccxt.IsEqual(action, "PK")) {
+		} else if action != nil && *action == "PK" {
 			this.HandleOHLCV(client, message)
-		} else if ccxt.IsTrue(ccxt.IsEqual(action, "PMO")) {
+		} else if action != nil && *action == "PMO" {
 			this.HandleOrderBook(client, message)
-		} else if ccxt.IsTrue(ccxt.IsEqual(action, "PushTrade")) {
+		} else if action != nil && *action == "PushTrade" {
 			this.HandleMyTrade(client, message)
-		} else if ccxt.IsTrue(ccxt.IsEqual(action, "PushOrder")) {
+		} else if action != nil && *action == "PushOrder" {
 			this.HandleOrder(client, message)
-		} else if ccxt.IsTrue(ccxt.IsEqual(action, "PushPosition")) {
+		} else if action != nil && *action == "PushPosition" {
 			this.HandlePosition(client, message)
 		}
 	}
@@ -1561,20 +1561,20 @@ func (this *Deepcoin) HandleSubscriptionStatus(client any, message any) {
 	var response any = this.SafeList(message, "r", []any{})
 	var first any = this.SafeDict(response, 0, map[string]any{})
 	var data any = this.SafeDict(first, "d", map[string]any{})
-	var action any = this.SafeString(data, "A") // 1 = subscribe, 0 = unsubscribe
-	if ccxt.IsTrue(ccxt.IsEqual(action, "0")) {
+	var action *string = this.SafeString(data, "A") // 1 = subscribe, 0 = unsubscribe
+	if action != nil && *action == "0" {
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-		var subId any = this.SafeInteger(data, "L")
+		var subId *int64 = this.SafeInteger(data, "L")
 		var subscription any = this.SafeDict(subscriptionsById, subId, map[string]any{}) // original watch subscription
-		var subHash any = this.SafeString(subscription, "subHash")
+		var subHash *string = this.SafeString(subscription, "subHash")
 		var unsubHash any = ccxt.Add("unsubscribe::", subHash)
 		var unsubsciption any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash, map[string]any{}) // unWatch subscription
 		this.HandleUnSubscription(client, unsubsciption)
 	}
 }
 func (this *Deepcoin) HandleUnSubscription(client any, subscription any) {
-	var subHash any = this.SafeString(subscription, "subHash")
-	var unsubHash any = this.SafeString(subscription, "unsubHash")
+	var subHash *string = this.SafeString(subscription, "subHash")
+	var unsubHash *string = this.SafeString(subscription, "unsubHash")
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	this.CleanCache(subscription)
 }
@@ -1596,14 +1596,14 @@ func (this *Deepcoin) HandleErrorMessage(client any, message any) {
 	//         ]
 	//     }
 	//
-	var messageText any = this.SafeString(message, "m", "")
+	var messageText *string = this.SafeString(message, "m", "")
 	var response any = this.SafeList(message, "r", []any{})
 	var first any = this.SafeDict(response, 0, map[string]any{})
 	var data any = this.SafeDict(first, "d", map[string]any{})
-	var requestId any = this.SafeInteger(data, "L")
+	var requestId *int64 = this.SafeInteger(data, "L")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, requestId, map[string]any{})
-	var messageHash any = this.SafeString(subscription, "subHash")
+	var messageHash *string = this.SafeString(subscription, "subHash")
 	var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
 
 	{
@@ -1643,6 +1643,7 @@ func (this *Deepcoin) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name deepcoin#watchTicker

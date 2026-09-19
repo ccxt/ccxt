@@ -20,14 +20,14 @@ func TestToArray() {
 		"a": "x",
 		"b": 2,
 	}
-	var result1 any = exchange.ToArray(obj1)
-	var result2 any = exchange.ToArray(obj2)
+	var result1 []any = exchange.ToArray(obj1)
+	var result2 []any = exchange.ToArray(obj2)
 	// we can't guarantee order of values in GO lang
 	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
 	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
 	//
-	assert(ccxt.IsEqual(ccxt.GetArrayLength(result1), 3), "testToArray: length of result1 should be 3")
-	assert(ccxt.IsEqual(ccxt.GetArrayLength(result2), 2), "testToArray: length of result2 should be 2")
-	assert(ccxt.IsTrue(ccxt.IsTrue(exchange.InArray(1, result1)) && ccxt.IsTrue(exchange.InArray(3, result1))) && ccxt.IsTrue(exchange.InArray(2, result1)), "testToArray: result1 should include 1, 3, and 2")
-	assert(ccxt.IsTrue(exchange.InArray("x", result2)) && ccxt.IsTrue(exchange.InArray(2, result2)), "testToArray: result2 should include \"x\" and 2")
+	assert((ccxt.IsEqual(ccxt.GetArrayLength(result1), 3)), "testToArray: length of result1 should be 3")
+	assert((ccxt.IsEqual(ccxt.GetArrayLength(result2), 2)), "testToArray: length of result2 should be 2")
+	assert(ccxt.EvalTruthy(exchange.InArray(1, result1)) && ccxt.EvalTruthy(exchange.InArray(3, result1)) && ccxt.EvalTruthy(exchange.InArray(2, result1)), "testToArray: result1 should include 1, 3, and 2")
+	assert(ccxt.EvalTruthy(exchange.InArray("x", result2)) && ccxt.EvalTruthy(exchange.InArray(2, result2)), "testToArray: result2 should include \"x\" and 2")
 }

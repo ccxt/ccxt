@@ -14,7 +14,7 @@ func testWatchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchMyTrades"
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	for IsLessThan(now, ends) {
 		var success bool = true
@@ -29,7 +29,7 @@ func testWatchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							now = exchange.Milliseconds()
@@ -47,7 +47,7 @@ func testWatchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 			}()
 
 		}
-		if IsTrue(IsEqual(success, true)) {
+		if success == true {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			now = exchange.Milliseconds()
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {

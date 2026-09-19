@@ -988,7 +988,7 @@ public class Ndax extends NdaxApi
             }
             Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Long levelSide = this.safeInteger(level, 9);
-            Object side = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(levelSide, null)) && Helpers.isTrue(!Helpers.isEqual(levelSide, null))) && Helpers.isTrue(!Helpers.isEqual(levelSide, 0)))))) ? asksKey : bidsKey;
+            Object side = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(levelSide, null)) && Helpers.isTrue(!Helpers.isEqual(levelSide, 0)))))) ? asksKey : bidsKey;
             ((List<Object>)Helpers.GetValue(result, side)).add(bidask);
         }
         Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));

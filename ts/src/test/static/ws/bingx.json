@@ -3,6 +3,262 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchMyTrades": [
+            {
+                "description": "linear swap final execution uses last fill instead of order or cumulative values",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "ap": "98",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": "2",
+                            "z": "5",
+                            "L": "105",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741003",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "9007199254741003",
+                        "info": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "ap": "98",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": "2",
+                            "z": "5",
+                            "L": "105",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741003",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "230000000000000001",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 105,
+                        "amount": 2,
+                        "cost": 210,
+                        "fee": {
+                            "cost": 0.21,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "linear swap market execution uses numeric last fill fields with zero order price",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": 0,
+                            "ap": 90,
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": 1,
+                            "z": 1,
+                            "L": 90,
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741004",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "9007199254741004",
+                        "info": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": 0,
+                            "ap": 90,
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": 1,
+                            "z": 1,
+                            "L": 90,
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741004",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "230000000000000001",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 90,
+                        "amount": 1,
+                        "cost": 90,
+                        "fee": {
+                            "cost": 0.21,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "linear swap legacy execution without last fill fields preserves parsing",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.10000000",
+                            "p": "64.35010000",
+                            "ap": "64.36000000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "z": "0.10000000",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741005",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "9007199254741005",
+                        "info": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.10000000",
+                            "p": "64.35010000",
+                            "ap": "64.36000000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "z": "0.10000000",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741005",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "230000000000000001",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 64.3501,
+                        "amount": 0.1,
+                        "cost": 6.43501,
+                        "fee": {
+                            "cost": 0.21,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "watchOrders": [
             {
                 "description": "spot partial order uses cumulative quote amount instead of limit price or last fill",
@@ -342,6 +598,220 @@
             }
         ],
         "watchTicker": [
+            {
+                "description": "inverse ticker uses coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "m": "2",
+                            "q": "100000"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 50000,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": 2,
+                        "quoteVolume": 100000,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "m": "2",
+                            "q": "100000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "inverse ticker does not substitute contracts for missing coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "q": "100000"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": null,
+                        "quoteVolume": 100000,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "q": "100000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "inverse ticker preserves zero coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "0",
+                            "m": "0",
+                            "q": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": 0,
+                        "quoteVolume": 0,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "0",
+                            "m": "0",
+                            "q": "0"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
             {
                 "description": "linear swap ticker",
                 "input": [

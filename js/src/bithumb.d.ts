@@ -431,7 +431,7 @@ export default class bithumb extends Exchange {
         url: string;
         method: string;
         body: Str;
-        headers: NullableDict;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

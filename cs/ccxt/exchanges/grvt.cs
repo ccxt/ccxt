@@ -823,7 +823,7 @@ public partial class grvt : Exchange
         {
             return true;  // skip if builder fee is already approved
         }
-        object results = await promiseAll(new List<object> {this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()});
+        List<object> results = await promiseAll(new List<object> {this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()});
         //
         // {
         //     "results": [{
@@ -930,7 +930,7 @@ public partial class grvt : Exchange
         {
             ((IList<object>)promises).Add(this.signIn());
         }
-        object results = await promiseAll(promises);
+        List<object> results = await promiseAll(promises);
         object response = getValue(results, 0);
         List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
@@ -1162,7 +1162,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(result, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //  {
@@ -1333,7 +1333,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1438,7 +1438,7 @@ public partial class grvt : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 1000;
@@ -2293,7 +2293,7 @@ public partial class grvt : Exchange
         //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
         //     }
         //
-        object responses = await promiseAll(promises);
+        List<object> responses = await promiseAll(promises);
         IDictionary<string, object> result1 = this.safeDict(getValue(responses, 0), "result", new Dictionary<string, object>() {});
         string? mainAccountId = this.safeString(result1, "main_account_id");
         ((IDictionary<string,object>)this.options)["userMainAccountId"] = mainAccountId;
@@ -2812,7 +2812,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //            {
@@ -3396,7 +3396,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
@@ -3509,7 +3509,7 @@ public partial class grvt : Exchange
             { "clientOrderId", this.safeString(metadata, "client_order_id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimeStamp", null },
+            { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001) },
             { "status", this.parseOrderStatus(this.safeString(stateObj, "status")) },
             { "symbol", this.safeString(market, "symbol") },
@@ -3543,7 +3543,7 @@ public partial class grvt : Exchange
         return this.safeStringUpper(types, type, type);
     }
 
-    public virtual object timeInForceToInt(object timeInForce)
+    public virtual Int64? timeInForceToInt(object timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "GOOD_TILL_TIME", 1 },
@@ -3552,7 +3552,7 @@ public partial class grvt : Exchange
             { "FILL_OR_KILL", 4 },
             { "RETAIL_PRICE_IMPROVEMENT", 5 },
         };
-        return this.safeInteger(timeInForces, timeInForce, 0);
+        return ((Int64?)((object)(this.safeInteger(timeInForces, timeInForce, 0))));
     }
 
     public virtual string? parseOrderStatus(object status)
@@ -3721,12 +3721,12 @@ public partial class grvt : Exchange
         }
         Dictionary<string, object> domainData = this.eipDomainData();
         Dictionary<string, object> definitions = this.eipDefinitions();
-        object ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
+        byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
         string ethEncodedMessageHashed = add("0x", this.hash(ethEncodedMessage, keccak, "hex"));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
-        object secretOrPrivkey = ((bool) isTrue(usesPrivKey)) ? this.privateKey : this.secret;
+        string? secretOrPrivkey = ((bool) isTrue(usesPrivKey)) ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        object signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(getValue(signature, "r"));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(getValue(signature, "s"));
         ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, getValue(signature, "v"));
@@ -3774,7 +3774,7 @@ public partial class grvt : Exchange
 
     public virtual object requestId()
     {
-        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Int64 requestId = ((Int64)this.sum(this.safeInteger(this.options, "requestId", 0), 1));
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         return requestId;
     }

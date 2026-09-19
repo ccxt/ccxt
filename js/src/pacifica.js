@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/pacifica.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -2960,8 +2960,9 @@ export default class pacifica extends Exchange {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const swapMarkets = await this.fetchSwapMarkets();
-        return this.parseOpenInterests(swapMarkets, symbols);
+        const response = await this.publicGetInfoPrices(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method
@@ -2973,12 +2974,16 @@ export default class pacifica extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        symbol = this.symbol(symbol);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        symbol = this.symbol(symbol);
         const ois = await this.fetchOpenInterests([symbol], params);
-        return ois[symbol];
+        const oi = this.safeDict(ois, symbol);
+        if (oi === undefined) {
+            throw new BadSymbol(this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
+        }
+        return oi;
     }
     parseOpenInterest(interest, market = undefined) {
         //

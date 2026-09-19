@@ -1268,8 +1268,8 @@ impl HibachiCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_730: bool = true;
-            while { if !__for_first_730 { i = add(&i, &Value::Int(1)); } __for_first_730 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_731: bool = true;
+            while { if !__for_first_731 { i = add(&i, &Value::Int(1)); } __for_first_731 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1466,8 +1466,8 @@ impl HibachiCore {
         let mut requestOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_731: bool = true;
-            while { if !__for_first_731 { i = add(&i, &Value::Int(1)); } __for_first_731 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_732: bool = true;
+            while { if !__for_first_732 { i = add(&i, &Value::Int(1)); } __for_first_732 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -1499,8 +1499,8 @@ impl HibachiCore {
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { i = add(&i, &Value::Int(1)); } __for_first_732 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
+            let mut __for_first_733: bool = true;
+            while { if !__for_first_733 { i = add(&i, &Value::Int(1)); } __for_first_733 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             append_to_array(&mut ret, self.safe_order(Value::Map({
@@ -1612,8 +1612,8 @@ impl HibachiCore {
         let mut requestOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { i = add(&i, &Value::Int(1)); } __for_first_733 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_734: bool = true;
+            while { if !__for_first_734 { i = add(&i, &Value::Int(1)); } __for_first_734 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
@@ -1646,8 +1646,8 @@ impl HibachiCore {
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { i = add(&i, &Value::Int(1)); } __for_first_734 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i = add(&i, &Value::Int(1)); } __for_first_735 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             append_to_array(&mut ret, self.safe_order(Value::Map({
@@ -1730,8 +1730,8 @@ impl HibachiCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { i = add(&i, &Value::Int(1)); } __for_first_735 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_736: bool = true;
+            while { if !__for_first_736 { i = add(&i, &Value::Int(1)); } __for_first_736 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut orderRequest: Value = self.cancel_order_request(get_value(&ids, &i));
             add_element_to_object(&mut orderRequest, &Value::Str("action".to_string()), Value::Str("cancel".to_string()));
             append_to_array(&mut orders, orderRequest.clone());
@@ -1752,8 +1752,8 @@ impl HibachiCore {
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_736: bool = true;
-            while { if !__for_first_736 { i = add(&i, &Value::Int(1)); } __for_first_736 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { i = add(&i, &Value::Int(1)); } __for_first_737 = false; is_less_than(&i, &get_array_length(&responseOrders)) } {
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             let mut responseOrder: Value = get_value(&responseOrders, &i);
             append_to_array(&mut ret, self.safe_order(Value::Map({
@@ -2922,8 +2922,8 @@ impl HibachiCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { i = add(&i, &Value::Int(1)); } __for_first_737 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_738: bool = true;
+            while { if !__for_first_738 { i = add(&i, &Value::Int(1)); } __for_first_738 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), &[market.clone()]));
         }
         }
@@ -3179,8 +3179,8 @@ impl HibachiCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_738: bool = true;
-            while { if !__for_first_738 { i = add(&i, &Value::Int(1)); } __for_first_738 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_739: bool = true;
+            while { if !__for_first_739 { i = add(&i, &Value::Int(1)); } __for_first_739 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_product(entry.clone(), Value::Str("fundingTimestamp".to_string()), Value::Int(1000), &[]);

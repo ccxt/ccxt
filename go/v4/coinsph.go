@@ -700,7 +700,7 @@ func (this *Coinsph) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !IsTrue(this.CheckRequiredCredentials(false)) {
+	if !this.CheckRequiredCredentials(false) {
 
 		ch <- map[string]any{}
 		return nil
@@ -774,16 +774,16 @@ func (this *Coinsph) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Coinsph) ParseCurrency(rawCurrency any) any {
-	var id any = this.SafeString(rawCurrency, "coin")
-	var code any = this.SafeCurrencyCode(id)
-	var isFiat any = this.SafeBool(rawCurrency, "isLegalMoney")
+	var id *string = this.SafeString(rawCurrency, "coin")
+	var code *string = this.SafeCurrencyCode(id)
+	var isFiat *bool = this.SafeBool(rawCurrency, "isLegalMoney")
 	var networkList any = this.SafeList(rawCurrency, "networkList", []any{})
 	var networks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var networkItem any = GetValue(networkList, j)
-		var network any = this.SafeString(networkItem, "network")
+		var network *string = this.SafeString(networkItem, "network")
 		var networkCode any = this.NetworkIdToCode(network, code)
-		if IsTrue(!IsEqual(networkCode, nil)) {
+		if !IsEqual(networkCode, nil) {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      networkItem,
 				"id":        network,
@@ -810,7 +810,7 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 		"id":        id,
 		"name":      this.SafeString(rawCurrency, "name"),
 		"code":      code,
-		"type":      Ternary(IsTrue((IsEqual(isFiat, true))), "fiat", "crypto"),
+		"type":      Ternary((isFiat != nil && *isFiat == true), "fiat", "crypto"),
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "transferPrecision"))),
 		"info":      rawCurrency,
 		"active":    nil,
@@ -825,26 +825,26 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 func (this *Coinsph) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	config := GetArg(optionalArgs, 0, map[string]any{})
 	_ = config
-	if IsTrue(IsTrue((InOp(config, "noSymbol"))) && !IsTrue((InOp(params, "symbol")))) {
+	if (InOp(config, "noSymbol")) && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if IsTrue(IsTrue(IsTrue((InOp(config, "noSymbolAndNoSymbols"))) && !IsTrue((InOp(params, "symbol")))) && !IsTrue((InOp(params, "symbols")))) {
+	} else if (InOp(config, "noSymbolAndNoSymbols")) && !(InOp(params, "symbol")) && !(InOp(params, "symbols")) {
 		return GetValue(config, "noSymbolAndNoSymbols")
-	} else if IsTrue(IsTrue((InOp(config, "byNumberOfSymbols"))) && IsTrue((InOp(params, "symbols")))) {
+	} else if (InOp(config, "byNumberOfSymbols")) && (InOp(params, "symbols")) {
 		var symbols any = GetValue(params, "symbols")
 		var symbolsAmount int = GetArrayLength(symbols)
 		var byNumberOfSymbols any = this.SafeList(config, "byNumberOfSymbols", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(byNumberOfSymbols)); i++ {
 			var entry any = GetValue(byNumberOfSymbols, i)
-			if IsTrue(IsGreaterThanOrEqual(symbolsAmount, GetValue(entry, 0))) {
+			if IsGreaterThanOrEqual(symbolsAmount, GetValue(entry, 0)) {
 				return GetValue(entry, 1)
 			}
 		}
-	} else if IsTrue(IsTrue((InOp(config, "byLimit"))) && IsTrue((InOp(params, "limit")))) {
+	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
 		var byLimit any = this.SafeList(config, "byLimit", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(byLimit)); i++ {
 			var entry any = GetValue(byLimit, i)
-			if IsTrue(IsGreaterThanOrEqual(limit, GetValue(entry, 0))) {
+			if IsGreaterThanOrEqual(limit, GetValue(entry, 0)) {
 				return GetValue(entry, 1)
 			}
 		}
@@ -997,11 +997,11 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		var market any = GetValue(markets, i)
-		var id any = this.SafeString(market, "symbol")
-		var baseId any = this.SafeString(market, "baseAsset")
-		var quoteId any = this.SafeString(market, "quoteAsset")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var id *string = this.SafeString(market, "symbol")
+		var baseId *string = this.SafeString(market, "baseAsset")
+		var quoteId *string = this.SafeString(market, "quoteAsset")
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var limits map[string]any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
 		var amountLimits any = this.SafeValue(limits, "LOT_SIZE", map[string]any{})
 		var priceLimits any = this.SafeValue(limits, "PRICE_FILTER", map[string]any{})
@@ -1087,13 +1087,13 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes89312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes89312)
 	}
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbols, nil)) {
+	if !IsEqual(symbols, nil) {
 		var ids any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 			var market any = this.Market(GetValue(symbols, i))
@@ -1104,13 +1104,13 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
 	var options any = this.SafeDict(this.Options, "fetchTickers", map[string]any{})
-	var method any = this.SafeString(options, "method", defaultMethod)
+	var method *string = this.SafeString(options, "method", defaultMethod)
 	var tickers any = []any{}
-	if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerPrice")) {
+	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
 
 		tickers = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
 		PanicOnError(tickers)
-	} else if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerBookTicker")) {
+	} else if method != nil && *method == "publicGetOpenapiQuoteV1TickerBookTicker" {
 
 		tickers = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
 		PanicOnError(tickers)
@@ -1145,7 +1145,7 @@ func (this *Coinsph) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes93212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93212)
@@ -1156,13 +1156,13 @@ func (this *Coinsph) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
 	var options any = this.SafeDict(this.Options, "fetchTicker", map[string]any{})
-	var method any = this.SafeString(options, "method", defaultMethod)
+	var method *string = this.SafeString(options, "method", defaultMethod)
 	var ticker any = map[string]any{}
-	if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerPrice")) {
+	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
 
 		ticker = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
 		PanicOnError(ticker)
-	} else if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerBookTicker")) {
+	} else if method != nil && *method == "publicGetOpenapiQuoteV1TickerBookTicker" {
 
 		ticker = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
 		PanicOnError(ticker)
@@ -1216,22 +1216,22 @@ func (this *Coinsph) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(ticker, "symbol")
+	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var timestamp any = this.SafeInteger(ticker, "closeTime")
-	var bid any = this.SafeString(ticker, "bidPrice")
-	var ask any = this.SafeString(ticker, "askPrice")
-	var bidVolume any = this.SafeString(ticker, "bidQty")
-	var askVolume any = this.SafeString(ticker, "askQty")
-	var baseVolume any = this.SafeString(ticker, "volume")
-	var quoteVolume any = this.SafeString(ticker, "quoteVolume")
-	var open any = this.SafeString(ticker, "openPrice")
-	var high any = this.SafeString(ticker, "highPrice")
-	var low any = this.SafeString(ticker, "lowPrice")
-	var prevClose any = this.SafeString(ticker, "prevClosePrice")
-	var vwap any = this.SafeString(ticker, "weightedAvgPrice")
-	var changeValue any = this.SafeString(ticker, "priceChange")
-	var changePcnt any = this.SafeString(ticker, "priceChangePercent")
+	var timestamp *int64 = this.SafeInteger(ticker, "closeTime")
+	var bid *string = this.SafeString(ticker, "bidPrice")
+	var ask *string = this.SafeString(ticker, "askPrice")
+	var bidVolume *string = this.SafeString(ticker, "bidQty")
+	var askVolume *string = this.SafeString(ticker, "askQty")
+	var baseVolume *string = this.SafeString(ticker, "volume")
+	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
+	var open *string = this.SafeString(ticker, "openPrice")
+	var high *string = this.SafeString(ticker, "highPrice")
+	var low *string = this.SafeString(ticker, "lowPrice")
+	var prevClose *string = this.SafeString(ticker, "prevClosePrice")
+	var vwap *string = this.SafeString(ticker, "weightedAvgPrice")
+	var changeValue *string = this.SafeString(ticker, "priceChange")
+	var changePcnt *string = this.SafeString(ticker, "priceChangePercent")
 	changePcnt = Precise.StringMul(changePcnt, "100")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
@@ -1278,7 +1278,7 @@ func (this *Coinsph) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes104312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes104312)
@@ -1287,7 +1287,7 @@ func (this *Coinsph) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1342,25 +1342,25 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes108612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108612)
 	}
 	var market any = this.Market(symbol)
-	var interval any = this.SafeString(this.Timeframes, timeframe)
-	var until any = this.SafeInteger(params, "until")
+	var interval *string = this.SafeString(this.Timeframes, timeframe)
+	var until *int64 = this.SafeInteger(params, "until")
 	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"interval": interval,
 	}
-	if IsTrue(IsEqual(limit, nil)) {
+	if IsEqual(limit, nil) {
 		limit = 1000
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 		// since work properly only when it is "younger" than last "limit" candle
-		if IsTrue(!IsEqual(until, nil)) {
+		if until != nil {
 			AddElementToObject(request, "endTime", until)
 		} else {
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
@@ -1368,7 +1368,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 			var now int64 = this.Milliseconds()
 			AddElementToObject(request, "endTime", mathMin(endTimeByLimit, now))
 		}
-	} else if IsTrue(!IsEqual(until, nil)) {
+	} else if until != nil {
 		AddElementToObject(request, "endTime", until)
 		// since work properly only when it is "younger" than last "limit" candle
 		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
@@ -1432,7 +1432,7 @@ func (this *Coinsph) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes116312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116312)
@@ -1441,11 +1441,11 @@ func (this *Coinsph) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		// since work properly only when it is "younger" than last 'limit' trade
 		AddElementToObject(request, "limit", 1000)
 	} else {
-		if IsTrue(!IsEqual(limit, nil)) {
+		if !IsEqual(limit, nil) {
 			AddElementToObject(request, "limit", limit)
 		}
 	}
@@ -1497,10 +1497,10 @@ func (this *Coinsph) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes121012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes121012)
@@ -1509,11 +1509,11 @@ func (this *Coinsph) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 		// since work properly only when it is "younger" than last 'limit' trade
 		AddElementToObject(request, "limit", 1000)
-	} else if IsTrue(!IsEqual(limit, nil)) {
+	} else if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1552,7 +1552,7 @@ func (this *Coinsph) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
 	}
 	var request map[string]any = map[string]any{
@@ -1604,37 +1604,37 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(trade, "symbol")
+	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var id any = this.SafeString2(trade, "id", "tradeId")
-	var orderId any = this.SafeString(trade, "orderId")
-	var timestamp any = this.SafeInteger(trade, "time")
-	var priceString any = this.SafeString(trade, "price")
-	var amountString any = this.SafeString(trade, "qty")
+	var id *string = this.SafeString2(trade, "id", "tradeId")
+	var orderId *string = this.SafeString(trade, "orderId")
+	var timestamp *int64 = this.SafeInteger(trade, "time")
+	var priceString *string = this.SafeString(trade, "price")
+	var amountString *string = this.SafeString(trade, "qty")
 	var typeVar any = nil
 	var fee map[string]any = map[string]any{}
-	var feeCost any = this.SafeString(trade, "commission")
-	if IsTrue(!IsEqual(feeCost, nil)) {
-		var feeCurrencyId any = this.SafeString(trade, "commissionAsset")
+	var feeCost *string = this.SafeString(trade, "commission")
+	if feeCost != nil {
+		var feeCurrencyId *string = this.SafeString(trade, "commissionAsset")
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 		}
 	}
-	var isBuyer any = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
+	var isBuyer *bool = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
 	var side any = nil
-	if IsTrue(!IsEqual(isBuyer, nil)) {
-		side = Ternary(IsTrue((IsEqual(isBuyer, true))), "buy", "sell")
+	if isBuyer != nil {
+		side = Ternary((isBuyer != nil && *isBuyer == true), "buy", "sell")
 	}
-	var isMaker any = this.SafeString(trade, "isMaker")
+	var isMaker *string = this.SafeString(trade, "isMaker")
 	var takerOrMaker any = nil
-	if IsTrue(!IsEqual(isMaker, nil)) {
-		takerOrMaker = Ternary(IsTrue((IsEqual(isMaker, "true"))), "maker", "taker")
+	if isMaker != nil {
+		takerOrMaker = Ternary((isMaker != nil && *isMaker == "true"), "maker", "taker")
 	}
 	var costString any = nil
-	if IsTrue(!IsEqual(orderId, nil)) {
-		costString = this.SafeString(trade, "quoteQty")
+	if orderId != nil {
+		costString = DerefScalar(this.SafeString(trade, "quoteQty"))
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1671,7 +1671,7 @@ func (this *Coinsph) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes134612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes134612)
@@ -1713,12 +1713,12 @@ func (this *Coinsph) ParseBalance(response any) any {
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var balance any = GetValue(balances, i)
-		var currencyId any = this.SafeString(balance, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var currencyId *string = this.SafeString(balance, "asset")
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "free"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		if IsTrue(!IsEqual(code, nil)) {
+		if code != nil {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -1753,15 +1753,15 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes141212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes141212)
 	}
 	var market any = this.Market(symbol)
-	var testOrder any = this.SafeBool(params, "test", false)
+	var testOrder *bool = this.SafeBool(params, "test", false)
 	params = this.Omit(params, "test")
-	var orderType any = this.SafeString(params, "type", typeVar)
+	var orderType any = DerefScalar(this.SafeString(params, "type", typeVar))
 	orderType = this.EncodeOrderType(orderType)
 	params = this.Omit(params, "type")
 	var orderSide any = this.EncodeOrderSide(side)
@@ -1773,37 +1773,37 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var options any = this.SafeValue(this.Options, "createOrder", map[string]any{})
 	var newOrderRespType any = this.SafeValue(options, "newOrderRespType", map[string]any{})
 	// if limit order
-	if IsTrue(IsTrue(IsTrue(IsTrue(IsEqual(orderType, "LIMIT")) || IsTrue(IsEqual(orderType, "STOP_LOSS_LIMIT"))) || IsTrue(IsEqual(orderType, "TAKE_PROFIT_LIMIT"))) || IsTrue(IsEqual(orderType, "LIMIT_MAKER"))) {
-		if IsTrue(IsEqual(price, nil)) {
+	if IsEqual(orderType, "LIMIT") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") || IsEqual(orderType, "LIMIT_MAKER") {
+		if IsEqual(price, nil) {
 			panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a price argument for a "), typeVar), " order")))
 		}
-		newOrderRespType = this.SafeString(newOrderRespType, "limit", "FULL")
+		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "limit", "FULL"))
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
-		if IsTrue(!IsEqual(orderType, "LIMIT_MAKER")) {
+		if !IsEqual(orderType, "LIMIT_MAKER") {
 			AddElementToObject(request, "timeInForce", this.SafeString(options, "timeInForce", "GTC"))
 		}
-	} else if IsTrue(IsTrue(IsTrue(IsEqual(orderType, "MARKET")) || IsTrue(IsEqual(orderType, "STOP_LOSS"))) || IsTrue(IsEqual(orderType, "TAKE_PROFIT"))) {
-		newOrderRespType = this.SafeString(newOrderRespType, "market", "FULL")
-		if IsTrue(IsEqual(orderSide, "SELL")) {
+	} else if IsEqual(orderType, "MARKET") || IsEqual(orderType, "STOP_LOSS") || IsEqual(orderType, "TAKE_PROFIT") {
+		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "market", "FULL"))
+		if IsEqual(orderSide, "SELL") {
 			AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
-		} else if IsTrue(IsEqual(orderSide, "BUY")) {
+		} else if IsEqual(orderSide, "BUY") {
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice any = true
-			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			var cost any = this.SafeNumber2(params, "cost", "quoteOrderQty")
+			var cost *float64 = this.SafeNumber2(params, "cost", "quoteOrderQty")
 			params = this.Omit(params, "cost")
-			if IsTrue(!IsEqual(cost, nil)) {
+			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
-			} else if IsTrue(createMarketBuyOrderRequiresPrice) {
-				if IsTrue(IsEqual(price, nil)) {
+			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+				if IsEqual(price, nil) {
 					panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")))
 				} else {
-					var amountString any = this.NumberToString(amount)
-					var priceString any = this.NumberToString(price)
-					var costRequest any = Precise.StringMul(amountString, priceString)
+					var amountString *string = this.NumberToString(amount)
+					var priceString *string = this.NumberToString(price)
+					var costRequest *string = Precise.StringMul(amountString, priceString)
 					quoteAmount = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {
@@ -1812,9 +1812,9 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			AddElementToObject(request, "quoteOrderQty", quoteAmount)
 		}
 	}
-	if IsTrue(IsTrue(IsTrue(IsTrue(IsEqual(orderType, "STOP_LOSS")) || IsTrue(IsEqual(orderType, "STOP_LOSS_LIMIT"))) || IsTrue(IsEqual(orderType, "TAKE_PROFIT"))) || IsTrue(IsEqual(orderType, "TAKE_PROFIT_LIMIT"))) {
-		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
-		if IsTrue(IsEqual(triggerPrice, nil)) {
+	if IsEqual(orderType, "STOP_LOSS") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") {
+		var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
+		if triggerPrice == nil {
 			panic(InvalidOrder(Add(this.Id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")))
 		}
 		AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, triggerPrice))
@@ -1822,7 +1822,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	AddElementToObject(request, "newOrderRespType", newOrderRespType)
 	params = this.Omit(params, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
 	var response any = map[string]any{}
-	if IsTrue(IsEqual(testOrder, true)) {
+	if testOrder != nil && *testOrder == true {
 
 		response = (<-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1885,14 +1885,14 @@ func (this *Coinsph) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes152412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes152412)
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
-	if IsTrue(!IsEqual(clientOrderId, nil)) {
+	if !IsEqual(clientOrderId, nil) {
 		AddElementToObject(request, "origClientOrderId", clientOrderId)
 	} else {
 		AddElementToObject(request, "orderId", id)
@@ -1933,14 +1933,14 @@ func (this *Coinsph) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes155112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes155112)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
@@ -1979,10 +1979,10 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes157912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes157912)
@@ -1991,11 +1991,11 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 		// since work properly only when it is "younger" than last 'limit' order
 		AddElementToObject(request, "limit", 1000)
-	} else if IsTrue(!IsEqual(limit, nil)) {
+	} else if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -2028,14 +2028,14 @@ func (this *Coinsph) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes160812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes160812)
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
-	if IsTrue(!IsEqual(clientOrderId, nil)) {
+	if !IsEqual(clientOrderId, nil) {
 		AddElementToObject(request, "origClientOrderId", clientOrderId)
 	} else {
 		AddElementToObject(request, "orderId", id)
@@ -2070,17 +2070,17 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes163612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes163612)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
@@ -2162,13 +2162,13 @@ func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(order, "orderId")
-	var marketId any = this.SafeString(order, "symbol")
+	var id *string = this.SafeString(order, "orderId")
+	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var timestamp any = this.SafeInteger2(order, "time", "transactTime")
+	var timestamp *int64 = this.SafeInteger2(order, "time", "transactTime")
 	var trades any = this.SafeValue(order, "fills")
-	var triggerPrice any = this.SafeString(order, "stopPrice")
-	if IsTrue(Precise.StringEq(triggerPrice, "0")) {
+	var triggerPrice any = DerefScalar(this.SafeString(order, "stopPrice"))
+	if Precise.StringEq(triggerPrice, "0") {
 		triggerPrice = nil
 	}
 	return this.SafeOrder(map[string]any{
@@ -2195,12 +2195,12 @@ func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Coinsph) ParseOrderSide(status any) any {
+func (this *Coinsph) ParseOrderSide(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"BUY":  "buy",
 		"SELL": "sell",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2210,12 +2210,12 @@ func (this *Coinsph) EncodeOrderSide(status any) any {
 		"buy":  "BUY",
 		"sell": "SELL",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderType(status any) any {
+func (this *Coinsph) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"MARKET":            "market",
 		"LIMIT":             "limit",
@@ -2225,7 +2225,7 @@ func (this *Coinsph) ParseOrderType(status any) any {
 		"TAKE_PROFIT":       "market",
 		"TAKE_PROFIT_LIMIT": "limit",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2240,12 +2240,12 @@ func (this *Coinsph) EncodeOrderType(status any) any {
 		"take_profit":       "TAKE_PROFIT",
 		"take_profit_limit": "TAKE_PROFIT_LIMIT",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderStatus(status any) any {
+func (this *Coinsph) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"FILLED":             "closed",
@@ -2254,18 +2254,18 @@ func (this *Coinsph) ParseOrderStatus(status any) any {
 		"PARTIALLY_CANCELED": "canceled",
 		"REJECTED":           "rejected",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderTimeInForce(status any) any {
+func (this *Coinsph) ParseOrderTimeInForce(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"GTC": "GTC",
 		"FOK": "FOK",
 		"IOC": "IOC",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2290,7 +2290,7 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes184312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes184312)
@@ -2335,7 +2335,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes187312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes187312)
@@ -2362,7 +2362,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = this.ParseTradingFee(GetValue(fees, i))
 		var symbol any = GetValue(fee, "symbol")
-		if IsTrue(!IsEqual(symbol, nil)) {
+		if !IsEqual(symbol, nil) {
 			AddElementToObject(result, symbol, fee)
 		}
 	}
@@ -2380,7 +2380,7 @@ func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(fee, "symbol")
+	var marketId *string = this.SafeString(fee, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	return map[string]any{
@@ -2418,16 +2418,16 @@ func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var options any = this.SafeValue(this.Options, "withdraw")
-	var warning any = this.SafeBool(options, "warning", true)
-	if IsTrue(IsEqual(warning, true)) {
+	var warning *bool = this.SafeBool(options, "warning", true)
+	if warning != nil && *warning == true {
 		panic(InvalidAddress(Add(this.Id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")))
 	}
-	var networkCode any = this.SafeString(params, "network")
-	var networkId any = Ternary(IsTrue((IsEqual(networkCode, nil))), nil, this.NetworkCodeToId(networkCode, code))
-	if IsTrue(IsEqual(networkId, nil)) {
+	var networkCode *string = this.SafeString(params, "network")
+	var networkId any = Ternary((networkCode == nil), nil, this.NetworkCodeToId(networkCode, code))
+	if IsEqual(networkId, nil) {
 		panic(BadRequest(Add(this.Id, " withdraw() require network parameter")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes194712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes194712)
@@ -2439,7 +2439,7 @@ func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any
 		"network": networkId,
 		"address": address,
 	}
-	if IsTrue(!IsEqual(tag, nil)) {
+	if !IsEqual(tag, nil) {
 		AddElementToObject(request, "withdrawOrderId", tag)
 	}
 	params = this.Omit(params, "network")
@@ -2479,21 +2479,21 @@ func (this *Coinsph) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes197812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes197812)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(code, nil)) {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -2560,21 +2560,21 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes203812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes203812)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(code, nil)) {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -2657,40 +2657,40 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 	// todo: this is in progress
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id any = this.SafeString(transaction, "id")
-	var address any = this.SafeString(transaction, "address")
-	var tag any = this.SafeString(transaction, "addressTag")
-	if IsTrue(!IsEqual(tag, nil)) {
-		if IsTrue(IsLessThan(GetLength(tag), 1)) {
+	var id *string = this.SafeString(transaction, "id")
+	var address *string = this.SafeString(transaction, "address")
+	var tag any = DerefScalar(this.SafeString(transaction, "addressTag"))
+	if !IsEqual(tag, nil) {
+		if IsLessThan(GetLength(tag), 1) {
 			tag = nil
 		}
 	}
-	var txid any = this.SafeString(transaction, "txId")
-	var currencyId any = this.SafeString(transaction, "coin")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp any = nil
+	var txid *string = this.SafeString(transaction, "txId")
+	var currencyId *string = this.SafeString(transaction, "coin")
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp *int64 = nil
 	timestamp = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var updated any = nil
 	var typeVar any = nil
-	var withdrawOrderId any = this.SafeString(transaction, "withdrawOrderId")
-	var depositOrderId any = this.SafeString(transaction, "depositOrderId")
-	if IsTrue(!IsEqual(withdrawOrderId, nil)) {
+	var withdrawOrderId *string = this.SafeString(transaction, "withdrawOrderId")
+	var depositOrderId *string = this.SafeString(transaction, "depositOrderId")
+	if withdrawOrderId != nil {
 		typeVar = "withdrawal"
-	} else if IsTrue(!IsEqual(depositOrderId, nil)) {
+	} else if depositOrderId != nil {
 		typeVar = "deposit"
 	}
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = this.SafeNumber(transaction, "amount")
-	var feeCost any = this.SafeNumber(transaction, "transactionFee")
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
+	var feeCost *float64 = this.SafeNumber(transaction, "transactionFee")
 	var fee any = nil
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
 		}
 	}
-	var network any = this.SafeString(transaction, "network")
-	var internal bool = IsEqual(network, "Internal")
+	var network *string = this.SafeString(transaction, "network")
+	var internal bool = (network != nil && *network == "Internal")
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -2714,14 +2714,14 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Coinsph) ParseTransactionStatus(status any) any {
+func (this *Coinsph) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "ok",
 		"2": "failed",
 		"3": "pending",
 	}
-	if IsTrue(IsEqual(status, nil)) {
+	if IsEqual(status, nil) {
 		return nil
 	}
 	return this.SafeString(statuses, status, status)
@@ -2747,12 +2747,12 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var networkCode any = this.SafeString(params, "network")
-	var networkId any = Ternary(IsTrue((IsEqual(networkCode, nil))), nil, this.NetworkCodeToId(networkCode, code))
-	if IsTrue(IsEqual(networkId, nil)) {
+	var networkCode *string = this.SafeString(params, "network")
+	var networkId any = Ternary((networkCode == nil), nil, this.NetworkCodeToId(networkCode, code))
+	if IsEqual(networkId, nil) {
 		panic(BadRequest(Add(this.Id, " fetchDepositAddress() require network parameter")))
 	}
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes221212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes221212)
@@ -2787,8 +2787,8 @@ func (this *Coinsph) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId any = this.SafeString(depositAddress, "coin")
-	var parsedCurrency any = this.SafeCurrencyCode(currencyId, currency)
+	var currencyId *string = this.SafeString(depositAddress, "coin")
+	var parsedCurrency *string = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": parsedCurrency,
@@ -2803,9 +2803,9 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 	var encodedArrayParams any = ""
 	var keys []string = ObjectKeys(query)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-		var key any = GetValue(keys, i)
-		if IsTrue(IsArray(GetValue(query, key))) {
-			if IsTrue(!IsEqual(i, 0)) {
+		var key string = GetValue(keys, i).(string)
+		if IsArray(GetValue(query, key)) {
+			if i != 0 {
 				encodedArrayParams = Add(encodedArrayParams, "&")
 			}
 			var innerArray any = GetValue(query, key)
@@ -2815,7 +2815,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 		}
 	}
 	var encodedQuery string = this.Urlencode(query)
-	if IsTrue(!IsEqual(GetLength(encodedQuery), 0)) {
+	if GetLength(encodedQuery) != 0 {
 		return Add(Add(encodedQuery, "&"), encodedArrayParams)
 	} else {
 		return encodedArrayParams
@@ -2843,13 +2843,13 @@ func (this *Coinsph) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var endpoint any = this.ImplodeParams(path, params)
 	url = Add(Add(url, "/"), endpoint)
-	if IsTrue(IsEqual(api, "private")) {
+	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		AddElementToObject(query, "timestamp", this.Milliseconds())
-		var recvWindow any = this.SafeInteger(query, "recvWindow")
-		if IsTrue(IsEqual(recvWindow, nil)) {
-			var defaultRecvWindow any = this.SafeInteger(this.Options, "recvWindow")
-			if IsTrue(!IsEqual(defaultRecvWindow, nil)) {
+		var recvWindow *int64 = this.SafeInteger(query, "recvWindow")
+		if recvWindow == nil {
+			var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
+			if defaultRecvWindow != nil {
 				AddElementToObject(query, "recvWindow", defaultRecvWindow)
 			}
 		}
@@ -2861,7 +2861,7 @@ func (this *Coinsph) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		query = this.UrlEncodeQuery(query)
-		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+		if !IsEqual(GetArrayLength(query), 0) {
 			url = Add(url, Add("?", query))
 		}
 	}
@@ -2873,11 +2873,11 @@ func (this *Coinsph) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Coinsph) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
-	var responseCode any = this.SafeString(response, "code")
-	if IsTrue(IsTrue(IsTrue((!IsEqual(responseCode, nil))) && IsTrue((!IsEqual(responseCode, "200")))) && IsTrue((!IsEqual(responseCode, "0")))) {
+	var responseCode *string = this.SafeString(response, "code")
+	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") && (responseCode == nil || *responseCode != "0") {
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), responseCode, feedback)
@@ -2900,6 +2900,7 @@ func (this *Coinsph) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinsph#fetchCurrencies
