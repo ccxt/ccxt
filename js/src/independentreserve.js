@@ -893,9 +893,9 @@ export default class independentreserve extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeValue(fees, market['base'], {});
+            const fee = this.safeDict(fees, market['base'], {});
             result[symbol] = {
-                'info': this.safeValue(fee, 'info'),
+                'info': this.safeDict(fee, 'info'),
                 'symbol': symbol,
                 'maker': this.safeNumber(fee, 'fee'),
                 'taker': this.safeNumber(fee, 'fee'),

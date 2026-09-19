@@ -1,5 +1,5 @@
 import dydxRest from '../dydx.js';
-import type { Int, Trade, OrderBook, OHLCV, Market } from '../base/types.js';
+import type { Int, Trade, Dict, OrderBook, OHLCV, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class dydx extends dydxRest {
     describe(): any;
@@ -25,8 +25,8 @@ export default class dydx extends dydxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: any, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name dydx#watchOrderBook
@@ -48,7 +48,7 @@ export default class dydx extends dydxRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     /**
      * @method
@@ -75,7 +75,7 @@ export default class dydx extends dydxRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

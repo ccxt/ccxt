@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -14,39 +14,9 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
-    constructCurrencyObject(id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any): {
-        id: any;
-        code: any;
-        info: any;
-        type: string;
-        name: any;
-        active: boolean;
-        deposit: undefined;
-        withdraw: undefined;
-        fee: Num;
-        precision: number;
-        limits: {
-            amount: {
-                min: number;
-                max: undefined;
-            };
-            price: {
-                min: number;
-                max: undefined;
-            };
-            cost: {
-                min: any;
-                max: undefined;
-            };
-            withdraw: {
-                min: undefined;
-                max: undefined;
-            };
-        };
-        networks: {};
-    };
-    fetchMarketsFromCache(params?: {}): Promise<Dict[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
+    constructCurrencyObject(id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any): Dict;
+    fetchMarketsFromCache(params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name bitstamp#fetchCurrencies
@@ -55,7 +25,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrencies(rawCurrencies: any): Currencies;
     /**
      * @method
@@ -67,7 +37,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -78,7 +48,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bitstamp#fetchTickers
@@ -88,9 +58,9 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    getCurrencyIdFromTransaction(transaction: any): string | undefined;
-    getMarketFromTrade(trade: any): import("./base/types.js").MarketInterface | undefined;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    getCurrencyIdFromTransaction(transaction: Dict): Str;
+    getMarketFromTrade(trade: Dict): Market;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -103,7 +73,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -117,7 +87,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -127,7 +97,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name bitstamp#fetchTradingFee
@@ -137,9 +107,9 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    parseTradingFees(fees: any): Dict;
+    parseTradingFees(fees: any[]): Dict;
     /**
      * @method
      * @name bitstamp#fetchTradingFees
@@ -148,7 +118,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTradingFees(params?: Dict): Promise<TradingFees>;
     /**
      * @method
      * @name bitstamp#fetchTransactionFees
@@ -159,7 +129,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTransactionFees(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchTransactionFees(codes?: Strings, params?: Dict): Promise<Dict>;
     parseTransactionFees(response: any, codes?: Strings): Dict;
     /**
      * @method
@@ -170,8 +140,8 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): DepositWithdrawFee;
     /**
      * @method
      * @name bitstamp#createOrder
@@ -190,7 +160,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitstamp#editOrder
@@ -208,7 +178,7 @@ export default class bitstamp extends Exchange {
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitstamp#cancelOrder
@@ -219,7 +189,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitstamp#cancelAllOrders
@@ -230,9 +200,9 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     parseOrderStatus(status: Str): Str;
-    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<Str>;
+    fetchOrderStatus(id: string, symbol?: Str, params?: Dict): Promise<Str>;
     /**
      * @method
      * @name bitstamp#fetchOrder
@@ -243,7 +213,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitstamp#fetchMyTrades
@@ -256,7 +226,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bitstamp#fetchFundingRateHistory
@@ -271,7 +241,7 @@ export default class bitstamp extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: undefined;
@@ -290,7 +260,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name bitstamp#fetchWithdrawals
@@ -302,11 +272,11 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -319,7 +289,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     /**
      * @method
      * @name bitstamp#fetchFundingRate
@@ -329,7 +299,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseFundingRate(fundingRate: any, market?: Market): FundingRate;
     /**
      * @method
@@ -343,8 +313,8 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    getCurrencyName(code: any): any;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    getCurrencyName(code: string): string;
     isFiat(code: any): boolean;
     /**
      * @method
@@ -355,7 +325,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     /**
      * @method
      * @name bitstamp#withdraw
@@ -369,7 +339,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name bitstamp#transfer
@@ -383,11 +353,11 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): Dict;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
+    parseTransfer(transfer: Dict, currency?: Currency): Dict;
     parseTransferStatus(status: Str): Str;
     nonce(): number;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, api?: any, method?: Str, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
         body: Str;

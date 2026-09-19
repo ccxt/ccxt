@@ -1,5 +1,5 @@
 import Exchange from './abstract/weex.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class weex
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<Status>;
+    fetchStatus(params?: Dict): Promise<Status>;
     /**
      * @method
      * @name weex#fetchTime
@@ -26,7 +26,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name weex#fetchCurrencies
@@ -35,7 +35,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
@@ -46,7 +46,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -59,7 +59,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name weex#fetchBidsAsks
@@ -71,7 +71,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -82,8 +82,8 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprice structures
      */
-    fetchLastPrices(symbols?: Strings, params?: {}): Promise<LastPrices>;
-    parseLastPrice(entry: any, market?: Market): LastPrice;
+    fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
+    parseLastPrice(entry: Dict, market?: Market): LastPrice;
     /**
      * @method
      * @name weex#fetchMarkPrice
@@ -94,7 +94,7 @@ export default class weex extends Exchange {
      * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    fetchMarkPrice(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name weex#fetchMarkPrices
@@ -104,7 +104,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchMarkPrices(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name weex#fetchOrderBook
@@ -116,7 +116,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name weex#fetchOHLCV
@@ -134,7 +134,7 @@ export default class weex extends Exchange {
      * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @ignore
@@ -148,7 +148,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchSpotOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchSpotOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @ignore
@@ -168,8 +168,8 @@ export default class weex extends Exchange {
      * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchContractOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
+    fetchContractOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any[], market?: Market): OHLCV;
     /**
      * @method
      * @name weex#fetchTrades
@@ -182,7 +182,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -193,8 +193,8 @@ export default class weex extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
+    parseOpenInterest(interest: Dict, market?: Market): OpenInterest;
     /**
      * @method
      * @name weex#fetchFundingRates
@@ -205,7 +205,7 @@ export default class weex extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method
@@ -219,14 +219,8 @@ export default class weex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(contract: any, market?: Market): {
-        info: any;
-        symbol: string;
-        fundingRate: Num;
-        timestamp: Int;
-        datetime: string | undefined;
-    };
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
+    parseFundingRateHistory(contract: Dict, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name weex#fetchBalance
@@ -238,7 +232,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -252,7 +246,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
     /**
@@ -273,7 +267,7 @@ export default class weex extends Exchange {
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name weex#createSpotOrder
@@ -289,8 +283,8 @@ export default class weex extends Exchange {
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
+    createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name weex#createContractOrder
@@ -322,8 +316,8 @@ export default class weex extends Exchange {
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createContractOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): any;
+    createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    createContractOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     encodeTriggerPriceType(triggerPriceType: Str): Str;
     /**
      * @method
@@ -339,7 +333,7 @@ export default class weex extends Exchange {
      * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name weex#cancelAllOrders
@@ -353,7 +347,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.trigger] *swap only* true for cancelling trigger orders (default is false)
      * @returns Response from the exchange
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name weex#cancelOrders
@@ -367,7 +361,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name weex#fetchOrder
@@ -381,7 +375,7 @@ export default class weex extends Exchange {
      * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name weex#fetchOpenOrders
@@ -397,7 +391,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name weex#fetchClosedOrders
@@ -413,7 +407,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name weex#fetchCanceledOrders
@@ -429,7 +423,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name weex#fetchOrders
@@ -443,7 +437,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name weex#fetchCanceledAndClosedOrders
@@ -459,7 +453,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
@@ -477,7 +471,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name weex#fetchMyTrades
@@ -492,7 +486,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name weex#fetchLedger
@@ -509,7 +503,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerType(type: Str): Str;
     /**
@@ -525,8 +519,8 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): object;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
+    parseIncome(income: Dict, market?: Market): object;
     /**
      * @method
      * @name weex#fetchPositions
@@ -537,7 +531,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name weex#fetchPosition
@@ -547,7 +541,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     /**
      * @method
      * @description fetch open positions for a single market
@@ -558,7 +552,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -568,7 +562,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closeAllPositions(params?: {}): Promise<Position[]>;
+    closeAllPositions(params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name weex#closePosition
@@ -579,7 +573,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name weex#fetchTradingFee
@@ -589,7 +583,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method
@@ -600,7 +594,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     /**
      * @method
      * @name weex#fetchMarginModes
@@ -610,7 +604,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    fetchMarginModes(symbols?: Strings, params?: Dict): Promise<MarginModes>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseMarginType(marginType: Str): Str;
     /**
@@ -623,8 +617,8 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
-    encodeMarginMode(marginMode: Str): string;
+    setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
+    encodeMarginMode(marginMode: Str): Str;
     /**
      * @method
      * @name weex#fetchLeverage
@@ -634,7 +628,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     /**
      * @method
      * @name weex#fetchLeverages
@@ -644,7 +638,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
+    fetchLeverages(symbols?: Strings, params?: Dict): Promise<Leverages>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
@@ -665,7 +659,7 @@ export default class weex extends Exchange {
      * the leverage value will be applied to cross leverage
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name weex#fetchPositionMode
@@ -675,7 +669,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
+    fetchPositionMode(symbol?: Str, params?: Dict): Promise<PositionModeInfo>;
     /**
      * @method
      * @name weex#setPositionMode
@@ -687,8 +681,8 @@ export default class weex extends Exchange {
      * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: Dict): Promise<Dict>;
+    modifyMarginHelper(symbol: string, amount: Num, type: int, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -701,7 +695,7 @@ export default class weex extends Exchange {
      * @param {string} params.positionId the id of the position to reduce margin from, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name weex#addMargin
@@ -713,7 +707,7 @@ export default class weex extends Exchange {
      * @param {string} params.positionId the id of the position to add margin to, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @ignore
@@ -733,11 +727,6 @@ export default class weex extends Exchange {
      */
     fromSandboxMarketId(marketId: Str): Str;
     setSandboxMode(enable: boolean): void;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
-        method: string;
-        body: Str;
-        headers: Dict;
-    };
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

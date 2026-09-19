@@ -184,7 +184,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    orderRequest(symbol: any, type: any, amount: any, request: any, price?: Num, params?: {}): any[];
+    orderRequest(symbol: string, type: string, amount: Num, request: Dict, price?: Num, params?: Dict): Dict[];
     /**
      * @method
      * @name zebpay#cancelOrder
@@ -316,8 +316,8 @@ export default class zebpay extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    fetchSpotMarkets(params?: any): Promise<Market[]>;
-    fetchSwapMarkets(params?: any): Promise<Market[]>;
+    fetchSpotMarkets(params?: Dict): Promise<Market[]>;
+    fetchSwapMarkets(params?: Dict): Promise<Market[]>;
     parseBalance(response: any): Balances;
     parsePosition(position: Dict, market?: Market): {
         info: Dict;

@@ -739,9 +739,9 @@ export default class btse extends Exchange {
                 type = 'swap';
             }
         }
-        let fees = this.safeValue(this.fees, 'contract');
+        let fees = this.safeDict(this.fees, 'contract', {});
         if (isSpot) {
-            fees = this.safeValue(this.fees, 'spot');
+            fees = this.safeDict(this.fees, 'spot', {});
         }
         return this.safeMarketStructure({
             'id': id,

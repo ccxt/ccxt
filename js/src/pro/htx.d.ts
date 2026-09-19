@@ -3,7 +3,7 @@ import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Positi
 import Client from '../base/ws/Client.js';
 export default class htx extends htxRest {
     describe(): any;
-    requestId(): any;
+    requestId(): string;
     /**
      * @method
      * @name htx#watchTicker
@@ -14,7 +14,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name htx#unWatchTicker
@@ -25,8 +25,8 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): any;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
+    handleTicker(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name htx#watchTrades
@@ -40,7 +40,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name htx#unWatchTrades
@@ -52,8 +52,8 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): any;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    handleTrades(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name htx#watchOHLCV
@@ -68,7 +68,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name htx#unWatchOHLCV
@@ -83,7 +83,7 @@ export default class htx extends htxRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name htx#watchOrderBook
@@ -110,13 +110,13 @@ export default class htx extends htxRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
-    handleOrderBookSnapshot(client: Client, message: any, subscription: any): void;
-    watchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<any>;
+    handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    handleOrderBookMessage(client: Client, message: Dict): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     /**
      * @method
      * @name htx#watchMyTrades
@@ -129,9 +129,9 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    getOrderChannelAndMessageHash(type: any, subType: any, market?: Market, params?: {}): string[];
-    getV5LinearChannelAndMessageHash(topic: any, market?: Market, params?: {}): any[];
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    getOrderChannelAndMessageHash(type: Str, subType: Str, market?: Market, params?: Dict): Str[];
+    getV5LinearChannelAndMessageHash(topic: Str, market?: Market, params?: Dict): any[];
     /**
      * @method
      * @name htx#watchOrders
@@ -144,10 +144,10 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
-    parseOrderTrade(trade: any, market?: Market): Trade;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseOrderTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name htx#watchPositions
@@ -161,8 +161,8 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    handlePositions(client: any, message: any): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    handlePositions(client: Client, message: Dict): void;
     /**
      * @method
      * @name htx#watchBalance
@@ -173,22 +173,22 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscription(client: Client, subscription: Dict | undefined): void;
-    handleSystemStatus(client: Client, message: any): any;
-    handleSubject(client: Client, message: any): void;
-    pong(client: Client, message: any): Promise<void>;
-    handlePing(client: Client, message: any): void;
-    handleAuthenticate(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
-    handleMyTrade(client: Client, message: any, extendParams?: {}): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    handleSystemStatus(client: Client, message: Dict): Dict;
+    handleSubject(client: Client, message: Dict): void;
+    pong(client: Client, message: Dict): Promise<void>;
+    handlePing(client: Client, message: Dict): void;
+    handleAuthenticate(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
+    handleMyTrade(client: Client, message: Dict, extendParams?: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean, isV5?: boolean): Str;
-    subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
-    unsubscribePublic(market: Market, subMessageHash: string, topic: string, params?: {}): Promise<any>;
-    subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: any, subscriptionParams?: {}): Promise<any>;
-    authenticate(params?: {}): Promise<any>;
+    subscribePublic(url: Str, symbol: Str, messageHash: Str, method?: any, params?: Dict): Promise<any>;
+    unsubscribePublic(market: Market, subMessageHash: string, topic: string, params?: Dict): Promise<any>;
+    subscribePrivate(channel: Str, messageHash: Str, type: Str, subtype: Str, params?: Dict, subscriptionParams?: Dict): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
 }

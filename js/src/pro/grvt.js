@@ -323,7 +323,7 @@ export default class grvt extends grvtRest {
         };
         const trades = await this.subscribeMultiple(messageHashes, this.extend(params, request), rawHashes);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -461,7 +461,7 @@ export default class grvt extends grvtRest {
         const timeframeId = secondPart.replace('-TRADE', '');
         const timeframe = this.findTimeframe(timeframeId);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.handleOption('watchOHLCV', 'limit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);

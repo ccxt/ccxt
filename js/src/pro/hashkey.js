@@ -750,7 +750,7 @@ export default class hashkey extends hashkeyRest {
     }
     async loadBalanceSnapshot(client, messageHash, type) {
         const response = await this.fetchBalance({ 'type': type });
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];

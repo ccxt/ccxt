@@ -1,19 +1,13 @@
 import bullishRest from '../bullish.js';
-import type { Balances, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bullish extends bullishRest {
     describe(): any;
-    requestId(): any;
-    ping(client: Client): {
-        jsonrpc: string;
-        type: string;
-        method: string;
-        params: {};
-        id: any;
-    };
-    handlePong(client: Client, message: any): any;
-    watchPublic(url: string, messageHash: string, request?: {}, params?: {}): Promise<any>;
-    watchPrivate(messageHash: string, subscribeHash: string, request?: {}, params?: {}): Promise<any>;
+    requestId(): number;
+    ping(client: Client): Dict;
+    handlePong(client: Client, message: Dict): Dict;
+    watchPublic(url: string, messageHash: string, request?: Dict, params?: Dict): Promise<any>;
+    watchPrivate(messageHash: string, subscribeHash: string, request?: Dict, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bullish#watchTrades
@@ -26,7 +20,7 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name bullish#watchTicker
@@ -37,7 +31,7 @@ export default class bullish extends bullishRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name bullish#watchOrderBook
@@ -49,8 +43,8 @@ export default class bullish extends bullishRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
-    separateBidsOrAsks(entry: any): List;
+    handleOrderBook(client: Client, message: Dict): void;
+    separateBidsOrAsks(entry: any[]): List;
     /**
      * @method
      * @name bullish#watchOrders
@@ -64,7 +58,7 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any): void;
+    handleOrders(client: Client, message: Dict): void;
     /**
      * @method
      * @name bullish#watchMyTrades
@@ -78,7 +72,7 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any): void;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name bullish#watchBalance
@@ -89,7 +83,7 @@ export default class bullish extends bullishRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name bullish#watchPositions
@@ -102,7 +96,7 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    handlePositions(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): void;
+    handlePositions(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
 }

@@ -149,21 +149,13 @@ export default class dydx extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     hashMessage(message: any): any;
-    signHash(hash: any, privateKey: any): {
-        r: string;
-        s: string;
-        v: any;
-    };
-    signMessage(message: any, privateKey: any): {
-        r: string;
-        s: string;
-        v: any;
-    };
+    signHash(hash: any, privateKey: any): Dict;
+    signMessage(message: any, privateKey: any): Dict;
     signOnboardingAction(): object;
     signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee?: any): string;
     retrieveCredentials(): any;
-    fetchDydxAccount(): Promise<import("./base/types.js").Dictionary<any>>;
-    pow(n: string, m: Str): string | undefined;
+    fetchDydxAccount(): Promise<NullableDict>;
+    pow(n: string, m: Str): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any[];
     createOrderIdFromParts(address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string;
     fetchLatestBlockHeight(params?: {}): Promise<int>;
@@ -231,7 +223,7 @@ export default class dydx extends Exchange {
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: Str): Str;
     /**
      * @method
      * @name dydx#fetchLedger
@@ -353,12 +345,7 @@ export default class dydx extends Exchange {
     parseBalance(response: any): Balances;
     nonce(): number;
     getWalletAddress(): string;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: any;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     setSandboxMode(enable: boolean): void;
 }

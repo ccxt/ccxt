@@ -298,7 +298,7 @@ export default class bingx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name bingx#createOrder
@@ -347,7 +347,7 @@ export default class bingx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    parseOrderSide(side: any): string;
+    parseOrderSide(side: Str): Str;
     parseOrderType(type: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
@@ -680,7 +680,7 @@ export default class bingx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseParams(params: any): any;
+    parseParams(params: Dict): Dict;
     /**
      * @method
      * @name bingx#fetchMyLiquidations
@@ -799,7 +799,7 @@ export default class bingx extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    customEncode(params: any): Str;
+    customEncode(params: Dict): Str;
     /**
      * @method
      * @name bingx#fetchMarketLeverageTiers

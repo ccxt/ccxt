@@ -16,7 +16,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     hardcodedCurrencies(): Currencies;
     parseBalance(response: any): Balances;
     /**
@@ -27,7 +27,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -41,7 +41,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of recent [trade structures]
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name hibachi#fetchTicker
@@ -52,7 +52,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -65,7 +65,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hibachi#fetchTradingFees
@@ -74,9 +74,9 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
-    orderMessage(market: any, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price?: Num): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
-    createOrderRequest(nonce: number, symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    fetchTradingFees(params?: Dict): Promise<TradingFees>;
+    orderMessage(market: Market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price?: Num): Uint8Array;
+    createOrderRequest(nonce: number, symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name hibachi#createOrder
@@ -90,7 +90,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hibachi#createOrders
@@ -100,8 +100,8 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrderRequest(nonce: number, id: Str, symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): any;
+    createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
+    editOrderRequest(nonce: number, id: Str, symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name hibachi#editOrder
@@ -116,7 +116,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hibachi#editOrders
@@ -126,11 +126,8 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    cancelOrderRequest(id: string): {
-        orderId: string;
-        signature: any;
-    };
+    editOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
+    cancelOrderRequest(id: string): Dict;
     /**
      * @method
      * @name hibachi#cancelOrder
@@ -141,7 +138,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hibachi#cancelOrders
@@ -152,7 +149,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hibachi#cancelAllOrders
@@ -162,8 +159,8 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    encodeWithdrawMessage(amount: Num, maxFees: Num, address: string): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
+    encodeWithdrawMessage(amount: Num, maxFees: Num, address: string): Uint8Array;
     /**
      * @method
      * @name hibachi#withdraw
@@ -176,9 +173,9 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     nonce(): number;
-    signMessage(message: any, privateKey: any): any;
+    signMessage(message: any, privateKey: string): string;
     /**
      * @method
      * @name hibachi#fetchOrderBook
@@ -189,7 +186,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters to be passed -- see documentation link above
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name hibachi#fetchMyTrades
@@ -201,7 +198,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -214,7 +211,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @ignore
      * @method
@@ -230,7 +227,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hibachi#fetchClosedOrders
@@ -244,7 +241,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hibachi#fetchCanceledOrders
@@ -258,7 +255,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hibachi#fetchOHLCV
@@ -272,7 +269,7 @@ export default class hibachi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name hibachi#fetchPositions
@@ -282,16 +279,16 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, api?: any, method?: Str, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
         body: Str;
         headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    parseTransactionType(type: any): string;
+    parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
@@ -305,7 +302,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     /**
      * @method
      * @name hibachi#fetchDepositAddress
@@ -316,7 +313,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -329,7 +326,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name hibachi#fetchDeposits
@@ -341,7 +338,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters to be passed to API
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name hibachi#fetchWithdrawals
@@ -353,15 +350,9 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters to be passed to API
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseSettlement(settlement: any, market?: Market): {
-        info: any;
-        symbol: string;
-        price: Num;
-        timestamp: Int;
-        datetime: string | undefined;
-    };
-    parseSettlements(settlements: any, market?: Market): Dict[];
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    parseSettlement(settlement: Dict, market?: Market): Dict;
+    parseSettlements(settlements: any[], market?: Market): Dict[];
     /**
      * @method
      * @name hibachi#fetchMySettlementHistory
@@ -374,7 +365,7 @@ export default class hibachi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
+    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name hibachi#fetchTime
@@ -383,7 +374,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name hibachi#fetchOpenInterest
@@ -393,7 +384,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<import("./base/types.js").OpenInterest>;
     /**
      * @method
      * @name hibachi#fetchFundingRate
@@ -403,7 +394,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name hibachi#fetchFundingRateHistory
@@ -415,5 +406,5 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
 }

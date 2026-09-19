@@ -1396,29 +1396,29 @@ class modetrade extends modetrade$1["default"] {
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2(order, 'order_type', 'type');
-        let status = this.safeValue2(order, 'status', 'algoStatus');
+        let status = this.safeString2(order, 'status', 'algoStatus');
         const success = this.safeBool(order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
         }
         const side = this.safeStringLower(order, 'side');
-        const filled = this.omitZero(this.safeValue2(order, 'executed', 'totalExecutedQuantity'));
+        const filled = this.omitZero(this.safeString2(order, 'executed', 'totalExecutedQuantity'));
         const average = this.omitZero(this.safeString2(order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise["default"].stringSub(cost, filled);
-        const fee = this.safeValue2(order, 'total_fee', 'totalFee');
+        const fee = this.safeNumber2(order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue(order, 'Transactions');
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
-        const childOrders = this.safeValue(order, 'childOrders');
+        const childOrders = this.safeList(order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue(childOrders, 0);
+            const first = this.safeDict(childOrders, 0);
             const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                const stopLossOrder = this.safeValue(innerChildOrders, 1);
+                const takeProfitOrder = this.safeDict(innerChildOrders, 0);
+                const stopLossOrder = this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
             }
@@ -1711,8 +1711,8 @@ class modetrade extends modetrade$1["default"] {
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeValue(orderParams, 'stopLoss');
-            const takeProfit = this.safeValue(orderParams, 'takeProfit');
+            const stopLoss = this.safeDict(orderParams, 'stopLoss');
+            const takeProfit = this.safeDict(orderParams, 'takeProfit');
             const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
             if (isConditional) {
                 throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
@@ -2175,7 +2175,7 @@ class modetrade extends modetrade$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', response);
+        const data = this.safeDict(response, 'data', response);
         const orders = this.safeList(data, 'rows', []);
         return this.parseOrders(orders, market, since, limit);
     }

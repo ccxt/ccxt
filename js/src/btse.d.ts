@@ -1,5 +1,5 @@
 import Exchange from './abstract/btse.js';
-import type { Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
+import type { Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, MarketInterface, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
 /**
  * @class btse
  * @augments Exchange
@@ -14,7 +14,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name btse#fetchMarkets
@@ -23,7 +23,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -39,7 +39,7 @@ export default class btse extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -51,7 +51,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name btse#fetchFundingRateHistory
@@ -65,9 +65,9 @@ export default class btse extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch, applied client-side
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(contract: any, market?: Market): {
-        info: any;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
+    parseFundingRateHistory(contract: Dict, market?: Market): {
+        info: Dict;
         symbol: string;
         fundingRate: Num;
         timestamp: Int;
@@ -84,7 +84,7 @@ export default class btse extends Exchange {
      * @param {string} [params.wallet] futures wallet name, CROSS@ by default, or ISOLATED@ followed by the market id with -USDT appended
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -95,7 +95,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
+    fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
     /**
      * @method
      * @name btse#fetchMarketLeverageTiers
@@ -105,7 +105,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
+    fetchMarketLeverageTiers(symbol: string, params?: Dict): Promise<LeverageTier[]>;
     /**
      * @method
      * @name btse#fetchTickers
@@ -115,7 +115,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name btse#fetchTicker
@@ -125,7 +125,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -136,7 +136,7 @@ export default class btse extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<import("./base/types.js").OpenInterest>;
     /**
      * @method
      * @name btse#fetchOpenInterests
@@ -146,8 +146,8 @@ export default class btse extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
-    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
+    parseOpenInterest(interest: Dict, market?: Market): import("./base/types.js").OpenInterest;
     /**
      * @method
      * @name btse#fetchFundingRate
@@ -157,7 +157,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name btse#fetchFundingRates
@@ -167,7 +167,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method
@@ -181,7 +181,7 @@ export default class btse extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch, applied client-side to the most recent trades window
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name btse#fetchMyTrades
@@ -196,7 +196,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' or 'future', default is 'spot'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name btse#fetchOrderTrades
@@ -212,7 +212,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' or 'future', default is 'spot'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -249,7 +249,7 @@ export default class btse extends Exchange {
      * @param {string} [params.stopLoss.priceType] *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name btse#createSpotOrder
@@ -277,7 +277,7 @@ export default class btse extends Exchange {
      * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name btse#createContractOrder
@@ -314,7 +314,7 @@ export default class btse extends Exchange {
      * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     encodeTriggerPriceType(priceType: Str): Str;
     /**
      * @method
@@ -330,7 +330,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.includeCancelled] *contract markets only* if true, cancelled orders are included in the lookup
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOpenOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name btse#editOrder
@@ -350,7 +350,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name btse#cancelOrder
@@ -363,7 +363,7 @@ export default class btse extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order, required if id is not provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name btse#cancelAllOrders
@@ -375,7 +375,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot', used when the symbol is omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name btse#cancelAllOrdersAfter
@@ -387,7 +387,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
+    cancelAllOrdersAfter(timeout: Int, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name btse#fetchOpenOrders
@@ -401,7 +401,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
@@ -416,8 +416,8 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
-    requestWalletHistoryRows(methodName: string, historyTypes: string[], code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTradingFees(params?: Dict): Promise<TradingFees>;
+    requestWalletHistoryRows(methodName: string, historyTypes: string[], code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
     /**
      * @method
      * @name btse#fetchDepositsWithdrawals
@@ -431,7 +431,7 @@ export default class btse extends Exchange {
      * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name btse#fetchDeposits
@@ -445,7 +445,7 @@ export default class btse extends Exchange {
      * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name btse#fetchWithdrawals
@@ -459,7 +459,7 @@ export default class btse extends Exchange {
      * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
@@ -476,7 +476,7 @@ export default class btse extends Exchange {
      * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntryDirection(type: Str): Str;
@@ -490,7 +490,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     /**
      * @method
      * @name btse#fetchPositions
@@ -500,7 +500,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name btse#fetchPositionsForSymbol
@@ -511,7 +511,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     parseMarginModeType(marginMode: Str): Str;
     parsePositionSide(side: Str): Str;
@@ -524,7 +524,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
+    fetchPositionMode(symbol?: Str, params?: Dict): Promise<PositionModeInfo>;
     /**
      * @method
      * @name btse#setPositionMode
@@ -535,7 +535,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name btse#fetchMarginMode
@@ -545,7 +545,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
@@ -558,7 +558,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.hedged] set to true to use dualSidePosition, required for setting marginMode to cross on btse
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name btse#closePosition
@@ -573,7 +573,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.postOnly] true if the order should be post only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name btse#fetchLeverage
@@ -583,7 +583,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     /**
      * @method
      * @name btse#setLeverage
@@ -597,15 +597,15 @@ export default class btse extends Exchange {
      * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: any, requestBody: any): undefined;
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
         headers: any;
     };
-    futuresRequestId(market: any): string;
+    futuresRequestId(market: MarketInterface): Str;
     cleanPath(path: string): string;
     nonce(): number;
 }
