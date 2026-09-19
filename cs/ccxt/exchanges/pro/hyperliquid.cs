@@ -1228,7 +1228,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             this.balance = new Dictionary<string, object>() {};
         }
-        object topic = this.safeValue(message, "channel");
+        object topic = this.safeString(message, "channel");
         object messageHash = add(topic, "::balance");
         object info = null;
         List<object> rawBalances = new List<object>() {};

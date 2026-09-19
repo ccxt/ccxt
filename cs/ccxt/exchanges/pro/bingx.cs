@@ -280,7 +280,7 @@ public partial class bingx : ccxt.bingx
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
         bool isSwap = ((string)client.url).IndexOf("swap", StringComparison.Ordinal) >= 0;
@@ -938,7 +938,7 @@ public partial class bingx : ccxt.bingx
             candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
         }
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object rawTimeframe = getValue(((string)dataType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 1);
         IDictionary<string, object> marketOptions = this.safeDict(this.options, marketType);
         IDictionary<string, object> timeframes = this.safeDict(marketOptions, "timeframes", new Dictionary<string, object>() {});
@@ -1016,8 +1016,8 @@ public partial class bingx : ccxt.bingx
         {
             throw new BadRequest ((string)(((this.id + " watchOHLCV is not supported for ") + marketType) + " markets.")) ;
         }
-        object options = this.safeValue(this.options, marketType, new Dictionary<string, object>() {});
-        object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, marketType, new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
         string? messageHash = ((string)this.getMessageHash("ohlcv", (market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar));
         object subscriptionHash = add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), rawTimeframe);
@@ -1067,8 +1067,8 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object options = this.safeValue(this.options, (market.ContainsKey("type") ? market["type"] : null), new Dictionary<string, object>() {});
-        object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, (market.ContainsKey("type") ? market["type"] : null), new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
         object subMessageHash = add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), rawTimeframe);
         string messageHash = ("unsubscribe::" + (subMessageHash));
@@ -1341,7 +1341,7 @@ public partial class bingx : ccxt.bingx
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subType)
     {
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, { "subType", subType }, }));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -1828,7 +1828,7 @@ public partial class bingx : ccxt.bingx
         //    }
         //
         bool isSpot = (inOp(message, "dataType"));
-        object data = this.safeValue2(message, "data", "o", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2029,7 +2029,7 @@ public partial class bingx : ccxt.bingx
         }
         if (getIndexOf(dataType, "executionReport") >= 0)
         {
-            object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? type = this.safeString(data, "x");
             if ((type == "TRADE"))
             {
@@ -2047,7 +2047,7 @@ public partial class bingx : ccxt.bingx
         if ((e == "ORDER_TRADE_UPDATE"))
         {
             this.handleOrder(client as WebSocketClient, message);
-            object data = this.safeValue(message, "o", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(message, "o", new Dictionary<string, object>() {});
             string? type = this.safeString(data, "x");
             string? status = this.safeString(data, "X");
             if (((type == "TRADE")) && ((status == "FILLED")))
@@ -2055,7 +2055,7 @@ public partial class bingx : ccxt.bingx
                 this.handleMyTrades(client as WebSocketClient, message);
             }
         }
-        object msgData = this.safeValue(message, "data");
+        IDictionary<string, object> msgData = this.safeDict(message, "data");
         string? msgEvent = this.safeString(msgData, "e");
         if ((msgEvent == "24hTicker"))
         {

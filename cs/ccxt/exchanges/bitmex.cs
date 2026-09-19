@@ -795,8 +795,8 @@ public partial class bitmex : Exchange
                 };
             }
         }
-        object currencyEnabled = this.safeValue(currency, "enabled");
-        bool currencyActive = (isEqual(currencyEnabled, true)) || (depositEnabled || withdrawEnabled);
+        bool? currencyEnabled = this.safeBool(currency, "enabled");
+        bool currencyActive = ((currencyEnabled == true)) || (depositEnabled || withdrawEnabled);
         string? minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
         double? minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
         string? maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
@@ -860,8 +860,8 @@ public partial class bitmex : Exchange
     {
         symbol = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbol);
-        object oldPrecision = this.safeValue(this.options, "oldPrecision");
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (!isEqual(oldPrecision, true)))
+        bool? oldPrecision = this.safeBool(this.options, "oldPrecision");
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((oldPrecision != true)))
         {
             amount = this.convertFromRealAmount((market.ContainsKey("base") ? market["base"] : null), amount);
         }
@@ -871,7 +871,7 @@ public partial class bitmex : Exchange
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity, object currencySide = null)
     {
         currencySide ??= "base";
-        if (isEqual(this.safeValue(this.options, "oldPrecision"), true))
+        if ((this.safeBool(this.options, "oldPrecision") == true))
         {
             return this.parseNumber(rawQuantity);
         }
@@ -2001,7 +2001,7 @@ public partial class bitmex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetInstrument(this.extend(request, parameters));
-        object ticker = this.safeValue(response, 0);
+        IDictionary<string, object> ticker = this.safeDict(response, 0);
         if ((ticker == null))
         {
             throw new BadSymbol ((string)(((this.id + " fetchTicker() symbol ") + (symbol)) + " not found")) ;
@@ -2759,7 +2759,7 @@ public partial class bitmex : Exchange
             parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId"});
         }
         List<object> response = await this.privateDeleteOrder(this.extend(request, parameters));
-        object order = this.safeValue(response, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> order = this.safeDict(response, 0, new Dictionary<string, object>() {});
         string? error = this.safeString(order, "error");
         if ((error != null))
         {
@@ -3153,8 +3153,8 @@ public partial class bitmex : Exchange
         market = this.safeMarket(this.safeString(position, "symbol"), market);
         object symbol = getValue(market, "symbol");
         string? datetime = this.safeString(position, "timestamp");
-        object crossMargin = this.safeValue(position, "crossMargin");
-        string marginMode = ((bool) (isEqual(crossMargin, true))) ? "cross" : "isolated";
+        bool? crossMargin = this.safeBool(position, "crossMargin");
+        string marginMode = ((bool) ((crossMargin == true))) ? "cross" : "isolated";
         string? notionalString = Precise.stringAbs(this.safeString2(position, "foreignNotional", "homeNotional"));
         string? settleCurrencyCode = this.safeString(market, "settle");
         object maintenanceMargin = this.convertToRealAmount(((string)settleCurrencyCode), this.safeString(position, "maintMargin"));
@@ -4276,7 +4276,7 @@ public partial class bitmex : Exchange
         }
         if (isGreaterThanOrEqual(code, 400))
         {
-            object error = this.safeValue(response, "error", new Dictionary<string, object>() {});
+            IDictionary<string, object> error = this.safeDict(response, "error", new Dictionary<string, object>() {});
             string? message = this.safeString(error, "message");
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

@@ -357,8 +357,8 @@ public partial class bitbank : Exchange
         //       }
         //     }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
-        object pairs = this.safeValue(data, "pairs", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data");
+        List<object> pairs = this.safeList(data, "pairs", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(pairs));
     }
 
@@ -384,7 +384,7 @@ public partial class bitbank : Exchange
             { "swap", false },
             { "future", false },
             { "option", false },
-            { "active", this.safeValue(entry, "is_enabled") },
+            { "active", this.safeBool(entry, "is_enabled") },
             { "contract", false },
             { "linear", null },
             { "inverse", null },
@@ -498,7 +498,7 @@ public partial class bitbank : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetPairDepth(this.extend(request, parameters));
-        IDictionary<string, object> orderbook = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
     }
@@ -574,7 +574,7 @@ public partial class bitbank : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetPairTransactions(this.extend(request, parameters));
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(data, "transactions", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -623,7 +623,7 @@ public partial class bitbank : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> pairs = this.safeList(data, "pairs", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
@@ -716,9 +716,9 @@ public partial class bitbank : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
-        object candlestick = this.safeValue(data, "candlestick", new List<object>() {});
-        object first = this.safeValue(candlestick, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> candlestick = this.safeList(data, "candlestick", new List<object>() {});
+        IDictionary<string, object> first = this.safeDict(candlestick, 0, new Dictionary<string, object>() {});
         List<object> ohlcv = this.safeList(first, "ohlcv", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcv, market,((string)timeframeVar), sinceVar, limitVar));
     }
@@ -730,7 +730,7 @@ public partial class bitbank : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> assets = this.safeList(data, "assets", new List<object>() {});
         for (int i = 0; i < assets.Count; i++)
         {
@@ -1018,7 +1018,7 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
         }
         Dictionary<string, object> response = await this.privateGetUserSpotActiveOrders(this.extend(request, parameters));
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "orders", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
@@ -1057,7 +1057,7 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(divide(since, 1000));
         }
         Dictionary<string, object> response = await this.privateGetUserSpotTradeHistory(this.extend(request, parameters));
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(data, "trades", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -1083,10 +1083,10 @@ public partial class bitbank : Exchange
             { "asset", getValue(currency, "id") },
         };
         Dictionary<string, object> response = await this.privateGetUserWithdrawalAccount(this.extend(request, parameters));
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         // Not sure about this if there could be more than one account...
-        object accounts = this.safeValue(data, "accounts", new List<object>() {});
-        object firstAccount = this.safeValue(accounts, 0, new Dictionary<string, object>() {});
+        List<object> accounts = this.safeList(data, "accounts", new List<object>() {});
+        IDictionary<string, object> firstAccount = this.safeDict(accounts, 0, new Dictionary<string, object>() {});
         string? address = this.safeString(firstAccount, "address");
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", getValue(currency, "code") },             { "network", null },             { "address", address },             { "tag", null },         });
     }

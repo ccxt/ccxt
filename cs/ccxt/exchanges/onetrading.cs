@@ -666,7 +666,7 @@ public partial class onetrading : Exchange
         parameters = this.omit(parameters, "method");
         if ((method == null))
         {
-            object options = this.safeValue(this.options, "fetchTradingFees", new Dictionary<string, object>() {});
+            IDictionary<string, object> options = this.safeDict(this.options, "fetchTradingFees", new Dictionary<string, object>() {});
             method = this.safeString(options, "method", "fetchPrivateTradingFees");
         }
         if ((method == "fetchPrivateTradingFees"))
@@ -1102,7 +1102,7 @@ public partial class onetrading : Exchange
         //         "last_sequence":461123
         //     }
         //
-        object granularity = this.safeValue(ohlcv, "granularity");
+        IDictionary<string, object> granularity = this.safeDict(ohlcv, "granularity");
         string? unit = this.safeString(granularity, "unit");
         object period = this.safeString(granularity, "period");
         Dictionary<string, object> units = new Dictionary<string, object>() {
@@ -1126,7 +1126,7 @@ public partial class onetrading : Exchange
             throw new ExchangeError ((string)(this.id + " parseOHLCV() missing timestamp")) ;
         }
         object alignedTimestamp = (duration * this.parseToInt((timestamp / duration)));
-        object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? volumeField = this.safeString(options, "volume", "total_amount");
         return new List<object>() {alignedTimestamp, this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeField)};
     }
@@ -1235,7 +1235,7 @@ public partial class onetrading : Exchange
         //         }
         //     }
         //
-        object feeInfo = this.safeValue(trade, "fee", new Dictionary<string, object>() {});
+        IDictionary<string, object> feeInfo = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
         trade = this.safeValue(trade, "trade", trade);
         Int64? timestamp = this.safeInteger(trade, "trade_timestamp");
         if (isEqual(timestamp, null))
@@ -1436,8 +1436,8 @@ public partial class onetrading : Exchange
         string? side = this.safeStringLower(rawOrder, "side");
         string? type = this.safeStringLower(rawOrder, "type");
         string? timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
-        object postOnly = this.safeValue(rawOrder, "is_post_only");
-        object rawTrades = this.safeValue(order, "trades", new List<object>() {});
+        bool? postOnly = this.safeBool(rawOrder, "is_post_only");
+        List<object> rawTrades = this.safeList(order, "trades", new List<object>() {});
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -1932,7 +1932,7 @@ public partial class onetrading : Exchange
         //         "cursor": "string"
         //     }
         //
-        object tradeHistory = this.safeValue(response, "trade_history", new List<object>() {});
+        List<object> tradeHistory = this.safeList(response, "trade_history", new List<object>() {});
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {

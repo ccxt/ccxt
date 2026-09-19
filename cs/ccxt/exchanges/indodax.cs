@@ -471,9 +471,9 @@ public partial class indodax : Exchange
 
     public override object parseBalance(object response)
     {
-        IDictionary<string, object> balances = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
+        IDictionary<string, object> balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
         IDictionary<string, object> free = this.safeDict(balances, "balance", new Dictionary<string, object>() {});
-        object used = this.safeValue(balances, "balance_hold", new Dictionary<string, object>() {});
+        IDictionary<string, object> used = this.safeDict(balances, "balance_hold", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(balances, "server_time");
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -1132,7 +1132,7 @@ public partial class indodax : Exchange
             ((IDictionary<string,object>)request)[(string)((string)(market.ContainsKey("baseId") ? market["baseId"] : null))] = this.amountToPrecision(symbol, amount);
         }
         Dictionary<string, object> result = await this.privatePostTrade(this.extend(request, parameters));
-        object data = this.safeValue(result, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(result, "return", new Dictionary<string, object>() {});
         string? id = this.safeString(data, "order_id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", result },             { "id", id },         }, market));
     }
@@ -1224,7 +1224,7 @@ public partial class indodax : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(data, "currency");
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "rate", this.safeNumber(data, "withdraw_fee") },             { "currency", this.safeCurrencyCode(currencyId, currency) },         });
     }
@@ -1349,7 +1349,7 @@ public partial class indodax : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         IDictionary<string, object> withdraw = this.safeDict(data, "withdraw", new Dictionary<string, object>() {});
         IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
         List<object> transactions = new List<object>() {};
@@ -1371,8 +1371,8 @@ public partial class indodax : Exchange
         } else
         {
             currency = this.currency(((string)code));
-            object withdraws = this.safeValue(withdraw, getValue(currency, "id"), new List<object>() {});
-            object deposits = this.safeValue(deposit, getValue(currency, "id"), new List<object>() {});
+            List<object> withdraws = this.safeList(withdraw, getValue(currency, "id"), new List<object>() {});
+            List<object> deposits = this.safeList(deposit, getValue(currency, "id"), new List<object>() {});
             transactions = this.arrayConcat(withdraws, deposits);
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
@@ -1694,8 +1694,8 @@ public partial class indodax : Exchange
         {
             return null;  // public endpoints may return []-arrays
         }
-        object error = this.safeValue(response, "error", "");
-        if (!(inOp(response, "success")) && isEqual(error, ""))
+        string? error = this.safeString(response, "error", "");
+        if (!(inOp(response, "success")) && (error == ""))
         {
             return null;  // no 'success' property on public responses
         }

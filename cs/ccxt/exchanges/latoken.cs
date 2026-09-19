@@ -722,7 +722,7 @@ public partial class latoken : Exchange
         object maxTimestamp = null;
         string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
         string? type = this.safeString(parameters, "type", defaultType);
-        object types = this.safeValue(this.options, "types", new Dictionary<string, object>() {});
+        IDictionary<string, object> types = this.safeDict(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
         List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
@@ -1010,11 +1010,11 @@ public partial class latoken : Exchange
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "quantity");
         string? costString = this.safeString(trade, "cost");
-        object makerBuyer = this.safeValue(trade, "makerBuyer");
+        bool? makerBuyer = this.safeBool(trade, "makerBuyer");
         string? side = this.safeString(trade, "direction");
         if ((side == null))
         {
-            side = ((bool) (isEqual(makerBuyer, true))) ? "sell" : "buy";
+            side = ((bool) ((makerBuyer == true))) ? "sell" : "buy";
         } else
         {
             if ((side == "TRADE_DIRECTION_BUY"))
@@ -1026,7 +1026,7 @@ public partial class latoken : Exchange
             }
         }
         bool isBuy = ((side == "buy"));
-        bool isMaker = (isEqual(makerBuyer, true)) && isBuy;
+        bool isMaker = ((makerBuyer == true)) && isBuy;
         string takerOrMaker = ((bool) isMaker) ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
@@ -1116,7 +1116,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "fetchTradingFee", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "fetchTradingFee", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "fetchPrivateTradingFee");
         string? method = this.safeString(parameters, "method", defaultMethod);
         parameters = this.omit(parameters, "method");
@@ -1403,7 +1403,7 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         object response = null;
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, "stop");
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Dictionary<string, object> market = this.market(symbol);
@@ -1411,7 +1411,7 @@ public partial class latoken : Exchange
             { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, parameters));
         } else
@@ -1467,7 +1467,7 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (!isEqual(limit, null))
         {
@@ -1479,7 +1479,7 @@ public partial class latoken : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["currency"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["quote"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, parameters));
             } else
@@ -1488,7 +1488,7 @@ public partial class latoken : Exchange
             }
         } else
         {
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 response = await this.privateGetAuthStopOrder(this.extend(request, parameters));
             } else
@@ -1543,10 +1543,10 @@ public partial class latoken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, parameters));
         } else
@@ -1670,10 +1670,10 @@ public partial class latoken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             response = await this.privatePostAuthStopOrderCancel(this.extend(request, parameters));
         } else
@@ -1712,7 +1712,7 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         if ((symbol != null))
@@ -1720,7 +1720,7 @@ public partial class latoken : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["currency"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             ((IDictionary<string,object>)request)["quote"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, parameters));
             } else
@@ -1729,7 +1729,7 @@ public partial class latoken : Exchange
             }
         } else
         {
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, parameters));
             } else

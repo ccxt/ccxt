@@ -83,7 +83,7 @@ public partial class independentreserve : ccxt.independentreserve
         //        "Event": "Trade"
         //    }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "Data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(message, "Data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "Pair");
         string? symbol = this.safeSymbol(marketId, null, "-");
         string messageHash = ("trades:" + symbol);
@@ -206,7 +206,7 @@ public partial class independentreserve : ccxt.independentreserve
         object symbol = add(add(bs, "/"), quote);
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
         string messageHash = ((("orderbook:" + (symbol)) + ":") + depth);
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);

@@ -4279,8 +4279,8 @@ public partial class okx : Exchange
         double? slOrdPx = this.safeNumber(parameters, "slOrdPx", price);
         string? slTriggerPxType = this.safeString(parameters, "slTriggerPxType", "last");
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
         string? trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
@@ -4714,8 +4714,8 @@ public partial class okx : Exchange
             }
             string? type = this.safeString(rawOrder, "type", "");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -4786,8 +4786,8 @@ public partial class okx : Exchange
         double? takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "newTpTriggerPx");
         double? takeProfitPrice = this.safeNumber(parameters, "newTpOrdPx");
         string? takeProfitTriggerPriceType = this.safeString(parameters, "newTpTriggerPxType", "last");
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
         if ((isAlgoOrder == true))

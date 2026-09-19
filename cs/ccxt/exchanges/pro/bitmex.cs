@@ -618,7 +618,7 @@ public partial class bitmex : ccxt.bitmex
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data");
+        List<object> data = this.safeList(message, "data");
         object balance = this.parseBalance(data);
         this.balance = this.extend(this.balance, balance);
         string? messageHash = this.safeString(message, "table");
@@ -687,7 +687,7 @@ public partial class bitmex : ccxt.bitmex
         //     }
         //
         string table = "trade";
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> dataByMarketIds = this.groupBy(data, "symbol");
         List<object> marketIds = new List<object>(((IDictionary<string,object>)dataByMarketIds).Keys);
         for (int i = 0; i < marketIds.Count; i++)
@@ -1223,7 +1223,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object currentOrder = getValue(data, i);
                 string? orderId = this.safeString(currentOrder, "orderID");
-                Dictionary<string, object> previousOrder = ((Dictionary<string, object>)this.safeValue((stored as ArrayCache).hashmap, orderId));
+                IDictionary<string, object> previousOrder = this.safeDict((stored as ArrayCache).hashmap, orderId);
                 object rawOrder = currentOrder;
                 if ((previousOrder != null))
                 {
@@ -1346,9 +1346,9 @@ public partial class bitmex : ccxt.bitmex
         //     }
         //
         object messageHash = this.safeString(message, "table");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> dataByExecType = this.groupBy(data, "execType");
-        object rawTrades = this.safeValue(dataByExecType, "Trade", new List<object>() {});
+        List<object> rawTrades = this.safeList(dataByExecType, "Trade", new List<object>() {});
         IList<object> trades = this.parseTrades(rawTrades);
         if ((this.myTrades == null))
         {
@@ -1484,7 +1484,7 @@ public partial class bitmex : ccxt.bitmex
         object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1612,7 +1612,7 @@ public partial class bitmex : ccxt.bitmex
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object messageHash = add(add(table, ":"), (market.ContainsKey("id") ? market["id"] : null));
             List<object> result = new List<object>() {subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
             {
@@ -1705,7 +1705,7 @@ public partial class bitmex : ccxt.bitmex
         if ((action == "partial"))
         {
             IDictionary<string, object> filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
-            object marketId = this.safeValue(filter, "symbol");
+            string? marketId = this.safeString(filter, "symbol");
             if ((marketId == null))
             {
                 return;  // protecting from weird update
@@ -1744,12 +1744,12 @@ public partial class bitmex : ccxt.bitmex
             Dictionary<string, object> numUpdatesByMarketId = new Dictionary<string, object>() {};
             for (int i = 0; i < data.Count; i++)
             {
-                object marketId = this.safeValue(data[i], "symbol");
+                string? marketId = this.safeString(data[i], "symbol");
                 if ((marketId == null))
                 {
                     return;  // protecting from weird update
                 }
-                if (!(inOp(numUpdatesByMarketId, marketId)))
+                if (!(numUpdatesByMarketId.ContainsKey(marketId)))
                 {
                     ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = 0;
                 }
@@ -1832,7 +1832,7 @@ public partial class bitmex : ccxt.bitmex
         string? error = this.safeString(message, "error");
         if ((error != null))
         {
-            object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
+            IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
             List<object> args = this.safeList(request, "args", new List<object>() {});
             int numArgs = args.Count;
             if (numArgs > 0)
@@ -1913,9 +1913,9 @@ public partial class bitmex : ccxt.bitmex
             object method = this.safeValue(methods, table);
             if ((method == null))
             {
-                object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
-                object op = this.safeValue(request, "op");
-                if (isEqual(op, "authKeyExpires"))
+                IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
+                string? op = this.safeString(request, "op");
+                if ((op == "authKeyExpires"))
                 {
                     this.handleAuthenticationMessage(client as WebSocketClient, message);
                 }

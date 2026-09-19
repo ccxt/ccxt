@@ -229,7 +229,7 @@ public partial class binance : ccxt.binance
         if ((stream == null))
         {
             object streamIndex = this.safeInteger(this.options, "streamIndex", -1);
-            object streamLimits = this.safeValue(this.options, "streamLimits");
+            IDictionary<string, object> streamLimits = this.safeDict(this.options, "streamLimits");
             Int64? streamLimit = this.safeInteger(streamLimits, type);
             streamIndex = add(streamIndex, 1);
             object normalizedIndex = mod(streamIndex, streamLimit);
@@ -239,7 +239,7 @@ public partial class binance : ccxt.binance
             {
                 ((IDictionary<string,object>)(this.options.ContainsKey("streamBySubscriptionsHash") ? this.options["streamBySubscriptionsHash"] : null))[(string)subscriptionHash] = stream;
             }
-            object subscriptionsByStreams = this.safeValue(this.options, "numSubscriptionsByStream");
+            IDictionary<string, object> subscriptionsByStreams = this.safeDict(this.options, "numSubscriptionsByStream");
             if ((subscriptionsByStreams == null))
             {
                 ((IDictionary<string,object>)this.options)["numSubscriptionsByStream"] = this.createSafeDictionary();
@@ -503,7 +503,7 @@ public partial class binance : ccxt.binance
         //        }
         //    }
         //
-        object rawLiquidation = this.safeValue(message, "o", new Dictionary<string, object>() {});
+        IDictionary<string, object> rawLiquidation = this.safeDict(message, "o", new Dictionary<string, object>() {});
         string? marketId = this.safeString(rawLiquidation, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "", "contract");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1057,9 +1057,9 @@ public partial class binance : ccxt.binance
         try
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            object type = this.safeValue(subscription, "type");
+            string? type = this.safeString(subscription, "type");
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
-            object parameters = this.safeValue(subscription, "params");
+            IDictionary<string, object> parameters = this.safeDict(subscription, "params");
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -1084,7 +1084,7 @@ public partial class binance : ccxt.binance
                     continue;
                 }
                 Int64? pu = this.safeInteger(messageItem, "pu");
-                if (isEqual(type, "future"))
+                if ((type == "future"))
                 {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
                     if (isLessThan(u, getValue(orderbook, "nonce")))
@@ -1140,8 +1140,8 @@ public partial class binance : ccxt.binance
     public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         Int64? u = this.safeInteger(message, "u");
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeValue(message, "a", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeValue(message, "b", new List<object>() {}));
+        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "a", new List<object>() {}));
+        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "b", new List<object>() {}));
         ((IDictionary<string,object>)orderbook)["nonce"] = u;
         Int64? timestamp = this.safeInteger(message, "E");
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -1291,12 +1291,12 @@ public partial class binance : ccxt.binance
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         string? symbolOfSubscription = this.safeString(subscription, "symbol"); // watchOrderBook
-        object symbols = this.safeValue(subscription, "symbols", new List<object>() {symbolOfSubscription}); // watchOrderBookForSymbols
+        List<object> symbols = this.safeList(subscription, "symbols", new List<object>() {symbolOfSubscription}); // watchOrderBookForSymbols
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
         // handle list of symbols
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < symbols.Count; i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             if (inOp(this.orderbooks, symbol))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
@@ -1320,7 +1320,7 @@ public partial class binance : ccxt.binance
         //
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
+        IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
         object method = this.safeValue(subscription, "method");
         if ((method != null))
         {
@@ -1443,7 +1443,7 @@ public partial class binance : ccxt.binance
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -2118,7 +2118,7 @@ public partial class binance : ccxt.binance
             { "markPrice_kline", "markPriceKline" },
         };
         eventVar = this.safeString(eventMap, eventVar, eventVar);
-        object kline = this.safeValue(message, "k");
+        IDictionary<string, object> kline = this.safeDict(message, "k");
         string? marketId = this.safeString2(kline, "s", "ps");
         if ((eventVar == "indexPriceKline"))
         {
@@ -2135,8 +2135,8 @@ public partial class binance : ccxt.binance
         string marketType = ((bool) isSpot) ? "spot" : "contract";
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         string messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), unifiedTimeframe);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), unifiedTimeframe);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -2995,7 +2995,7 @@ public partial class binance : ccxt.binance
         //    }
         //
         string? messageHash = this.safeString(message, "id");
-        object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(result, "future"));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
@@ -3096,12 +3096,12 @@ public partial class binance : ccxt.binance
                 continue;
             }
             string? tickerMarketId = this.safeString(ticker, "s");
-            object tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
-            int numTickerMarkets = ((bool) ((tickerMarketsByIdList == null))) ? 0 : getArrayLength(tickerMarketsByIdList);
+            List<object> tickerMarketsByIdList = this.safeList(this.markets_by_id, tickerMarketId);
+            int numTickerMarkets = ((bool) ((tickerMarketsByIdList == null))) ? 0 : tickerMarketsByIdList.Count;
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            object tickerMarketById = ((bool) (isEqual(numTickerMarkets, 1))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
+            IDictionary<string, object> tickerMarketById = ((bool) (isEqual(numTickerMarkets, 1))) ? this.safeDict(tickerMarketsByIdList, 0) : null;
             bool isSpot = this.isSpotUrl(client);
             string tickerFallbackType = ((bool) isSpot) ? "spot" : "contract";
             object tickerMarketType = ((bool) ((tickerMarketById != null))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
@@ -3431,7 +3431,7 @@ public partial class binance : ccxt.binance
         }
         parameters = this.omit(parameters, "symbol");
         bool isStock = (isEqual(type, "stock"));
-        object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, type, new Dictionary<string, object>() {});
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
         string refreshRateKey = ((bool) isStock) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
@@ -3553,7 +3553,7 @@ public partial class binance : ccxt.binance
             return;
         }
         bool isStock = ((type == "stock"));
-        object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, type, new Dictionary<string, object>() {});
         string? listenKey = this.safeString(options, "listenKey");
         if ((listenKey == null))
         {
@@ -3669,7 +3669,7 @@ public partial class binance : ccxt.binance
         {
             return;
         }
-        object options = this.safeValue(this.options, "watchBalance");
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {
@@ -3695,7 +3695,7 @@ public partial class binance : ccxt.binance
             ((IDictionary<string,object>)parameters)["portfolioMargin"] = true;
         }
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -6211,13 +6211,13 @@ public partial class binance : ccxt.binance
                 object cachedOrders = this.orders;
                 if ((cachedOrders != null))
                 {
-                    Dictionary<string, object> orders = ((Dictionary<string, object>)this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-                    object order = this.safeValue(orders, orderId);
+                    IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                    IDictionary<string, object> order = this.safeDict(orders, orderId);
                     if ((order != null))
                     {
                         // accumulate order fees
                         object fees = this.safeValue(order, "fees");
-                        object fee = this.safeValue(order, "fee");
+                        IDictionary<string, object> fee = this.safeDict(order, "fee");
                         if (!this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
@@ -6304,11 +6304,11 @@ public partial class binance : ccxt.binance
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            Dictionary<string, object> orders = ((Dictionary<string, object>)this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-            object order = this.safeValue(orders, orderId);
+            IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+            IDictionary<string, object> order = this.safeDict(orders, orderId);
             if ((order != null))
             {
-                object fee = this.safeValue(order, "fee");
+                IDictionary<string, object> fee = ((IDictionary<string, object>)this.safeValue(order, "fee"));
                 if ((fee != null))
                 {
                     ((IDictionary<string,object>)parsed)["fee"] = fee;
@@ -6532,7 +6532,7 @@ public partial class binance : ccxt.binance
         }
         // user subscription wraps message in subscriptionId and event
         string? id = this.safeString(message, "id");
-        object subscriptions = this.safeValue(((WebSocketClient)client).subscriptions, id);
+        IDictionary<string, object> subscriptions = this.safeDict(((WebSocketClient)client).subscriptions, id);
         object method = this.safeValue(subscriptions, "method");
         if ((method != null))
         {

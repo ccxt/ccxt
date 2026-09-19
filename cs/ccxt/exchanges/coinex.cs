@@ -1683,7 +1683,7 @@ public partial class coinex : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            object symbol = this.safeValue(symbols, 0);
+            string? symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
         }
         IList<object> marketTypequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -2026,7 +2026,7 @@ public partial class coinex : Exchange
 
     public virtual object parseTradingFee(object fee, object market = null)
     {
-        object marketId = this.safeValue(fee, "market");
+        string? marketId = this.safeString(fee, "market");
         string? symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -2926,9 +2926,9 @@ public partial class coinex : Exchange
             }
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
-            IDictionary<string, object> orderParams = ((IDictionary<string, object>)this.safeValue(rawOrder, "params", new Dictionary<string, object>() {}));
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             if ((type != "limit"))
             {
                 throw new NotSupported ((string)(((this.id + " createOrders() does not support ") + type) + " orders, only limit orders are accepted")) ;
@@ -3204,8 +3204,8 @@ public partial class coinex : Exchange
                 ((IList<object>)orderSymbols).Add(marketId);
             }
             string? id = this.safeString(rawOrder, "id");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object marginMode = null;
             IList<object> marginModeorderParamsVariable = (IList<object>)this.handleMarginModeAndParams("editOrders", orderParams);
@@ -3224,11 +3224,11 @@ public partial class coinex : Exchange
                 { "market", (market.ContainsKey("id") ? market["id"] : null) },
                 { "market_type", market_type },
             };
-            if ((amount != null))
+            if (!isEqual(amount, null))
             {
                 ((IDictionary<string,object>)orderRequest)["amount"] = this.amountToPrecision(marketId, amount);
             }
-            if ((price != null))
+            if (!isEqual(price, null))
             {
                 ((IDictionary<string,object>)orderRequest)["price"] = this.priceToPrecision(marketId, price);
             }
@@ -4621,7 +4621,7 @@ public partial class coinex : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            object symbol = this.safeValue(symbols, 0);
+            string? symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
             {
@@ -5020,7 +5020,7 @@ public partial class coinex : Exchange
         string? currencyId = this.safeString(transfer, "ccy");
         string? fromId = this.safeString(transfer, "from_account_type");
         string? toId = this.safeString(transfer, "to_account_type");
-        object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "id", null },
             { "timestamp", timestamp },
@@ -5377,7 +5377,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        object rows = this.safeValue(response, "data", new List<object>() {});
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
         object interest = this.parseBorrowInterests(rows, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }

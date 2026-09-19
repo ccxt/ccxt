@@ -452,7 +452,7 @@ public partial class weex : ccxt.weex
         object trades = await this.subscribePublic(messageHashes, channels, isContract, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1821,7 +1821,7 @@ public partial class weex : ccxt.weex
             { "type", type },
         };
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {

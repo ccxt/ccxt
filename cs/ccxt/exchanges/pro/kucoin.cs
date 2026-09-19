@@ -252,7 +252,7 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<string?> authenticateUta()
     {
         this.checkRequiredCredentials();
-        object utaToken = this.safeValue(this.options, "utaToken");
+        string? utaToken = this.safeString(this.options, "utaToken");
         Int64? lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
         Int64? refreshInterval = ((multiply(1000, 60) * 60) * 24); // 24 hours
         refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
@@ -1153,7 +1153,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
@@ -1196,7 +1196,7 @@ public partial class kucoin : ccxt.kucoin
         string? interval = this.safeString(data, "i");
         string? timeframe = this.findTimeframe(interval);
         string messageHash = ((("uta:candles:" + symbol) + ":") + timeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
@@ -1242,7 +1242,7 @@ public partial class kucoin : ccxt.kucoin
             object trades = await this.subscribePublicUta(messageHash, channel, symbolVar, parameters);
             if (this.newUpdates)
             {
-                object first = this.safeValue(trades, 0);
+                IDictionary<string, object> first = this.safeDict(trades, 0);
                 string? tradeSymbol = this.safeString(first, "symbol");
                 limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
             }
@@ -1299,7 +1299,7 @@ public partial class kucoin : ccxt.kucoin
         object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1931,7 +1931,7 @@ public partial class kucoin : ccxt.kucoin
             if (isEqual(nonce, null))
             {
                 int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
-                object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+                IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
                 Int64? limit = this.safeInteger(subscription, "limit");
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
                 Dictionary<string, object> utaParams = new Dictionary<string, object>() {
@@ -1954,7 +1954,7 @@ public partial class kucoin : ccxt.kucoin
 
     public override object getCacheIndex(object orderbook, object cache)
     {
-        object firstDelta = this.safeValue(cache, 0);
+        IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         Int64? firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
         if ((isEqual(nonce, null)) || (isEqual(firstDeltaStart, null)))
@@ -2075,7 +2075,7 @@ public partial class kucoin : ccxt.kucoin
             return;
         }
         string? subscriptionHash = this.safeString(((WebSocketClient)client).subscriptions, id);
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
+        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, subscriptionHash);
         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)((string)id));
         object method = this.safeValue(subscription, "method");
         if ((method != null))
@@ -2487,8 +2487,8 @@ public partial class kucoin : ccxt.kucoin
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
         object cachedOrders = ((bool) isTriggerOrder) ? this.triggerOrders : this.orders;
-        Dictionary<string, object> orders = ((Dictionary<string, object>)this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-        object order = this.safeValue(orders, orderId);
+        IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+        IDictionary<string, object> order = this.safeDict(orders, orderId);
         if ((order != null))
         {
             if (isEqual(getValue(order, "status"), "closed"))
@@ -2964,7 +2964,7 @@ public partial class kucoin : ccxt.kucoin
             { "uta", uta },
         };
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -3239,7 +3239,7 @@ public partial class kucoin : ccxt.kucoin
         object cache = (this.positions as ArrayCache).hashmap;
         IDictionary<string, object> symbolCache = this.safeDict(cache, symbol, new Dictionary<string, object>() {});
         List<object> values = new List<object>(((IDictionary<string,object>)symbolCache).Values);
-        return this.safeValue(values, 0);
+        return this.safeDict(values, 0);
     }
 
     public virtual void setPositionsCache(WebSocketClient client, object uta)

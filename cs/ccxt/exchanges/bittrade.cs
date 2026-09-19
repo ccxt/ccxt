@@ -689,7 +689,7 @@ public partial class bittrade : Exchange
         //                 "market-sell-order-rate-must-less-than":  0.1,
         //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
-        return ccxt.BaseExchange.ToDict(this.parseTradingLimits(this.safeValue(response, "data", new Dictionary<string, object>() {})));
+        return ccxt.BaseExchange.ToDict(this.parseTradingLimits(this.safeDict(response, "data", new Dictionary<string, object>() {})));
     }
 
     public virtual Dictionary<string, object> parseTradingLimits(object limits, object symbol = null, object parameters = null)
@@ -1003,7 +1003,7 @@ public partial class bittrade : Exchange
             {
                 throw new BadSymbol ((string)((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }
-            IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(response, "tick"));
+            IDictionary<string, object> tick = this.safeDict(response, "tick");
             Int64? timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
             Dictionary<string, object> result = ((Dictionary<string, object>)this.parseOrderBook(tick, symbol, timestamp));
             ((IDictionary<string,object>)result)["nonce"] = this.safeInteger(tick, "version");
@@ -1448,20 +1448,20 @@ public partial class bittrade : Exchange
         //         ]
         //     }
         //
-        object currencies = this.safeValue(response, "data", new List<object>() {});
+        List<object> currencies = this.safeList(response, "data", new List<object>() {});
         return this.parseCurrencies(currencies);
     }
 
     public override Dictionary<string, object> parseCurrency(object currency)
     {
-        object id = this.safeValue(currency, "name");
+        string? id = this.safeString(currency, "name");
         string? code = this.safeCurrencyCode(id);
-        object depositEnabled = this.safeValue(currency, "deposit-enabled");
-        object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
-        object countryDisabled = this.safeValue(currency, "country-disabled");
+        bool? depositEnabled = this.safeBool(currency, "deposit-enabled");
+        bool? withdrawEnabled = this.safeBool(currency, "withdraw-enabled");
+        bool? countryDisabled = this.safeBool(currency, "country-disabled");
         bool? visible = this.safeBool(currency, "visible", false);
         string? state = this.safeString(currency, "state");
-        bool active = ((visible == true)) && (isEqual(depositEnabled, true)) && (isEqual(withdrawEnabled, true)) && ((state == "online")) && (!isEqual(countryDisabled, true));
+        bool active = ((visible == true)) && ((depositEnabled == true)) && ((withdrawEnabled == true)) && ((state == "online")) && ((countryDisabled != true));
         string? name = this.safeString(currency, "display-name");
         double? precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
@@ -1915,7 +1915,7 @@ public partial class bittrade : Exchange
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
         if ((clientOrderId == null))
         {
-            object broker = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
+            IDictionary<string, object> broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
             object brokerId = this.safeString(broker, "id");
             ((IDictionary<string,object>)request)["client-order-id"] = add(brokerId, this.uuid());
         } else
@@ -2180,7 +2180,7 @@ public partial class bittrade : Exchange
         currency = this.safeCurrency(currencyId, currency);
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? networkId = this.safeString(depositAddress, "chain");
-        object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         Dictionary<string, object> networksById = this.indexBy(networks, "id");
         object networkValue = this.safeValue(networksById, networkId, networkId);
         string? network = this.safeString(networkValue, "network");
@@ -2423,7 +2423,7 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["addr-tag"] = tagVar; // only for XRP?
         }
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
         if ((network != null))

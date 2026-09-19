@@ -601,7 +601,7 @@ public partial class zebpay : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        object data = null;
+        IDictionary<string, object> data = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };

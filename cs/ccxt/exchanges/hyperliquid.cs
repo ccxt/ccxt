@@ -2601,8 +2601,8 @@ public partial class hyperliquid : Exchange
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             ((IDictionary<string,object>)orderParams)["slippage"] = slippage;
-            object stopLoss = this.safeValue(orderParams, "stopLoss");
-            object takeProfit = this.safeValue(orderParams, "takeProfit");
+            IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
+            IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
             bool hasStopLoss = ((stopLoss != null));
             bool hasTakeProfit = ((takeProfit != null));
             orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});

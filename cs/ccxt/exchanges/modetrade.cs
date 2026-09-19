@@ -1750,32 +1750,32 @@ public partial class modetrade : Exchange
         string? amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
         string? cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         string? orderType = this.safeStringLower2(order, "order_type", "type");
-        object status = this.safeValue2(order, "status", "algoStatus");
+        string? status = this.safeString2(order, "status", "algoStatus");
         bool? success = this.safeBool(order, "success");
         if (!isEqual(success, null))
         {
             status = ((bool) (success == true)) ? "NEW" : "REJECTED";
         }
         string? side = this.safeStringLower(order, "side");
-        object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        string? filled = ((string)this.omitZero(this.safeString2(order, "executed", "totalExecutedQuantity")));
         string? average = ((string)this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice")));
         string? remaining = Precise.stringSub(cost, filled);
-        object fee = this.safeValue2(order, "total_fee", "totalFee");
+        double? fee = this.safeNumber2(order, "total_fee", "totalFee");
         string? feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
         double? triggerPrice = this.safeNumber(order, "triggerPrice");
         double? takeProfitPrice = null;
         double? stopLossPrice = null;
-        object childOrders = this.safeValue(order, "childOrders");
+        List<object> childOrders = this.safeList(order, "childOrders");
         if ((childOrders != null))
         {
-            object first = this.safeValue(childOrders, 0);
+            IDictionary<string, object> first = this.safeDict(childOrders, 0);
             List<object> innerChildOrders = this.safeList(first, "childOrders", new List<object>() {});
             int innerChildOrdersLength = innerChildOrders.Count;
             if (innerChildOrdersLength > 0)
             {
-                object takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                object stopLossOrder = this.safeValue(innerChildOrders, 1);
+                IDictionary<string, object> takeProfitOrder = this.safeDict(innerChildOrders, 0);
+                IDictionary<string, object> stopLossOrder = this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, "triggerPrice");
                 stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice");
             }
@@ -2077,8 +2077,8 @@ public partial class modetrade : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
-            object stopLoss = this.safeValue(orderParams, "stopLoss");
-            object takeProfit = this.safeValue(orderParams, "takeProfit");
+            IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
+            IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
             bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || (!isEqual(this.safeValue(orderParams, "childOrders"), null));
             if (isConditional)
             {
@@ -2593,7 +2593,7 @@ public partial class modetrade : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", response));
+        IDictionary<string, object> data = this.safeDict(response, "data", response);
         List<object> orders = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }

@@ -204,11 +204,11 @@ public partial class blockchaincom : ccxt.blockchaincom
             string? marketId = this.safeString(message, "symbol");
             string? symbol = this.safeSymbol(marketId, null, "-");
             string messageHash = ("ohlcv:" + symbol);
-            object request = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+            IDictionary<string, object> request = this.safeDict(((WebSocketClient)client).subscriptions, messageHash);
             string? timeframeId = this.safeString(request, "granularity");
             string? timeframe = this.findTimeframe(timeframeId);
-            object ohlcv = this.safeValue(message, "price", new List<object>() {});
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            List<object> ohlcv = this.safeList(message, "price", new List<object>() {});
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
             {
@@ -297,7 +297,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             ticker = this.parseTicker(message, market);
         } else if ((eventVar == "updated"))
         {
-            object lastTicker = this.safeValue(this.tickers, symbol);
+            IDictionary<string, object> lastTicker = this.safeDict(this.tickers, symbol);
             ticker = this.parseWsUpdatedTicker(message, lastTicker, market);
         }
         string messageHash = ("ticker:" + symbol);
@@ -339,7 +339,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "average", null },
             { "baseVolume", this.safeString(lastTicker, "baseVolume") },
             { "quoteVolume", null },
-            { "info", this.extend(this.safeValue(lastTicker, "info", new Dictionary<string, object>() {}), ticker) },
+            { "info", this.extend(this.safeDict(lastTicker, "info", new Dictionary<string, object>() {}), ticker) },
         }, market);
     }
 

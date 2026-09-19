@@ -1183,8 +1183,8 @@ public partial class bigone : Exchange
 
     public virtual object parseContractOrderBook(object orderbook, object symbol, object limit = null)
     {
-        object responseBids = this.safeValue(orderbook, "bids");
-        object responseAsks = this.safeValue(orderbook, "asks");
+        IDictionary<string, object> responseBids = this.safeDict(orderbook, "bids");
+        IDictionary<string, object> responseAsks = this.safeDict(orderbook, "asks");
         List<object> bids = this.parseContractBidsAsks(responseBids);
         List<object> asks = this.parseContractBidsAsks(responseAsks);
         return new Dictionary<string, object>() {

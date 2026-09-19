@@ -351,7 +351,7 @@ public partial class bit2c : Exchange
             Dictionary<string, object> account = this.account();
             Dictionary<string, object> currency = this.currency(((string)code));
             string uppercase = ((string)getValue(currency, "id")).ToUpper();
-            if (inOp(response, uppercase))
+            if ((response != null && ((IDictionary<string, object>)response).ContainsKey(uppercase)))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, ("AVAILABLE_" + uppercase));
                 ((IDictionary<string,object>)account)["total"] = this.safeString(response, uppercase);
@@ -634,7 +634,7 @@ public partial class bit2c : Exchange
         {
             string? marketId = ((string)keys[i]);
             string? symbol = this.safeSymbol(marketId);
-            object fee = this.safeValue(fees, marketId);
+            IDictionary<string, object> fee = this.safeDict(fees, marketId);
             string? makerString = this.safeString(fee, "FeeMaker");
             string? takerString = this.safeString(fee, "FeeTaker");
             double? maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
@@ -745,8 +745,8 @@ public partial class bit2c : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetOrderMyOrders(this.extend(request, parameters));
-        object orders = this.safeValue(response, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
-        object asks = this.safeValue(orders, "ask", new List<object>() {});
+        IDictionary<string, object> orders = this.safeDict(response, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
+        List<object> asks = this.safeList(orders, "ask", new List<object>() {});
         List<object> bids = this.safeList(orders, "bid", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(this.arrayConcat(asks, bids), market, since, limit));
     }
@@ -1066,9 +1066,9 @@ public partial class bit2c : Exchange
             string? marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), market);
-            object isMaker = this.safeValue(trade, "isMaker");
-            makerOrTaker = ((bool) (isEqual(isMaker, true))) ? "maker" : "taker";
-            orderId = ((bool) (isEqual(isMaker, true))) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
+            bool? isMaker = this.safeBool(trade, "isMaker");
+            makerOrTaker = ((bool) ((isMaker == true))) ? "maker" : "taker";
+            orderId = ((bool) ((isMaker == true))) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
             Int64? action = this.safeInteger(trade, "action");
             if ((action == 0))
             {

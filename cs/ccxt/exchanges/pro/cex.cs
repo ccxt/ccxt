@@ -101,9 +101,9 @@ public partial class cex : ccxt.cex
         //         "ok": "ok"
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> freeBalance = this.safeDict(data, "balance", new Dictionary<string, object>() {});
-        object usedBalance = this.safeValue(data, "obalance", new Dictionary<string, object>() {});
+        IDictionary<string, object> usedBalance = this.safeDict(data, "obalance", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
@@ -396,7 +396,7 @@ public partial class cex : ccxt.cex
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data));
         string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol == null))
@@ -439,7 +439,7 @@ public partial class cex : ccxt.cex
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        object pair = this.safeValue(ticker, "pair", new List<object>() {});
+        List<object> pair = this.safeList(ticker, "pair", new List<object>() {});
         string? baseId = this.safeString(ticker, "symbol1");
         if ((baseId == null))
         {
@@ -593,7 +593,7 @@ public partial class cex : ccxt.cex
 
     public virtual void handleTransaction(WebSocketClient client, object message)
     {
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         string? symbol2 = this.safeString(data, "symbol2");
         if ((symbol2 == null))
         {
@@ -647,7 +647,7 @@ public partial class cex : ccxt.cex
         //             "id": "59091012962"
         //         }
         //     }
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object stored = this.myTrades;
         if ((stored == null))
         {
@@ -797,13 +797,13 @@ public partial class cex : ccxt.cex
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         bool isTransaction = (this.safeString(message, "e") == "tx");
         string? orderId = this.safeString2(data, "id", "order");
         string? remains = this.safeString(data, "remains");
         string? baseId = this.safeString(data, "symbol");
         string? quoteId = this.safeString(data, "symbol2");
-        object pair = this.safeValue(data, "pair");
+        IDictionary<string, object> pair = this.safeDict(data, "pair");
         if ((pair != null))
         {
             baseId = this.safeString(pair, "symbol1");
@@ -820,7 +820,7 @@ public partial class cex : ccxt.cex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object storedOrders = this.orders;
-        Dictionary<string, object> ordersBySymbol = ((Dictionary<string, object>)this.safeValue((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
+        IDictionary<string, object> ordersBySymbol = this.safeDict((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         object order = this.safeValue(ordersBySymbol, orderId);
         if ((order == null))
         {
@@ -892,7 +892,7 @@ public partial class cex : ccxt.cex
         //           "id": "59425993020"
         //       }
         //
-        bool isTransaction = !isEqual(this.safeValue(order, "d"), null);
+        bool isTransaction = (this.safeString(order, "d") != null);
         string? remainsPrecision = this.safeString(order, "remains");
         string? remaining = null;
         if ((remainsPrecision != null))
@@ -914,7 +914,7 @@ public partial class cex : ccxt.cex
         }
         string? baseId = this.safeString(order, "symbol");
         string? quoteId = this.safeString(order, "symbol2");
-        object pair = this.safeValue(order, "pair");
+        IDictionary<string, object> pair = this.safeDict(order, "pair");
         if ((pair != null))
         {
             baseId = this.safeString(order, "symbol1");
@@ -1100,7 +1100,7 @@ public partial class cex : ccxt.cex
         //         "ok": "ok"
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? pair = this.safeString(data, "pair");
         string? symbol = this.pairToSymbol(pair);
         string messageHash = ("orderbook:" + symbol);
@@ -1144,7 +1144,7 @@ public partial class cex : ccxt.cex
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Int64? incrementalId = this.safeInteger(data, "id");
         string? pair = this.safeString(data, "pair", "");
         string? symbol = this.pairToSymbol(pair);
@@ -1157,8 +1157,8 @@ public partial class cex : ccxt.cex
             return;
         }
         Int64? timestamp = this.safeInteger(data, "time");
-        object asks = this.safeValue(data, "asks", new List<object>() {});
-        object bids = this.safeValue(data, "bids", new List<object>() {});
+        List<object> asks = this.safeList(data, "asks", new List<object>() {});
+        List<object> bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
         ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
@@ -1253,7 +1253,7 @@ public partial class cex : ccxt.cex
         object symbol = add(add(bs, "/"), quote);
         Dictionary<string, object> market = this.safeMarket(symbol);
         string messageHash = ("ohlcv:" + (symbol));
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
         var stored = new ArrayCacheByTimestamp(limit);
         List<object> sorted = this.sortBy(data, 0);
@@ -1298,7 +1298,7 @@ public partial class cex : ccxt.cex
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? pair = this.safeString(data, "pair");
         string? symbol = this.pairToSymbol(pair);
         string messageHash = ("ohlcv:" + symbol);
@@ -1585,7 +1585,7 @@ public partial class cex : ccxt.cex
         //        "placed-cancelled": []
         //    }
         //
-        object canceledOrders = this.safeValue(response, "cancel-orders");
+        List<object> canceledOrders = this.safeList(response, "cancel-orders");
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceledOrders, null, null, null, parameters));
     }
 
@@ -1627,7 +1627,7 @@ public partial class cex : ccxt.cex
     {
         try
         {
-            object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? error = this.safeString(data, "error");
             string? eventVar = this.safeString(message, "e", "");
             string feedback = ((((this.id + " ") + eventVar) + " ") + error);

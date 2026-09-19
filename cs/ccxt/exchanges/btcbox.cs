@@ -944,12 +944,12 @@ public partial class btcbox : Exchange
         {
             return null;  // resort to defaultErrorHandler
         }
-        object result = this.safeValue(response, "result");
-        if ((result == null) || isEqual(result, true))
+        bool? result = this.safeBool(response, "result");
+        if (isEqual(result, null) || (result == true))
         {
             return null;  // either public API (no error codes expected) or success
         }
-        object code = this.safeValue(response, "code");
+        string? code = this.safeString(response, "code");
         string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError ((string)feedback) ;

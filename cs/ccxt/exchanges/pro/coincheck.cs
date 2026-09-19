@@ -96,7 +96,7 @@ public partial class coincheck : ccxt.coincheck
         //     ]
         //
         string? symbol = this.symbol(this.safeString(message, 0));
-        object data = this.safeValue(message, 1, new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, 1, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "last_update_at");
         Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp));
         object orderbook = this.safeOrderBook(this.orderbooks, symbol);
@@ -166,7 +166,7 @@ public partial class coincheck : ccxt.coincheck
         //         ]
         //     ]
         //
-        object first = this.safeValue(message, 0, new List<object>() {});
+        List<object> first = this.safeList(message, 0, new List<object>() {});
         string? symbol = this.symbol(this.safeString(first, 2));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))

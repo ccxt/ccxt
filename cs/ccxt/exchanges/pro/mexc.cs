@@ -598,7 +598,7 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar);
         string messageHash = ((("candles:" + (symbolVar)) + ":") + (timeframeVar));
         object ohlcv = null;
@@ -701,10 +701,10 @@ public partial class mexc : ccxt.mexc
             parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
         } else
         {
-            object d = this.safeValue2(message, "d", "data", new Dictionary<string, object>() {});
-            object rawOhlcv = this.safeValue(d, "k", d);
+            IDictionary<string, object> d = this.safeDict2(message, "d", "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> rawOhlcv = this.safeDict(d, "k", d);
             string? timeframeId = this.safeString2(rawOhlcv, "i", "interval");
-            object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+            IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             string? marketId = this.safeString2(message, "s", "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -712,7 +712,7 @@ public partial class mexc : ccxt.mexc
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
         string messageHash = ((("candles:" + (symbol)) + ":") + timeframe);
-        object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = symbolOhlcvs;
         object stored = this.safeValue(symbolOhlcvs, timeframe);
         if ((stored == null))
@@ -843,7 +843,7 @@ public partial class mexc : ccxt.mexc
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        object firstDelta = this.safeValue(cache, 0);
+        IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
         if ((isEqual(nonce, null)) || (isEqual(firstDeltaNonce, null)))
         {
@@ -941,7 +941,7 @@ public partial class mexc : ccxt.mexc
         string? marketId = this.safeString2(message, "s", "symbol");
         string? symbol = this.safeSymbol(marketId);
         string messageHash = ("orderbook:" + symbol);
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash);
         Int64? limit = this.safeInteger(subscription, "limit");
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -1997,7 +1997,7 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar);
         string messageHash = ((("unsubscribe:candles:" + (symbol)) + ":") + (timeframeVar));
         object url = null;

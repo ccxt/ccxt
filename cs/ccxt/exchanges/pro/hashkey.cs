@@ -855,7 +855,7 @@ public partial class hashkey : ccxt.hashkey
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {

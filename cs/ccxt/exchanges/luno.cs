@@ -1556,7 +1556,7 @@ public partial class luno : Exchange
             }
             currency = this.currency(((string)code));
             Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
-            object account = this.safeValue(accountsByCurrencyCode, code);
+            IDictionary<string, object> account = this.safeDict(accountsByCurrencyCode, code);
             if ((account == null))
             {
                 throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
@@ -1591,7 +1591,7 @@ public partial class luno : Exchange
             { "max_row", max_row },
         };
         Dictionary<string, object> response = await this.privateGetAccountsIdTransactions(this.extend(parameters, request));
-        object entries = this.safeValue(response, "transactions", new List<object>() {});
+        List<object> entries = this.safeList(response, "transactions", new List<object>() {});
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entries, currency, since, limit));
     }
 

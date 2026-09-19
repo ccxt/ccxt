@@ -235,8 +235,8 @@ public partial class mudrex : ccxt.mudrex
         Dictionary<string, object> market = this.safeMarket(((string)s).ToUpper());
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> parsed = new List<object> {this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), tf);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

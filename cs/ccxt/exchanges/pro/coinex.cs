@@ -380,7 +380,7 @@ public partial class coinex : ccxt.coinex
         string? messageHash = null;
         if ((account != null))
         {
-            if (isEqual(this.safeValue(this.balance, account), null))
+            if ((this.safeDict(this.balance, account) == null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)account] = new Dictionary<string, object>() {};
             }
@@ -423,7 +423,7 @@ public partial class coinex : ccxt.coinex
         ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
         if ((accountType != null))
         {
-            if (isEqual(this.safeValue(this.balance, accountType), null))
+            if ((this.safeDict(this.balance, accountType) == null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
             }
@@ -654,7 +654,7 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "created_at");
-        bool isSpot = (inOp(trade, "margin_market"));
+        bool isSpot = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("margin_market")));
         string defaultType = ((bool) isSpot) ? "spot" : "swap";
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
@@ -1328,7 +1328,7 @@ public partial class coinex : ccxt.coinex
         Int64? timestamp = this.safeInteger(order, "created_at");
         string? marketId = this.safeString(order, "market");
         string? status = this.safeString(order, "status");
-        bool isSpot = (inOp(order, "margin_market"));
+        bool isSpot = ((order != null && ((IDictionary<string, object>)order).ContainsKey("margin_market")));
         string defaultType = ((bool) isSpot) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = null;
@@ -1579,7 +1579,7 @@ public partial class coinex : ccxt.coinex
     public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
         object id = this.safeInteger(message, "id");
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, id);
+        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, id);
         if ((subscription != null))
         {
             string? futureIndex = this.safeString(subscription, "future");

@@ -554,8 +554,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? timeframe = this.findTimeframe(messageHash);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (isEqual(this.safeValue(getValue(this.ohlcvs, symbol), timeframe), null))
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        if ((this.safeDict(getValue(this.ohlcvs, symbol), timeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);

@@ -1317,7 +1317,7 @@ public partial class bitstamp : Exchange
         // this method is now redundant
         // currencies are now fetched before markets
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "fetchMarkets", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(options, "timestamp");
         Int64? expires = this.safeInteger(options, "expires", 1000);
         Int64 now = this.milliseconds();
@@ -1947,7 +1947,7 @@ public partial class bitstamp : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> ohlc = this.safeList(data, "ohlc", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlc, market,((string)timeframeVar), since, limitVar));
     }
@@ -2158,7 +2158,7 @@ public partial class bitstamp : Exchange
         for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)ids[i]);
-            object fees = this.safeValue(response, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> fees = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(id);
             if (((codes != null)) && !this.inArray(code, codes))
             {
@@ -2624,7 +2624,7 @@ public partial class bitstamp : Exchange
         //         ]
         //     }
         //
-        object values = this.safeValue(response, "funding_rate_history", new List<object>() {});
+        List<object> values = this.safeList(response, "funding_rate_history", new List<object>() {});
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(values, market, since, limit));
     }
 
@@ -2989,7 +2989,7 @@ public partial class bitstamp : Exchange
         string? symbol = this.safeSymbol(marketId, market, "/");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? amount = this.safeString(order, "amount");
-        object transactions = this.safeValue(order, "transactions", new List<object>() {});
+        List<object> transactions = this.safeList(order, "transactions", new List<object>() {});
         string? price = this.safeString(order, "price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },

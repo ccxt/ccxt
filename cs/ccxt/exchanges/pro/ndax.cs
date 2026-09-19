@@ -74,7 +74,7 @@ public partial class ndax : ccxt.ndax
 
     public virtual void handleTicker(WebSocketClient client, object message)
     {
-        object payload = this.safeValue(message, "o", new Dictionary<string, object>() {});
+        IDictionary<string, object> payload = this.safeDict(message, "o", new Dictionary<string, object>() {});
         //
         //     {
         //         "OMSId": 1,
@@ -303,7 +303,7 @@ public partial class ndax : ccxt.ndax
             {
                 ((IDictionary<string,object>)updates)[(string)marketId] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             List<object> keys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
             for (int j = 0; j < keys.Count; j++)
             {
@@ -376,7 +376,7 @@ public partial class ndax : ccxt.ndax
                 string messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
+                List<object> stored = this.safeList(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
                 (client as WebSocketClient).resolve(stored, messageHash);
             }
         }
@@ -460,7 +460,7 @@ public partial class ndax : ccxt.ndax
         //         0,   // 9 Side
         //     ],
         //
-        object firstBidAsk = this.safeValue(payload, 0, new List<object>() {});
+        List<object> firstBidAsk = this.safeList(payload, 0, new List<object>() {});
         string? marketId = this.safeString(firstBidAsk, 7);
         if ((marketId == null))
         {
@@ -536,7 +536,7 @@ public partial class ndax : ccxt.ndax
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        object payload = this.safeValue(message, "o", new List<object>() {});
+        List<object> payload = this.safeList(message, "o", new List<object>() {});
         //
         //     [
         //         [
@@ -577,7 +577,7 @@ public partial class ndax : ccxt.ndax
         //
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         Int64? id = this.safeInteger(message, "i");
-        object subscription = ((bool) (isEqual(id, null))) ? null : this.safeValue(subscriptionsById, id);
+        IDictionary<string, object> subscription = ((bool) (isEqual(id, null))) ? null : this.safeDict(subscriptionsById, id);
         if ((subscription != null))
         {
             object method = this.safeValue(subscription, "method");

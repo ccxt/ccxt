@@ -75,7 +75,7 @@ public partial class woo : ccxt.woo
 
     public virtual object requestId(object url)
     {
-        object options = this.safeValue(this.options, "requestId", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = ((Int64)this.sum(previousValue, 1));
         ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
@@ -311,7 +311,7 @@ public partial class woo : ccxt.woo
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             object parameters = this.safeValue(subscription, "params");
             object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
-            if (isEqual(this.safeOrderBook(this.orderbooks, symbol), null))
+            if ((this.safeDict(this.orderbooks, symbol) == null))
             {
                 // if the orderbook is dropped before the snapshot is received
                 return;
@@ -353,8 +353,8 @@ public partial class woo : ccxt.woo
     public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         IDictionary<string, object> data = this.safeDict(message, "data");
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeValue(data, "asks", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeValue(data, "bids", new List<object>() {}));
+        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "asks", new List<object>() {}));
+        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(data, "bids", new List<object>() {}));
         Int64? timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
@@ -809,7 +809,7 @@ public partial class woo : ccxt.woo
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         object topic = this.safeValue(message, "topic");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -817,8 +817,8 @@ public partial class woo : ccxt.woo
         string? interval = this.safeString(data, "type");
         string? timeframe = this.findTimeframe(interval);
         List<object> parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")};
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -907,7 +907,7 @@ public partial class woo : ccxt.woo
         //
         string? topic = this.safeString(message, "topic");
         Int64? timestamp = this.safeInteger(message, "ts");
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1360,8 +1360,8 @@ public partial class woo : ccxt.woo
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            Dictionary<string, object> orders = ((Dictionary<string, object>)this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-            object order = this.safeValue(orders, orderId);
+            IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+            IDictionary<string, object> order = this.safeDict(orders, orderId);
             if ((order != null))
             {
                 object fee = this.safeValue(order, "fee");
@@ -1559,7 +1559,7 @@ public partial class woo : ccxt.woo
         //        }
         //    }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> rawPositions = this.safeDict(data, "positions", new Dictionary<string, object>() {});
         List<object> postitionsIds = new List<object>(((IDictionary<string,object>)rawPositions).Keys);
         if ((this.positions == null))
@@ -1896,7 +1896,7 @@ public partial class woo : ccxt.woo
         //
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
+        IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
         object method = this.safeValue(subscription, "method");
         if ((method != null))
         {
@@ -1915,8 +1915,8 @@ public partial class woo : ccxt.woo
         //     }
         //
         string messageHash = "authenticated";
-        object success = this.safeValue(message, "success");
-        if (isEqual(success, true))
+        bool? success = this.safeBool(message, "success");
+        if ((success == true))
         {
             // client.resolve (message, messageHash);
             var future = this.safeValue((client as WebSocketClient).futures, "authenticated");

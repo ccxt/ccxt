@@ -4214,7 +4214,7 @@ public partial class kucoin : Exchange
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         if ((data == null))
         {
             throw new ExchangeError ((string)(this.id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
@@ -5502,7 +5502,7 @@ public partial class kucoin : Exchange
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -5598,7 +5598,7 @@ public partial class kucoin : Exchange
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -7324,12 +7324,12 @@ public partial class kucoin : Exchange
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        object isActive = this.safeValue(order, "isActive");
+        bool? isActive = this.safeBool(order, "isActive");
         bool? cancelExist = this.safeBool(order, "cancelExist", false);
         object status = null;
-        if ((isActive != null))
+        if (!isEqual(isActive, null))
         {
-            status = ((bool) (isEqual(isActive, true))) ? "open" : "closed";
+            status = ((bool) ((isActive == true))) ? "open" : "closed";
         }
         status = ((bool) ((cancelExist == true))) ? "canceled" : status;
         Dictionary<string, object> fee = null;
@@ -7342,8 +7342,8 @@ public partial class kucoin : Exchange
         }
         string? clientOrderId = this.safeString(order, "clientOid");
         string? timeInForce = this.safeString(order, "timeInForce");
-        object postOnly = this.safeValue(order, "postOnly");
-        object reduceOnly = this.safeValue(order, "reduceOnly");
+        bool? postOnly = this.safeBool(order, "postOnly");
+        bool? reduceOnly = this.safeBool(order, "reduceOnly");
         Int64? lastUpdateTimestamp = this.safeInteger(order, "updatedAt");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
@@ -9529,7 +9529,7 @@ public partial class kucoin : Exchange
         }
         // only fetches one balance at a time
         string? defaultCode = this.safeString(this.options, "code");
-        object fetchBalanceOptions = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
+        IDictionary<string, object> fetchBalanceOptions = this.safeDict(this.options, "fetchBalance", new Dictionary<string, object>() {});
         defaultCode = this.safeString(fetchBalanceOptions, "code", defaultCode);
         string? code = this.safeString(parameters, "code", defaultCode);
         if ((code == null))
@@ -9561,7 +9561,7 @@ public partial class kucoin : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         string? currencyId = this.safeString(data, "currency");
         string? currencyCode = this.safeCurrencyCode(currencyId, currency);
         Dictionary<string, object> account = this.account();
@@ -11821,7 +11821,7 @@ public partial class kucoin : Exchange
             //        }
             //    }
             //
-            object data = this.safeValue(response, "data");
+            IDictionary<string, object> data = this.safeDict(response, "data");
             dataList = this.safeList(data, "dataList", new List<object>() {});
         }
         List<object> fees = new List<object>() {};
@@ -12286,12 +12286,12 @@ public partial class kucoin : Exchange
         string? initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         string? unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
-        object crossMode = this.safeValue(position, "crossMode");
+        bool? crossMode = this.safeBool(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
         string? marginMode = this.safeStringLower(position, "marginMode");
-        if ((crossMode != null))
+        if (!isEqual(crossMode, null))
         {
-            marginMode = ((bool) (isEqual(crossMode, true))) ? "cross" : "isolated";
+            marginMode = ((bool) ((crossMode == true))) ? "cross" : "isolated";
         }
         Int64? lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (isEqual(lastUpdateTimestamp, null))
@@ -12531,7 +12531,7 @@ public partial class kucoin : Exchange
         //        "msg":"Position does not exist"
         //    }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", this.amountToPrecision(symbol, amount) },
             { "direction", "in" },
@@ -12635,8 +12635,8 @@ public partial class kucoin : Exchange
         string? id = this.safeString(info, "id");
         market = this.safeMarket(id, market);
         string? currencyId = this.safeString(info, "settleCurrency");
-        object crossMode = this.safeValue(info, "crossMode");
-        string mode = ((bool) (isEqual(crossMode, true))) ? "cross" : "isolated";
+        bool? crossMode = this.safeBool(info, "crossMode");
+        string mode = ((bool) ((crossMode == true))) ? "cross" : "isolated";
         string? marketId = this.safeString(market, "symbol");
         Int64? timestamp = this.safeInteger(info, "currentTimestamp");
         return new Dictionary<string, object>() {

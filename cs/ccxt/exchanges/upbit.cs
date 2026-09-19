@@ -457,24 +457,24 @@ public partial class upbit : Exchange
         //         }
         //     }
         //
-        object memberInfo = this.safeValue(response, "member_level", new Dictionary<string, object>() {});
-        object currencyInfo = this.safeValue(response, "currency", new Dictionary<string, object>() {});
-        object withdrawLimits = this.safeValue(response, "withdraw_limit", new Dictionary<string, object>() {});
-        object canWithdraw = this.safeValue(withdrawLimits, "can_withdraw");
+        IDictionary<string, object> memberInfo = this.safeDict(response, "member_level", new Dictionary<string, object>() {});
+        IDictionary<string, object> currencyInfo = this.safeDict(response, "currency", new Dictionary<string, object>() {});
+        IDictionary<string, object> withdrawLimits = this.safeDict(response, "withdraw_limit", new Dictionary<string, object>() {});
+        bool? canWithdraw = this.safeBool(withdrawLimits, "can_withdraw");
         string? walletState = this.safeString(currencyInfo, "wallet_state");
-        object walletLocked = this.safeValue(memberInfo, "wallet_locked");
-        object locked = this.safeValue(memberInfo, "locked");
+        bool? walletLocked = this.safeBool(memberInfo, "wallet_locked");
+        bool? locked = this.safeBool(memberInfo, "locked");
         bool active = true;
-        if (((canWithdraw != null)) && (!isEqual(canWithdraw, true)))
+        if ((!isEqual(canWithdraw, null)) && ((canWithdraw != true)))
         {
             active = false;
         } else if ((walletState != "working"))
         {
             active = false;
-        } else if (((walletLocked != null)) && (isEqual(walletLocked, true)))
+        } else if ((!isEqual(walletLocked, null)) && ((walletLocked == true)))
         {
             active = false;
-        } else if (((locked != null)) && (isEqual(locked, true)))
+        } else if ((!isEqual(locked, null)) && ((locked == true)))
         {
             active = false;
         }
@@ -548,9 +548,9 @@ public partial class upbit : Exchange
         //         }
         //     }
         //
-        object marketInfo = this.safeValue(response, "market");
-        object bid = this.safeValue(marketInfo, "bid");
-        object ask = this.safeValue(marketInfo, "ask");
+        IDictionary<string, object> marketInfo = this.safeDict(response, "market");
+        IDictionary<string, object> bid = this.safeDict(marketInfo, "bid");
+        IDictionary<string, object> ask = this.safeDict(marketInfo, "ask");
         string? marketId = this.safeString(marketInfo, "id");
         string? baseId = this.safeString(ask, "currency");
         string? quoteId = this.safeString(bid, "currency");
@@ -1353,12 +1353,12 @@ public partial class upbit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? quoteAmount = null;
-        object createMarketBuyOrderRequiresPrice = this.safeValue(this.options, "createMarketBuyOrderRequiresPrice");
+        bool? createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice");
         string? cost = this.safeString(parameters, "cost");
         if ((cost != null))
         {
             quoteAmount = this.costToPrecision(symbol, cost);
-        } else if (isEqual(createMarketBuyOrderRequiresPrice, true))
+        } else if ((createMarketBuyOrderRequiresPrice == true))
         {
             if (isEqual(price, null) || isEqual(amount, null))
             {
@@ -2154,7 +2154,7 @@ public partial class upbit : Exchange
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (getFeesFromTrades)
                 {
-                    object tradeFee = this.safeValue(getValue(trades, i), "fee", new Dictionary<string, object>() {});
+                    IDictionary<string, object> tradeFee = this.safeDict(getValue(trades, i), "fee", new Dictionary<string, object>() {});
                     string? tradeFeeCost = this.safeString(tradeFee, "cost");
                     if ((tradeFeeCost != null))
                     {
@@ -2753,7 +2753,7 @@ public partial class upbit : Exchange
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        object error = this.safeValue(response, "error");
+        IDictionary<string, object> error = this.safeDict(response, "error");
         if ((error != null))
         {
             string? message = this.safeString(error, "message");

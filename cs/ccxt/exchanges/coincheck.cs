@@ -458,7 +458,7 @@ public partial class coincheck : Exchange
             market = this.market(symbol);
         }
         Dictionary<string, object> response = await this.privateGetExchangeOrdersOpens(parameters);
-        object rawOrders = this.safeValue(response, "orders", new List<object>() {});
+        List<object> rawOrders = this.safeList(response, "orders", new List<object>() {});
         IList<object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
         List<object> result = new List<object>() {};
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
@@ -679,7 +679,7 @@ public partial class coincheck : Exchange
             {
                 takerOrMaker = "maker";
             }
-            object funds = this.safeValue(trade, "funds", new Dictionary<string, object>() {});
+            IDictionary<string, object> funds = this.safeDict(trade, "funds", new Dictionary<string, object>() {});
             amountString = this.safeString(funds, baseId);
             costString = this.safeString(funds, quoteId);
             fee = new Dictionary<string, object>() {
@@ -837,7 +837,7 @@ public partial class coincheck : Exchange
         //         }
         //     }
         //
-        object fees = this.safeValue(response, "exchange_fees", new Dictionary<string, object>() {});
+        IDictionary<string, object> fees = this.safeDict(response, "exchange_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
         if ((symbols == null))
@@ -848,7 +848,7 @@ public partial class coincheck : Exchange
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            object fee = this.safeValue(fees, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
+            IDictionary<string, object> fee = this.safeDict(fees, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },

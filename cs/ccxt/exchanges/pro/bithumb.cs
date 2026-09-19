@@ -527,7 +527,7 @@ public partial class bithumb : ccxt.bithumb
             return;
         }
         string? streamType = this.safeString(message, "stream_type");
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? obLimit = this.safeInteger(options, "limit", 1000);
         if (!(inOp(this.orderbooks, symbol)) || ((streamType == "SNAPSHOT")))
         {

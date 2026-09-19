@@ -829,7 +829,7 @@ public partial class ndax : Exchange
         object bs = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
         string? quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
         string? sessionStatus = this.safeString(market, "SessionStatus");
-        object isDisable = this.safeValue(market, "IsDisable");
+        bool? isDisable = this.safeBool(market, "IsDisable");
         bool sessionRunning = ((sessionStatus == "Running"));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -846,7 +846,7 @@ public partial class ndax : Exchange
             { "swap", false },
             { "future", false },
             { "option", false },
-            { "active", (sessionRunning && (!isEqual(isDisable, true))) },
+            { "active", (sessionRunning && ((isDisable != true))) },
             { "contract", false },
             { "linear", null },
             { "inverse", null },
@@ -2795,7 +2795,7 @@ public partial class ndax : Exchange
                 { "Confirmed2Fa", "pending" },
             } },
         };
-        object statuses = ((bool) ((type == null))) ? new Dictionary<string, object>() {} : this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        IDictionary<string, object> statuses = ((bool) ((type == null))) ? new Dictionary<string, object>() {} : this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         if ((status == null))
         {
             return null;
@@ -2967,8 +2967,8 @@ public partial class ndax : Exchange
         //         ]
         //     }
         //
-        object templateTypes = this.safeValue(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
-        object firstTemplateType = this.safeValue(templateTypes, 0);
+        List<object> templateTypes = this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
+        IDictionary<string, object> firstTemplateType = this.safeDict(templateTypes, 0);
         if ((firstTemplateType == null))
         {
             throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template type for ") + (getValue(currency, "code")))) ;

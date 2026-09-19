@@ -851,7 +851,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> response = await this.publicGetProvisioningLimitationsAndFees(parameters);
         IDictionary<string, object> tradingFeeRate = this.safeDict(response, "tradingFeeRate", new Dictionary<string, object>() {});
-        object first = this.safeValue(tradingFeeRate, 0);
+        IDictionary<string, object> first = this.safeDict(tradingFeeRate, 0);
         //
         //     {
         //         "tradingFeeRate":[
@@ -1266,7 +1266,7 @@ public partial class bitopro : Exchange
         if ((orderType == "STOP_LIMIT"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
-            object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+            string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
             if ((triggerPrice == null))
             {

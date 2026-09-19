@@ -741,7 +741,7 @@ public partial class aster : ccxt.aster
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1395,7 +1395,7 @@ public partial class aster : ccxt.aster
         {
             return;
         }
-        object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
+        IDictionary<string, object> ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
         if ((ohlcvsByTimeframe == null))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -1577,7 +1577,7 @@ public partial class aster : ccxt.aster
         {
             return;
         }
-        object options = this.safeValue(this.options, "watchBalance");
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {
@@ -1599,7 +1599,7 @@ public partial class aster : ccxt.aster
             { "type", type },
         };
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -2049,19 +2049,19 @@ public partial class aster : ccxt.aster
                 object cachedOrders = this.orders;
                 if ((cachedOrders != null))
                 {
-                    Dictionary<string, object> orders = ((Dictionary<string, object>)this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-                    object order = this.safeValue(orders, orderId);
+                    IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                    IDictionary<string, object> order = this.safeDict(orders, orderId);
                     if ((order != null))
                     {
                         // accumulate order fees
-                        object fees = this.safeValue(order, "fees");
-                        object fee = this.safeValue(order, "fee");
+                        List<object> fees = this.safeList(order, "fees", new List<object>() {});
+                        IDictionary<string, object> fee = this.safeDict(order, "fee");
                         if (!this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (int i = 0; i < getArrayLength(fees); i++)
+                            for (int i = 0; i < fees.Count; i++)
                             {
-                                object orderFee = getValue(fees, i);
+                                object orderFee = fees[i];
                                 if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))
                                 {
                                     object feeCost = this.sum(getValue(tradeFee, "cost"), getValue(orderFee, "cost"));

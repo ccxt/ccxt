@@ -849,7 +849,7 @@ public partial class coinbaseexchange : Exchange
                 { "settleId", null },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", this.safeValue(market, "margin_enabled") },
+                { "margin", this.safeBool(market, "margin_enabled") },
                 { "swap", false },
                 { "future", false },
                 { "option", false },
@@ -1089,7 +1089,7 @@ public partial class coinbaseexchange : Exchange
             timestamp = this.milliseconds();
         } else
         {
-            timestamp = this.parse8601(this.safeValue(ticker, "time"));
+            timestamp = this.parse8601(this.safeString(ticker, "time"));
             bid = this.safeString(ticker, "bid");
             ask = this.safeString(ticker, "ask");
             high = this.safeString(ticker, "high");
@@ -1167,8 +1167,8 @@ public partial class coinbaseexchange : Exchange
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            object entry = this.safeValue(response, marketId, new List<object>() {});
-            object first = this.safeValue(entry, 0, new List<object>() {});
+            List<object> entry = this.safeList(response, marketId, new List<object>() {});
+            List<object> first = this.safeList(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(first, market);
@@ -1626,7 +1626,7 @@ public partial class coinbaseexchange : Exchange
         string? type = this.safeString(order, "type");
         string? side = this.safeString(order, "side");
         string? timeInForce = this.safeString(order, "time_in_force");
-        object postOnly = this.safeValue(order, "post_only");
+        bool? postOnly = this.safeBool(order, "post_only");
         double? triggerPrice = this.safeNumber(order, "stop_price");
         string? clientOrderId = this.safeString(order, "client_oid");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1853,8 +1853,8 @@ public partial class coinbaseexchange : Exchange
         {
             ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
         }
-        object postOnly = this.safeValue2(parameters, "postOnly", "post_only", false);
-        if (isEqual(postOnly, true))
+        bool? postOnly = this.safeBool2(parameters, "postOnly", "post_only", false);
+        if ((postOnly == true))
         {
             ((IDictionary<string,object>)request)["post_only"] = true;
         }
@@ -2091,10 +2091,10 @@ public partial class coinbaseexchange : Exchange
         double? amount = this.parseNumber(amountString);
         double? after = this.parseNumber(afterString);
         double? before = this.parseNumber(beforeString);
-        Int64? timestamp = this.parse8601(this.safeValue(item, "created_at"));
+        Int64? timestamp = this.parse8601(this.safeString(item, "created_at"));
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         string? code = this.safeCurrencyCode(null, currency);
-        object details = this.safeValue(item, "details", new Dictionary<string, object>() {});
+        IDictionary<string, object> details = this.safeDict(item, "details", new Dictionary<string, object>() {});
         string? account = null;
         string? referenceAccount = null;
         string? referenceId = null;
@@ -2154,7 +2154,7 @@ public partial class coinbaseexchange : Exchange
         await this.loadAccounts();
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
-        object account = this.safeValue(accountsByCurrencyCode, code);
+        IDictionary<string, object> account = this.safeDict(accountsByCurrencyCode, code);
         if ((account == null))
         {
             throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
@@ -2214,7 +2214,7 @@ public partial class coinbaseexchange : Exchange
             {
                 currency = this.currency(((string)code));
                 Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
-                object account = this.safeValue(accountsByCurrencyCode, code);
+                IDictionary<string, object> account = this.safeDict(accountsByCurrencyCode, code);
                 if ((account == null))
                 {
                     throw new ExchangeError ((string)((this.id + " fetchDepositsWithdrawals() could not find account id for ") + (code))) ;
@@ -2267,7 +2267,7 @@ public partial class coinbaseexchange : Exchange
             for (int i = 0; i < getArrayLength(response); i++)
             {
                 string? account_id = this.safeString(getValue(response, i), "account_id");
-                object account = this.safeValue(this.accountsById, account_id);
+                IDictionary<string, object> account = this.safeDict(this.accountsById, account_id);
                 string? codeInner = this.safeString(account, "code");
                 ((IDictionary<string,object>)getValue(response, i))["currency"] = codeInner;
             }
@@ -2402,7 +2402,7 @@ public partial class coinbaseexchange : Exchange
         //        }
         //    ]
         //
-        object details = this.safeValue(transaction, "details", new Dictionary<string, object>() {});
+        IDictionary<string, object> details = this.safeDict(transaction, "details", new Dictionary<string, object>() {});
         Int64? timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -2480,7 +2480,7 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)this.options)["coinbaseAccountsByCurrencyId"] = this.indexBy(accounts, "currency");
         }
         string? currencyId = ((string)getValue(currency, "id"));
-        object account = this.safeValue((this.options.ContainsKey("coinbaseAccountsByCurrencyId") ? this.options["coinbaseAccountsByCurrencyId"] : null), currencyId);
+        IDictionary<string, object> account = this.safeDict((this.options.ContainsKey("coinbaseAccountsByCurrencyId") ? this.options["coinbaseAccountsByCurrencyId"] : null), currencyId);
         if ((account == null))
         {
             throw new InvalidAddress ((string)(((((this.id + " createDepositAddress() could not find currency code ") + (code)) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;

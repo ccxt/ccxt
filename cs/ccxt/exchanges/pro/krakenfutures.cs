@@ -849,7 +849,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        object order = this.safeValue(message, "order");
+        IDictionary<string, object> order = this.safeDict(message, "order");
         if ((order != null))
         {
             string? marketId = this.safeString(order, "instrument");
@@ -861,8 +861,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
             string? symbol = this.safeSymbol(marketId);
             string? orderId = this.safeString(order, "order_id");
-            Dictionary<string, object> previousOrders = ((Dictionary<string, object>)this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-            object previousOrder = this.safeValue(previousOrders, orderId);
+            IDictionary<string, object> previousOrders = this.safeDict((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+            IDictionary<string, object> previousOrder = this.safeDict(previousOrders, orderId);
             string? reason = this.safeString(message, "reason");
             if (((previousOrder == null)) || ((reason == "edited_by_user")))
             {
@@ -921,8 +921,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
         } else
         {
-            object isCancel = this.safeValue(message, "is_cancel");
-            if (isEqual(isCancel, true))
+            bool? isCancel = this.safeBool(message, "is_cancel");
+            if ((isCancel == true))
             {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
@@ -1088,13 +1088,13 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        "reduce_only": false
         //    }
         //
-        object isCancelled = this.safeValue(order, "is_cancel");
+        bool? isCancelled = this.safeBool(order, "is_cancel");
         object unparsedOrder = order;
         string? status = null;
-        if ((isCancelled != null))
+        if (!isEqual(isCancelled, null))
         {
             unparsedOrder = this.safeValue(order, "order");
-            if (isEqual(isCancelled, true))
+            if ((isCancelled == true))
             {
                 status = "cancelled";
             }
@@ -1548,9 +1548,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        "seq": 2
         //    }
         //
-        object holding = this.safeValue(message, "holding");
-        object futures = this.safeValue(message, "futures");
-        object flexFutures = this.safeValue(message, "flex_futures");
+        IDictionary<string, object> holding = this.safeDict(message, "holding");
+        IDictionary<string, object> futures = this.safeDict(message, "futures");
+        IDictionary<string, object> flexFutures = this.safeDict(message, "flex_futures");
         string messageHash = "balances";
         Int64? timestamp = this.safeInteger(message, "timestamp");
         if ((holding != null))
@@ -1589,7 +1589,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 string? key = ((string)futuresKeys[i]);
                 string? symbol = this.safeSymbol(key);
                 Dictionary<string, object> newAccount = this.account();
-                var future = this.safeValue(futures, key);
+                IDictionary<string, object> future = this.safeDict(futures, key);
                 string? currencyId = this.safeString(future, "unit");
                 string? code = this.safeCurrencyCode(currencyId);
                 ((IDictionary<string,object>)newAccount)["free"] = this.safeString(future, "available");
@@ -1617,7 +1617,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             for (int i = 0; i < flexFuturesKeys.Count; i++)
             {
                 string? key = ((string)flexFuturesKeys[i]);
-                object flexFuture = this.safeValue(flexFutureCurrencies, key);
+                IDictionary<string, object> flexFuture = this.safeDict(flexFutureCurrencies, key);
                 string? code = this.safeCurrencyCode(key);
                 Dictionary<string, object> newAccount = this.account();
                 ((IDictionary<string,object>)newAccount)["free"] = this.safeString(flexFuture, "available");
@@ -1714,7 +1714,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Int64? timestamp = this.safeInteger(trade, "time");
         string? marketId = this.safeString(trade, "instrument");
         market = this.safeMarket(marketId, market);
-        object isBuy = this.safeValue(trade, "buy");
+        bool? isBuy = this.safeBool(trade, "buy");
         string? feeCurrencyId = this.safeString(trade, "fee_currency");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1724,7 +1724,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "symbol", this.safeString(market, "symbol") },
             { "order", this.safeString(trade, "order_id") },
             { "type", this.safeString(trade, "type") },
-            { "side", ((bool) (isEqual(isBuy, true))) ? "buy" : "sell" },
+            { "side", ((bool) ((isBuy == true))) ? "buy" : "sell" },
             { "takerOrMaker", this.safeString(trade, "fill_type") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "qty") },
@@ -1883,9 +1883,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
         //    }
         //
-        object eventVar = this.safeValue(message, "event");
+        string? eventVar = this.safeString(message, "event");
         string messageHash = "challenge";
-        if (!isEqual(eventVar, "error"))
+        if ((eventVar != "error"))
         {
             object challenge = this.safeValue(message, "message");
             object hashedChallenge = this.hash(this.encode(challenge), sha256, "binary");

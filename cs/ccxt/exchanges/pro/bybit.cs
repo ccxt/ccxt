@@ -415,7 +415,7 @@ public partial class bybit : ccxt.bybit
         string messageHash = ("ticker:" + (symbolVar));
         object url = await this.getUrlByMarketType(symbolVar, false, "watchTicker", parameters);
         parameters = this.cleanParams(parameters);
-        object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         string topic = ((string)this.safeString(options, "name", "tickers"));
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)) && (topic != "tickers"))
         {
@@ -447,7 +447,7 @@ public partial class bybit : ccxt.bybit
         List<object> messageHashes = new List<object>() {};
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
         parameters = this.cleanParams(parameters);
-        object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "watchTickers", new Dictionary<string, object>() {});
         string topic = ((string)this.safeString(options, "name", "tickers"));
         IList<object> marketIds = this.marketIds(symbols);
         List<object> topics = new List<object>() {};
@@ -485,7 +485,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "watchTickers", new Dictionary<string, object>() {});
         string topic = ((string)this.safeString(options, "name", "tickers"));
         List<object> messageHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
@@ -897,7 +897,7 @@ public partial class bybit : ccxt.bybit
         string marketType = ((bool) isSpot) ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
+        IDictionary<string, object> ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
         if ((ohlcvsByTimeframe == null))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -1230,7 +1230,7 @@ public partial class bybit : ccxt.bybit
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1458,7 +1458,7 @@ public partial class bybit : ccxt.bybit
             { "unified", "execution" },
             { "usdc", "user.openapi.perp.trade" },
         };
-        object topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
         object executionFast = false;
         IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
         executionFast = ((IList<object>)executionFastparametersVariable)[0];
@@ -1508,7 +1508,7 @@ public partial class bybit : ccxt.bybit
             { "unified", "execution" },
             { "usdc", "user.openapi.perp.trade" },
         };
-        object topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
         object executionFast = false;
         IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
         executionFast = ((IList<object>)executionFastparametersVariable)[0];
@@ -1609,7 +1609,7 @@ public partial class bybit : ccxt.bybit
         string? topic = this.safeString(message, "topic", "");
         bool spot = (topic == "ticketInfo");
         bool executionFast = (topic == "execution.fast");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             data = this.safeList(data, "result", new List<object>() {});
@@ -1640,9 +1640,9 @@ public partial class bybit : ccxt.bybit
         {
             execTypes = execTypeOption;
         }
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            object rawTrade = getValue(data, i);
+            object rawTrade = data[i];
             object parsed = null;
             if (spot && !executionFast)
             {
@@ -2074,7 +2074,7 @@ public partial class bybit : ccxt.bybit
             { "unified", new List<object>() {"order"} },
             { "usdc", new List<object>() {"user.openapi.perp.order"} },
         };
-        object topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
+        List<object> topics = this.safeList(topicsByMarket, this.getPrivateType(url));
         object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
         if (this.newUpdates)
         {
@@ -2114,7 +2114,7 @@ public partial class bybit : ccxt.bybit
             { "unified", new List<object>() {"order"} },
             { "usdc", new List<object>() {"user.openapi.perp.order"} },
         };
-        object topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
+        List<object> topics = this.safeList(topicsByMarket, this.getPrivateType(url));
         return await this.unWatchTopics(url, "orders", new List<object>() {}, new List<object>() {messageHash}, new List<object>() {subHash}, topics, parameters);
     }
 
@@ -2238,7 +2238,7 @@ public partial class bybit : ccxt.bybit
         }
         object orders = this.orders;
         object rawOrders = this.safeList(message, "data", new List<object>() {});
-        object first = this.safeValue(rawOrders, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> first = this.safeDict(rawOrders, 0, new Dictionary<string, object>() {});
         string? category = this.safeString(first, "category");
         bool isSpot = (category == "spot");
         if (!isSpot)
@@ -2345,7 +2345,7 @@ public partial class bybit : ccxt.bybit
                 }
             }
         }
-        List<object> topics = new List<object> {this.safeValue(topicByMarket, this.getPrivateType(url))};
+        List<object> topics = new List<object> {this.safeString(topicByMarket, this.getPrivateType(url))};
         return ccxt.BaseExchange.ToBalances(await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
     }
 
@@ -2498,29 +2498,29 @@ public partial class bybit : ccxt.bybit
             this.balance = new Dictionary<string, object>() {};
         }
         string messageHash = "balance";
-        object topic = this.safeValue(message, "topic");
+        string? topic = this.safeString(message, "topic");
         object info = null;
         List<object> rawBalances = new List<object>() {};
         string? account = null;
-        if (isEqual(topic, "outboundAccountInfo"))
+        if ((topic == "outboundAccountInfo"))
         {
             account = "spot";
             List<object> data = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < data.Count; i++)
             {
-                object B = this.safeValue(data[i], "B", new List<object>() {});
+                List<object> B = this.safeList(data[i], "B", new List<object>() {});
                 rawBalances = this.arrayConcat(rawBalances, B);
             }
             info = rawBalances;
         }
-        if (isEqual(topic, "wallet"))
+        if ((topic == "wallet"))
         {
             object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
             for (int i = 0; i < getArrayLength(data); i++)
             {
-                object result = this.safeValue(data, 0, new Dictionary<string, object>() {});
+                IDictionary<string, object> result = this.safeDict(data, 0, new Dictionary<string, object>() {});
                 account = this.safeStringLower(result, "accountType");
-                rawBalances = this.arrayConcat(rawBalances, this.safeValue(result, "coin", new List<object>() {}));
+                rawBalances = this.arrayConcat(rawBalances, this.safeList(result, "coin", new List<object>() {}));
             }
             info = data;
         }
@@ -2530,7 +2530,7 @@ public partial class bybit : ccxt.bybit
         }
         if ((account != null))
         {
-            if (isEqual(this.safeValue(this.balance, account), null))
+            if ((this.safeDict(this.balance, account) == null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)account] = new Dictionary<string, object>() {};
             }
@@ -2603,7 +2603,7 @@ public partial class bybit : ccxt.bybit
         ((IDictionary<string,object>)account)["total"] = this.safeString2(balance, "equity", "walletBalance");
         if ((accountType != null))
         {
-            if (isEqual(this.safeValue(this.balance, accountType), null))
+            if ((this.safeDict(this.balance, accountType) == null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
             }
@@ -2785,11 +2785,11 @@ public partial class bybit : ccxt.bybit
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
-            object success = this.safeValue(message, "success");
-            if (((success != null)) && (!isEqual(success, true)))
+            bool? success = this.safeBool(message, "success");
+            if ((!isEqual(success, null)) && ((success != true)))
             {
                 string? ret_msg = this.safeString(message, "ret_msg");
-                object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
+                IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
                 string? op = this.safeString(request, "op");
                 if ((op == "auth"))
                 {
@@ -3001,10 +3001,10 @@ public partial class bybit : ccxt.bybit
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        object success = this.safeValue(message, "success");
+        bool? success = this.safeBool(message, "success");
         Int64? code = this.safeInteger(message, "retCode");
         string messageHash = "authenticated";
-        if ((isEqual(success, true)) || ((code == 0)))
+        if (((success == true)) || ((code == 0)))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);

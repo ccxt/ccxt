@@ -434,7 +434,7 @@ public partial class hollaex : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", this.safeValue(market, "active") },
+                { "active", this.safeBool(market, "active") },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -608,7 +608,7 @@ public partial class hollaex : Exchange
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", this.safeValue(withdrawalLimits, 0) },
+                    { "max", this.safeNumber(withdrawalLimits, 0) },
                 } },
             } },
             { "networks", networks },
@@ -688,7 +688,7 @@ public partial class hollaex : Exchange
         //         // ...
         //     }
         //
-        object orderbook = this.safeValue(response, (market.ContainsKey("id") ? market["id"] : null));
+        IDictionary<string, object> orderbook = this.safeDict(response, (market.ContainsKey("id") ? market["id"] : null));
         Int64? timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
     }
@@ -982,10 +982,10 @@ public partial class hollaex : Exchange
         //         ...
         //     }
         //
-        object firstTier = this.safeValue(response, "1", new Dictionary<string, object>() {});
-        object fees = this.safeValue(firstTier, "fees", new Dictionary<string, object>() {});
-        object makerFees = this.safeValue(fees, "maker", new Dictionary<string, object>() {});
-        object takerFees = this.safeValue(fees, "taker", new Dictionary<string, object>() {});
+        IDictionary<string, object> firstTier = this.safeDict(response, "1", new Dictionary<string, object>() {});
+        IDictionary<string, object> fees = this.safeDict(firstTier, "fees", new Dictionary<string, object>() {});
+        IDictionary<string, object> makerFees = this.safeDict(fees, "maker", new Dictionary<string, object>() {});
+        IDictionary<string, object> takerFees = this.safeDict(fees, "taker", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < this.symbols.Count; i++)
         {
@@ -1406,7 +1406,7 @@ public partial class hollaex : Exchange
         string? amount = this.safeString(order, "size");
         string? filled = this.safeString(order, "filled");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
-        object meta = this.safeValue(order, "meta", new Dictionary<string, object>() {});
+        IDictionary<string, object> meta = this.safeDict(order, "meta", new Dictionary<string, object>() {});
         bool? postOnly = this.safeBool(meta, "post_only", false);
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1463,7 +1463,7 @@ public partial class hollaex : Exchange
             { "type", type },
         };
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
-        object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
+        IDictionary<string, object> meta = this.safeDict(parameters, "meta", new Dictionary<string, object>() {});
         bool? exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         bool isMarketOrder = isEqual(type, "market");
         bool postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
@@ -1739,8 +1739,8 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object wallet = this.safeValue(response, "wallet", new List<object>() {});
-        object addresses = ((bool) ((network == null))) ? wallet : this.filterBy(wallet, "network", network);
+        List<object> wallet = this.safeList(response, "wallet", new List<object>() {});
+        List<object> addresses = ((bool) ((network == null))) ? wallet : this.filterBy(wallet, "network", network);
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
 
@@ -1855,7 +1855,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> transaction = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(transaction, currency));
     }
@@ -1977,15 +1977,15 @@ public partial class hollaex : Exchange
         string? currencyId = this.safeString(transaction, "currency");
         currency = this.safeCurrency(currencyId, currency);
         object status = this.safeValue(transaction, "status");
-        object dismissed = this.safeValue(transaction, "dismissed");
-        object rejected = this.safeValue(transaction, "rejected");
+        bool? dismissed = this.safeBool(transaction, "dismissed");
+        bool? rejected = this.safeBool(transaction, "rejected");
         if (isEqual(status, true))
         {
             status = "ok";
-        } else if (isEqual(dismissed, true))
+        } else if ((dismissed == true))
         {
             status = "canceled";
-        } else if (isEqual(rejected, true))
+        } else if ((rejected == true))
         {
             status = "failed";
         } else
@@ -2127,15 +2127,15 @@ public partial class hollaex : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        object allowWithdrawal = this.safeValue(fee, "allow_withdrawal");
-        if (isEqual(allowWithdrawal, true))
+        bool? allowWithdrawal = this.safeBool(fee, "allow_withdrawal");
+        if ((allowWithdrawal == true))
         {
             ((IDictionary<string,object>)result)["withdraw"] = new Dictionary<string, object>() {
                 { "fee", this.safeNumber(fee, "withdrawal_fee") },
                 { "percentage", false },
             };
         }
-        object withdrawalFees = this.safeValue(fee, "withdrawal_fees");
+        IDictionary<string, object> withdrawalFees = this.safeDict(fee, "withdrawal_fees");
         if ((withdrawalFees != null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);

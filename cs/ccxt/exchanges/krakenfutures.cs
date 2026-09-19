@@ -1331,8 +1331,8 @@ public partial class krakenfutures : Exchange
         string? marketId = this.safeString(trade, "symbol");
         string? side = this.safeString(trade, "side");
         string? type = null;
-        object priorEdit = this.safeValue(trade, "orderPriorEdit");
-        object priorExecution = this.safeValue(trade, "orderPriorExecution");
+        IDictionary<string, object> priorEdit = this.safeDict(trade, "orderPriorEdit");
+        IDictionary<string, object> priorExecution = this.safeDict(trade, "orderPriorExecution");
         if ((priorExecution != null))
         {
             order = this.safeString(priorExecution, "orderId");
@@ -1641,7 +1641,7 @@ public partial class krakenfutures : Exchange
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!(extendedParams.ContainsKey("order_tag")))
             {
@@ -1737,7 +1737,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> response = await this.privatePostCancelorder(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters));
-        string? status = this.safeString(this.safeValue(response, "cancelStatus", new Dictionary<string, object>() {}), "status");
+        string? status = this.safeString(this.safeDict(response, "cancelStatus", new Dictionary<string, object>() {}), "status");
         this.verifyOrderActionSuccess(status, "cancelOrder");
         Dictionary<string, object> order = new Dictionary<string, object>() {};
         if (response.ContainsKey("cancelStatus"))
@@ -2616,7 +2616,7 @@ public partial class krakenfutures : Exchange
                     } else if (!fixedVar)
                     {
                         string? executedPrice = this.safeString(item, "price");
-                        object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
+                        IDictionary<string, object> orderPriorExecution = this.safeDict(item, "orderPriorExecution");
                         details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
                         if ((executedPrice == null))
                         {
@@ -3230,8 +3230,8 @@ public partial class krakenfutures : Exchange
             type = ((bool) ((symbol == null))) ? "flex" : symbol;
         }
         object accountName = this.parseAccount(type);
-        object accounts = this.safeValue(response, "accounts");
-        object account = this.safeValue(accounts, accountName);
+        IDictionary<string, object> accounts = this.safeDict(response, "accounts");
+        IDictionary<string, object> account = this.safeDict(accounts, accountName);
         if ((account == null))
         {
             type = ((bool) ((type == null))) ? "" : type;
@@ -3341,7 +3341,7 @@ public partial class krakenfutures : Exchange
                 ((IDictionary<string,object>)account)["total"] = balance;
             } else
             {
-                object auxiliary = this.safeValue(response, "auxiliary");
+                IDictionary<string, object> auxiliary = this.safeDict(response, "auxiliary");
                 ((IDictionary<string,object>)account)["free"] = this.safeString(auxiliary, "af");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(auxiliary, "pv");
             }
@@ -3376,7 +3376,7 @@ public partial class krakenfutures : Exchange
         for (int i = 0; i < tickers.Count; i++)
         {
             object entry = tickers[i];
-            object entry_symbol = this.safeValue(entry, "symbol");
+            string? entry_symbol = this.safeString(entry, "symbol");
             if ((marketIds != null))
             {
                 if (!this.inArray(entry_symbol, marketIds))
@@ -3751,7 +3751,7 @@ public partial class krakenfutures : Exchange
         //        "tags": [],
         //    }
         //
-        object marginLevels = this.safeValue(info, "marginLevels");
+        List<object> marginLevels = this.safeList(info, "marginLevels");
         string? marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         List<object> tiers = new List<object>() {};
@@ -3759,9 +3759,9 @@ public partial class krakenfutures : Exchange
         {
             return tiers;
         }
-        for (int i = 0; i < getArrayLength(marginLevels); i++)
+        for (int i = 0; i < marginLevels.Count; i++)
         {
-            object tier = getValue(marginLevels, i);
+            object tier = marginLevels[i];
             string? initialMargin = this.safeString(tier, "initialMargin");
             double? minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (!isEqual(i, 0))
@@ -4044,8 +4044,8 @@ public partial class krakenfutures : Exchange
         {
             throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
         }
-        object errors = this.safeValue(response, "errors");
-        object firstError = this.safeValue(errors, 0);
+        List<object> errors = this.safeList(response, "errors");
+        IDictionary<string, object> firstError = this.safeDict(errors, 0);
         string? firtErrorMessage = this.safeString(firstError, "message");
         string? message = this.safeString(response, "error", firtErrorMessage);
         if ((message == null))
@@ -4067,13 +4067,13 @@ public partial class krakenfutures : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiVersions = this.safeValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), api, new Dictionary<string, object>() {});
-        object methodVersions = this.safeValue(apiVersions, method, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiVersions = this.safeDict((this.options.ContainsKey("versions") ? this.options["versions"] : null), api, new Dictionary<string, object>() {});
+        IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, this.version);
         object version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
-        object apiAccess = this.safeValue((this.options.ContainsKey("access") ? this.options["access"] : null), api, new Dictionary<string, object>() {});
-        object methodAccess = this.safeValue(apiAccess, method, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), api, new Dictionary<string, object>() {});
+        IDictionary<string, object> methodAccess = this.safeDict(apiAccess, method, new Dictionary<string, object>() {});
         string? access = this.safeString(methodAccess, path, "public");
         object endpoint = add(add(version, "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));

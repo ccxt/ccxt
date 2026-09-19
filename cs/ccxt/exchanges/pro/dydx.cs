@@ -423,7 +423,7 @@ public partial class dydx : ccxt.dydx
         string messageHash = ("ohlcv:" + symbol);
         IDictionary<string, object> ohlcv = this.safeDict(candles, 0, content);
         object parsed = this.parseOHLCV(ohlcv, market);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {

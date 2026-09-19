@@ -688,8 +688,8 @@ public partial class paymium : Exchange
         string? currencyId = this.safeString(transfer, "currency");
         string? updatedAt = this.safeString(transfer, "updated_at");
         object timetstamp = this.parseDate(updatedAt);
-        object accountOperations = this.safeValue(transfer, "account_operations");
-        object firstOperation = this.safeValue(accountOperations, 0, new Dictionary<string, object>() {});
+        List<object> accountOperations = this.safeList(transfer, "account_operations");
+        IDictionary<string, object> firstOperation = this.safeDict(accountOperations, 0, new Dictionary<string, object>() {});
         string? status = this.safeString(transfer, "state");
         return new Dictionary<string, object>() {
             { "info", transfer },

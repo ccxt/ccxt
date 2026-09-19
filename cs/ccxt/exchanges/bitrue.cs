@@ -938,10 +938,10 @@ public partial class bitrue : Exchange
             }
         }
         List<object> promises = await promiseAll(promisesRaw);
-        object spotMarkets = this.safeValue(this.safeValue(promises, 0), "symbols", new List<object>() {});
+        List<object> spotMarkets = this.safeList(this.safeDict(promises, 0), "symbols", new List<object>() {});
         object futureMarkets = this.safeValue(promises, 1);
         object deliveryMarkets = this.safeValue(promises, 2);
-        object markets = spotMarkets;
+        List<object> markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
         //
@@ -2225,8 +2225,8 @@ public partial class bitrue : Exchange
                 ((IDictionary<string,object>)request)["volume"] = this.parseToNumeric(amount);
             }
             ((IDictionary<string,object>)request)["positionType"] = 1;
-            object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only");
-            ((IDictionary<string,object>)request)["open"] = ((bool) (isEqual(reduceOnly, true))) ? "CLOSE" : "OPEN";
+            bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+            ((IDictionary<string,object>)request)["open"] = ((bool) ((reduceOnly == true))) ? "CLOSE" : "OPEN";
             string? leverage = this.safeString(parameters, "leverage", "1");
             ((IDictionary<string,object>)request)["leverage"] = this.parseToNumeric(leverage);
             parameters = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "reduce_only", "timeInForce"});
@@ -2253,8 +2253,8 @@ public partial class bitrue : Exchange
                 parameters = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId"});
                 ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
             }
-            object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-            if ((triggerPrice != null))
+            double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+            if (!isEqual(triggerPrice, null))
             {
                 parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -2312,7 +2312,7 @@ public partial class bitrue : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+        string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
@@ -2581,7 +2581,7 @@ public partial class bitrue : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+        string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
@@ -3700,6 +3700,6 @@ public partial class bitrue : Exchange
                 }
             }
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 }

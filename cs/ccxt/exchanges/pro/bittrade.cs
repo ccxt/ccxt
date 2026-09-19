@@ -108,7 +108,7 @@ public partial class bittrade : ccxt.bittrade
         //         }
         //     }
         //
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
         string? ch = this.safeString(message, "ch");
         if ((ch == null))
         {
@@ -118,7 +118,7 @@ public partial class bittrade : ccxt.bittrade
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> ticker = this.parseTicker(tick, market);
-        object timestamp = this.safeValue(message, "ts");
+        Int64? timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
         ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
         string? symbol = ((string)getValue(ticker, "symbol"));
@@ -196,8 +196,8 @@ public partial class bittrade : ccxt.bittrade
         //         }
         //     }
         //
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
-        object data = this.safeValue(tick, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(tick, "data", new List<object>() {});
         string? ch = this.safeString(message, "ch");
         if ((ch == null))
         {
@@ -214,9 +214,9 @@ public partial class bittrade : ccxt.bittrade
             tradesCache = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
         }
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(getValue(data, i), market);
+            Dictionary<string, object> trade = this.parseTrade(data[i], market);
             callDynamically(tradesCache, "append", new object[] {trade});
         }
         (client as WebSocketClient).resolve(tradesCache, ch);
@@ -303,7 +303,7 @@ public partial class bittrade : ccxt.bittrade
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(parts, 3);
         string? timeframe = this.findTimeframe(interval);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
@@ -311,7 +311,7 @@ public partial class bittrade : ccxt.bittrade
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
-        object tick = this.safeValue(message, "tick");
+        IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick"));
         object parsed = this.parseOHLCV(tick, market);
         callDynamically(stored, "append", new object[] {parsed});
         (client as WebSocketClient).resolve(stored, ch);
@@ -393,7 +393,7 @@ public partial class bittrade : ccxt.bittrade
         string? messageHash = this.safeString(subscription, "messageHash");
         Int64? timestamp = this.safeInteger(message, "ts");
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, ((string)symbol));
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol));
         ((IDictionary<string,object>)snapshot)["nonce"] = this.safeInteger(data, "seqNum");
         ((IDictionary<string,object>)snapshot)["timestamp"] = timestamp;
@@ -484,7 +484,7 @@ public partial class bittrade : ccxt.bittrade
         //         }
         //     }
         //
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
         Int64? seqNum = this.safeInteger(tick, "seqNum");
         Int64? prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         if ((isEqual(prevSeqNum, null)) || (isEqual(seqNum, null)))
@@ -493,8 +493,8 @@ public partial class bittrade : ccxt.bittrade
         }
         if ((isLessThanOrEqual(prevSeqNum, getValue(orderbook, "nonce"))) && (isGreaterThan(seqNum, getValue(orderbook, "nonce"))))
         {
-            object asks = this.safeValue(tick, "asks", new List<object>() {});
-            object bids = this.safeValue(tick, "bids", new List<object>() {});
+            List<object> asks = this.safeList(tick, "asks", new List<object>() {});
+            List<object> bids = this.safeList(tick, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["nonce"] = seqNum;
@@ -578,7 +578,7 @@ public partial class bittrade : ccxt.bittrade
             return message;
         }
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeValue(subscriptionsById, id);
+        IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
         if ((subscription != null))
         {
             object method = this.safeValue(subscription, "method");
@@ -687,7 +687,7 @@ public partial class bittrade : ccxt.bittrade
                 return ((bool?)((object)(false)));
             }
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            object subscription = this.safeValue(subscriptionsById, id);
+            IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
             if ((subscription != null))
             {
                 string? errorCode = this.safeString(message, "err-code");

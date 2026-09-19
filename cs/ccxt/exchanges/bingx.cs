@@ -4833,7 +4833,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object clientOrderIds = this.safeValue(parameters, "clientOrderIds");
+        List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds");
         parameters = this.omit(parameters, "clientOrderIds");
         object idsToParse = ids;
         bool areClientOrderIds = ((clientOrderIds != null));
@@ -5921,7 +5921,7 @@ public partial class bingx : Exchange
         //
         // parse withdraw-type output first...
         //
-        object data = this.safeValue(transaction, "data");
+        IDictionary<string, object> data = this.safeDict(transaction, "data");
         string? dataId = ((bool) ((data == null))) ? null : this.safeString(data, "id");
         string? id = this.safeString(transaction, "id", dataId);
         string? address = this.safeString(transaction, "address");

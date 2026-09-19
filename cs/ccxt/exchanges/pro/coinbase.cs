@@ -825,7 +825,7 @@ public partial class coinbase : ccxt.coinbase
         {
             return;
         }
-        object eventVar = this.safeValue(events, 0);
+        IDictionary<string, object> eventVar = this.safeDict(events, 0);
         List<object> trades = this.safeList(eventVar, "trades");
         IDictionary<string, object> trade = this.safeDict(trades, 0);
         string? marketId = this.safeString(trade, "product_id");
@@ -1045,7 +1045,7 @@ public partial class coinbase : ccxt.coinbase
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ("level2::" + symbol);
-            object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
             string? type = this.safeString(eventVar, "type");
             if ((type == "snapshot"))

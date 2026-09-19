@@ -483,7 +483,7 @@ public partial class p2b : Exchange
         //        current_time: '1699252644.487566'
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
@@ -528,7 +528,7 @@ public partial class p2b : Exchange
         //        current_time: '1699252958.859391'
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeIntegerProduct(response, "cache_time", 1000);
         return ccxt.BaseExchange.ToTicker(this.extend(new Dictionary<string, object>() {             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },         }, this.parseTicker(result, market)));
     }
@@ -569,7 +569,7 @@ public partial class p2b : Exchange
         Int64? timestamp = this.safeIntegerProduct(ticker, "at", 1000);
         if (inOp(ticker, "ticker"))
         {
-            ticker = this.safeValue(ticker, "ticker");
+            ticker = this.safeDict(ticker, "ticker");
         }
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -650,7 +650,7 @@ public partial class p2b : Exchange
         //        "current_time": 1698733470.469274
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeIntegerProduct(response, "current_time", 1000);
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1));
     }
@@ -891,7 +891,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
@@ -1157,7 +1157,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> records = this.safeList(result, "records", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(records, market, since, limit));
     }
@@ -1248,7 +1248,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> deals = this.safeList(result, "deals", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(deals, market, sinceVar, limit));
     }
@@ -1342,7 +1342,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result");
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
         for (int i = 0; i < keys.Count; i++)

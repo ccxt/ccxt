@@ -235,7 +235,7 @@ public partial class gemini : ccxt.gemini
         //
         string? marketId = this.safeStringLower(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object trades = this.safeValue(message, "trades");
+        List<object> trades = this.safeList(message, "trades");
         if ((trades != null))
         {
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -246,9 +246,9 @@ public partial class gemini : ccxt.gemini
                 stored = new ArrayCache(tradesLimit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            for (int i = 0; i < getArrayLength(trades); i++)
+            for (int i = 0; i < trades.Count; i++)
             {
-                Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(getValue(trades, i), market));
+                Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(trades[i], market));
                 callDynamically(stored, "append", new object[] {trade});
             }
             string messageHash = ("trades:" + symbol);
@@ -367,12 +367,12 @@ public partial class gemini : ccxt.gemini
         string? symbol = this.safeSymbol(marketId, market);
         List<object> changes = this.safeList(message, "changes", new List<object>() {});
         string? timeframe = this.findTimeframe(timeframeId);
-        object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
+        IDictionary<string, object> ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
         if ((ohlcvsBySymbol == null))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

@@ -2170,7 +2170,7 @@ public partial class nado : ccxt.nado
         }
         string? id = this.safeString(message, "id");
         bool hasResult = (inOp(message, "result"));
-        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(message, "result"));
+        IDictionary<string, object> result = this.safeDict(message, "result");
         string? method = this.safeString(result, "method");
         if ((method == "pong"))
         {
@@ -2188,13 +2188,13 @@ public partial class nado : ccxt.nado
         }
         if (((id != null)) && hasResult)
         {
-            object authentication = this.safeValue(((WebSocketClient)client).subscriptions, ("authentication:" + id));
+            string? authentication = this.safeString(((WebSocketClient)client).subscriptions, ("authentication:" + id));
             if ((authentication != null))
             {
                 this.handleAuthentication(client as WebSocketClient, message);
                 return;
             }
-            object subscription = this.safeValue(((WebSocketClient)client).subscriptions, ("subscription:" + id));
+            IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, ("subscription:" + id));
             if ((subscription != null))
             {
                 this.handleSubscription(client as WebSocketClient, message);

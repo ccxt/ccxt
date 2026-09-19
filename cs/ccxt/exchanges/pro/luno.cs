@@ -253,8 +253,8 @@ public partial class luno : ccxt.luno
         priceKey ??= "price";
         amountKey ??= "volume";
         countOrIdKey ??= 2;
-        List<object> bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
-        List<object> asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        List<object> bids = this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        List<object> asks = this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.sortBy(bids, 0, true) },

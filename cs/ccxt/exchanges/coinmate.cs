@@ -566,7 +566,7 @@ public partial class coinmate : Exchange
         {
             string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            object balance = this.safeValue(balances, currencyId);
+            IDictionary<string, object> balance = this.safeDict(balances, currencyId);
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "reserved");
@@ -708,7 +708,7 @@ public partial class coinmate : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             Dictionary<string, object> market = this.market(keys[i]);
-            Dictionary<string, object> ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
+            Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, keys[i]), market);
             ((IDictionary<string,object>)result)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -911,7 +911,7 @@ public partial class coinmate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
+        IDictionary<string, object> withdrawOptions = this.safeDict(this.options, "withdraw", new Dictionary<string, object>() {});
         IDictionary<string, object> methods = this.safeDict(withdrawOptions, "methods", new Dictionary<string, object>() {});
         string? method = this.safeString(methods, code);
         if ((method == null))
@@ -969,7 +969,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         object transaction = this.parseTransaction(data, currency);
         bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
@@ -1162,7 +1162,7 @@ public partial class coinmate : Exchange
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? makerString = this.safeString(data, "maker");
         string? takerString = this.safeString(data, "taker");
         double? maker = this.parseNumber(Precise.stringDiv(makerString, "100"));

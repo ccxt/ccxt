@@ -960,9 +960,9 @@ public partial class coinsph : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             Dictionary<string, object> limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
-            object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
-            object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
-            object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
+            IDictionary<string, object> amountLimits = this.safeDict(limits, "LOT_SIZE", new Dictionary<string, object>() {});
+            IDictionary<string, object> priceLimits = this.safeDict(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
+            IDictionary<string, object> costLimits = this.safeDict(limits, "NOTIONAL", new Dictionary<string, object>() {});
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -1618,7 +1618,7 @@ public partial class coinsph : Exchange
             { "type", orderType },
             { "side", orderSide },
         };
-        object options = this.safeValue(this.options, "createOrder", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
         object newOrderRespType = this.safeValue(options, "newOrderRespType", new Dictionary<string, object>() {});
         // if limit order
         if ((orderType == "LIMIT") || (orderType == "STOP_LOSS_LIMIT") || (orderType == "TAKE_PROFIT_LIMIT") || (orderType == "LIMIT_MAKER"))
@@ -2194,7 +2194,7 @@ public partial class coinsph : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "withdraw");
+        IDictionary<string, object> options = this.safeDict(this.options, "withdraw");
         bool? warning = this.safeBool(options, "warning", true);
         if ((warning == true))
         {

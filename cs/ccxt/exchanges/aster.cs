@@ -4130,7 +4130,7 @@ public partial class aster : Exchange
         }
         string? entryPriceString = this.safeString(position, "entryPrice");
         double? entryPrice = this.parseNumber(entryPriceString);
-        object contractSize = this.safeValue(market, "contractSize");
+        double? contractSize = this.safeNumber(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         bool linear = (inOp(position, "notional"));
@@ -4495,7 +4495,7 @@ public partial class aster : Exchange
         double? percentage = null;
         string? liquidationPriceStringRaw = null;
         double? liquidationPrice = null;
-        object contractSize = this.safeValue(market, "contractSize");
+        double? contractSize = this.safeNumber(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, "0"))
         {

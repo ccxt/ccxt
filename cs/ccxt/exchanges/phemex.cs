@@ -1291,7 +1291,7 @@ public partial class phemex : Exchange
         var v2Productsv1ProductsVariable = await promiseAll(new List<object>() {v2ProductsPromise, v1ProductsPromise});
         var v2Products = ((IList<object>) v2Productsv1ProductsVariable)[0];
         var v1Products = ((IList<object>) v2Productsv1ProductsVariable)[1];
-        object v1ProductsData = this.safeValue(v1Products, "data", new List<object>() {});
+        List<object> v1ProductsData = this.safeList(v1Products, "data", new List<object>() {});
         //
         //     {
         //         "code":0,
@@ -1391,8 +1391,8 @@ public partial class phemex : Exchange
         //             ...
         //         }
         //     }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object currencies = this.safeValue(data, "currencies", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> currencies = this.safeList(data, "currencies", new List<object>() {});
         return this.parseCurrencies(currencies);
     }
 
@@ -1546,8 +1546,8 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object book = this.safeValue2(result, "book", "orderbook_p", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> book = this.safeDict2(result, "book", "orderbook_p", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
         Dictionary<string, object> orderbook = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(result, "sequence");
@@ -1757,7 +1757,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rows = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,((string)timeframeVar), sinceVar, userLimit));
     }
@@ -1956,7 +1956,7 @@ public partial class phemex : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            object first = this.safeValue(symbols, 0);
+            string? first = this.safeString(symbols, 0);
             market = this.market(first);
         }
         string? type = null;
@@ -2030,8 +2030,8 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeValue2(result, "trades", "trades_p", new List<object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        List<object> trades = this.safeList2(result, "trades", "trades_p", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
@@ -2317,7 +2317,7 @@ public partial class phemex : Exchange
                         feeCurrencyCode = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
                     } else
                     {
-                        object info = this.safeValue(market, "info");
+                        IDictionary<string, object> info = this.safeDict(market, "info");
                         if ((info != null))
                         {
                             string? settlementCurrencyId = this.safeString(info, "settlementCurrency");
@@ -2392,7 +2392,7 @@ public partial class phemex : Exchange
             object balance = data[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object currency = this.safeValue(this.currencies, code, new Dictionary<string, object>() {});
+            IDictionary<string, object> currency = this.safeDict(this.currencies, code, new Dictionary<string, object>() {});
             Int64? scale = this.safeInteger(currency, "valueScale", 8);
             Dictionary<string, object> account = this.account();
             string? balanceEv = this.safeString(balance, "balanceEv");
@@ -2448,8 +2448,8 @@ public partial class phemex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object balance = this.safeValue(data, "account", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> balance = this.safeDict(data, "account", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(balance, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> currency = this.currency(((string)code));
@@ -3074,8 +3074,8 @@ public partial class phemex : Exchange
             { "ordType", typeVar },
         };
         string? clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
         bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
@@ -3105,7 +3105,7 @@ public partial class phemex : Exchange
         parameters = this.omit(parameters, new List<object>() {"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"});
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            object qtyType = this.safeValue(parameters, "qtyType", "ByBase");
+            string? qtyType = this.safeString(parameters, "qtyType", "ByBase");
             if ((isEqual(typeVar, "Market")) || (isEqual(typeVar, "Stop")) || (isEqual(typeVar, "MarketIfTouched")))
             {
                 if (!isEqual(price, null))
@@ -3125,7 +3125,7 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)request)["trigger"] = "ByLastPrice";
             }
             ((IDictionary<string,object>)request)["qtyType"] = qtyType;
-            if (isEqual(qtyType, "ByQuote"))
+            if ((qtyType == "ByQuote"))
             {
                 object cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
@@ -3139,7 +3139,7 @@ public partial class phemex : Exchange
                         cost = this.parseNumber(quoteAmount);
                     } else if (isEqual(cost, null))
                     {
-                        throw new ArgumentsRequired ((string)(((this.id + " createOrder() ") + (qtyType)) + " requires a price argument or a cost parameter")) ;
+                        throw new ArgumentsRequired ((string)(((this.id + " createOrder() ") + qtyType) + " requires a price argument or a cost parameter")) ;
                     }
                 }
                 cost = ((bool) (isEqual(cost, null))) ? amount : cost;
@@ -3218,8 +3218,8 @@ public partial class phemex : Exchange
             {
                 if (hasStopLoss)
                 {
-                    object stopLossTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
-                    if ((stopLossTriggerPrice == null))
+                    double? stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
+                    if (isEqual(stopLossTriggerPrice, null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
                     }
@@ -3243,8 +3243,8 @@ public partial class phemex : Exchange
                 }
                 if (hasTakeProfit)
                 {
-                    object takeProfitTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
-                    if ((takeProfitTriggerPrice == null))
+                    double? takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
+                    if (isEqual(takeProfitTriggerPrice, null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")) ;
                     }
@@ -3564,12 +3564,12 @@ public partial class phemex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object trigger = this.safeValue2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isEqual(trigger, true))
+        if ((trigger == true))
         {
             ((IDictionary<string,object>)request)["untriggerred"] = trigger;
         }
@@ -4111,7 +4111,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? address = this.safeString(data, "address");
         string? tag = this.safeString(data, "tag");
         this.checkAddress(address);
@@ -4313,7 +4313,7 @@ public partial class phemex : Exchange
         string? networkId = this.safeString(transaction, "chainName");
         Int64? timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
         string? type = this.safeStringLower(transaction, "type");
-        double? feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
+        double? feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeInteger(currency, "valueScale")));
         if (isEqual(feeCost, null))
         {
             feeCost = this.safeNumber(transaction, "feeRv");
@@ -4328,7 +4328,7 @@ public partial class phemex : Exchange
             };
         }
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        double? amount = this.parseNumber(this.fromEn(this.safeString(transaction, "amountEv"), this.safeValue(currency, "valueScale")));
+        double? amount = this.parseNumber(this.fromEn(this.safeString(transaction, "amountEv"), this.safeInteger(currency, "valueScale")));
         if (isEqual(amount, null))
         {
             amount = this.safeNumber(transaction, "amountRv");
@@ -4507,7 +4507,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
@@ -4688,7 +4688,7 @@ public partial class phemex : Exchange
         double? liquidationPrice = this.safeNumber2(position, "liquidationPrice", "liquidationPriceRp");
         string? markPriceString = this.safeString2(position, "markPrice", "markPriceRp");
         string? contracts = this.safeStringN(position, new List<object>() {"size", "sizeRq", "closedSizeRq"});
-        object contractSize = this.safeValue(market, "contractSize");
+        double? contractSize = this.safeNumber(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         double? leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
         string? entryPriceString = this.safeStringN(position, new List<object>() {"avgEntryPrice", "avgEntryPriceRp", "openPrice"});
@@ -4728,7 +4728,7 @@ public partial class phemex : Exchange
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         string? apiUnrealizedPnl = this.safeString(position, "unRealisedPnlRv", unrealizedPnl);
         string? marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
-        object isCross = this.safeValue(position, "crossMargin");
+        bool? isCross = this.safeBool(position, "crossMargin");
         Int64? timestamp = this.safeInteger(position, "openedTimeNs");
         Int64? lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         return this.safePosition(new Dictionary<string, object>() {
@@ -4755,7 +4755,7 @@ public partial class phemex : Exchange
             { "marginRatio", this.parseNumber(marginRatio) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "marginMode", ((bool) (isEqual(isCross, true))) ? "cross" : "isolated" },
+            { "marginMode", ((bool) ((isCross == true))) ? "cross" : "isolated" },
             { "side", side },
             { "hedged", (this.safeString(position, "posMode") == "Hedged") },
             { "percentage", null },
@@ -4829,7 +4829,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rows = this.safeList(data, "rows", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
@@ -4923,7 +4923,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(result, market));
     }
 
@@ -5046,8 +5046,8 @@ public partial class phemex : Exchange
         //     }
         //
         market = this.safeMarket(null, market);
-        object inverse = this.safeValue(market, "inverse");
-        string codeCurrency = ((bool) (isEqual(inverse, true))) ? "base" : "quote";
+        bool? inverse = this.safeBool(market, "inverse");
+        string codeCurrency = ((bool) ((inverse == true))) ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeSymbol(null, market) },
@@ -5174,7 +5174,7 @@ public partial class phemex : Exchange
         }
         if ((symbols != null))
         {
-            object first = this.safeValue(symbols, 0);
+            string? first = this.safeString(symbols, 0);
             Dictionary<string, object> market = this.market(first);
             if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) != "USD"))
             {
@@ -5260,7 +5260,7 @@ public partial class phemex : Exchange
         //     }
         //
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> riskLimits = this.safeList(data, "riskLimits");
         return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(riskLimits, symbols, "symbol"));
     }
@@ -5444,7 +5444,7 @@ public partial class phemex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
         object scaledAmmount = this.toEv(amount, currency);
@@ -5479,7 +5479,7 @@ public partial class phemex : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             transfer = this.parseTransfer(data, currency);
         } else
         {
@@ -5500,7 +5500,7 @@ public partial class phemex : Exchange
             //
             transfer = this.parseTransfer(response);
         }
-        object transferOptions = this.safeValue(this.options, "transfer", new Dictionary<string, object>() {});
+        IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
         {
@@ -5579,7 +5579,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> transfers = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit));
     }
@@ -5738,7 +5738,7 @@ public partial class phemex : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rates = this.safeValue(data, "rows");
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(rates); i++)
@@ -6248,7 +6248,7 @@ public partial class phemex : Exchange
         {
             response = await this.privateGetAccountsAccountPositions(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> ranks = this.safeList(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < ranks.Count; i++)
@@ -6401,7 +6401,7 @@ public partial class phemex : Exchange
         //     {"code":412,"msg":"Missing parameter - to","data":null}
         //     {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
         //
-        object error = this.safeValue(response, "error", response);
+        IDictionary<string, object> error = this.safeDict(response, "error", response);
         string? errorCode = this.safeString(error, "code");
         string? message = this.safeString(error, "msg");
         if (((errorCode != null)) && ((errorCode != "0")))

@@ -1106,7 +1106,7 @@ public partial class hitbtc : Exchange
         string? network = this.safeStringUpper(parameters, "network");
         if (((network != null)) && (isEqual(code, "USDT")))
         {
-            object networks = this.safeValue(this.options, "networks");
+            IDictionary<string, object> networks = this.safeDict(this.options, "networks");
             string? parsedNetwork = this.safeString(networks, network);
             if ((parsedNetwork != null))
             {
@@ -1145,7 +1145,7 @@ public partial class hitbtc : Exchange
         string? network = this.safeStringUpper(parameters, "network");
         if (((network != null)) && (isEqual(code, "USDT")))
         {
-            object networks = this.safeValue(this.options, "networks");
+            IDictionary<string, object> networks = this.safeDict(this.options, "networks");
             string? parsedNetwork = this.safeString(networks, network);
             if ((parsedNetwork != null))
             {
@@ -1157,7 +1157,7 @@ public partial class hitbtc : Exchange
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        object firstAddress = this.safeValue(response, 0);
+        IDictionary<string, object> firstAddress = this.safeDict(response, 0);
         string? address = this.safeString(firstAddress, "address");
         string? currencyId = this.safeString(firstAddress, "currency");
         string? tag = this.safeString(firstAddress, "payment_id");
@@ -1549,18 +1549,18 @@ public partial class hitbtc : Exchange
         object symbol = getValue(market, "symbol");
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
-        object taker = this.safeValue(trade, "taker");
+        bool? taker = this.safeBool(trade, "taker");
         object takerOrMaker = null;
-        if ((taker != null))
+        if (!isEqual(taker, null))
         {
-            takerOrMaker = ((bool) (isEqual(taker, true))) ? "taker" : "maker";
+            takerOrMaker = ((bool) ((taker == true))) ? "taker" : "maker";
         } else
         {
             takerOrMaker = "taker"; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if ((feeCostString != null))
         {
-            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+            IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             string? feeCurrency = this.safeString(info, "fee_currency");
             string? feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
             fee = new Dictionary<string, object>() {
@@ -1708,7 +1708,7 @@ public partial class hitbtc : Exchange
         Int64? updated = this.parse8601(this.safeString(transaction, "updated_at"));
         string? type = this.parseTransactionType(this.safeString(transaction, "type"));
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        object native = this.safeValue(transaction, "native", new Dictionary<string, object>() {});
+        IDictionary<string, object> native = this.safeDict(transaction, "native", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(native, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         string? txhash = this.safeString(native, "hash");
@@ -2747,7 +2747,7 @@ public partial class hitbtc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimit = (isEqual(type, "limit"));
-        object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         string? timeInForce = this.safeString(parameters, "timeInForce");
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         bool isPostOnly = this.isPostOnly(isEqual(type, "market"), null, parameters);
@@ -2757,14 +2757,14 @@ public partial class hitbtc : Exchange
             { "quantity", this.amountToPrecision(getValue(market, "symbol"), amount) },
             { "symbol", getValue(market, "id") },
         };
-        if ((reduceOnly != null))
+        if (!isEqual(reduceOnly, null))
         {
             if ((!isEqual(getValue(market, "type"), "swap")) && (!isEqual(getValue(market, "type"), "margin")))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() does not support reduce_only for ") + (getValue(market, "type"))) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
             }
         }
-        if (isEqual(reduceOnly, true))
+        if ((reduceOnly == true))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
         }
@@ -3033,7 +3033,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         string? requestAmount = this.currencyToPrecision(((string)code), amount);
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         fromAccountVar = ((string)fromAccountVar).ToLower();
         toAccountVar = ((string)toAccountVar).ToLower();
         string? fromId = this.safeString(accountsByType, fromAccountVar, fromAccountVar);
@@ -3149,7 +3149,7 @@ public partial class hitbtc : Exchange
         {
             ((IDictionary<string,object>)request)["payment_id"] = tagVar;
         }
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(parameters, "network");
         if (((network != null)) && (isEqual(code, "USDT")))
         {
@@ -3160,7 +3160,7 @@ public partial class hitbtc : Exchange
             }
             parameters = this.omit(parameters, "network");
         }
-        object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
+        IDictionary<string, object> withdrawOptions = this.safeDict(this.options, "withdraw", new Dictionary<string, object>() {});
         bool? includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         if ((includeFee == true))
         {
@@ -3906,8 +3906,8 @@ public partial class hitbtc : Exchange
         //         "positions": null
         //     }
         //
-        object currencies = this.safeValue(data, "currencies", new List<object>() {});
-        object currencyInfo = this.safeValue(currencies, 0);
+        List<object> currencies = this.safeList(data, "currencies", new List<object>() {});
+        IDictionary<string, object> currencyInfo = this.safeDict(currencies, 0);
         string? datetime = this.safeString(data, "updated_at");
         return new Dictionary<string, object>() {
             { "info", data },
@@ -4183,12 +4183,12 @@ public partial class hitbtc : Exchange
             object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((bool) ((networkCode != null))) ? ((string)networkCode).ToUpper() : null;
             double? withdrawFee = this.safeNumber(networkEntry, "payout_fee");
-            object isDefault = this.safeValue(networkEntry, "default");
+            bool? isDefault = this.safeBool(networkEntry, "default");
             Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                 { "fee", withdrawFee },
                 { "percentage", ((bool) (!isEqual(withdrawFee, null))) ? false : null },
             };
-            if (isEqual(isDefault, true))
+            if ((isDefault == true))
             {
                 ((IDictionary<string,object>)result)["withdraw"] = withdrawResult;
             }
@@ -4297,7 +4297,7 @@ public partial class hitbtc : Exchange
         //       }
         //     }
         //
-        object error = this.safeValue(response, "error");
+        IDictionary<string, object> error = this.safeDict(response, "error");
         string? errorCode = this.safeString(error, "code");
         if ((errorCode != null))
         {

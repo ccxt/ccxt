@@ -310,7 +310,7 @@ public partial class cryptocom : ccxt.cryptocom
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object data = this.safeValue(message, "data");
-        data = this.safeValue(data, 0);
+        data = this.safeDict(data, 0);
         Int64? timestamp = this.safeInteger(data, "t");
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -330,7 +330,7 @@ public partial class cryptocom : ccxt.cryptocom
             ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         } else
         {
-            books = this.safeValue(data, "update", new Dictionary<string, object>() {});
+            books = this.safeDict(data, "update", new Dictionary<string, object>() {});
             Int64? previousNonce = this.safeInteger(data, "pu");
             object currentNonce = getValue(orderbook, "nonce");
             if (!isEqual(currentNonce, previousNonce))
@@ -342,8 +342,8 @@ public partial class cryptocom : ccxt.cryptocom
                 }
             }
         }
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeValue(books, "asks", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeValue(books, "bids", new List<object>() {}));
+        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(books, "asks", new List<object>() {}));
+        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(books, "bids", new List<object>() {}));
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         string messageHash = ("orderbook:" + symbol);
@@ -413,7 +413,7 @@ public partial class cryptocom : ccxt.cryptocom
         object trades = await this.watchPublicMultiple(topics, topics, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -910,7 +910,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(message, "interval");
         string? timeframe = this.findTimeframe(interval);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
@@ -1146,8 +1146,8 @@ public partial class cryptocom : ccxt.cryptocom
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        object data = this.safeValue(message, "data", new List<object>() {});
-        object firstData = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
+        IDictionary<string, object> firstData = this.safeDict(data, 0, new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(firstData, "positions", new List<object>() {});
         if ((this.positions == null))
         {
@@ -1340,7 +1340,7 @@ public partial class cryptocom : ccxt.cryptocom
         //    }
         //
         string? messageHash = this.safeString(message, "id");
-        object rawOrder = this.safeValue(message, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> rawOrder = this.safeDict(message, "result", new Dictionary<string, object>() {});
         Dictionary<string, object> order = this.parseOrder(rawOrder);
         (client as WebSocketClient).resolve(order, messageHash);
     }
@@ -1521,7 +1521,7 @@ public partial class cryptocom : ccxt.cryptocom
             {
                 string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-                object messageString = this.safeValue(message, "message");
+                string? messageString = this.safeString(message, "message");
                 if ((messageString != null))
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);

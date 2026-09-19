@@ -187,7 +187,7 @@ public partial class bitopro : ccxt.bitopro
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
-        object rawData = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawData = this.safeList(message, "data", new List<object>() {});
         IList<object> trades = this.parseTrades(rawData, market);
         object tradesCache = this.safeValue(this.trades, symbol);
         if ((tradesCache == null))
@@ -264,7 +264,7 @@ public partial class bitopro : ccxt.bitopro
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? baseId = this.safeString(data, "base");
         string? quoteId = this.safeString(data, "quote");
         object bs = this.safeCurrencyCode(baseId);
@@ -337,11 +337,11 @@ public partial class bitopro : ccxt.bitopro
                 { "rate", null },
             };
         }
-        object isMaker = this.safeValue(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
-        if ((isMaker != null))
+        if (!isEqual(isMaker, null))
         {
-            if (isEqual(isMaker, true))
+            if ((isMaker == true))
             {
                 takerOrMaker = "maker";
             } else
@@ -505,7 +505,7 @@ public partial class bitopro : ccxt.bitopro
         //     }
         //
         string? eventVar = this.safeString(message, "event");
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(message, "timestamp");
         string? datetime = this.safeString(message, "datetime");
         List<object> currencies = new List<object>(((IDictionary<string,object>)data).Keys);
@@ -517,7 +517,7 @@ public partial class bitopro : ccxt.bitopro
         for (int i = 0; i < currencies.Count; i++)
         {
             string? currency = this.safeString(currencies, i);
-            object balance = this.safeValue(data, currency);
+            IDictionary<string, object> balance = this.safeDict(data, currency, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

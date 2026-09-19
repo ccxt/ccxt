@@ -109,7 +109,7 @@ public partial class apex : ccxt.apex
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1076,11 +1076,11 @@ public partial class apex : ccxt.apex
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
-            object success = this.safeValue(message, "success");
-            if (((success != null)) && (!isEqual(success, true)))
+            bool? success = this.safeBool(message, "success");
+            if ((!isEqual(success, null)) && ((success != true)))
             {
                 string? ret_msg = this.safeString(message, "ret_msg");
-                object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
+                IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
                 string? op = this.safeString(request, "op");
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
@@ -1254,10 +1254,10 @@ public partial class apex : ccxt.apex
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        object success = this.safeValue(message, "success");
+        bool? success = this.safeBool(message, "success");
         Int64? code = this.safeInteger(message, "retCode");
         string messageHash = "authenticated";
-        if ((isEqual(success, true)) || ((code == 0)))
+        if (((success == true)) || ((code == 0)))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);

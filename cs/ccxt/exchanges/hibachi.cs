@@ -794,17 +794,17 @@ public partial class hibachi : Exchange
             remainingString = Precise.stringSub(totalQuantity, filled);
         }
         string timeInForce = "GTC";
-        object orderFlags = this.safeValue(order, "orderFlags");
+        string? orderFlags = this.safeString(order, "orderFlags");
         bool postOnly = false;
         bool reduceOnly = false;
-        if (isEqual(orderFlags, "POST_ONLY"))
+        if ((orderFlags == "POST_ONLY"))
         {
             timeInForce = "PO";
             postOnly = true;
-        } else if (isEqual(orderFlags, "IOC"))
+        } else if ((orderFlags == "IOC"))
         {
             timeInForce = "IOC";
-        } else if (isEqual(orderFlags, "REDUCE_ONLY"))
+        } else if ((orderFlags == "REDUCE_ONLY"))
         {
             reduceOnly = true;
         }
@@ -1094,8 +1094,8 @@ public partial class hibachi : Exchange
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest((nonce + i), symbol, type, side, amount, price, orderParams);
             ((IDictionary<string,object>)orderRequest)["action"] = "place";
@@ -1210,8 +1210,8 @@ public partial class hibachi : Exchange
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.editOrderRequest((nonce + i), id, symbol, type, side, amount, price, orderParams);
             ((IDictionary<string,object>)orderRequest)["action"] = "modify";

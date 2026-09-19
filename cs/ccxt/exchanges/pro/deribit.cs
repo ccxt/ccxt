@@ -150,8 +150,8 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
-        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)this.balance)["info"] = data;
         string? currencyId = this.safeString(data, "currency");
         string? currencyCode = this.safeCurrencyCode(currencyId);
@@ -291,8 +291,8 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
-        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "instrument_name");
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> ticker = this.parseTicker(data);
@@ -473,7 +473,7 @@ public partial class deribit : ccxt.deribit
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
         List<object> trades = this.safeList(parameters, "data", new List<object>() {});
-        if (isEqual(this.safeValue(this.trades, symbol), null))
+        if ((this.safeDict(this.trades, symbol) == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
@@ -563,9 +563,9 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
-        object trades = this.safeValue(parameters, "data", new List<object>() {});
+        List<object> trades = this.safeList(parameters, "data", new List<object>() {});
         object cachedTrades = this.myTrades;
         if ((cachedTrades == null))
         {
@@ -694,8 +694,8 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
-        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel");
         List<object> parts = ((string)((string)channel)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object descriptor = "";
@@ -862,7 +862,7 @@ public partial class deribit : ccxt.deribit
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
         IList<object> orders = new List<object>() {};
@@ -971,7 +971,7 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> timeframes = this.safeDict(wsOptions, "timeframes", new Dictionary<string, object>() {});
         string? unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (isEqual(this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe), null))
+        if ((this.safeDict(getValue(this.ohlcvs, symbol), unifiedTimeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = new ArrayCacheByTimestamp(limit);
@@ -1126,7 +1126,7 @@ public partial class deribit : ccxt.deribit
         {
             throw new ExchangeError ((string)((this.id + " ") + this.json(error))) ;
         }
-        IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params"));
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
         string? channel = this.safeString(parameters, "channel");
         if ((channel != null))
         {
@@ -1153,7 +1153,7 @@ public partial class deribit : ccxt.deribit
             }
             throw new NotSupported ((string)((this.id + " no handler found for this message ") + this.json(message))) ;
         }
-        object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         string? accessToken = this.safeString(result, "access_token");
         if ((accessToken != null))
         {

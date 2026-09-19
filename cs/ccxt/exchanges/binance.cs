@@ -4389,7 +4389,7 @@ public partial class binance : Exchange
                 for (int i = 0; i < getArrayLength(markets); i++)
                 {
                     object market = getValue(markets, i);
-                    if (isEqual(this.safeValue(market, defaultType), true))
+                    if ((this.safeBool(market, defaultType) == true))
                     {
                         return ccxt.BaseExchange.ToDict(market);
                     }
@@ -6018,9 +6018,9 @@ public partial class binance : Exchange
             response = await this.eapiPublicGetDepth(this.extend(request, parameters));
         } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            object rpi = this.safeValue(parameters, "rpi", false);
+            bool? rpi = this.safeBool(parameters, "rpi", false);
             parameters = this.omit(parameters, "rpi");
-            if (isEqual(rpi, true))
+            if ((rpi == true))
             {
                 // rpi limit only supports 1000
                 ((IDictionary<string,object>)request)["limit"] = 1000;
@@ -7608,7 +7608,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
         }
-        ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeValue((this.options.ContainsKey("newOrderRespType") ? this.options["newOrderRespType"] : null), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeString((this.options.ContainsKey("newOrderRespType") ? this.options["newOrderRespType"] : null), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         bool timeInForceIsRequired = false;
         bool priceIsRequired = false;
         bool triggerPriceIsRequired = false;
@@ -9213,7 +9213,7 @@ public partial class binance : Exchange
             {
                 if ((upperCaseSide == "BUY"))
                 {
-                    object precision = this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
+                    double? precision = this.safeNumber((market.ContainsKey("precision") ? market["precision"] : null), "price");
                     string? quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
                     string? notional = null;
                     if ((quoteOrderQtyNew != null))
@@ -9228,7 +9228,7 @@ public partial class binance : Exchange
                     {
                         notional = this.numberToString(amount);
                     }
-                    if ((precision == null))
+                    if (isEqual(precision, null))
                     {
                         ((IDictionary<string,object>)request)["notional"] = notional;
                     } else
@@ -9255,7 +9255,7 @@ public partial class binance : Exchange
                 if (isEqual(quoteOrderQty, true))
                 {
                     string? quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
-                    object precision = this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
+                    double? precision = this.safeNumber((market.ContainsKey("precision") ? market["precision"] : null), "price");
                     if ((quoteOrderQtyNew != null))
                     {
                         ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
@@ -11978,14 +11978,14 @@ public partial class binance : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         double? amount = this.safeNumber(transfer, "amount");
         string? type = this.safeString(transfer, "type");
-        object fromAccount = null;
-        object toAccount = null;
+        string? fromAccount = null;
+        string? toAccount = null;
         IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
         if ((type != null))
         {
             List<object> parts = ((string)type).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            fromAccount = this.safeValue(parts, 0);
-            toAccount = this.safeValue(parts, 1);
+            fromAccount = this.safeString(parts, 0);
+            toAccount = this.safeString(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
@@ -13505,7 +13505,7 @@ public partial class binance : Exchange
         double? percentage = null;
         string? liquidationPriceStringRaw = null;
         double? liquidationPrice = null;
-        object contractSize = this.safeValue(market, "contractSize");
+        double? contractSize = this.safeNumber(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, "0"))
         {
@@ -13731,7 +13731,7 @@ public partial class binance : Exchange
         }
         string? entryPriceString = this.safeString(position, "entryPrice");
         double? entryPrice = this.parseNumber(entryPriceString);
-        object contractSize = this.safeValue(market, "contractSize");
+        double? contractSize = this.safeNumber(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         bool linear = (inOp(position, "notional"));
@@ -15875,7 +15875,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 
     public async override Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)

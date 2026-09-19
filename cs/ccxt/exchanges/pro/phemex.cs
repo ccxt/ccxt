@@ -401,7 +401,7 @@ public partial class phemex : ccxt.phemex
             object balance = getValue(message, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object currency = this.safeValue(this.currencies, code, new Dictionary<string, object>() {});
+            IDictionary<string, object> currency = this.safeDict(this.currencies, code, new Dictionary<string, object>() {});
             Int64? scale = this.safeInteger(currency, "valueScale", 8);
             Dictionary<string, object> account = this.account();
             string? used = this.safeString(balance, "totalUsedBalanceRv");
@@ -474,7 +474,7 @@ public partial class phemex : ccxt.phemex
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object trades = this.safeValue2(message, "trades", "trades_p", new List<object>() {});
+        List<object> trades = this.safeList2(message, "trades", "trades_p", new List<object>() {});
         IList<object> parsed = this.parseTrades(trades, market);
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
@@ -519,16 +519,16 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object candles = this.safeValue2(message, "kline", "kline_p", new List<object>() {});
-        object first = this.safeValue(candles, 0, new List<object>() {});
+        List<object> candles = this.safeList2(message, "kline", "kline_p", new List<object>() {});
+        List<object> first = this.safeList(candles, 0, new List<object>() {});
         string? interval = this.safeString(first, 1);
         string? timeframe = this.findTimeframe(interval);
         if ((timeframe != null))
         {
             string messageHash = ((("kline:" + timeframe) + ":") + symbol);
             IList<object> ohlcvs = this.parseOHLCVs(candles, market);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -844,7 +844,7 @@ public partial class phemex : ccxt.phemex
         Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
         if ((type == "snapshot"))
         {
-            object book = this.safeValue2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
+            IDictionary<string, object> book = this.safeDict2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
             Dictionary<string, object> snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             ((IDictionary<string,object>)snapshot)["nonce"] = nonce;
             ccxt.pro.OrderBook orderbook = this.orderBook(snapshot, depth);
@@ -1269,8 +1269,8 @@ public partial class phemex : ccxt.phemex
         List<object> parsedOrders = new List<object>() {};
         if ((inOp(message, "closed")) || (inOp(message, "fills")) || (inOp(message, "open")))
         {
-            object closed = this.safeValue(message, "closed", new List<object>() {});
-            object open = this.safeValue(message, "open", new List<object>() {});
+            List<object> closed = this.safeList(message, "closed", new List<object>() {});
+            List<object> open = this.safeList(message, "open", new List<object>() {});
             List<object> orders = this.arrayConcat(open, closed);
             int ordersLength = (orders?.Count ?? 0);
             if ((ordersLength == 0))
@@ -1642,7 +1642,7 @@ public partial class phemex : ccxt.phemex
         }
         if ((inOp(message, "orders")) || (inOp(message, "orders_p")))
         {
-            object orders = this.safeValue2(message, "orders", "orders_p", new Dictionary<string, object>() {});
+            IDictionary<string, object> orders = this.safeDict2(message, "orders", "orders_p", new Dictionary<string, object>() {});
             this.handleOrders(client as WebSocketClient, orders);
         }
         if ((inOp(message, "accounts")) || (inOp(message, "accounts_p")) || (inOp(message, "wallets")))
@@ -1652,7 +1652,7 @@ public partial class phemex : ccxt.phemex
             {
                 type = "perpetual";
             }
-            object accounts = this.safeValueN(message, new List<object>() {"accounts", "accounts_p", "wallets"}, new List<object>() {});
+            List<object> accounts = this.safeListN(message, new List<object>() {"accounts", "accounts_p", "wallets"}, new List<object>() {});
             this.handleBalance(type, client, accounts);
         }
     }
@@ -1668,7 +1668,7 @@ public partial class phemex : ccxt.phemex
         //     }
         // }
         //
-        object result = this.safeValue(message, "result");
+        IDictionary<string, object> result = this.safeDict(message, "result");
         string? status = this.safeString(result, "status");
         string messageHash = "authenticated";
         if ((status == "success"))
@@ -1695,7 +1695,7 @@ public partial class phemex : ccxt.phemex
         await this.authenticate();
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = this.seconds();
-        bool settleIsUSDT = (isEqual(this.safeValue(parameters, "settle", ""), "USDT"));
+        bool settleIsUSDT = ((this.safeString(parameters, "settle", "") == "USDT"));
         parameters = this.omit(parameters, "settle");
         string channel = "aop.subscribe";
         if (isEqual(type, "spot"))

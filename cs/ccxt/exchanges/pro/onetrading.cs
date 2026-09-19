@@ -410,7 +410,7 @@ public partial class onetrading : ccxt.onetrading
             (orderbook as IOrderBook).reset(snapshot);
         } else if ((type == "ORDER_BOOK_UPDATE"))
         {
-            object changes = this.safeValue(message, "changes", new List<object>() {});
+            List<object> changes = this.safeList(message, "changes", new List<object>() {});
             this.handleDeltas(orderbook, changes);
         } else
         {
@@ -1026,7 +1026,7 @@ public partial class onetrading : ccxt.onetrading
         }
         object symbol = null;
         object orders = this.orders;
-        object update = this.safeValue(message, "update", new Dictionary<string, object>() {});
+        IDictionary<string, object> update = this.safeDict(message, "update", new Dictionary<string, object>() {});
         string? updateType = this.safeString(update, "type");
         if ((updateType == "ORDER_REJECTED") || (updateType == "ORDER_CLOSED") || (updateType == "STOP_ORDER_TRIGGERED"))
         {
@@ -1139,8 +1139,8 @@ public partial class onetrading : ccxt.onetrading
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeValue(timeframes, timeframeVar);
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframeId = this.safeDict(timeframes, timeframeVar);
         if ((timeframeId == null))
         {
             throw new NotSupported ((string)(this.id + " this interval is not supported, please provide one of the supported timeframes")) ;
@@ -1155,7 +1155,7 @@ public partial class onetrading : ccxt.onetrading
             subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             if ((subscription != null))
             {
-                object ohlcvMarket = this.safeValue(subscription, marketId, new Dictionary<string, object>() {});
+                IDictionary<string, object> ohlcvMarket = this.safeDict(subscription, marketId, new Dictionary<string, object>() {});
                 bool? marketSubscribed = this.safeBool(ohlcvMarket, timeframeVar, false);
                 if ((marketSubscribed != true))
                 {
@@ -1167,7 +1167,7 @@ public partial class onetrading : ccxt.onetrading
                 subscription = new Dictionary<string, object>() {};
             }
         }
-        object subscriptionMarketId = this.safeValue(subscription, marketId);
+        IDictionary<string, object> subscriptionMarketId = this.safeDict(subscription, marketId);
         if ((subscriptionMarketId == null))
         {
             if ((marketId != null))
@@ -1186,7 +1186,7 @@ public partial class onetrading : ccxt.onetrading
             List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)getValue(subscription, marketIds[i])).Keys);
             for (int ii = 0; ii < marketIdtimeframes.Count; ii++)
             {
-                object marketTimeframeId = this.safeValue(timeframes, timeframeVar);
+                IDictionary<string, object> marketTimeframeId = this.safeDict(timeframes, timeframeVar);
                 Dictionary<string, object> property = new Dictionary<string, object>() {
                     { "instrument_code", marketIds[i] },
                     { "time_granularity", marketTimeframeId },
@@ -1248,13 +1248,13 @@ public partial class onetrading : ccxt.onetrading
         string? marketId = this.safeString(message, "instrument_code");
         string? symbol = this.safeSymbol(marketId);
         string? dateTime = this.safeString(message, "time");
-        object timeframeId = this.safeValue(message, "granularity");
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframeId = this.safeDict(message, "granularity");
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(timeframeId, timeframes);
         string channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<object> parsed = new List<object> {this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")};
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1326,13 +1326,13 @@ public partial class onetrading : ccxt.onetrading
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        object error = this.safeValue(message, "error");
+        string? error = this.safeString(message, "error");
         if ((error != null))
         {
             this.handleErrorMessage(client as WebSocketClient, message);
             return;
         }
-        object type = this.safeValue(message, "type");
+        string? type = this.safeString(message, "type");
         Dictionary<string, object> handlers = new Dictionary<string, object>() {
             { "ORDER_BOOK_UPDATE", this.handleOrderBook },
             { "ORDER_BOOK_SNAPSHOT", this.handleOrderBook },
@@ -1465,7 +1465,7 @@ public partial class onetrading : ccxt.onetrading
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");
-        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        IDictionary<string, object> authenticated = this.safeDict(((WebSocketClient)client).subscriptions, messageHash);
         if ((authenticated == null))
         {
             this.checkRequiredCredentials();

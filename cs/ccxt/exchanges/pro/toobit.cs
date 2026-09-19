@@ -224,7 +224,7 @@ public partial class toobit : ccxt.toobit
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1376,7 +1376,7 @@ public partial class toobit : ccxt.toobit
     public async virtual Task keepAliveListenKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         string? listenKey = this.safeString(options, "listenKey");
         if ((listenKey == null))
         {

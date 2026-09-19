@@ -700,7 +700,7 @@ public partial class bydfi : ccxt.bydfi
         object orders = await this.watchPrivate(messageHashes, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(orders, 0);
+            IDictionary<string, object> first = this.safeDict(orders, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(orders, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1024,7 +1024,7 @@ public partial class bydfi : ccxt.bydfi
 
     public virtual void fetchBalanceSnapshot(WebSocketClient client)
     {
-        object options = this.safeValue(this.options, "watchBalance");
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {

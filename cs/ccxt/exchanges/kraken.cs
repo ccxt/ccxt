@@ -781,7 +781,7 @@ public partial class kraken : Exchange
             }
             if (spot && (inOp(cachedCurrencies, bs)))
             {
-                object currency = this.safeValue(cachedCurrencies, bs);
+                IDictionary<string, object> currency = this.safeDict(cachedCurrencies, bs);
                 double? currencyPrecision = this.safeNumber(currency, "precision");
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (isEqual(currencyPrecision, null))
@@ -1091,16 +1091,16 @@ public partial class kraken : Exchange
         //        }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(result, market));
     }
 
     public virtual object parseTradingFee(object response, object market)
     {
-        object makerFees = this.safeValue(response, "fees_maker", new Dictionary<string, object>() {});
-        object takerFees = this.safeValue(response, "fees", new Dictionary<string, object>() {});
-        object symbolMakerFee = this.safeValue(makerFees, getValue(market, "id"), new Dictionary<string, object>() {});
-        object symbolTakerFee = this.safeValue(takerFees, getValue(market, "id"), new Dictionary<string, object>() {});
+        IDictionary<string, object> makerFees = this.safeDict(response, "fees_maker", new Dictionary<string, object>() {});
+        IDictionary<string, object> takerFees = this.safeDict(response, "fees", new Dictionary<string, object>() {});
+        IDictionary<string, object> symbolMakerFee = this.safeDict(makerFees, getValue(market, "id"), new Dictionary<string, object>() {});
+        IDictionary<string, object> symbolTakerFee = this.safeDict(takerFees, getValue(market, "id"), new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "info", response },
             { "symbol", getValue(market, "symbol") },
@@ -1167,12 +1167,12 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orderbook = this.safeValue(result, (market.ContainsKey("id") ? market["id"] : null));
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
-        object marketInfo = this.safeValue(market, "info", new Dictionary<string, object>() {});
-        object wsName = this.safeValue(marketInfo, "wsname");
+        IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        string? wsName = this.safeString(marketInfo, "wsname");
         if ((wsName != null))
         {
             orderbook = this.safeValue(result, wsName, orderbook);
@@ -1196,17 +1196,17 @@ public partial class kraken : Exchange
         //     }
         //
         string? symbol = this.safeSymbol(null, market);
-        object v = this.safeValue(ticker, "v", new List<object>() {});
+        List<object> v = this.safeList(ticker, "v", new List<object>() {});
         string? baseVolume = this.safeString(v, 1);
-        object p = this.safeValue(ticker, "p", new List<object>() {});
+        List<object> p = this.safeList(ticker, "p", new List<object>() {});
         string? vwap = this.safeString(p, 1);
         string? quoteVolume = Precise.stringMul(baseVolume, vwap);
-        object c = this.safeValue(ticker, "c", new List<object>() {});
+        List<object> c = this.safeList(ticker, "c", new List<object>() {});
         string? last = this.safeString(c, 0);
-        object high = this.safeValue(ticker, "h", new List<object>() {});
-        object low = this.safeValue(ticker, "l", new List<object>() {});
-        object bid = this.safeValue(ticker, "b", new List<object>() {});
-        object ask = this.safeValue(ticker, "a", new List<object>() {});
+        List<object> high = this.safeList(ticker, "h", new List<object>() {});
+        List<object> low = this.safeList(ticker, "l", new List<object>() {});
+        List<object> bid = this.safeList(ticker, "b", new List<object>() {});
+        List<object> ask = this.safeList(ticker, "a", new List<object>() {});
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -1387,7 +1387,7 @@ public partial class kraken : Exchange
         //             "last":1591517580
         //         }
         //     }
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> ohlcvs = this.safeList(result, (market.ContainsKey("id") ? market["id"] : null), new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,((string)timeframeVar), since, limit));
     }
@@ -1511,7 +1511,7 @@ public partial class kraken : Exchange
         //                                                 "amount": "-0.2805800000",
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> ledger = this.safeDict(result, "ledger", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)ledger).Keys);
         List<object> items = new List<object>() {};
@@ -1805,7 +1805,7 @@ public partial class kraken : Exchange
         {
             string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            object balance = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
+            IDictionary<string, object> balance = this.safeDict(balances, currencyId, new Dictionary<string, object>() {});
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "hold_trade");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
@@ -2724,7 +2724,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new List<object>() {});
         if (!(inOp(result, id)))
         {
             throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + (id))) ;
@@ -2775,7 +2775,7 @@ public partial class kraken : Exchange
         {
             symbolVar = this.symbol(symbolVar);
         }
-        object options = this.safeValue(this.options, "fetchOrderTrades", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "fetchOrderTrades", new Dictionary<string, object>() {});
         Int64? batchSize = this.safeInteger(options, "batchSize", 20);
         int numTradeIds = (tradeIds?.Count ?? 0);
         object numBatches = this.parseToInt((numTradeIds / batchSize));
@@ -3304,7 +3304,7 @@ public partial class kraken : Exchange
 
     public virtual object parseNetwork(object network)
     {
-        object withdrawMethods = this.safeValue(this.options, "withdrawMethods", new Dictionary<string, object>() {});
+        IDictionary<string, object> withdrawMethods = this.safeDict(this.options, "withdrawMethods", new Dictionary<string, object>() {});
         return this.safeString(withdrawMethods, network, network);
     }
 
@@ -3514,7 +3514,7 @@ public partial class kraken : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToInt64Value(this.safeTimestamp(result, "unixtime"));
     }
 
@@ -3715,14 +3715,14 @@ public partial class kraken : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)codeVar));
         string? network = this.safeStringUpper(parameters, "network");
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
         parameters = this.omit(parameters, "network");
         if ((isEqual(codeVar, "USDT")) && ((network == "TRC20")))
         {
             codeVar = add(add(codeVar, "-"), network);
         }
-        object defaultDepositMethods = this.safeValue(this.options, "depositMethods", new Dictionary<string, object>() {});
+        IDictionary<string, object> defaultDepositMethods = this.safeDict(this.options, "depositMethods", new Dictionary<string, object>() {});
         string? defaultDepositMethod = this.safeString(defaultDepositMethods, codeVar);
         string? depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
         // if the user has specified an exchange-specific method in params
@@ -3750,7 +3750,7 @@ public partial class kraken : Exchange
             // if depositMethod was not specified, fallback to the first available deposit method
             if ((depositMethod == null))
             {
-                object firstDepositMethod = this.safeValue(depositMethods, 0, new Dictionary<string, object>() {});
+                IDictionary<string, object> firstDepositMethod = this.safeDict(depositMethods, 0, new Dictionary<string, object>() {});
                 depositMethod = this.safeString(firstDepositMethod, "method");
             }
         }
@@ -3767,8 +3767,8 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
-        object firstResult = this.safeValue(result, 0, new Dictionary<string, object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
+        IDictionary<string, object> firstResult = this.safeDict(result, 0, new Dictionary<string, object>() {});
         if ((firstResult == null))
         {
             throw new InvalidAddress ((string)((this.id + " privatePostDepositAddresses() returned no addresses for ") + (codeVar))) ;
@@ -4052,7 +4052,7 @@ public partial class kraken : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(transfer, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(transfer, "result", new Dictionary<string, object>() {});
         string? refid = this.safeString(result, "refid");
         return new Dictionary<string, object>() {
             { "info", transfer },

@@ -104,7 +104,7 @@ public partial class p2b : ccxt.p2b
         {
             await this.loadMarkets();
         }
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         Int64? channel = this.safeInteger(timeframes, timeframeVar);
         if (isEqual(channel, null))
         {
@@ -252,7 +252,7 @@ public partial class p2b : ccxt.p2b
         object trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -473,7 +473,7 @@ public partial class p2b : ccxt.p2b
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -493,7 +493,7 @@ public partial class p2b : ccxt.p2b
         {
             for (int i = 0; i < bids.Count; i++)
             {
-                object bid = this.safeValue(bids, i);
+                List<object> bid = this.safeList(bids, i);
                 double? price = this.safeNumber(bid, 0);
                 double? amount = this.safeNumber(bid, 1);
                 object bookSide = getValue(orderbook, "bids");
@@ -504,7 +504,7 @@ public partial class p2b : ccxt.p2b
         {
             for (int i = 0; i < asks.Count; i++)
             {
-                object ask = this.safeValue(asks, i);
+                List<object> ask = this.safeList(asks, i);
                 double? price = this.safeNumber(ask, 0);
                 double? amount = this.safeNumber(ask, 1);
                 object bookside = getValue(orderbook, "asks");

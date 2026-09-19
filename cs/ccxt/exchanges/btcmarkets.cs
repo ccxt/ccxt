@@ -610,7 +610,7 @@ public partial class btcmarkets : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        object fees = this.safeValue(this.safeDict(this.options, "fees", new Dictionary<string, object>() {}), quote, this.fees);
+        IDictionary<string, object> fees = this.safeDict(this.safeDict(this.options, "fees", new Dictionary<string, object>() {}), quote, this.fees);
         double? pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         double? minAmount = this.safeNumber(market, "minOrderAmount");
         double? maxAmount = this.safeNumber(market, "maxOrderAmount");
@@ -639,8 +639,8 @@ public partial class btcmarkets : Exchange
             { "contract", false },
             { "linear", null },
             { "inverse", null },
-            { "taker", getValue(fees, "taker") },
-            { "maker", getValue(fees, "maker") },
+            { "taker", (fees != null && fees.ContainsKey("taker") ? fees["taker"] : null) },
+            { "maker", (fees != null && fees.ContainsKey("maker") ? fees["maker"] : null) },
             { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -1075,7 +1075,7 @@ public partial class btcmarkets : Exchange
             { "side", ((bool) (isEqual(side, "buy"))) ? "Bid" : "Ask" },
         };
         string lowercaseType = ((string)type).ToLower();
-        object orderTypes = this.safeValue(this.options, "orderTypes", new Dictionary<string, object>() {
+        IDictionary<string, object> orderTypes = this.safeDict(this.options, "orderTypes", new Dictionary<string, object>() {
             { "limit", "Limit" },
             { "market", "Market" },
             { "stop", "Stop" },

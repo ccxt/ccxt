@@ -481,8 +481,8 @@ public partial class modetrade : ccxt.modetrade
             return;
         }
         List<object> parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")};
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -653,8 +653,8 @@ public partial class modetrade : ccxt.modetrade
         //     }
         //
         string messageHash = "authenticated";
-        object success = this.safeValue(message, "success");
-        if (isEqual(success, true))
+        bool? success = this.safeBool(message, "success");
+        if ((success == true))
         {
             // client.resolve (message, messageHash);
             var future = this.safeValue((client as WebSocketClient).futures, "authenticated");

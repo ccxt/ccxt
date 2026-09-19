@@ -1003,11 +1003,11 @@ public partial class bitvavo : Exchange
         string? id = this.safeString2(trade, "id", "fillId");
         string? marketId = this.safeString(trade, "market");
         string? symbol = this.safeSymbol(marketId, market, "-");
-        object taker = this.safeValue(trade, "taker");
+        bool? taker = this.safeBool(trade, "taker");
         string? takerOrMaker = null;
-        if ((taker != null))
+        if (!isEqual(taker, null))
         {
-            takerOrMaker = ((bool) (isEqual(taker, true))) ? "taker" : "maker";
+            takerOrMaker = ((bool) ((taker == true))) ? "taker" : "maker";
         }
         string? feeCostString = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -1077,7 +1077,7 @@ public partial class bitvavo : Exchange
         //         }
         //     }
         //
-        object feesValue = this.safeValue(fees, "fees");
+        IDictionary<string, object> feesValue = this.safeDict(fees, "fees");
         double? maker = this.safeNumber(feesValue, "maker");
         double? taker = this.safeNumber(feesValue, "taker");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -1654,10 +1654,10 @@ public partial class bitvavo : Exchange
         bool isMarketOrder = (isEqual(type, "market")) || (isEqual(type, "stopLoss")) || (isEqual(type, "takeProfit"));
         bool isLimitOrder = (isEqual(type, "limit")) || (isEqual(type, "stopLossLimit")) || (isEqual(type, "takeProfitLimit"));
         string? timeInForce = this.safeString(parameters, "timeInForce");
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
-        object stopLossPrice = this.safeValue(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
-        object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
+        string? stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
+        string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"});
         if (isMarketOrder)
         {
@@ -2369,7 +2369,7 @@ public partial class bitvavo : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object rawTrades = this.safeValue(order, "fills", new List<object>() {});
+        List<object> rawTrades = this.safeList(order, "fills", new List<object>() {});
         string? timeInForce = this.safeString(order, "timeInForce");
         object postOnly = this.safeValue(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
@@ -2908,10 +2908,10 @@ public partial class bitvavo : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        object networks = this.safeValue(fee, "networks");
-        object networkId = this.safeValue(networks, 0); // Bitvavo currently only supports one network per currency
+        List<object> networks = this.safeList(fee, "networks");
+        string? networkId = this.safeString(networks, 0); // Bitvavo currently only supports one network per currency
         string? currencyCode = this.safeString(currency, "code");
-        if (isEqual(networkId, "Mainnet"))
+        if ((networkId == "Mainnet"))
         {
             networkId = currencyCode;
         }
@@ -3046,6 +3046,6 @@ public partial class bitvavo : Exchange
         {
             return ((IDictionary<string,object>)config)["noMarket"];
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 }

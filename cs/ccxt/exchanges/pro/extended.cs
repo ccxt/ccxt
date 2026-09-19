@@ -906,7 +906,7 @@ public partial class extended : ccxt.extended
         string? candleType = this.safeString(subscription, "candleType");
         object cacheKey = ((bool) ((candleType == "trades"))) ? timeframe : add(add(timeframe, ":"), candleType);
         string? messageHash = this.safeString(subscription, "messageHash");
-        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), cacheKey);
         if ((stored == null))
         {
@@ -952,7 +952,7 @@ public partial class extended : ccxt.extended
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        object error = this.safeValue(message, "error");
+        IDictionary<string, object> error = this.safeDict(message, "error");
         if ((error == null))
         {
             return ((bool?)((object)(false)));

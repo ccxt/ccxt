@@ -847,7 +847,7 @@ public partial class tokocrypto : Exchange
         {
             await this.loadTimeDifference();
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> list = this.safeList(data, "list", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < list.Count; i++)
@@ -862,7 +862,7 @@ public partial class tokocrypto : Exchange
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(bs, "/"), quote);
-            object filters = this.safeValue(market, "filters", new List<object>() {});
+            List<object> filters = this.safeList(market, "filters", new List<object>() {});
             Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             string? status = this.safeString(market, "spotTradingEnable");
             bool active = ((status == "1"));
@@ -944,7 +944,7 @@ public partial class tokocrypto : Exchange
             }
             if (filtersByType.ContainsKey("LOT_SIZE"))
             {
-                object filter = this.safeValue(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["amount"] = this.safeNumber(filter, "stepSize");
                 ((IDictionary<string,object>)((IDictionary<string,object>)entry)["limits"])["amount"] = new Dictionary<string, object>() {
                     { "min", this.safeNumber(filter, "minQty") },
@@ -953,7 +953,7 @@ public partial class tokocrypto : Exchange
             }
             if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
             {
-                object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)((IDictionary<string,object>)entry)["limits"])["market"] = new Dictionary<string, object>() {
                     { "min", this.safeNumber(filter, "minQty") },
                     { "max", this.safeNumber(filter, "maxQty") },
@@ -961,7 +961,7 @@ public partial class tokocrypto : Exchange
             }
             if (filtersByType.ContainsKey("MIN_NOTIONAL"))
             {
-                object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)getValue(((IDictionary<string,object>)entry)["limits"], "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
             }
             ((IList<object>)result).Add(entry);
@@ -1031,7 +1031,7 @@ public partial class tokocrypto : Exchange
         //         },
         //         "timestamp":1692262634599
         //     }
-        object data = this.safeValue(response, "data", response);
+        IDictionary<string, object> data = this.safeDict(response, "data", response);
         Int64? timestamp = this.safeInteger2(response, "T", "timestamp");
         Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "lastUpdateId");
@@ -1143,11 +1143,11 @@ public partial class tokocrypto : Exchange
         id = this.safeString2(trade, "id", "tradeId", id);
         string? side = null;
         string? orderId = this.safeString(trade, "orderId");
-        object buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
+        bool? buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         string? takerOrMaker = null;
-        if ((buyerMaker != null))
+        if (!isEqual(buyerMaker, null))
         {
-            side = ((bool) (isEqual(buyerMaker, true))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((bool) ((buyerMaker == true))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
         {
@@ -1728,7 +1728,7 @@ public partial class tokocrypto : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(data, "accountAssets", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
@@ -1889,7 +1889,7 @@ public partial class tokocrypto : Exchange
         {
             side = "sell";
         }
-        object fills = this.safeValue(order, "fills", new List<object>() {});
+        List<object> fills = this.safeList(order, "fills", new List<object>() {});
         string? clientOrderId = this.safeString2(order, "clientOrderId", "clientId");
         string? timeInForce = this.safeString(order, "timeInForce");
         if ((timeInForce == "GTX"))
@@ -2014,7 +2014,7 @@ public partial class tokocrypto : Exchange
         }
         if ((clientOrderId == null))
         {
-            object broker = this.safeValue(this.options, "broker");
+            IDictionary<string, object> broker = this.safeDict(this.options, "broker");
             if ((broker != null))
             {
                 object brokerId = this.safeString(broker, "marketType");
@@ -2201,8 +2201,8 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1662710056523
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object list = this.safeValue(data, "list", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> list = this.safeList(data, "list", new List<object>() {});
         IDictionary<string, object> rawOrder = this.safeDict(list, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder));
     }
@@ -2275,7 +2275,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1572860756458
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
@@ -2434,7 +2434,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1573723498893
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -2459,7 +2459,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
         };
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if ((network != null))
@@ -2485,7 +2485,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1660685915746
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? address = this.safeString(data, "address");
         string? tag = this.safeString(data, "addressTag", "");
         if ((((string)tag).Length == 0))
@@ -2562,7 +2562,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1659758865998
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> deposits = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(deposits, currency, since, limit));
     }
@@ -2628,7 +2628,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1659759062187
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> withdrawals = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawals, currency, since, limit));
     }
@@ -2650,7 +2650,7 @@ public partial class tokocrypto : Exchange
                 { "10", "ok" },
             } },
         };
-        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -2752,7 +2752,7 @@ public partial class tokocrypto : Exchange
         string? id = this.safeString(transaction, "id");
         if ((id == null))
         {
-            object data = this.safeValue(transaction, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(transaction, "data", new Dictionary<string, object>() {});
             id = this.safeString(data, "withdrawId");
             type = "withdrawal";
         }

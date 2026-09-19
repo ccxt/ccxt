@@ -172,15 +172,15 @@ public partial class bitstamp : ccxt.bitstamp
         string? marketId = this.safeString(parts, 3);
         string? symbol = this.safeSymbol(marketId);
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
-        object nonce = this.safeValue(storedOrderBook, "nonce");
-        IDictionary<string, object> delta = ((IDictionary<string, object>)this.safeValue(message, "data"));
+        Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
+        IDictionary<string, object> delta = this.safeDict(message, "data");
         Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
         if (isEqual(deltaNonce, null))
         {
             return;
         }
         string messageHash = ("orderbook:" + symbol);
-        if ((nonce == null))
+        if (isEqual(nonce, null))
         {
             int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             // the rest API is very delayed
@@ -206,8 +206,8 @@ public partial class bitstamp : ccxt.bitstamp
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "microtimestamp");
-        object bids = this.safeValue(delta, "bids", new List<object>() {});
-        object asks = this.safeValue(delta, "asks", new List<object>() {});
+        List<object> bids = this.safeList(delta, "bids", new List<object>() {});
+        List<object> asks = this.safeList(delta, "asks", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
         object storedAsks = getValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
@@ -1024,7 +1024,7 @@ public partial class bitstamp : ccxt.bitstamp
         if ((eventVar == "bts:error"))
         {
             string feedback = ((this.id + " ") + this.json(message));
-            IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "data", new Dictionary<string, object>() {}));
+            IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             double? code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
         }

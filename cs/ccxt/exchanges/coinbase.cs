@@ -1831,7 +1831,7 @@ public partial class coinbase : Exchange
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = ((Dictionary<string, object>)result[i]);
-            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+            IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             List<object> realMarketIds = this.safeList(info, "alias_to", new List<object>() {});
             int length = realMarketIds.Count;
             if (length > 0)

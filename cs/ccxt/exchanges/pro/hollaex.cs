@@ -102,7 +102,7 @@ public partial class hollaex : ccxt.hollaex
         {
             return;
         }
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         string? timestamp = this.safeString(data, "timestamp");
         Int64? timestampMs = this.parse8601(timestamp);
         Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestampMs));
@@ -183,7 +183,7 @@ public partial class hollaex : ccxt.hollaex
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
@@ -674,7 +674,7 @@ public partial class hollaex : ccxt.hollaex
             { "wallet", this.handleBalance },
             { "usertrade", this.handleMyTrades },
         };
-        object topic = this.safeValue(message, "topic");
+        string? topic = this.safeString(message, "topic");
         object method = this.safeValue(methods, topic);
         if ((method != null))
         {

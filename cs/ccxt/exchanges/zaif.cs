@@ -392,8 +392,8 @@ public partial class zaif : Exchange
 
     public override object parseBalance(object response)
     {
-        IDictionary<string, object> balances = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
-        object deposit = this.safeValue(balances, "deposit");
+        IDictionary<string, object> balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> deposit = this.safeDict(balances, "deposit");
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -896,8 +896,8 @@ public partial class zaif : Exchange
         //
         currency = this.safeCurrency(null, currency);
         Dictionary<string, object> fee = null;
-        object feeCost = this.safeValue(transaction, "fee");
-        if ((feeCost != null))
+        double? feeCost = this.safeNumber(transaction, "fee");
+        if (!isEqual(feeCost, null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

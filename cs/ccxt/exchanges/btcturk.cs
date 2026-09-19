@@ -615,7 +615,7 @@ public partial class btcturk : Exchange
             await this.loadMarkets();
         }
         object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
+        return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
@@ -778,7 +778,7 @@ public partial class btcturk : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "resolution", this.safeValue(this.timeframes, timeframeVar, timeframeVar) },
+            { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         ((IDictionary<string,object>)request)["to"] = this.parseToInt(((until / 1000)));

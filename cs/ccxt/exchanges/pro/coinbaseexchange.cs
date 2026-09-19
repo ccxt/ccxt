@@ -231,7 +231,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object trades = await this.subscribeMultiple(name, symbols, name, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -298,7 +298,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object trades = await this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication));
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -330,7 +330,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object orders = await this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication));
         if (this.newUpdates)
         {
-            object first = this.safeValue(orders, 0);
+            IDictionary<string, object> first = this.safeDict(orders, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(orders, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -722,8 +722,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             {
                 return;
             }
-            Dictionary<string, object> previousOrders = ((Dictionary<string, object>)this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-            object previousOrder = this.safeValue(previousOrders, orderId);
+            IDictionary<string, object> previousOrders = this.safeDict((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+            object previousOrder = this.safeDict(previousOrders, orderId);
             if ((previousOrder == null))
             {
                 previousOrder = this.safeValue2(previousOrders, makerOrderId, takerOrderId);
@@ -740,7 +740,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 {
                     return;
                 }
-                object previousInfo = this.safeValue(previousOrder, "info", new Dictionary<string, object>() {});
+                IDictionary<string, object> previousInfo = this.safeDict(previousOrder, "info", new Dictionary<string, object>() {});
                 Int64? previousSequence = this.safeInteger(previousInfo, "sequence");
                 if ((isEqual(previousSequence, null)) || (isGreaterThan(sequence, previousSequence)))
                 {
@@ -1016,14 +1016,14 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "level2";
         string messageHash = ((name + ":") + marketId);
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         if ((type == "snapshot"))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-            this.handleDeltas(getValue(orderbook, "asks"), this.safeValue(message, "asks", new List<object>() {}));
-            this.handleDeltas(getValue(orderbook, "bids"), this.safeValue(message, "bids", new List<object>() {}));
+            this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "asks", new List<object>() {}));
+            this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "bids", new List<object>() {}));
             ((IDictionary<string,object>)orderbook)["timestamp"] = null;
             ((IDictionary<string,object>)orderbook)["datetime"] = null;
             ((IDictionary<string,object>)orderbook)["symbol"] = symbol;

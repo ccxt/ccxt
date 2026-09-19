@@ -107,7 +107,7 @@ public partial class coinone : ccxt.coinone
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? baseId = this.safeStringUpper(data, "target_currency");
         string? quoteId = this.safeStringUpper(data, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
@@ -123,8 +123,8 @@ public partial class coinone : ccxt.coinone
             (orderbook as IOrderBook).reset();
         }
         ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-        object asks = this.safeValue(data, "asks", new List<object>() {});
-        object bids = this.safeValue(data, "bids", new List<object>() {});
+        List<object> asks = this.safeList(data, "asks", new List<object>() {});
+        List<object> bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -202,7 +202,7 @@ public partial class coinone : ccxt.coinone
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data));
         string? symbol = ((string)getValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
@@ -324,7 +324,7 @@ public partial class coinone : ccxt.coinone
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
         string? symbol = ((string)getValue(trade, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
@@ -359,11 +359,11 @@ public partial class coinone : ccxt.coinone
         object symbol = add(add(bs, "/"), quote);
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
-        object isSellerMaker = this.safeValue(trade, "is_seller_maker");
+        bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
-        if ((isSellerMaker != null))
+        if (!isEqual(isSellerMaker, null))
         {
-            side = ((bool) (isEqual(isSellerMaker, true))) ? "sell" : "buy";
+            side = ((bool) ((isSellerMaker == true))) ? "sell" : "buy";
         }
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");

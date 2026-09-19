@@ -1185,7 +1185,7 @@ public partial class pacifica : ccxt.pacifica
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
         if ((ohlcv == null))
         {

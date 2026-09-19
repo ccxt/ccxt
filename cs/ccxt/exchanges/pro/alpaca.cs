@@ -521,8 +521,8 @@ public partial class alpaca : ccxt.alpaca
         //        }
         //      }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object rawOrder = this.safeValue(data, "order", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> rawOrder = this.safeDict(data, "order", new Dictionary<string, object>() {});
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -584,13 +584,13 @@ public partial class alpaca : ccxt.alpaca
         //        }
         //      }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? eventVar = this.safeString(data, "event");
         if ((eventVar != "fill") && (eventVar != "partial_fill"))
         {
             return;
         }
-        object rawOrder = this.safeValue(data, "order", new Dictionary<string, object>() {});
+        IDictionary<string, object> rawOrder = this.safeDict(data, "order", new Dictionary<string, object>() {});
         object myTrades = this.myTrades;
         if ((myTrades == null))
         {
@@ -823,7 +823,7 @@ public partial class alpaca : ccxt.alpaca
         //    }
         //
         string? T = this.safeString(message, "T");
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? status = this.safeString(data, "status");
         if ((T == "success") || (status == "authorized"))
         {

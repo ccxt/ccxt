@@ -943,7 +943,7 @@ public partial class poloniex : Exchange
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
-        object currenciesByNumericId = this.safeValue(this.options, "currenciesByNumericId");
+        IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         if (((currenciesByNumericId == null)) || isTrue(reload))
         {
             ((IDictionary<string,object>)this.options)["currenciesByNumericId"] = this.indexBy(this.currencies, "numericId");
@@ -1065,7 +1065,7 @@ public partial class poloniex : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         string? state = this.safeString(market, "state");
         bool active = (state == "NORMAL");
-        object symbolTradeLimit = this.safeValue(market, "symbolTradeLimit");
+        IDictionary<string, object> symbolTradeLimit = this.safeDict(market, "symbolTradeLimit");
         // these are known defaults
         return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -2141,7 +2141,7 @@ public partial class poloniex : Exchange
             int max = ((bool) ((marketType == "spot"))) ? 2000 : 100;
             ((IDictionary<string,object>)request)["limit"] = mathMax(limit, max);
         }
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         List<object> response = new List<object>() {};
         if ((marketType != "spot"))
@@ -2187,7 +2187,7 @@ public partial class poloniex : Exchange
             //            },
             //
             response = this.safeList(raw, "data", new List<object>() {});
-        } else if (isEqual(isTrigger, true))
+        } else if ((isTrigger == true))
         {
             response = await this.privateGetSmartorders(this.extend(request, parameters));
         } else
@@ -2569,10 +2569,10 @@ public partial class poloniex : Exchange
             idVar = clientOrderId;
         }
         ((IDictionary<string,object>)request)["id"] = idVar;
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"});
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             response = await this.privateDeleteSmartordersId(this.extend(request, parameters));
         } else
@@ -2641,9 +2641,9 @@ public partial class poloniex : Exchange
             response = this.safeList(raw, "data", new List<object>() {});
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
         }
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             response = await this.privateDeleteSmartorders(this.extend(request, parameters));
         } else
@@ -2705,10 +2705,10 @@ public partial class poloniex : Exchange
         {
             throw new NotSupported ((string)(((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
         }
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object response = new Dictionary<string, object>() {};
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             response = await this.privateGetSmartordersId(this.extend(request, parameters));
             response = this.safeValue(response, 0);
@@ -2827,11 +2827,11 @@ public partial class poloniex : Exchange
         // for spot
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object account = this.safeValue(response, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> account = this.safeDict(response, i, new Dictionary<string, object>() {});
             object balances = this.safeValue(account, "balances");
             for (int j = 0; j < getArrayLength(balances); j++)
             {
-                object balance = this.safeValue(balances, j);
+                IDictionary<string, object> balance = this.safeDict(balances, j);
                 string? currencyId = this.safeString(balance, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> newAccount = this.account();
@@ -3187,7 +3187,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(((string)code));
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, fromAccount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3382,8 +3382,8 @@ public partial class poloniex : Exchange
         {
             currency = this.currency(((string)code));
         }
-        object withdrawals = this.safeValue(response, "withdrawals", new List<object>() {});
-        object deposits = this.safeValue(response, "deposits", new List<object>() {});
+        List<object> withdrawals = this.safeList(response, "withdrawals", new List<object>() {});
+        List<object> deposits = this.safeList(response, "deposits", new List<object>() {});
         IList<object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
         IList<object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
         List<object> transactions = this.arrayConcat(depositTransactions, withdrawalTransactions);
@@ -3410,7 +3410,7 @@ public partial class poloniex : Exchange
         {
             currency = this.currency(((string)code));
         }
-        object withdrawals = this.safeValue(response, "withdrawals", new List<object>() {});
+        List<object> withdrawals = this.safeList(response, "withdrawals", new List<object>() {});
         IList<object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(transactions,((string)code), since, limit));
     }
@@ -3514,7 +3514,7 @@ public partial class poloniex : Exchange
                         object networkId = getValue(childChains, j);
                         networkId = ((string)networkId).Replace((string)code, (string)"");
                         object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
-                        object networkInfo = this.safeValue(response, networkId);
+                        IDictionary<string, object> networkInfo = this.safeDict(response, networkId);
                         Dictionary<string, object> networkObject = new Dictionary<string, object>() {};
                         double? withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
                         if ((networkCode != null))
@@ -3586,7 +3586,7 @@ public partial class poloniex : Exchange
         {
             currency = this.currency(((string)code));
         }
-        object deposits = this.safeValue(response, "deposits", new List<object>() {});
+        List<object> deposits = this.safeList(response, "deposits", new List<object>() {});
         IList<object> transactions = this.parseTransactions(deposits, currency, since, limit);
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(transactions,((string)code), since, limit));
     }

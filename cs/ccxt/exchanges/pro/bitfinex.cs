@@ -257,9 +257,9 @@ public partial class bitfinex : ccxt.bitfinex
         //       ]
         //   ]
         //
-        object data = this.safeValue(message, 1, new List<object>() {});
-        object ohlcvs = new List<object>() {};
-        object first = this.safeValue(data, 0);
+        List<object> data = this.safeList(message, 1, new List<object>() {});
+        List<object> ohlcvs = new List<object>() {};
+        List<object> first = this.safeList(data, 0);
         if (((first is IList<object>) || (first.GetType().IsGenericType && first.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             // snapshot
@@ -269,7 +269,7 @@ public partial class bitfinex : ccxt.bitfinex
             // update
             ohlcvs = new List<object>() {data};
         }
-        object channel = this.safeValue(subscription, "channel");
+        object channel = this.safeString(subscription, "channel");
         string? key = this.safeString(subscription, "key", "");
         List<object> keyParts = ((string)key).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object interval = this.safeString(keyParts, 1);
@@ -280,7 +280,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? timeframe = this.findTimeframe(interval);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object messageHash = add(add(add(add(channel, ":"), interval), ":"), marketId);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
         {
@@ -288,7 +288,7 @@ public partial class bitfinex : ccxt.bitfinex
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
-        int ohlcvsLength = getArrayLength(ohlcvs);
+        int ohlcvsLength = (ohlcvs?.Count ?? 0);
         for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
         {
             object ohlcv = getValue(ohlcvs, subtract(subtract(ohlcvsLength, i), 1));
@@ -470,7 +470,7 @@ public partial class bitfinex : ccxt.bitfinex
         //    ]
         //
         //
-        object channel = this.safeValue(subscription, "channel");
+        object channel = this.safeString(subscription, "channel");
         string? marketId = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         object messageHash = add(add(channel, ":"), marketId);
@@ -505,7 +505,7 @@ public partial class bitfinex : ccxt.bitfinex
                 // since te and tu updates are duplicated on the public stream
                 return;
             }
-            object trade = this.safeValue(message, 2, new List<object>() {});
+            List<object> trade = this.safeList(message, 2, new List<object>() {});
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -714,7 +714,7 @@ public partial class bitfinex : ccxt.bitfinex
                 throw new ExchangeError ((string)(this.id + " watchOrderBook limit argument must be undefined, 25 or 100")) ;
             }
         }
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         string? prec = this.safeString(options, "prec", "P0");
         string? freq = this.safeString(options, "freq", "F0");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -851,7 +851,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? symbol = this.safeSymbol(marketId);
         string channel = "book";
         string messageHash = ((channel + ":") + marketId);
-        ccxt.pro.IOrderBook book = this.safeOrderBook(this.orderbooks, symbol);
+        IDictionary<string, object> book = this.safeDict(this.orderbooks, symbol);
         if ((book == null))
         {
             return;
@@ -866,8 +866,8 @@ public partial class bitfinex : ccxt.bitfinex
         // pepperoni pizza from bitfinex
         for (int i = 0; i < depth; i++)
         {
-            object bid = this.safeValue(bids, i);
-            object ask = this.safeValue(asks, i);
+            List<object> bid = this.safeList(bids, i);
+            List<object> ask = this.safeList(asks, i);
             if ((bid != null))
             {
                 ((IList<object>)stringArray).Add(((string)this.numberToString(getValue(getValue(bids, i), idToCheck))));
@@ -1430,7 +1430,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 return;  // skip heartbeats within subscription channels for now
             }
-            object subscription = this.safeValue(((WebSocketClient)client).subscriptions, channelId, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, channelId, new Dictionary<string, object>() {});
             string? channel = this.safeString(subscription, "channel");
             string? name = this.safeString(message, 1);
             Dictionary<string, object> publicMethods = new Dictionary<string, object>() {

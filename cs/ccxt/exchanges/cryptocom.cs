@@ -1518,7 +1518,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        object orderBook = this.safeValue(data, 0);
+        IDictionary<string, object> orderBook = this.safeDict(data, 0);
         Int64? timestamp = this.safeInteger(orderBook, "t");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, symbol, timestamp));
     }
@@ -3006,14 +3006,14 @@ public partial class cryptocom : Exchange
         Int64? created = this.safeInteger(order, "create_time");
         string? marketId = this.safeString(order, "instrument_name");
         string? symbol = this.safeSymbol(marketId, market);
-        object execInst = this.safeValue(order, "exec_inst");
+        List<object> execInst = this.safeList(order, "exec_inst");
         bool? postOnly = null;
         if ((execInst != null))
         {
             postOnly = false;
-            for (int i = 0; i < getArrayLength(execInst); i++)
+            for (int i = 0; i < execInst.Count; i++)
             {
-                object inst = getValue(execInst, i);
+                object inst = execInst[i];
                 if (isEqual(inst, "POST_ONLY"))
                 {
                     postOnly = true;
@@ -3284,7 +3284,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
-        object data = this.safeValue(response, "result");
+        IDictionary<string, object> data = this.safeDict(response, "result");
         List<object> currencyMap = this.safeList(data, "currency_map");
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(currencyMap, codes, "full_name"));
     }

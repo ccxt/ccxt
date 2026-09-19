@@ -714,7 +714,7 @@ public partial class paradex : ccxt.paradex
         //         }
         //     }
         //
-        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(message, "result"));
+        IDictionary<string, object> result = this.safeDict(message, "result");
         if ((result != null))
         {
             this.handleAuthenticationMessage(client as WebSocketClient, message);

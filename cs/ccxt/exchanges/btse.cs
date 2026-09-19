@@ -822,10 +822,10 @@ public partial class btse : Exchange
                 type = "swap";
             }
         }
-        object fees = this.safeValue(this.fees, "contract");
+        IDictionary<string, object> fees = this.safeDict(this.fees, "contract", new Dictionary<string, object>() {});
         if (isSpot)
         {
-            fees = this.safeValue(this.fees, "spot");
+            fees = this.safeDict(this.fees, "spot", new Dictionary<string, object>() {});
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1809,7 +1809,7 @@ public partial class btse : Exchange
             parameters = this.omit(parameters, "paginate");
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
-        Dictionary<string, object> market = null;
+        IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
         {
@@ -2633,7 +2633,7 @@ public partial class btse : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        Dictionary<string, object> market = null;
+        IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -2829,7 +2829,7 @@ public partial class btse : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        Dictionary<string, object> market = null;
+        IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -2912,7 +2912,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        Dictionary<string, object> market = null;
+        IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -3185,7 +3185,7 @@ public partial class btse : Exchange
         // json encoded array in the query string, verified live
         ((IDictionary<string,object>)request)["historyTypes"] = this.json(typesList);
         parameters = this.omit(parameters, "walletType");
-        Dictionary<string, object> currency = null;
+        IDictionary<string, object> currency = null;
         if ((code != null))
         {
             currency = this.currency(((string)code));
@@ -3428,7 +3428,7 @@ public partial class btse : Exchange
         string? walletType = this.safeString(parameters, "walletType", "SPOT");
         ((IDictionary<string,object>)request)["walletType"] = walletType;
         parameters = this.omit(parameters, "walletType");
-        Dictionary<string, object> currency = null;
+        IDictionary<string, object> currency = null;
         if ((code != null))
         {
             currency = this.currency(((string)code));

@@ -343,7 +343,7 @@ public partial class blockchaincom : Exchange
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            object market = this.safeValue(markets, marketId);
+            IDictionary<string, object> market = this.safeDict(markets, marketId);
             string? baseId = this.safeString(market, "base_currency");
             string? quoteId = this.safeString(market, "counter_currency");
             object bs = this.safeCurrencyCode(baseId);
@@ -1298,7 +1298,7 @@ public partial class blockchaincom : Exchange
         //         ]
         //     }
         //
-        object balances = this.safeValue(response, accountName);
+        List<object> balances = this.safeList(response, accountName);
         if ((balances == null))
         {
             throw new ExchangeError ((string)(((this.id + " fetchBalance() could not find the \"") + accountName) + "\" account")) ;
@@ -1306,9 +1306,9 @@ public partial class blockchaincom : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(balances); i++)
+        for (int i = 0; i < balances.Count; i++)
         {
-            object entry = getValue(balances, i);
+            object entry = balances[i];
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

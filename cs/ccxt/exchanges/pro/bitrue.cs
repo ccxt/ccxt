@@ -144,7 +144,7 @@ public partial class bitrue : ccxt.bitrue
         //      "u": 2285311
         //    }
         //
-        object balances = this.safeValue(message, "B", new List<object>() {});
+        List<object> balances = this.safeList(message, "B", new List<object>() {});
         this.parseWSBalances(balances);
         string messageHash = "balance";
         (client as WebSocketClient).resolve(this.balance, messageHash);
@@ -430,8 +430,8 @@ public partial class bitrue : ccxt.bitrue
         }
         object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(message, "ts");
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
-        object parseable = tick;
+        IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
+        IDictionary<string, object> parseable = tick;
         if (isFutures)
         {
             List<object> rawAsks = this.safeList(tick, "asks", new List<object>() {});
@@ -585,7 +585,7 @@ public partial class bitrue : ccxt.bitrue
             return;
         }
         object symbol = getValue(market, "symbol");
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
         List<object> data = this.safeList(tick, "data", new List<object>() {});
         bool appended = false;
         object stored = this.safeValue(this.trades, symbol);
@@ -722,7 +722,7 @@ public partial class bitrue : ccxt.bitrue
         string? wsInterval = this.safeString(parts, 4);
         IDictionary<string, object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
-        object tick = this.safeValue(message, "tick");
+        IDictionary<string, object> tick = this.safeDict(message, "tick");
         if ((tick == null))
         {
             return;
@@ -824,7 +824,7 @@ public partial class bitrue : ccxt.bitrue
             return;
         }
         object symbol = getValue(market, "symbol");
-        object tick = this.safeValue(message, "tick");
+        IDictionary<string, object> tick = this.safeDict(message, "tick");
         if ((tick == null))
         {
             return;
@@ -951,7 +951,7 @@ public partial class bitrue : ccxt.bitrue
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object listenKey = this.safeValue(this.options, "listenKey");
+        string? listenKey = this.safeString(this.options, "listenKey");
         if ((listenKey == null))
         {
             // single-flight leader election on a never-dialed client, see
@@ -986,7 +986,7 @@ public partial class bitrue : ccxt.bitrue
                 //         }
                 //     }
                 //
-                object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+                IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 string? key = this.safeString(data, "listenKey");
                 if ((key == null))
                 {

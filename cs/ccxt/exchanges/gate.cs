@@ -2178,7 +2178,7 @@ public partial class gate : Exchange
         {
             IDictionary<string, object> spotMarket = this.safeDict(spotMarketsResponse, i, new Dictionary<string, object>() {});
             string? id = this.safeString(spotMarket, "id");
-            object marginMarket = this.safeValue(marginMarkets, id);
+            IDictionary<string, object> marginMarket = this.safeDict(marginMarkets, id);
             Dictionary<string, object> market = this.deepExtend(marginMarket, spotMarket);
             var baseIdquoteIdVariable = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
@@ -2554,9 +2554,9 @@ public partial class gate : Exchange
                 object symbol = add(add(bs, "/"), quote);
                 Int64? expiry = this.safeTimestamp(market, "expiration_time");
                 string? strike = this.safeString(market, "strike_price");
-                object isCall = this.safeValue(market, "is_call");
-                string optionLetter = ((bool) (isEqual(isCall, true))) ? "C" : "P";
-                string optionType = ((bool) (isEqual(isCall, true))) ? "call" : "put";
+                bool? isCall = this.safeBool(market, "is_call");
+                string optionLetter = ((bool) ((isCall == true))) ? "C" : "P";
+                string optionType = ((bool) ((isCall == true))) ? "call" : "put";
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter);
                 string? priceDeviate = this.safeString(market, "order_price_deviate");
                 string? markPrice = this.safeString(market, "mark_price");
@@ -2806,10 +2806,10 @@ public partial class gate : Exchange
 
     public virtual object getSettlementCurrencies(object type, object method)
     {
-        object options = this.safeValue(this.options, type, new Dictionary<string, object>() {}); // [ 'BTC', 'USDT' ] unified codes
-        object fetchMarketsContractOptions = this.safeValue(options, method, new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, type, new Dictionary<string, object>() {}); // [ 'BTC', 'USDT' ] unified codes
+        IDictionary<string, object> fetchMarketsContractOptions = this.safeDict(options, method, new Dictionary<string, object>() {});
         List<object> defaultSettle = ((bool) (isEqual(type, "swap"))) ? new List<object>() {"usdt"} : new List<object>() {"btc"};
-        return this.safeValue(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
+        return this.safeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
     }
 
     /**
@@ -2824,7 +2824,7 @@ public partial class gate : Exchange
     {
         // sandbox/testnet only supports future markets
         parameters ??= new Dictionary<string, object>();
-        object apiBackup = this.safeValue(this.urls, "apiBackup");
+        IDictionary<string, object> apiBackup = this.safeDict(this.urls, "apiBackup");
         if ((apiBackup != null))
         {
             return new Dictionary<string, object>() {};
@@ -3225,7 +3225,7 @@ public partial class gate : Exchange
             { "currency", getValue(currency, "id") },
         };
         Dictionary<string, object> response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
-        object chains = this.safeValue(response, "multichain_addresses", new List<object>() {});
+        List<object> chains = this.safeList(response, "multichain_addresses", new List<object>() {});
         string? currencyId = this.safeString(response, "currency");
         currency = this.safeCurrency(currencyId, currency);
         object parsed = this.parseDepositAddresses(chains, null, false);
@@ -3382,12 +3382,12 @@ public partial class gate : Exchange
         //        "futures_maker_fee": "0"
         //    }
         //
-        object gtDiscount = this.safeValue(info, "gt_discount");
-        string taker = ((bool) (isEqual(gtDiscount, true))) ? "gt_taker_fee" : "taker_fee";
-        string maker = ((bool) (isEqual(gtDiscount, true))) ? "gt_maker_fee" : "maker_fee";
-        object contract = this.safeValue(market, "contract");
-        string takerKey = ((bool) (isEqual(contract, true))) ? "futures_taker_fee" : taker;
-        string makerKey = ((bool) (isEqual(contract, true))) ? "futures_maker_fee" : maker;
+        bool? gtDiscount = this.safeBool(info, "gt_discount");
+        string taker = ((bool) ((gtDiscount == true))) ? "gt_taker_fee" : "taker_fee";
+        string maker = ((bool) ((gtDiscount == true))) ? "gt_maker_fee" : "maker_fee";
+        bool? contract = this.safeBool(market, "contract");
+        string takerKey = ((bool) ((contract == true))) ? "futures_taker_fee" : taker;
+        string makerKey = ((bool) ((contract == true))) ? "futures_maker_fee" : maker;
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeString(market, "symbol") },
@@ -3445,7 +3445,7 @@ public partial class gate : Exchange
             {
                 continue;
             }
-            object withdrawFixOnChains = this.safeValue(entry, "withdraw_fix_on_chains");
+            IDictionary<string, object> withdrawFixOnChains = this.safeDict(entry, "withdraw_fix_on_chains");
             if ((withdrawFixOnChains == null))
             {
                 withdrawFees = this.safeNumber(entry, "withdraw_fix");
@@ -3529,7 +3529,7 @@ public partial class gate : Exchange
         //        }
         //    }
         //
-        object withdrawFixOnChains = this.safeValue(fee, "withdraw_fix_on_chains");
+        IDictionary<string, object> withdrawFixOnChains = this.safeDict(fee, "withdraw_fix_on_chains");
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
@@ -3875,7 +3875,7 @@ public partial class gate : Exchange
             }
         } else
         {
-            ticker = this.safeValue(response, 0);
+            ticker = this.safeDict(response, 0);
         }
         if ((ticker == null))
         {
@@ -4065,7 +4065,7 @@ public partial class gate : Exchange
         ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "freeze", "locked");
         ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
         ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "total");
-        if (inOp(entry, "borrowed"))
+        if ((entry != null && ((IDictionary<string, object>)entry).ContainsKey("borrowed")))
         {
             ((IDictionary<string,object>)account)["debt"] = this.safeString(entry, "borrowed");
         }
@@ -4376,8 +4376,8 @@ public partial class gate : Exchange
             object entry = getValue(data, i);
             if (isolated)
             {
-                object bs = this.safeValue(entry, "base", new Dictionary<string, object>() {});
-                object quote = this.safeValue(entry, "quote", new Dictionary<string, object>() {});
+                IDictionary<string, object> bs = this.safeDict(entry, "base", new Dictionary<string, object>() {});
+                IDictionary<string, object> quote = this.safeDict(entry, "quote", new Dictionary<string, object>() {});
                 string? baseCode = this.safeCurrencyCode(this.safeString(bs, "currency"));
                 string? quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                 result = this.mergeBalanceAccount(result, ((string)baseCode), this.parseBalanceHelper(bs));
@@ -5630,7 +5630,7 @@ public partial class gate : Exchange
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object triggerValue = this.safeValueN(orderParams, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
             if ((triggerValue != null))
@@ -5934,7 +5934,7 @@ public partial class gate : Exchange
             } else
             {
                 // spot conditional order
-                object options = this.safeValue(this.options, "createOrder", new Dictionary<string, object>() {});
+                IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
                 object marginMode = null;
                 var marginModeparametersVariable = this.getMarginMode(true, parameters);
                 marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -6369,8 +6369,8 @@ public partial class gate : Exchange
                 { "id", this.safeString(order, "id") },
             });
         }
-        object put = this.safeValue2(order, "put", "initial", new Dictionary<string, object>() {});
-        object trigger = this.safeValue(order, "trigger", new Dictionary<string, object>() {});
+        IDictionary<string, object> put = this.safeDict2(order, "put", "initial", new Dictionary<string, object>() {});
+        IDictionary<string, object> trigger = this.safeDict(order, "trigger", new Dictionary<string, object>() {});
         string? contract = this.safeString(put, "contract");
         string? type = this.safeString(put, "type");
         string? timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
@@ -6532,7 +6532,7 @@ public partial class gate : Exchange
             { "cost", Precise.stringAbs(cost) },
             { "filled", null },
             { "remaining", remaining },
-            { "fee", ((bool) multipleFeeCurrencies) ? null : this.safeValue(fees, 0) },
+            { "fee", ((bool) multipleFeeCurrencies) ? null : this.safeDict(fees, 0) },
             { "fees", ((bool) multipleFeeCurrencies) ? fees : new List<object>() {} },
             { "trades", null },
             { "info", order },
@@ -8576,7 +8576,7 @@ public partial class gate : Exchange
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            object first = this.safeValue(parameters, 0, new Dictionary<string, object>() {});
+            IDictionary<string, object> first = this.safeDict(parameters, 0, new Dictionary<string, object>() {});
             path = this.implodeParams(path, first);
         } else
         {
@@ -8731,7 +8731,7 @@ public partial class gate : Exchange
             { "marginMode", "isolated" },
             { "amount", null },
             { "total", total },
-            { "code", this.safeValue(market, "quote") },
+            { "code", this.safeString(market, "quote") },
             { "status", "ok" },
             { "timestamp", null },
             { "datetime", null },
@@ -9035,8 +9035,8 @@ public partial class gate : Exchange
             //
             response = await this.privateOptionsGetMySettlements(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "list", new List<object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(result, "list", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));

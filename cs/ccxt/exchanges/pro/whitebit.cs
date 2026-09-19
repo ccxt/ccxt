@@ -84,7 +84,7 @@ public partial class whitebit : ccxt.whitebit
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         Int64? interval = this.safeInteger(timeframes, timeframeVar);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         // currently there is no way of knowing
@@ -175,7 +175,7 @@ public partial class whitebit : ccxt.whitebit
         }
         string messageHash = (("orderbook" + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string method = "depth_subscribe";
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         string? defaultPriceInterval = this.safeString(options, "priceInterval", "0");
         string? priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
         parameters = this.omit(parameters, "priceInterval");
@@ -223,12 +223,12 @@ public partial class whitebit : ccxt.whitebit
         //     "id":null
         //  }
         //
-        object parameters = this.safeValue(message, "params", new List<object>() {});
+        List<object> parameters = this.safeList(message, "params", new List<object>() {});
         object isSnapshot = this.safeValue(parameters, 0);
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object data = this.safeValue(parameters, 1);
+        IDictionary<string, object> data = this.safeDict(parameters, 1);
         Int64? timestamp = this.safeTimestamp(data, "timestamp");
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -244,8 +244,8 @@ public partial class whitebit : ccxt.whitebit
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            object asks = this.safeValue(data, "asks", new List<object>() {});
-            object bids = this.safeValue(data, "bids", new List<object>() {});
+            List<object> asks = this.safeList(data, "asks", new List<object>() {});
+            List<object> bids = this.safeList(data, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
         }
@@ -351,11 +351,11 @@ public partial class whitebit : ccxt.whitebit
         //       "id": null
         //   }
         //
-        object tickers = this.safeValue(message, "params", new List<object>() {});
+        List<object> tickers = this.safeList(message, "params", new List<object>() {});
         string? marketId = this.safeString(tickers, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object rawTicker = this.safeValue(tickers, 1, new Dictionary<string, object>() {});
+        IDictionary<string, object> rawTicker = this.safeDict(tickers, 1, new Dictionary<string, object>() {});
         string messageHash = (("ticker" + ":") + symbol);
         Dictionary<string, object> ticker = this.parseTicker(rawTicker, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -442,7 +442,7 @@ public partial class whitebit : ccxt.whitebit
         //        ]
         //    }
         //
-        object parameters = this.safeValue(message, "params", new List<object>() {});
+        List<object> parameters = this.safeList(message, "params", new List<object>() {});
         string? marketId = this.safeString(parameters, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -453,7 +453,7 @@ public partial class whitebit : ccxt.whitebit
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object data = this.safeValue(parameters, 1, new List<object>() {});
+        List<object> data = this.safeList(parameters, 1, new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
@@ -670,8 +670,8 @@ public partial class whitebit : ccxt.whitebit
         //     "id": null
         // }
         //
-        object parameters = this.safeValue(message, "params", new List<object>() {});
-        object data = this.safeValue(parameters, 1);
+        List<object> parameters = this.safeList(message, "params", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, 1);
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);

@@ -50,7 +50,7 @@ public partial class derive : ccxt.derive
 
     public virtual object requestId(object url)
     {
-        object options = this.safeValue(this.options, "requestId", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = ((Int64)this.sum(previousValue, 1));
         ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
@@ -666,8 +666,8 @@ public partial class derive : ccxt.derive
                     this.orders = new ArrayCacheBySymbolById(limit);
                 }
                 object cachedOrders = this.orders;
-                Dictionary<string, object> orders = ((Dictionary<string, object>)this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {}));
-                object order = ((bool) ((orderId == null))) ? null : this.safeValue(orders, orderId);
+                IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                IDictionary<string, object> order = ((bool) ((orderId == null))) ? null : this.safeDict(orders, orderId);
                 if ((order != null))
                 {
                     object fee = this.safeValue(order, "fee");
@@ -775,7 +775,7 @@ public partial class derive : ccxt.derive
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if (!(inOp(message, "error")))
+        if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
         {
             return ((bool?)((object)(false)));
         }
@@ -850,17 +850,17 @@ public partial class derive : ccxt.derive
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             return;
         }
-        if (inOp(message, "id"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("id")))
         {
             string? id = this.safeString(message, "id");
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            object subscription = ((bool) ((id == null))) ? new Dictionary<string, object>() {} : this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
-            if (inOp(subscription, "method"))
+            IDictionary<string, object> subscription = ((bool) ((id == null))) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
+            if (subscription.ContainsKey("method"))
             {
-                if (isEqual(getValue(subscription, "method"), "public/login"))
+                if (isEqual(((IDictionary<string,object>)subscription)["method"], "public/login"))
                 {
                     this.handleAuth(client as WebSocketClient, message);
-                } else if (isEqual(getValue(subscription, "method"), "unsubscribe"))
+                } else if (isEqual(((IDictionary<string,object>)subscription)["method"], "unsubscribe"))
                 {
                     this.handleUnSubscribe(client as WebSocketClient, message);
                 }

@@ -784,15 +784,15 @@ public partial class whitebit : Exchange
         quoteId = ((bool) ((quoteId == "PERP"))) ? "USDT" : quoteId;
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object active = this.safeValue(market, "tradesEnabled");
-        object isCollateral = this.safeValue(market, "isCollateral");
+        bool? active = this.safeBool(market, "tradesEnabled");
+        bool? isCollateral = this.safeBool(market, "isCollateral");
         string? typeId = this.safeString(market, "type");
         object type = null;
         string? settle = null;
         string? settleId = null;
         object symbol = add(add(bs, "/"), quote);
         bool swap = ((typeId == "futures")) || ((typeId == "tradfiFutures"));
-        bool margin = (isEqual(isCollateral, true)) && !swap;
+        bool margin = ((isCollateral == true)) && !swap;
         bool contract = false;
         double? amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         bool? linear = null;
@@ -1072,12 +1072,12 @@ public partial class whitebit : Exchange
             string? currency = ((string)currenciesIds[i]);
             IDictionary<string, object> data = this.safeDict(response, currency, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(currency);
-            object withdraw = this.safeValue(data, "withdraw", new Dictionary<string, object>() {});
+            IDictionary<string, object> withdraw = this.safeDict(data, "withdraw", new Dictionary<string, object>() {});
             if ((code != null))
             {
                 ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeString(withdraw, "fixed");
             }
-            object deposit = this.safeValue(data, "deposit", new Dictionary<string, object>() {});
+            IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
             if ((code != null))
             {
                 ((IDictionary<string,object>)depositFees)[(string)code] = this.safeString(deposit, "fixed");
@@ -1204,15 +1204,15 @@ public partial class whitebit : Exchange
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codes == null)) || (this.inArray(code, codes))))
             {
-                object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                IDictionary<string, object> depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if ((depositWithdrawFee == null))
                 {
                     ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
                 ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)entry] = feeInfo;
                 string? networkId = this.safeString(splitEntry, 1);
-                object withdraw = this.safeValue(feeInfo, "withdraw");
-                object deposit = this.safeValue(feeInfo, "deposit");
+                IDictionary<string, object> withdraw = this.safeDict(feeInfo, "withdraw");
+                IDictionary<string, object> deposit = this.safeDict(feeInfo, "deposit");
                 double? withdrawFee = this.safeNumber(withdraw, "fixed");
                 double? depositFee = this.safeNumber(deposit, "fixed");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
@@ -1291,7 +1291,7 @@ public partial class whitebit : Exchange
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            object fee = this.safeValue(response, (market.ContainsKey("baseId") ? market["baseId"] : null), new Dictionary<string, object>() {});
+            IDictionary<string, object> fee = this.safeDict(response, (market.ContainsKey("baseId") ? market["baseId"] : null), new Dictionary<string, object>() {});
             string? makerFee = this.safeString(fee, "maker_fee");
             string? takerFee = this.safeString(fee, "taker_fee");
             makerFee = Precise.stringDiv(makerFee, "100");
@@ -2149,7 +2149,7 @@ public partial class whitebit : Exchange
             {
                 string? marketId = ((string)keys[i]);
                 Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
-                object rawTrades = this.safeValue(response, marketId, new List<object>() {});
+                List<object> rawTrades = this.safeList(response, marketId, new List<object>() {});
                 IList<object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
@@ -2878,7 +2878,7 @@ public partial class whitebit : Exchange
             response = await this.v4PrivatePostCollateralAccountBalance(parameters);
         } else
         {
-            object options = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
+            IDictionary<string, object> options = this.safeDict(this.options, "fetchBalance", new Dictionary<string, object>() {});
             string? defaultAccount = this.safeString(options, "account");
             string? account = this.safeString2(parameters, "account", "type", defaultAccount);
             parameters = this.omit(parameters, new List<object>() {"account", "type"});
@@ -3439,7 +3439,7 @@ public partial class whitebit : Exchange
         //     }
         //
         string? url = this.safeString(response, "url");
-        IDictionary<string, object> account = ((IDictionary<string, object>)this.safeValue(response, "account", new Dictionary<string, object>() {}));
+        IDictionary<string, object> account = this.safeDict(response, "account", new Dictionary<string, object>() {});
         string? address = this.safeString(account, "address", url);
         string? tag = this.safeString(account, "memo");
         this.checkAddress(address);
@@ -3611,7 +3611,7 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object accountsByType = this.safeValue(this.options, "accountsByType");
+        IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType");
         string? fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         string? amountString = this.currencyToPrecision(((string)code), amount);
@@ -3856,7 +3856,7 @@ public partial class whitebit : Exchange
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        object records = this.safeValue(response, "records", new List<object>() {});
+        List<object> records = this.safeList(response, "records", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(records, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first, currency));
     }
@@ -4800,7 +4800,7 @@ public partial class whitebit : Exchange
 
     public virtual bool isFiat(object currency)
     {
-        object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
+        List<object> fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         return ((bool)((object)(this.inArray(currency, fiatCurrencies)))!);
     }
 
@@ -4953,7 +4953,7 @@ public partial class whitebit : Exchange
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             string? status = this.safeString(response, "status");
-            IDictionary<string, object> errors = ((IDictionary<string, object>)this.safeValue(response, "errors"));
+            IDictionary<string, object> errors = this.safeDict(response, "errors");
             // {"code":10,"message":"Unauthorized request."}
             string? message = this.safeString(response, "message");
             // For these cases where we have a generic code variable error key

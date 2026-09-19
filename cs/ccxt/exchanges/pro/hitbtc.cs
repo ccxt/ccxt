@@ -226,7 +226,7 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "watchOrderBook");
+        IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook");
         string? defaultMethod = this.safeString(options, "method", "orderbook/full");
         string? name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? depth = this.safeString(parameters, "depth", "20");
@@ -367,7 +367,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "watchTicker");
+        IDictionary<string, object> options = this.safeDict(this.options, "watchTicker");
         string? defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
         string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? speed = this.safeString(parameters, "speed", "1s");
@@ -542,7 +542,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object options = this.safeValue(this.options, "watchBidsAsks");
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBidsAsks");
         string? defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
         string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? speed = this.safeString(parameters, "speed", "100ms");
@@ -855,7 +855,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
             {
@@ -1543,9 +1543,9 @@ public partial class hitbtc : ccxt.hitbtc
         //        "result": true
         //    }
         //
-        object success = this.safeValue(message, "result");
+        bool? success = this.safeBool(message, "result");
         string messageHash = "authenticated";
-        if (isEqual(success, true))
+        if ((success == true))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);
@@ -1574,7 +1574,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        id: 1700228604325
         //    }
         //
-        object error = this.safeValue(message, "error");
+        IDictionary<string, object> error = this.safeDict(message, "error");
         if ((error != null))
         {
             try

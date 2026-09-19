@@ -262,7 +262,7 @@ public partial class okx : ccxt.okx
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -367,7 +367,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         string? marketId = this.safeString(arg, "instId");
         string? symbol = this.safeSymbol(marketId);
@@ -692,7 +692,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         this.handleBidAsk(client as WebSocketClient, message);
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -983,9 +983,9 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        object isTrigger = this.safeValue2(parameters, "stop", "trigger", false);
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        string accessType = ((bool) (isEqual(isTrigger, true))) ? "business" : "private";
+        string accessType = ((bool) ((isTrigger == true))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -1340,7 +1340,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         if ((channel == null))
         {
@@ -1356,8 +1356,8 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < data.Count; i++)
         {
             object parsed = this.parseOHLCV(data[i], market);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1594,8 +1594,8 @@ public partial class okx : ccxt.okx
         //         "seqId": 123457
         //     }
         //
-        object asks = this.safeValue(message, "asks", new List<object>() {});
-        object bids = this.safeValue(message, "bids", new List<object>() {});
+        List<object> asks = this.safeList(message, "asks", new List<object>() {});
+        List<object> bids = this.safeList(message, "bids", new List<object>() {});
         object storedAsks = getValue(orderbook, "asks");
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
@@ -1946,7 +1946,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? channel = this.safeString(arg, "channel");
         object balance = this.parseTradingBalance(message);
         Dictionary<string, object> newBalance = this.deepExtend(this.balance, balance);
@@ -1956,7 +1956,7 @@ public partial class okx : ccxt.okx
 
     public virtual object orderToTrade(object order, object market = null)
     {
-        object info = this.safeValue(order, "info", new Dictionary<string, object>() {});
+        IDictionary<string, object> info = this.safeDict(order, "info", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(info, "fillTime");
         string? feeMarketId = this.safeString(info, "fillFeeCcy");
         bool isTaker = (this.safeString(info, "execType", "") == "T");
@@ -2172,7 +2172,7 @@ public partial class okx : ccxt.okx
         //        }]
         //    }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -2231,13 +2231,13 @@ public partial class okx : ccxt.okx
         IList<object> typeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrders", "type", "ANY");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isTrigger = this.safeValue2(parameters, "stop", "trigger", false);
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        string accessType = ((bool) (isEqual(isTrigger, true))) ? "business" : "private";
+        string accessType = ((bool) ((isTrigger == true))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -2271,7 +2271,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", uppercaseType },
         };
-        string channel = ((bool) (isEqual(isTrigger, true))) ? "orders-algo" : "orders";
+        string channel = ((bool) ((isTrigger == true))) ? "orders-algo" : "orders";
         object orders = await this.subscribe("private", channel, channel, symbolVar, this.extend(request, parameters));
         if (this.newUpdates)
         {
@@ -2337,7 +2337,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         this.handleMyTrades(client as WebSocketClient, message);
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         List<object> orders = this.safeList(message, "data", new List<object>() {});
         int ordersLength = orders.Count;
@@ -2425,7 +2425,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
         List<object> filteredOrders = new List<object>() {};
@@ -2555,7 +2555,7 @@ public partial class okx : ccxt.okx
         //    }
         //
         string? messageHash = this.safeString(message, "id");
-        object args = this.safeValue(message, "data", new List<object>() {});
+        List<object> args = this.safeList(message, "data", new List<object>() {});
         // filter out partial errors
         args = this.filterBy(args, "sCode", "0");
         // if empty means request failed and handle error
@@ -2767,7 +2767,7 @@ public partial class okx : ccxt.okx
         //    }
         //
         string? messageHash = this.safeString(message, "id");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         (client as WebSocketClient).resolve(data, messageHash);
     }
 
@@ -2820,7 +2820,7 @@ public partial class okx : ccxt.okx
                 {
                     this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                 }
-                object messageString = this.safeValue(message, "msg");
+                string? messageString = this.safeString(message, "msg");
                 if ((messageString != null))
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
@@ -2835,7 +2835,7 @@ public partial class okx : ccxt.okx
                         {
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                         }
-                        messageString = this.safeValue(d, "sMsg");
+                        messageString = this.safeString(d, "sMsg");
                         if ((messageString != null))
                         {
                             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
@@ -2944,7 +2944,7 @@ public partial class okx : ccxt.okx
             }
         } else
         {
-            IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+            IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
             string? channel = this.safeString(arg, "channel");
             if ((channel == null))
             {

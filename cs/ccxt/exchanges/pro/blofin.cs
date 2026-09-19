@@ -626,13 +626,13 @@ public partial class blofin : ccxt.blofin
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        string channel = ((bool) (isEqual(trigger, true))) ? "orders-algo" : "orders";
+        string channel = ((bool) ((trigger == true))) ? "orders-algo" : "orders";
         object orders = await this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(orders, 0);
+            IDictionary<string, object> first = this.safeDict(orders, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(orders, "getLimit", new object[] {tradeSymbol, limitVar});
         }

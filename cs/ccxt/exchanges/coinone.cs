@@ -541,7 +541,7 @@ public partial class coinone : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object entry = this.safeValue(tickers, i);
+            IDictionary<string, object> entry = this.safeDict(tickers, i);
             string? id = this.safeString(entry, "id");
             string? baseId = this.safeStringUpper(entry, "target_currency");
             string? quoteId = this.safeStringUpper(entry, "quote_currency");
@@ -1439,10 +1439,10 @@ public partial class coinone : Exchange
                 continue;
             }
             List<object> parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object currencyId = this.safeValue(parts, 0);
-            object secondPart = this.safeValue(parts, 1);
+            string? currencyId = this.safeString(parts, 0);
+            string? secondPart = this.safeString(parts, 1);
             string? code = this.safeCurrencyCode(currencyId);
-            object depositAddress = this.safeValue(result, code);
+            IDictionary<string, object> depositAddress = this.safeDict(result, code);
             if ((depositAddress == null))
             {
                 depositAddress = new Dictionary<string, object>() {
@@ -1457,7 +1457,7 @@ public partial class coinone : Exchange
             this.checkAddress(address);
             ((IDictionary<string,object>)depositAddress)["address"] = address;
             ((IDictionary<string,object>)depositAddress)["info"] = address;
-            if ((isEqual(secondPart, "tag") || isEqual(secondPart, "memo")))
+            if (((secondPart == "tag") || (secondPart == "memo")))
             {
                 ((IDictionary<string,object>)depositAddress)["tag"] = value;
                 ((IDictionary<string,object>)depositAddress)["info"] = new List<object>() {address, value};

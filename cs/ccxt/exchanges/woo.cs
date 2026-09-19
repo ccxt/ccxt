@@ -2271,7 +2271,7 @@ public partial class woo : Exchange
         {
             response = await this.v3PrivateGetTradeOrders(this.extend(request, parameters));
         }
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
@@ -2454,7 +2454,7 @@ public partial class woo : Exchange
         string? amount = this.safeString(order, "quantity"); // This is base amount
         string? cost = this.safeString(order, "amount"); // This is quote amount
         string? orderType = this.safeStringLower(order, "type");
-        object status = this.safeValue2(order, "status", "algoStatus");
+        string? status = this.safeString2(order, "status", "algoStatus");
         string? side = this.safeStringLower(order, "side");
         string? filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         string? average = ((string)this.omitZero(this.safeString(order, "averageExecutedPrice")));
@@ -5217,7 +5217,7 @@ public partial class woo : Exchange
             }
         }
         // if it was not returned according to above options, then return the first network of currency
-        return this.safeValue(networkKeys, 0);
+        return this.safeString(networkKeys, 0);
     }
 
     public override void setSandboxMode(object enable)

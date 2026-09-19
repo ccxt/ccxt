@@ -282,7 +282,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = ((bool) ((symbol == null))) ? null : this.market(symbol);
-        object trigger = this.safeValueN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
@@ -717,7 +717,7 @@ public partial class gate : ccxt.gate
         string? rawMarketType = this.safeString(channelParts, 0);
         bool isSpot = (rawMarketType == "spot");
         string marketType = ((bool) isSpot) ? "spot" : "contract";
-        object delta = this.safeValue(message, "result");
+        IDictionary<string, object> delta = this.safeDict(message, "result");
         Int64? deltaStart = this.safeInteger(delta, "U");
         Int64? deltaEnd = this.safeInteger(delta, "u");
         string? marketId = this.safeString(delta, "s");
@@ -808,8 +808,8 @@ public partial class gate : ccxt.gate
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
-        object bids = this.safeValue(delta, "b", new List<object>() {});
-        object asks = this.safeValue(delta, "a", new List<object>() {});
+        List<object> bids = this.safeList(delta, "b", new List<object>() {});
+        List<object> asks = this.safeList(delta, "a", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
         object storedAsks = getValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
@@ -1063,7 +1063,7 @@ public partial class gate : ccxt.gate
         object trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1871,7 +1871,7 @@ public partial class gate : ccxt.gate
         //         ]
         //     }
         //
-        object orders = this.safeValue(message, "result", new List<object>() {});
+        List<object> orders = this.safeList(message, "result", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
         bool isTrigger = (getIndexOf(channel, "autoorders") >= 0) || (getIndexOf(channel, "priceorders") >= 0);
         string hashPrefix = ((bool) isTrigger) ? "triggerOrders" : "orders";
@@ -1888,7 +1888,7 @@ public partial class gate : ccxt.gate
         {
             object parsed = parsedOrders[i];
             // inject order status
-            object info = this.safeValue(parsed, "info");
+            IDictionary<string, object> info = this.safeDict(parsed, "info");
             string? eventVar = this.safeString(info, "event");
             if ((eventVar == "put") || (eventVar == "update"))
             {
@@ -2064,7 +2064,7 @@ public partial class gate : ccxt.gate
             Dictionary<string, object> liquidation = ((Dictionary<string, object>)this.parseWsLiquidation(rawLiquidation));
             callDynamically(cache, "append", new object[] {liquidation});
             string? symbol = this.safeString(liquidation, "symbol");
-            object symbolLiquidations = this.safeValue(cache, symbol, new List<object>() {});
+            List<object> symbolLiquidations = this.safeList(cache, symbol, new List<object>() {});
             (client as WebSocketClient).resolve(symbolLiquidations, ("myLiquidations::" + symbol));
         }
         (client as WebSocketClient).resolve(newLiquidations, "myLiquidations");
@@ -2420,7 +2420,7 @@ public partial class gate : ccxt.gate
             return;
         }
         List<object> channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        object channelType = this.safeValue(channelParts, 1);
+        string? channelType = this.safeString(channelParts, 1);
         Dictionary<string, object> v4Methods = new Dictionary<string, object>() {
             { "usertrades", this.handleMyTrades },
             { "candlesticks", this.handleOHLCV },

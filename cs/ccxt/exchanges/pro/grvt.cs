@@ -361,7 +361,7 @@ public partial class grvt : ccxt.grvt
         object trades = await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -522,7 +522,7 @@ public partial class grvt : ccxt.grvt
         string timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
         string? timeframe = this.findTimeframe(timeframeId);
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (!(inOp(getValue(this.ohlcvs, symbol), ((string)timeframe))))
         {
             object limit = this.handleOption("watchOHLCV", "limit", 1000);

@@ -689,7 +689,7 @@ public partial class gemini : Exchange
         //    }
         //
         ((IDictionary<string,object>)this.options)["tradingPairs"] = this.safeList(data, "tradingPairs");
-        object currenciesArray = this.safeValue(data, "currencies", new List<object>() {});
+        List<object> currenciesArray = this.safeList(data, "currencies", new List<object>() {});
         return ccxt.BaseExchange.ToCurrencies(this.parseCurrencies(currenciesArray));
     }
 
@@ -767,8 +767,8 @@ public partial class gemini : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeValue(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
-        if (isEqual(method, "fetch_markets_from_web"))
+        string? method = this.safeString(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
+        if ((method == "fetch_markets_from_web"))
         {
             List<object> promises = new List<object>() {};
             ((IList<object>)promises).Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
@@ -1276,12 +1276,12 @@ public partial class gemini : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeValue(this.options, "fetchTickerMethod", "fetchTickerV1");
-        if (isEqual(method, "fetchTickerV1"))
+        string? method = this.safeString(this.options, "fetchTickerMethod", "fetchTickerV1");
+        if ((method == "fetchTickerV1"))
         {
             return await this.FetchTickerV1(((string)symbol), parameters);
         }
-        if (isEqual(method, "fetchTickerV2"))
+        if ((method == "fetchTickerV2"))
         {
             return await this.FetchTickerV2(((string)symbol), parameters);
         }
@@ -1326,7 +1326,7 @@ public partial class gemini : Exchange
         //         "ask":"9115.87"
         //     }
         //
-        object volume = this.safeValue(ticker, "volume", new Dictionary<string, object>() {});
+        IDictionary<string, object> volume = this.safeDict(ticker, "volume", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(volume, "timestamp");
         object symbol = null;
         string? marketId = this.safeStringLower(ticker, "pair");
@@ -1774,7 +1774,7 @@ public partial class gemini : Exchange
         string? id = this.safeString(order, "order_id");
         string? side = this.safeStringLower(order, "side");
         string? clientOrderId = this.safeString(order, "client_order_id");
-        object optionsArray = this.safeValue(order, "options", new List<object>() {});
+        List<object> optionsArray = this.safeList(order, "options", new List<object>() {});
         string? option = this.safeString(optionsArray, 0);
         string timeInForce = "GTC";
         bool postOnly = false;

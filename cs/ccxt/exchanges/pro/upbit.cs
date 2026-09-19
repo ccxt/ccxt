@@ -159,7 +159,7 @@ public partial class upbit : ccxt.upbit
         object trades = await this.watchPublicMultiple(symbols, "trade");
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -281,7 +281,7 @@ public partial class upbit : ccxt.upbit
         string? marketId = this.safeString(message, "code");
         string? symbol = this.safeSymbol(marketId, null, "-");
         string? type = this.safeString(message, "stream_type");
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(options, "limit", 15);
         if ((type == "SNAPSHOT"))
         {
@@ -682,8 +682,8 @@ public partial class upbit : ccxt.upbit
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object cachedOrders = this.orders;
-        object orders = ((bool) ((symbol == null))) ? new Dictionary<string, object>() {} : this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-        object order = ((bool) ((orderId == null))) ? null : this.safeValue(orders, orderId);
+        IDictionary<string, object> orders = ((bool) ((symbol == null))) ? new Dictionary<string, object>() {} : this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+        IDictionary<string, object> order = ((bool) ((orderId == null))) ? null : this.safeDict(orders, orderId);
         if ((order != null))
         {
             object fee = this.safeValue(order, "fee");

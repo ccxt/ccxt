@@ -96,8 +96,8 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchOHLCVWs");
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
-        object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> watchOHLCVOptions = this.safeDict(this.options, "watchOHLCV", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = ((("fetchOHLCV:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId);
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -143,8 +143,8 @@ public partial class lbank : ccxt.lbank
         }
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchOHLCV");
-        object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
-        object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> watchOHLCVOptions = this.safeDict(this.options, "watchOHLCV", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = ((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId);
         string? url = ((string)getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -218,16 +218,16 @@ public partial class lbank : ccxt.lbank
         //
         string? marketId = this.safeString(message, "pair");
         string? symbol = this.safeSymbol(marketId, null, "_");
-        object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
-        object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
-        object records = this.safeValue(message, "records");
+        IDictionary<string, object> watchOHLCVOptions = this.safeDict(this.options, "watchOHLCV", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
+        List<object> records = this.safeList(message, "records");
         if ((records != null))
         {
-            object rawOHLCV = this.safeValue(records, 0, new List<object>() {});
+            List<object> rawOHLCV = this.safeList(records, 0, new List<object>() {});
             List<object> parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
             string? timeframeId = this.safeString(message, "kbar");
             string? timeframe = this.findTimeframe(timeframeId, timeframes);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
             {
@@ -240,12 +240,12 @@ public partial class lbank : ccxt.lbank
             (client as WebSocketClient).resolve(stored, messageHash);
         } else
         {
-            object rawOHLCV = this.safeValue(message, "kbar", new Dictionary<string, object>() {});
+            IDictionary<string, object> rawOHLCV = this.safeDict(message, "kbar", new Dictionary<string, object>() {});
             string? timeframeId = this.safeString(rawOHLCV, "slot");
             string? datetime = this.safeString(rawOHLCV, "t");
             List<object> parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             string? timeframe = this.findTimeframe(timeframeId, timeframes);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
             {
@@ -378,7 +378,7 @@ public partial class lbank : ccxt.lbank
         string? marketId = this.safeString(ticker, "pair");
         string? symbol = this.safeSymbol(marketId, market);
         string? datetime = this.safeString(ticker, "TS");
-        object tickerData = this.safeValue(ticker, "tick");
+        IDictionary<string, object> tickerData = this.safeDict(ticker, "tick");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", this.parse8601(datetime) },
@@ -512,10 +512,10 @@ public partial class lbank : ccxt.lbank
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object rawTrade = this.safeValue(message, "trade");
-        object rawTrades = this.safeValue(message, "trades", new List<object>() {rawTrade});
-        for (int i = 0; i < getArrayLength(rawTrades); i++)
+        List<object> rawTrades = this.safeList(message, "trades", new List<object>() {rawTrade});
+        for (int i = 0; i < rawTrades.Count; i++)
         {
-            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(getValue(rawTrades, i), market));
+            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(rawTrades[i], market));
             ((IDictionary<string,object>)trade)["symbol"] = symbol;
             callDynamically(stored, "append", new object[] {trade});
         }
@@ -700,7 +700,7 @@ public partial class lbank : ccxt.lbank
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        object orderUpdate = this.safeValue(order, "orderUpdate", new Dictionary<string, object>() {});
+        IDictionary<string, object> orderUpdate = this.safeDict(order, "orderUpdate", new Dictionary<string, object>() {});
         string? rawType = this.safeString(orderUpdate, "type", "");
         List<object> typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string? side = this.safeString(typeParts, 0);
@@ -1059,15 +1059,15 @@ public partial class lbank : ccxt.lbank
         var future = client.reusableFuture(messageHash);
         try
         {
-            object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, "authenticated");
+            IDictionary<string, object> authenticated = this.safeDict(((WebSocketClient)client).subscriptions, "authenticated");
             if ((authenticated == null))
             {
                 Dictionary<string, object> response = await this.spotPrivatePostSubscribeGetKey(parameters);
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                object result = this.safeValue(response, "result");
-                if (!isEqual(result, true))
+                bool? result = this.safeBool(response, "result");
+                if ((result != true))
                 {
                     throw new ExchangeError ((string)(this.id + " failed to get subscribe key")) ;
                 }

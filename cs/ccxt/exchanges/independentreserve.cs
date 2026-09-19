@@ -1058,9 +1058,9 @@ public partial class independentreserve : Exchange
         {
             object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
-            object fee = this.safeValue(fees, (market.ContainsKey("base") ? market["base"] : null), new Dictionary<string, object>() {});
+            IDictionary<string, object> fee = this.safeDict(fees, (market.ContainsKey("base") ? market["base"] : null), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
-                { "info", this.safeValue(fee, "info") },
+                { "info", this.safeDict(fee, "info") },
                 { "symbol", symbol },
                 { "maker", this.safeNumber(fee, "fee") },
                 { "taker", this.safeNumber(fee, "fee") },

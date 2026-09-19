@@ -1373,7 +1373,7 @@ public partial class bitfinex : Exchange
         //
         List<object> result = this.safeList(transfer, "result");
         Int64? timestamp = this.safeInteger(result, 0);
-        object info = this.safeValue(result, 4);
+        List<object> info = this.safeList(result, 4);
         string? fromAccount = this.safeString(info, 1);
         string? toAccount = this.safeString(info, 2);
         string? currencyId = this.safeString(info, 5);
@@ -1408,9 +1408,9 @@ public partial class bitfinex : Exchange
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        object info = this.safeValue(currency, "info");
+        List<object> info = this.safeList(currency, "info");
         string? transferId = this.safeString(info, 0);
-        object underlying = this.safeValue(info, 4, new List<object>() {});
+        List<object> underlying = this.safeList(info, 4, new List<object>() {});
         object currencyId = null;
         if (isEqual(type, "derivatives"))
         {
@@ -1966,7 +1966,7 @@ public partial class bitfinex : Exchange
             { "4096", new List<object>() {"postOnly"} },
             { "5120", new List<object>() {"reduceOnly", "postOnly"} },
         };
-        return this.safeValue(flagValues, flags, null);
+        return this.safeList(flagValues, flags, null);
     }
 
     public virtual string? parseTimeInForce(object orderType)
@@ -1994,7 +1994,7 @@ public partial class bitfinex : Exchange
         string? amount = Precise.stringAbs(signedAmount);
         string side = ((bool) Precise.stringLt(signedAmount, "0")) ? "sell" : "buy";
         string? orderType = this.safeString(orderList, 8);
-        string? type = this.safeString(this.safeValue(this.options, "exchangeTypes"), orderType);
+        string? type = this.safeString(this.safeDict(this.options, "exchangeTypes"), orderType);
         string? timeInForce = this.parseTimeInForce(orderType);
         string? rawFlags = this.safeString(orderList, 12);
         object flags = this.parseOrderFlags(rawFlags);
@@ -2877,8 +2877,8 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         // if not provided explicitly we will try to match using the currency name
         string? network = this.safeString(parameters, "network", code);
-        object currencyNetworks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object currencyNetwork = this.safeValue(currencyNetworks, network);
+        IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
         if ((networkId == null))
         {
@@ -2911,7 +2911,7 @@ public partial class bitfinex : Exchange
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        object result = this.safeValue(response, 4, new List<object>() {});
+        List<object> result = this.safeList(response, 4, new List<object>() {});
         string? poolAddress = this.safeString(result, 5);
         string? address = ((bool) ((poolAddress == null))) ? this.safeString(result, 4) : poolAddress;
         string? tag = ((bool) ((poolAddress == null))) ? null : this.safeString(result, 4);
@@ -3006,7 +3006,7 @@ public partial class bitfinex : Exchange
         string? comment = null;
         if ((transactionLength == 8))
         {
-            object data = this.safeValue(transaction, 4, new List<object>() {});
+            List<object> data = this.safeList(transaction, 4, new List<object>() {});
             timestamp = this.safeInteger(transaction, 0);
             if ((currency != null))
             {
@@ -3173,9 +3173,9 @@ public partial class bitfinex : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IDictionary<string, object> fiat = this.safeDict(this.options, "fiat", new Dictionary<string, object>() {});
-        object feeData = this.safeValue(response, 4, new List<object>() {});
-        object makerData = this.safeValue(feeData, 0, new List<object>() {});
-        object takerData = this.safeValue(feeData, 1, new List<object>() {});
+        List<object> feeData = this.safeList(response, 4, new List<object>() {});
+        List<object> makerData = this.safeList(feeData, 0, new List<object>() {});
+        List<object> takerData = this.safeList(feeData, 1, new List<object>() {});
         double? makerFee = this.safeNumber(makerData, 0);
         double? makerFeeFiat = this.safeNumber(makerData, 2);
         double? makerFeeDeriv = this.safeNumber(makerData, 5);
@@ -3306,8 +3306,8 @@ public partial class bitfinex : Exchange
         // if not provided explicitly we will try to match using the currency name
         string? network = this.safeString(parameters, "network", code);
         parameters = this.omit(parameters, "network");
-        object currencyNetworks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object currencyNetwork = this.safeValue(currencyNetworks, network);
+        IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
         if ((networkId == null))
         {
@@ -3325,7 +3325,7 @@ public partial class bitfinex : Exchange
         {
             ((IDictionary<string,object>)request)["payment_id"] = tag;
         }
-        object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
+        IDictionary<string, object> withdrawOptions = this.safeDict(this.options, "withdraw", new Dictionary<string, object>() {});
         bool? includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         if ((includeFee == true))
         {

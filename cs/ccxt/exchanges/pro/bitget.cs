@@ -405,9 +405,9 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1753230479687
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        object data = this.safeValue(message, "data", new List<object>() {});
-        object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
+        IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
         Int64? timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
         string? instType = this.safeStringLower(arg, "instType");
@@ -515,9 +515,9 @@ public partial class bitget : ccxt.bitget
 
     public virtual object parseWsBidAsk(object message, object market = null)
     {
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        object data = this.safeValue(message, "data", new List<object>() {});
-        object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
+        IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
         Int64? timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
         string? instType = this.safeStringLower(arg, "instType");
@@ -565,7 +565,7 @@ public partial class bitget : ccxt.bitget
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        object timeframes = this.safeValue(this.options, "timeframes");
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? interval = this.safeString(timeframes, timeframeVar);
         string? messageHash = null;
         object instType = null;
@@ -718,13 +718,13 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1755594421877
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? instType = this.safeStringLower(arg, "instType");
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? interval = this.safeString(arg, "interval");
         bool? isUta = null;
@@ -736,7 +736,7 @@ public partial class bitget : ccxt.bitget
         {
             isUta = true;
         }
-        object timeframes = this.safeValue(this.options, "timeframes");
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? timeframe = this.findTimeframe(interval, timeframes);
         if ((timeframe == null))
         {
@@ -1000,7 +1000,7 @@ public partial class bitget : ccxt.bitget
         //     "ts": 1755937421337
         // }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg"));
+        IDictionary<string, object> arg = this.safeDict(message, "arg");
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? instType = this.safeStringLower(arg, "instType");
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
@@ -1008,8 +1008,8 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
-        object data = this.safeValue(message, "data");
-        object rawOrderBook = this.safeValue(data, 0);
+        List<object> data = this.safeList(message, "data");
+        IDictionary<string, object> rawOrderBook = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(rawOrderBook, "ts");
         bool incrementalBook = (channel == "books");
         if (incrementalBook)
@@ -1068,16 +1068,16 @@ public partial class bitget : ccxt.bitget
             string bidsKey = "bids";
             string asksKey = "asks";
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
-            if (inOp(rawOrderBook, "a"))
+            if (rawOrderBook.ContainsKey("a"))
             {
-                if (!(inOp(rawOrderBook, "asks")))
+                if (!(rawOrderBook.ContainsKey("asks")))
                 {
                     asksKey = "a";
                 }
             }
-            if (inOp(rawOrderBook, "b"))
+            if (rawOrderBook.ContainsKey("b"))
             {
-                if (!(inOp(rawOrderBook, "bids")))
+                if (!(rawOrderBook.ContainsKey("bids")))
                 {
                     bidsKey = "b";
                 }
@@ -1194,7 +1194,7 @@ public partial class bitget : ccxt.bitget
         object trades = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
         if (this.newUpdates)
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1265,7 +1265,7 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701910980730
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? instType = this.safeStringLower(arg, "instType");
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
@@ -2196,8 +2196,8 @@ public partial class bitget : ccxt.bitget
         Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
         object symbol = getValue(market, "symbol");
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
-        object orderFee = this.safeValue(order, "feeDetail", new List<object>() {});
-        object fee = this.safeValue(orderFee, 0);
+        List<object> orderFee = this.safeList(order, "feeDetail", new List<object>() {});
+        IDictionary<string, object> fee = this.safeDict(orderFee, 0);
         string? feeAmount = this.safeString(fee, "fee");
         Dictionary<string, object> feeObject = null;
         if ((feeAmount != null))
@@ -3083,8 +3083,8 @@ public partial class bitget : ccxt.bitget
             { "account-crossed", this.handleBalance },
             { "kline", this.handleOHLCV },
         };
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        object topic = this.safeValue2(arg, "channel", "topic", "");
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        string? topic = this.safeString2(arg, "channel", "topic", "");
         object method = this.safeValue(methods, topic);
         if ((method != null))
         {
@@ -3249,7 +3249,7 @@ public partial class bitget : ccxt.bitget
         {
             isUta = true;
         }
-        object timeframes = this.safeValue(this.options, "timeframes");
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? timeframe = this.findTimeframe(interval, timeframes);
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
