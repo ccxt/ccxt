@@ -421,7 +421,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object trades = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -554,7 +554,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //        ]
         //    }
         //
-        Object response = this.safeValue(message, "response");
+        List<Object> response = (List<Object>) this.safeList(message, "response");
         List<Object> ohlcv = this.parseOHLCVs(response, null, null);
         String messageHash = this.safeString(message, "requestId");
         client.resolve(ohlcv, messageHash);
@@ -587,7 +587,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // use a reverse lookup in a static map instead
         Object timeframe = this.findTimeframe(interval);
         Object messageHash = Helpers.add((Helpers.add((name + "@"), marketId) + "_"), interval);
-        Object candles = this.safeValue(message, "candle");
+        List<Object> candles = (List<Object>) this.safeList(message, "candle", new ArrayList<Object>(Arrays.asList()));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -596,7 +596,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
-        for (var i = 0; i < Helpers.getArrayLength(candles); i++)
+        for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
             Object candle = Helpers.GetValue(candles, i);
             Object parsed = this.parseOHLCV(candle, market);
@@ -962,8 +962,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Object nonce = this.safeInteger(message, "nonce");
         if (Helpers.isGreaterThan(nonce, Helpers.GetValue(orderbook, "nonce")))
         {
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeValue(message, "asks", new ArrayList<Object>(Arrays.asList())));
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeValue(message, "bids", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
             Helpers.addElementToObject(orderbook, "nonce", nonce);
         }
         return orderbook;
@@ -1000,12 +1000,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             String flagKey = Helpers.add("watchingOrderBookSnapshot@", marketId);
-            Object watchingOrderBookSnapshot = this.safeValue(subscription, flagKey);
+            Boolean watchingOrderBookSnapshot = (Boolean) this.safeBool(subscription, flagKey);
             if (java.util.Objects.equals(watchingOrderBookSnapshot, null))
             {
                 Helpers.addElementToObject(subscription, flagKey, true);
                 ((Map)client.subscriptions).put((String)messageHash, subscription);
-                Object options = this.safeValue(this.options, "watchOrderBookSnapshot", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBookSnapshot", new HashMap<String, Object>() {{}});
                 Long delay = this.safeInteger(options, "delay", this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.scheduleCallback(delay, "watchOrderBookSnapshot", client, message, subscription);
@@ -1023,7 +1023,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = this.safeValue(subscription, "params");
+            Map<String, Object> parameters = (Map<String, Object>) this.safeDict(subscription, "params");
             // multi-symbol watches share one subscription object without a marketId,
             // in that case the buffered delta message identifies the market
             String marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
@@ -1069,7 +1069,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //         }
         //     }
         //
-        Object response = this.safeValue(message, "response");
+        Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response");
         if (java.util.Objects.equals(response, null))
         {
             return;
@@ -1727,7 +1727,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         String messageHash = this.safeString(message, "requestId");
-        Object response = this.safeValue(message, "response");
+        Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", new HashMap<String, Object>() {{}});
         Object withdraw = this.parseTransaction(response);
         client.resolve(withdraw, messageHash);
     }
@@ -1873,7 +1873,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //        ]
         //    }
         //
-        Object response = this.safeValue(message, "response");
+        List<Object> response = (List<Object>) this.safeList(message, "response", new ArrayList<Object>(Arrays.asList()));
         List<Object> deposits = this.parseTransactions(response, null, null, null, new HashMap<String, Object>() {{
             put( "type", "deposit" );
         }});
@@ -1970,7 +1970,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         String messageHash = this.safeString(message, "requestId");
-        Object response = this.safeValue(message, "response");
+        List<Object> response = (List<Object>) this.safeList(message, "response");
         Object currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }
@@ -1990,7 +1990,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         String messageHash = this.safeString(message, "requestId");
-        Object response = this.safeValue(message, "response");
+        Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response");
         Object fees = this.parseTradingFees(response);
         client.resolve(fees, messageHash);
     }
@@ -2034,7 +2034,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         String messageHash = this.safeString(message, "requestId");
-        Object response = this.safeValue(message, "response", new ArrayList<Object>(Arrays.asList()));
+        List<Object> response = (List<Object>) this.safeList(message, "response", new ArrayList<Object>(Arrays.asList()));
         Object balance = this.parseBalance(response);
         client.resolve(balance, messageHash);
     }
@@ -2069,7 +2069,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //        }
         //    }
         //
-        Object response = this.safeValue(message, "response", new HashMap<String, Object>() {{}});
+        Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", new HashMap<String, Object>() {{}});
         Object order = this.parseOrder(response);
         String messageHash = this.safeString(message, "requestId");
         client.resolve(order, messageHash);
@@ -2096,7 +2096,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //        ]
         //    }
         //
-        Object response = this.safeValue(message, "response", new HashMap<String, Object>() {{}});
+        List<Object> response = (List<Object>) this.safeList(message, "response", new ArrayList<Object>(Arrays.asList()));
         Object markets = this.parseMarkets(response);
         String messageHash = this.safeString(message, "requestId");
         client.resolve(markets, messageHash);

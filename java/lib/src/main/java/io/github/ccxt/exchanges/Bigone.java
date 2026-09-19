@@ -1252,8 +1252,8 @@ public class Bigone extends BigoneApi
     public Object parseContractOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
     {
         Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object responseBids = this.safeValue(orderbook, "bids");
-        Object responseAsks = this.safeValue(orderbook, "asks");
+        Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids");
+        Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks");
         Object bids = this.parseContractBidsAsks(responseBids);
         Object asks = this.parseContractBidsAsks(responseAsks);
         return new HashMap<String, Object>() {{

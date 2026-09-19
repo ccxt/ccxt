@@ -4384,7 +4384,7 @@ public class Paradex extends ParadexApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4397,19 +4397,19 @@ public class Paradex extends ParadexApi
             // TODO: optimize
             if (java.util.Objects.equals(path, "auth"))
             {
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", Helpers.GetValue(query, "account"));
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", Helpers.GetValue(query, "signature"));
-                ((Map<String, Object>)headers).put("PARADEX-TIMESTAMP", String.valueOf(Helpers.GetValue(query, "timestamp")));
-                ((Map<String, Object>)headers).put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(Helpers.GetValue(query, "expiration")));
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
+                ((Map<String, Object>)headers).put("PARADEX-TIMESTAMP", String.valueOf(((Map<String, Object>)query).get("timestamp")));
+                ((Map<String, Object>)headers).put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(((Map<String, Object>)query).get("expiration")));
             } else if (java.util.Objects.equals(path, "onboarding"))
             {
                 ((Map<String, Object>)headers).put("PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", Helpers.GetValue(query, "account"));
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", Helpers.GetValue(query, "signature"));
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
                 ((Map<String, Object>)headers).put("PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
                 body = this.json(new HashMap<String, Object>() {{
-                    put( "public_key", Helpers.GetValue(query, "public_key") );
+                    put( "public_key", ((Map<String, Object>)query).get("public_key") );
                 }});
             } else
             {

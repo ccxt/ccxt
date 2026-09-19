@@ -953,7 +953,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object response = (this.fetchBalance((Object)((Object) new HashMap<String, Object>() {{
                 put( "type", type );
             }}))).join();
-            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new HashMap<String, Object>() {{}})));
+            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.inOp(client.futures, messageHash))
             {

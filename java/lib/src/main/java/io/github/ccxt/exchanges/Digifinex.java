@@ -802,7 +802,7 @@ public class Digifinex extends DigifinexApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object options = this.safeValue(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", "fetch_markets_v2");
             if (java.util.Objects.equals(method, "fetch_markets_v2"))
             {
@@ -887,8 +887,8 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            Object spotData = this.safeValue(spotMarkets, "symbol_list", new ArrayList<Object>(Arrays.asList()));
-            Object swapData = this.safeValue(swapMarkets, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotData = (List<Object>) this.safeList(spotMarkets, "symbol_list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapData = (List<Object>) this.safeList(swapMarkets, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> response = (List<Object>) this.arrayConcat(spotData, swapData);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
@@ -923,9 +923,9 @@ public class Digifinex extends DigifinexApi
                 {
                     type = "swap";
                     symbol = ((Helpers.add(Helpers.add(base, "/"), quote) + ":") + settle);
-                    isInverse = this.safeValue(market, "is_inverse");
+                    isInverse = this.safeBool(market, "is_inverse");
                     isLinear = (((!java.util.Objects.equals(isInverse, true)))) ? true : false;
-                    Object isTrading = this.safeValue(market, "isTrading");
+                    Boolean isTrading = (Boolean) this.safeBool(market, "isTrading");
                     if (java.util.Objects.equals(isTrading, true))
                     {
                         isAllowed = 1;
@@ -1213,7 +1213,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             String balanceRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "list";
-            Object balances = this.safeValue(response, balanceRequest, new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(response, balanceRequest, new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(balances);
         }).thenApply(Balances::new);
 
@@ -1302,7 +1302,7 @@ public class Digifinex extends DigifinexApi
             Object orderBook = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                orderBook = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+                orderBook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(orderBook, "timestamp");
             } else
             {
@@ -1501,9 +1501,9 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Long date = this.safeInteger(response, "date");
-            Object tickers = this.safeValue(response, "ticker", new ArrayList<Object>(Arrays.asList()));
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object firstTicker = this.safeValue(tickers, 0, new HashMap<String, Object>() {{}});
+            List<Object> tickers = (List<Object>) this.safeList(response, "ticker", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             Object result = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -1733,7 +1733,7 @@ public class Digifinex extends DigifinexApi
             {
                 type = "limit";
             }
-            Object isMaker = this.safeValue(trade, "is_maker");
+            Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker");
             takerOrMaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
         }
         Object fee = null;
@@ -2059,11 +2059,11 @@ public class Digifinex extends DigifinexApi
             Object candles = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-                candles = this.safeValue(data, "candles", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                candles = this.safeList(data, "candles", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                candles = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+                candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -2189,7 +2189,7 @@ public class Digifinex extends DigifinexApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
                 Object currentMarginMode = ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
@@ -2245,10 +2245,10 @@ public class Digifinex extends DigifinexApi
             Object data = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                data = this.safeValue(response, "order_ids", new ArrayList<Object>(Arrays.asList()));
+                data = this.safeList(response, "order_ids", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
@@ -3479,11 +3479,11 @@ public class Digifinex extends DigifinexApi
             Object ledger = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ledger = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+                ledger = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-                ledger = this.safeValue(data, "finance", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                ledger = this.safeList(data, "finance", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseLedger(ledger, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
@@ -3551,7 +3551,7 @@ public class Digifinex extends DigifinexApi
             //         "code":200
             //     }
             //
-            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object addresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
             Object address = this.safeValue(addresses, code);
             if (java.util.Objects.equals(address, null))
@@ -3855,7 +3855,7 @@ public class Digifinex extends DigifinexApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object currencyId = ((Map<String, Object>)currency).get("id");
-            Object accountsByType = this.safeValue(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -3996,7 +3996,7 @@ public class Digifinex extends DigifinexApi
             //         "unrealized_pnl": "-0.049158102631998504"
             //     }
             //
-            Object rows = this.safeValue(response, "positions");
+            List<Object> rows = (List<Object>) this.safeList(response, "positions");
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
@@ -4129,7 +4129,7 @@ public class Digifinex extends DigifinexApi
             //         "equity": 45.133305540922
             //     }
             //
-            Object result = this.safeValue(response, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRates(result, "currency");
         }).thenApply(CrossBorrowRates::new);
 
@@ -4361,7 +4361,7 @@ public class Digifinex extends DigifinexApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> result = (List<Object>) this.safeList(data, "funding_rates", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
@@ -4422,7 +4422,7 @@ public class Digifinex extends DigifinexApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -4970,7 +4970,7 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "instrument_id");
         }).thenApply(LeverageTiers::new);
@@ -5032,7 +5032,7 @@ public class Digifinex extends DigifinexApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarketLeverageTiers(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
@@ -5342,7 +5342,7 @@ final Object finalI = i;
             //
             Long code = this.safeInteger(response, "code");
             String status = (((Helpers.isEqual(code, 0)))) ? "ok" : "failed";
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
                 put( "status", status );
             }});

@@ -389,8 +389,8 @@ public class Bitbank extends BitbankApi
             //       }
             //     }
             //
-            Object data = this.safeValue(response, "data");
-            Object pairs = this.safeValue(data, "pairs", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
+            List<Object> pairs = (List<Object>) this.safeList(data, "pairs", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(pairs);
         });
 
@@ -419,7 +419,7 @@ public class Bitbank extends BitbankApi
             put( "swap", false );
             put( "future", false );
             put( "option", false );
-            put( "active", Bitbank.this.safeValue(entry, "is_enabled") );
+            put( "active", Bitbank.this.safeBool(entry, "is_enabled") );
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
@@ -543,7 +543,7 @@ public class Bitbank extends BitbankApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetPairDepth(this.extend(request, parameters))).join();
-            Object orderbook = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp);
         }).thenApply(OrderBook::new);
@@ -631,7 +631,7 @@ public class Bitbank extends BitbankApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetPairTransactions(this.extend(request, parameters))).join();
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -685,7 +685,7 @@ public class Bitbank extends BitbankApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> pairs = (List<Object>) this.safeList(data, "pairs", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)pairs).size(); i++)
@@ -784,9 +784,9 @@ public class Bitbank extends BitbankApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object candlestick = this.safeValue(data, "candlestick", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeValue(candlestick, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> candlestick = (List<Object>) this.safeList(data, "candlestick", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(candlestick, 0, new HashMap<String, Object>() {{}});
             List<Object> ohlcv = (List<Object>) this.safeList(first, "ohlcv", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -800,7 +800,7 @@ public class Bitbank extends BitbankApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> assets = (List<Object>) this.safeList(data, "assets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
@@ -1120,7 +1120,7 @@ public class Bitbank extends BitbankApi
                 ((Map<String, Object>)request).put("since", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Map<String, Object> response = (this.privateGetUserSpotActiveOrders(this.extend(request, parameters))).join();
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1167,7 +1167,7 @@ public class Bitbank extends BitbankApi
                 ((Map<String, Object>)request).put("since", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Map<String, Object> response = (this.privateGetUserSpotTradeHistory(this.extend(request, parameters))).join();
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1198,10 +1198,10 @@ public class Bitbank extends BitbankApi
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
             Map<String, Object> response = (this.privateGetUserWithdrawalAccount(this.extend(request, parameters))).join();
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             // Not sure about this if there could be more than one account...
-            Object accounts = this.safeValue(data, "accounts", new ArrayList<Object>(Arrays.asList()));
-            Object firstAccount = this.safeValue(accounts, 0, new HashMap<String, Object>() {{}});
+            List<Object> accounts = (List<Object>) this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> firstAccount = (Map<String, Object>) this.safeDict(accounts, 0, new HashMap<String, Object>() {{}});
             String address = this.safeString(firstAccount, "address");
             return new HashMap<String, Object>() {{
                 put( "info", response );

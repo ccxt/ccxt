@@ -4455,7 +4455,7 @@ public class Aster extends AsterApi
         }
         String entryPriceString = this.safeString(position, "entryPrice");
         Object entryPrice = this.parseNumber(entryPriceString);
-        Object contractSize = this.safeValue(market, "contractSize");
+        Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (Helpers.inOp(position, "notional"));
@@ -4842,7 +4842,7 @@ public class Aster extends AsterApi
         Object percentage = null;
         String liquidationPriceStringRaw = null;
         Object liquidationPrice = null;
-        Object contractSize = this.safeValue(market, "contractSize");
+        Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, "0"))
         {

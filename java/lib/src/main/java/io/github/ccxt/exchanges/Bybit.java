@@ -12434,7 +12434,7 @@ final Object finalMarket = market;
         Object url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }
@@ -12448,7 +12448,7 @@ final Object finalMarket = market;
             Object timestamp = String.valueOf(this.nonce());
             if (Boolean.TRUE.equals(isOpenapi))
             {
-                if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                 {
                     body = this.json(parameters);
                 } else

@@ -861,7 +861,7 @@ public class Hibachi extends HibachiApi
             remainingString = Precise.stringSub(totalQuantity, filled);
         }
         String timeInForce = "GTC";
-        Object orderFlags = this.safeValue(order, "orderFlags");
+        String orderFlags = this.safeString(order, "orderFlags");
         Boolean postOnly = false;
         Boolean reduceOnly = false;
         if (java.util.Objects.equals(orderFlags, "POST_ONLY"))
@@ -1197,8 +1197,8 @@ public class Hibachi extends HibachiApi
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
                 Helpers.addElementToObject(orderRequest, "action", "place");
@@ -1330,8 +1330,8 @@ public class Hibachi extends HibachiApi
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
                 Helpers.addElementToObject(orderRequest, "action", "modify");

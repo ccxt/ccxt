@@ -4473,8 +4473,8 @@ public class Okx extends OkxApi
         Double slOrdPx = this.safeNumber(parameters, "slOrdPx", price);
         String slTriggerPxType = this.safeString(parameters, "slTriggerPxType", "last");
         String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        Object stopLoss = this.safeValue(parameters, "stopLoss");
-        Object takeProfit = this.safeValue(parameters, "takeProfit");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         String trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
@@ -4917,8 +4917,8 @@ public class Okx extends OkxApi
                 }
                 String type = this.safeString(rawOrder, "type", "");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -4993,8 +4993,8 @@ public class Okx extends OkxApi
         Double takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "newTpTriggerPx");
         Double takeProfitPrice = this.safeNumber(parameters, "newTpOrdPx");
         String takeProfitTriggerPriceType = this.safeString(parameters, "newTpTriggerPxType", "last");
-        Object stopLoss = this.safeValue(parameters, "stopLoss");
-        Object takeProfit = this.safeValue(parameters, "takeProfit");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         if (Helpers.isTrue(isAlgoOrder))

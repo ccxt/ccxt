@@ -791,7 +791,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object result = this.safeValue(message, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
         if (!java.util.Objects.equals(result, null))
         {
             this.handleAuthenticationMessage(client, message);

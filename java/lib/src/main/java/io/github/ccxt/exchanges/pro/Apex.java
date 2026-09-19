@@ -146,7 +146,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object trades = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1189,11 +1189,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
-            Object success = this.safeValue(message, "success");
+            Boolean success = (Boolean) this.safeBool(message, "success");
             if ((!java.util.Objects.equals(success, null)) && (!java.util.Objects.equals(success, true)))
             {
                 String ret_msg = this.safeString(message, "ret_msg");
-                Object request = this.safeValue(message, "request", new HashMap<String, Object>() {{}});
+                Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});
                 String op = this.safeString(request, "op");
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
@@ -1373,7 +1373,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        Object success = this.safeValue(message, "success");
+        Boolean success = (Boolean) this.safeBool(message, "success");
         Long code = this.safeInteger(message, "retCode");
         String messageHash = "authenticated";
         if ((java.util.Objects.equals(success, true)) || (Helpers.isEqual(code, 0)))

@@ -666,7 +666,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, timeframe);
             String messageHash = ((("candles:" + symbol) + ":") + timeframe);
             Object ohlcv = null;
@@ -771,10 +771,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
         } else
         {
-            Object d = this.safeValue2(message, "d", "data", new HashMap<String, Object>() {{}});
-            Object rawOhlcv = this.safeValue(d, "k", d);
+            Object d = this.safeDict2(message, "d", "data", new HashMap<String, Object>() {{}});
+            Object rawOhlcv = this.safeDict(d, "k", d);
             String timeframeId = this.safeString2(rawOhlcv, "i", "interval");
-            Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             String marketId = this.safeString2(message, "s", "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -782,7 +782,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
         String messageHash = Helpers.add((("candles:" + symbol) + ":"), timeframe);
-        Object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         Helpers.addElementToObject(this.ohlcvs, symbol, symbolOhlcvs);
         Object stored = this.safeValue(symbolOhlcvs, timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -791,7 +791,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(timeframe, null))
             {
-                Helpers.addElementToObject(symbolOhlcvs, timeframe, stored);
+                ((Map<String, Object>)symbolOhlcvs).put((String)timeframe, stored);
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -919,7 +919,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Long nonce = this.safeInteger(orderbook, "nonce");
-        Object firstDelta = this.safeValue(cache, 0);
+        Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0);
         Long firstDeltaNonce = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
         if ((java.util.Objects.equals(nonce, null)) || (java.util.Objects.equals(firstDeltaNonce, null)))
         {
@@ -1017,7 +1017,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String marketId = this.safeString2(message, "s", "symbol");
         String symbol = this.safeSymbol(marketId);
         String messageHash = ("orderbook:" + symbol);
-        Object subscription = this.safeValue(client.subscriptions, messageHash);
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash);
         Long limit = this.safeInteger(subscription, "limit");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -2136,7 +2136,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, timeframe);
             String messageHash = ((("unsubscribe:candles:" + symbol) + ":") + timeframe);
             Object url = null;

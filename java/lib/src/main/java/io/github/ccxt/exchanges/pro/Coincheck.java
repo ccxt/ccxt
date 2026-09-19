@@ -123,7 +123,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         String symbol = this.symbol(this.safeString(message, 0));
-        Object data = this.safeValue(message, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(data, "last_update_at");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
@@ -198,7 +198,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //         ]
         //     ]
         //
-        Object first = this.safeValue(message, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> first = (List<Object>) this.safeList(message, 0, new ArrayList<Object>(Arrays.asList()));
         String symbol = this.symbol(this.safeString(first, 2));
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))

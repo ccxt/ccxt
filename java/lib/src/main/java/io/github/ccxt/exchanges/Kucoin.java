@@ -4419,7 +4419,7 @@ public class Kucoin extends KucoinApi
             // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
             // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "versions"), "private"), "GET"), "deposit-addresses", version);
-            Object data = this.safeValue(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             if (java.util.Objects.equals(data, null))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
@@ -5793,7 +5793,7 @@ public class Kucoin extends KucoinApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -5894,7 +5894,7 @@ public class Kucoin extends KucoinApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -7771,7 +7771,7 @@ public class Kucoin extends KucoinApi
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        Object isActive = this.safeValue(order, "isActive");
+        Boolean isActive = (Boolean) this.safeBool(order, "isActive");
         Boolean cancelExist = (Boolean) this.safeBool(order, "cancelExist", false);
         Object status = null;
         if (!java.util.Objects.equals(isActive, null))
@@ -7790,8 +7790,8 @@ public class Kucoin extends KucoinApi
         }
         String clientOrderId = this.safeString(order, "clientOid");
         String timeInForce = this.safeString(order, "timeInForce");
-        Object postOnly = this.safeValue(order, "postOnly");
-        Object reduceOnly = this.safeValue(order, "reduceOnly");
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedAt");
         final Object finalFee = fee;
         final Object finalStatus = status;
@@ -10132,7 +10132,7 @@ public class Kucoin extends KucoinApi
             }
             // only fetches one balance at a time
             String defaultCode = this.safeString(this.options, "code");
-            Object fetchBalanceOptions = this.safeValue(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
+            Map<String, Object> fetchBalanceOptions = (Map<String, Object>) this.safeDict(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
             defaultCode = this.safeString(fetchBalanceOptions, "code", defaultCode);
             String code = this.safeString(parameters, "code", defaultCode);
             if (java.util.Objects.equals(code, null))
@@ -10164,7 +10164,7 @@ public class Kucoin extends KucoinApi
                 put( "timestamp", null );
                 put( "datetime", null );
             }};
-            Object data = this.safeValue(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId, currency);
             Object account = this.account();
@@ -12579,7 +12579,7 @@ public class Kucoin extends KucoinApi
                 //        }
                 //    }
                 //
-                Object data = this.safeValue(response, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
                 dataList = this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> fees = new ArrayList<Object>(Arrays.asList());
@@ -13066,7 +13066,7 @@ public class Kucoin extends KucoinApi
         String initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         String unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
-        Object crossMode = this.safeValue(position, "crossMode");
+        Boolean crossMode = (Boolean) this.safeBool(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
         String marginMode = this.safeStringLower(position, "marginMode");
         if (!java.util.Objects.equals(crossMode, null))
@@ -13329,7 +13329,7 @@ public class Kucoin extends KucoinApi
             //        "msg":"Position does not exist"
             //    }
             //
-            Object data = this.safeValue(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
                 put( "amount", Kucoin.this.amountToPrecision(symbol, amount) );
                 put( "direction", "in" );
@@ -13442,7 +13442,7 @@ public class Kucoin extends KucoinApi
         String id = this.safeString(info, "id");
         market = this.safeMarket(id, market);
         String currencyId = this.safeString(info, "settleCurrency");
-        Object crossMode = this.safeValue(info, "crossMode");
+        Boolean crossMode = (Boolean) this.safeBool(info, "crossMode");
         String mode = (((java.util.Objects.equals(crossMode, true)))) ? "cross" : "isolated";
         String marketId = this.safeString(market, "symbol");
         Long timestamp = this.safeInteger(info, "currentTimestamp");

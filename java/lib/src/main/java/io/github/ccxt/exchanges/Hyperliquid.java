@@ -2817,8 +2817,8 @@ public class Hyperliquid extends HyperliquidApi
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             ((Map<String, Object>)orderParams).put("slippage", slippage);
-            Object stopLoss = this.safeValue(orderParams, "stopLoss");
-            Object takeProfit = this.safeValue(orderParams, "takeProfit");
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss");
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit");
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));

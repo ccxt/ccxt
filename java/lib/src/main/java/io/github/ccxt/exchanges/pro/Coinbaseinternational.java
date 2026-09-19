@@ -624,8 +624,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object timeframe = this.findTimeframe(messageHash);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        if (java.util.Objects.equals(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe), null))
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        if (java.util.Objects.equals(this.safeDict(Helpers.GetValue(this.ohlcvs, symbol), timeframe), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));

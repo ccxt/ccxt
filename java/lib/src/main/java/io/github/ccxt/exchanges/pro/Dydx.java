@@ -477,7 +477,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String messageHash = ("ohlcv:" + symbol);
         Object ohlcv = this.safeDict(candles, 0, content);
         Object parsed = this.parseOHLCV(ohlcv, market);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {

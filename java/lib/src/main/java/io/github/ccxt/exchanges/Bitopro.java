@@ -931,7 +931,7 @@ public class Bitopro extends BitoproApi
             }
             Map<String, Object> response = (this.publicGetProvisioningLimitationsAndFees(parameters)).join();
             Map<String, Object> tradingFeeRate = (Map<String, Object>) this.safeDict(response, "tradingFeeRate", new HashMap<String, Object>() {{}});
-            Object first = this.safeValue(tradingFeeRate, 0);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(tradingFeeRate, 0);
             //
             //     {
             //         "tradingFeeRate":[
@@ -1368,7 +1368,7 @@ public class Bitopro extends BitoproApi
             if (java.util.Objects.equals(orderType, "STOP_LIMIT"))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-                Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+                String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
                 if (java.util.Objects.equals(triggerPrice, null))
                 {

@@ -3728,7 +3728,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeInteger(data, "serverTime");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
@@ -3917,7 +3917,7 @@ public class Bitget extends BitgetApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quote = this.safeCurrencyCode(quoteId);
                 String base = this.safeCurrencyCode(baseId);
-                Object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new ArrayList<Object>(Arrays.asList()));
+                List<Object> supportMarginCoins = (List<Object>) this.safeList(market, "supportMarginCoins", new ArrayList<Object>(Arrays.asList()));
                 String settleId = null;
                 if (this.inArray(baseId, supportMarginCoins))
                 {
@@ -4426,7 +4426,7 @@ public class Bitget extends BitgetApi
             //            },
             //            ...
             //
-            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -4669,7 +4669,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            Object result = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarketLeverageTiers(result, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
@@ -4961,10 +4961,10 @@ final Object finalMinNotional = minNotional;
             //          }
             //      }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object result = this.parseTransaction(data, currency);
             ((Map<String, Object>)result).put("type", "withdrawal");
-            Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
@@ -5427,7 +5427,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String bidsKey = (((java.util.Objects.equals(uta, true)))) ? "b" : "bids";
             String asksKey = (((java.util.Objects.equals(uta, true)))) ? "a" : "asks";
             Long timestamp = this.safeInteger(data, "ts");
@@ -5831,7 +5831,7 @@ final Object finalMinNotional = minNotional;
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object symbol = this.safeValue(symbols, 0);
+                String symbol = this.safeString(symbols, 0);
                 market = this.market(symbol);
             }
             Object response = null;
@@ -6214,7 +6214,7 @@ final Object finalMinNotional = minNotional;
                     ((Map<String, Object>)request).put("limit", limit);
                 }
             }
-            Object options = this.safeValue(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             Object response = null;
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
@@ -6237,7 +6237,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicUtaGetV3MarketFills(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                Object spotOptions = this.safeValue(options, "spot", new HashMap<String, Object>() {{}});
+                Map<String, Object> spotOptions = (Map<String, Object>) this.safeDict(options, "spot", new HashMap<String, Object>() {{}});
                 String defaultSpotMethod = this.safeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory");
                 String spotMethod = this.safeString(parameters, "method", defaultSpotMethod);
                 parameters = this.omit(parameters, "method");
@@ -6257,7 +6257,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                Object swapOptions = this.safeValue(options, "swap", new HashMap<String, Object>() {{}});
+                Map<String, Object> swapOptions = (Map<String, Object>) this.safeDict(options, "swap", new HashMap<String, Object>() {{}});
                 String defaultSwapMethod = this.safeString(swapOptions, "method", "publicMixGetV2MixMarketFillsHistory");
                 String swapMethod = this.safeString(parameters, "method", defaultSwapMethod);
                 parameters = this.omit(parameters, "method");
@@ -6418,7 +6418,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -7083,7 +7083,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -7717,9 +7717,9 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginParams = this.handleMarginModeAndParams("createOrder", parameters);
             Object marginMode = ((List<Object>)marginParams).get(0);
-            Object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
-            Object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
-            Object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
+            Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+            Double stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
+            Double takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
             String trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
             Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
@@ -7834,8 +7834,8 @@ final Object finalMinNotional = minNotional;
         }
         Double stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
         Double takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
-        Object stopLoss = this.safeValue(parameters, "stopLoss");
-        Object takeProfit = this.safeValue(parameters, "takeProfit");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
         Boolean isStopLossTrigger = !java.util.Objects.equals(stopLossTriggerPrice, null);
@@ -8001,11 +8001,11 @@ final Object finalMinNotional = minNotional;
             hedged = !Helpers.isTrue(oneWayMode);
         }
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-        Object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
-        Object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
-        Object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
-        Object stopLoss = this.safeValue(parameters, "stopLoss");
-        Object takeProfit = this.safeValue(parameters, "takeProfit");
+        Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+        Double stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
+        Double takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
         Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
         Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
@@ -8147,13 +8147,13 @@ final Object finalMinNotional = minNotional;
             {
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
-                    Object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
+                    Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                     if (java.util.Objects.equals(slTriggerPrice, null))
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
                     }
                     ((Map<String, Object>)request).put("presetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
-                    Object slLimitPrice = this.safeValue(stopLoss, "price");
+                    Double slLimitPrice = this.safeNumber(stopLoss, "price");
                     if (!java.util.Objects.equals(slLimitPrice, null))
                     {
                         // without the execute price the exchange fills the attached stop loss
@@ -8163,13 +8163,13 @@ final Object finalMinNotional = minNotional;
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
-                    Object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
+                    Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                     if (java.util.Objects.equals(tpTriggerPrice, null))
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
                     }
                     ((Map<String, Object>)request).put("presetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
-                    Object tpLimitPrice = this.safeValue(takeProfit, "price");
+                    Double tpLimitPrice = this.safeNumber(takeProfit, "price");
                     if (!java.util.Objects.equals(tpLimitPrice, null))
                     {
                         ((Map<String, Object>)request).put("presetStopSurplusExecutePrice", this.priceToPrecision(symbol, tpLimitPrice));
@@ -8314,9 +8314,9 @@ final Object finalMinNotional = minNotional;
                 }
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
                 Object currentMarginMode = ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
@@ -8407,9 +8407,9 @@ final Object finalMinNotional = minNotional;
                 }
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
                 Object currentMarginMode = ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
@@ -8482,9 +8482,9 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object failure = this.safeValue(data, "failureList", new ArrayList<Object>(Arrays.asList()));
-            Object orderInfo = this.safeValue(data, "successList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> failure = (List<Object>) this.safeList(data, "failureList", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orderInfo = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
             List<Object> both = (List<Object>) this.arrayConcat(orderInfo, failure);
             return this.parseOrders(both, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -8552,14 +8552,14 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("orderId", id);
             }
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-            Object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
+            Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
-            Object stopLossPrice = this.safeValue(parameters, "stopLossPrice");
+            Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
             Boolean isStopLossOrder = !java.util.Objects.equals(stopLossPrice, null);
-            Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
+            Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitPrice, null);
-            Object stopLoss = this.safeValue(parameters, "stopLoss");
-            Object takeProfit = this.safeValue(parameters, "takeProfit");
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
             Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
             Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
             String trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
@@ -8750,12 +8750,12 @@ final Object finalMinNotional = minNotional;
                     ((Map<String, Object>)request).put("newClientOid", newClientOrderId);
                     if (Boolean.TRUE.equals(hasStopLoss))
                     {
-                        Object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
+                        Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                         ((Map<String, Object>)request).put("newPresetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     }
                     if (Boolean.TRUE.equals(hasTakeProfit))
                     {
-                        Object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
+                        Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                         ((Map<String, Object>)request).put("newPresetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     }
                     response = (this.privateMixPostV2MixOrderModifyOrder(this.extend(request, parameters))).join();
@@ -8823,8 +8823,8 @@ final Object finalMinNotional = minNotional;
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object trailing = this.safeValue(parameters, "trailing");
-            Object trigger = this.safeValue2(parameters, "stop", "trigger");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "trailing")));
             if (!((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (java.util.Objects.equals(trigger, true))))
             {
@@ -8966,11 +8966,11 @@ final Object finalMinNotional = minNotional;
             //         "data": null
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object order = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isContractTriggerEndpoint))
             {
-                Object orderInfo = this.safeValue(data, "successList", new ArrayList<Object>(Arrays.asList()));
+                List<Object> orderInfo = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
                 order = this.safeDict(orderInfo, 0, new HashMap<String, Object>() {{}});
             } else
             {
@@ -9085,7 +9085,7 @@ final Object finalMinNotional = minNotional;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            Object trigger = this.safeValue2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> orderIdList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
@@ -9153,7 +9153,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -10374,16 +10374,16 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(trigger, true)))
                 {
-                    return this.parseOrders(this.safeValue(data, "orderList", new ArrayList<Object>(Arrays.asList())), market, since, limit);
+                    return this.parseOrders(this.safeList(data, "orderList"), market, since, limit);
                 }
             } else
             {
-                return this.parseOrders(this.safeValue(data, "entrustedList", new ArrayList<Object>(Arrays.asList())), market, since, limit);
+                return this.parseOrders(this.safeList(data, "entrustedList"), market, since, limit);
             }
             if ((response instanceof String))
             {
@@ -10686,7 +10686,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data");
             if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
             {
-                Object bills = this.safeValue(data, "bills", new ArrayList<Object>(Arrays.asList()));
+                List<Object> bills = (List<Object>) this.safeList(data, "bills", new ArrayList<Object>(Arrays.asList()));
                 return this.parseLedger(bills, currency, since, limit);
             }
             return this.parseLedger(data, currency, since, limit);
@@ -11588,7 +11588,7 @@ final Object finalMinNotional = minNotional;
         }
         String side = this.safeString2(position, "holdSide", "posSide");
         String leverage = this.safeString(position, "leverage");
-        Object contractSizeNumber = this.safeValue(market, "contractSize");
+        Double contractSizeNumber = this.safeNumber(market, "contractSize");
         Object contractSize = this.numberToString(contractSizeNumber);
         String baseAmount = this.safeString2(position, "total", "openTotalPos");
         String entryPrice = this.safeStringN(position, new ArrayList<Object>(Arrays.asList("openPriceAvg", "openAvgPrice", "avgPrice")));
@@ -11885,7 +11885,7 @@ final Object finalMinNotional = minNotional;
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object symbol = this.safeValue(symbols, 0);
+                String symbol = this.safeString(symbols, 0);
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -12166,7 +12166,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.privateMixGetV2MixAccountBill(this.extend(request, parameters))).join();
             }
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object bills = this.safeList2(data, "bills", "list", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(uta, true))
             {
@@ -12771,7 +12771,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((List<Object>) typeparametersVariable).get(1);
             String fromAccount = this.safeString(parameters, "fromAccount", type);
             parameters = this.omit(parameters, "fromAccount");
-            Object accountsByType = this.safeValue(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             type = this.safeString(accountsByType, fromAccount);
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             final Object finalType = type;
@@ -12849,7 +12849,7 @@ final Object finalMinNotional = minNotional;
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeValue(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromType = this.safeString(accountsByType, fromAccount);
             String toType = this.safeString(accountsByType, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -12923,7 +12923,7 @@ final Object finalMinNotional = minNotional;
         String status = this.safeStringLower(transfer, "status");
         String currencyId = this.safeString(transfer, "coin");
         String fromAccountRaw = this.safeString(transfer, "fromType");
-        Object accountsById = this.safeValue(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
         String toAccountRaw = this.safeString(transfer, "toType");
         String toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
@@ -13109,7 +13109,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
         }).thenApply(MarginLoan::new);
 
@@ -13157,7 +13157,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, market);
         }).thenApply(MarginLoan::new);
 
@@ -13206,7 +13206,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, market);
         }).thenApply(MarginLoan::new);
 
@@ -13251,7 +13251,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
         }).thenApply(MarginLoan::new);
 
@@ -13450,7 +13450,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> liquidations = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
@@ -13574,7 +13574,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Long timestamp = this.safeInteger(response, "requestTime");
-            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             ((Map<String, Object>)first).put("timestamp", timestamp);
             return this.parseIsolatedBorrowRate(first, market);
@@ -13713,7 +13713,7 @@ final Object finalMinNotional = minNotional;
                 //         ]
                 //     }
                 //
-                Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             }
             Long timestamp = this.safeInteger(response, "requestTime");
@@ -13893,8 +13893,8 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeValue(data, "resultList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rows = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
@@ -14003,7 +14003,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> order = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrder((order == null || 0 >= ((List<?>)order).size() ? null : ((List<?>)order).get(0)), market);
         }).thenApply(Order::new);
@@ -14050,7 +14050,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orderInfo = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(orderInfo, null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));

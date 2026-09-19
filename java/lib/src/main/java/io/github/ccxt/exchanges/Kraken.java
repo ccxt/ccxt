@@ -818,7 +818,7 @@ public class Kraken extends KrakenApi
                 }
                 if (Boolean.TRUE.equals(spot) && (cachedCurrencies.containsKey(base)))
                 {
-                    Object currency = this.safeValue(cachedCurrencies, base);
+                    Map<String, Object> currency = (Map<String, Object>) this.safeDict(cachedCurrencies, base);
                     Double currencyPrecision = this.safeNumber(currency, "precision");
                     // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                     if (java.util.Objects.equals(currencyPrecision, null))
@@ -1160,7 +1160,7 @@ public class Kraken extends KrakenApi
             //        }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(result, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -1168,10 +1168,10 @@ public class Kraken extends KrakenApi
 
     public Object parseTradingFee(Object response, Object market)
     {
-        Object makerFees = this.safeValue(response, "fees_maker", new HashMap<String, Object>() {{}});
-        Object takerFees = this.safeValue(response, "fees", new HashMap<String, Object>() {{}});
-        Object symbolMakerFee = this.safeValue(makerFees, Helpers.GetValue(market, "id"), new HashMap<String, Object>() {{}});
-        Object symbolTakerFee = this.safeValue(takerFees, Helpers.GetValue(market, "id"), new HashMap<String, Object>() {{}});
+        Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(response, "fees_maker", new HashMap<String, Object>() {{}});
+        Map<String, Object> takerFees = (Map<String, Object>) this.safeDict(response, "fees", new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolMakerFee = (Map<String, Object>) this.safeDict(makerFees, Helpers.GetValue(market, "id"), new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolTakerFee = (Map<String, Object>) this.safeDict(takerFees, Helpers.GetValue(market, "id"), new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", response );
             put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -1242,12 +1242,12 @@ public class Kraken extends KrakenApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orderbook = this.safeValue(result, ((Map<String, Object>)market).get("id"));
             // sometimes kraken returns wsname instead of market id
             // https://github.com/ccxt/ccxt/issues/8662
-            Object marketInfo = this.safeValue(market, "info", new HashMap<String, Object>() {{}});
-            Object wsName = this.safeValue(marketInfo, "wsname");
+            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            String wsName = this.safeString(marketInfo, "wsname");
             if (!java.util.Objects.equals(wsName, null))
             {
                 orderbook = this.safeValue(result, wsName, orderbook);
@@ -1274,17 +1274,17 @@ public class Kraken extends KrakenApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeSymbol(null, market);
-        Object v = this.safeValue(ticker, "v", new ArrayList<Object>(Arrays.asList()));
+        List<Object> v = (List<Object>) this.safeList(ticker, "v", new ArrayList<Object>(Arrays.asList()));
         String baseVolume = this.safeString(v, 1);
-        Object p = this.safeValue(ticker, "p", new ArrayList<Object>(Arrays.asList()));
+        List<Object> p = (List<Object>) this.safeList(ticker, "p", new ArrayList<Object>(Arrays.asList()));
         String vwap = this.safeString(p, 1);
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
-        Object c = this.safeValue(ticker, "c", new ArrayList<Object>(Arrays.asList()));
+        List<Object> c = (List<Object>) this.safeList(ticker, "c", new ArrayList<Object>(Arrays.asList()));
         String last = this.safeString(c, 0);
-        Object high = this.safeValue(ticker, "h", new ArrayList<Object>(Arrays.asList()));
-        Object low = this.safeValue(ticker, "l", new ArrayList<Object>(Arrays.asList()));
-        Object bid = this.safeValue(ticker, "b", new ArrayList<Object>(Arrays.asList()));
-        Object ask = this.safeValue(ticker, "a", new ArrayList<Object>(Arrays.asList()));
+        List<Object> high = (List<Object>) this.safeList(ticker, "h", new ArrayList<Object>(Arrays.asList()));
+        List<Object> low = (List<Object>) this.safeList(ticker, "l", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bid = (List<Object>) this.safeList(ticker, "b", new ArrayList<Object>(Arrays.asList()));
+        List<Object> ask = (List<Object>) this.safeList(ticker, "a", new ArrayList<Object>(Arrays.asList()));
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1481,7 +1481,7 @@ public class Kraken extends KrakenApi
             //             "last":1591517580
             //         }
             //     }
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> ohlcvs = (List<Object>) this.safeList(result, ((Map<String, Object>)market).get("id"), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1616,7 +1616,7 @@ public class Kraken extends KrakenApi
             //                                                 "amount": "-0.2805800000",
             //                                                    "fee": "0.0050000000",
             //                                                "balance": "0.0000051000"           },
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> ledger = (Map<String, Object>) this.safeDict(result, "ledger", new HashMap<String, Object>() {{}});
             Object keys = new ArrayList<Object>(((Map<String, Object>)ledger).keySet());
             List<Object> items = new ArrayList<Object>(Arrays.asList());
@@ -1945,7 +1945,7 @@ public class Kraken extends KrakenApi
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             String code = this.safeCurrencyCode(currencyId);
-            Object balance = this.safeValue(balances, currencyId, new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
             Object account = this.account();
             ((Map<String, Object>)account).put("used", this.safeString(balance, "hold_trade"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
@@ -2921,8 +2921,8 @@ final Object finalId = id;
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new ArrayList<Object>(Arrays.asList()));
-            if (!(Helpers.inOp(result, id)))
+            Object result = this.safeDict(response, "result", new ArrayList<Object>(Arrays.asList()));
+            if (!(((Map<?, ?>)result).containsKey(id)))
             {
                 throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
             }
@@ -2981,7 +2981,7 @@ final Object finalId = id;
             {
                 symbol = this.symbol(symbol);
             }
-            Object options = this.safeValue(this.options, "fetchOrderTrades", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrderTrades", new HashMap<String, Object>() {{}});
             Long batchSize = this.safeInteger(options, "batchSize", 20);
             Object numTradeIds = ((List<?>)tradeIds).size();
             Object numBatches = this.parseToInt(Helpers.divide(numTradeIds, batchSize));
@@ -3573,7 +3573,7 @@ final Object finalId = id;
 
     public Object parseNetwork(Object network)
     {
-        Object withdrawMethods = this.safeValue(this.options, "withdrawMethods", new HashMap<String, Object>() {{}});
+        Map<String, Object> withdrawMethods = (Map<String, Object>) this.safeDict(this.options, "withdrawMethods", new HashMap<String, Object>() {{}});
         return this.safeString(withdrawMethods, network, network);
     }
 
@@ -3801,7 +3801,7 @@ final Object finalId = id;
             //        }
             //    }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.safeTimestamp(result, "unixtime");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
@@ -4024,14 +4024,14 @@ final Object finalId = id;
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             String network = this.safeStringUpper(parameters, "network");
-            Object networks = this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
             parameters = this.omit(parameters, "network");
             if ((java.util.Objects.equals(code, "USDT")) && (java.util.Objects.equals(network, "TRC20")))
             {
                 code = ((code + "-") + network);
             }
-            Object defaultDepositMethods = this.safeValue(this.options, "depositMethods", new HashMap<String, Object>() {{}});
+            Map<String, Object> defaultDepositMethods = (Map<String, Object>) this.safeDict(this.options, "depositMethods", new HashMap<String, Object>() {{}});
             String defaultDepositMethod = this.safeString(defaultDepositMethods, code);
             String depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
             // if the user has specified an exchange-specific method in params
@@ -4059,7 +4059,7 @@ final Object finalId = id;
                 // if depositMethod was not specified, fallback to the first available deposit method
                 if (java.util.Objects.equals(depositMethod, null))
                 {
-                    Object firstDepositMethod = this.safeValue(depositMethods, 0, new HashMap<String, Object>() {{}});
+                    Map<String, Object> firstDepositMethod = (Map<String, Object>) this.safeDict(depositMethods, 0, new HashMap<String, Object>() {{}});
                     depositMethod = this.safeString(firstDepositMethod, "method");
                 }
             }
@@ -4077,8 +4077,8 @@ final Object finalId = id;
             //         ]
             //     }
             //
-            Object result = this.safeValue(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Object firstResult = this.safeValue(result, 0, new HashMap<String, Object>() {{}});
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> firstResult = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(firstResult, null))
             {
                 throw new InvalidAddress(((this.id + " privatePostDepositAddresses() returned no addresses for ") + code)) ;
@@ -4393,7 +4393,7 @@ final Object finalId = id;
         //    }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object result = this.safeValue(transfer, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(transfer, "result", new HashMap<String, Object>() {{}});
         String refid = this.safeString(result, "refid");
         return new HashMap<String, Object>() {{
             put( "info", transfer );

@@ -131,7 +131,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         {
             return;
         }
-        Object data = this.safeValue(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String timestamp = this.safeString(data, "timestamp");
         Long timestampMs = this.parse8601(timestamp);
         Object snapshot = this.parseOrderBook(data, symbol, timestampMs);
@@ -217,7 +217,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
@@ -738,7 +738,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             put( "wallet", "handleBalance");
             put( "usertrade", "handleMyTrades");
         }};
-        Object topic = this.safeValue(message, "topic");
+        String topic = this.safeString(message, "topic");
         Object method = this.safeValue(methods, topic);
         if (!java.util.Objects.equals(method, null))
         {

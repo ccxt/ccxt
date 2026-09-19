@@ -956,7 +956,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         {
             return;
         }
-        Object eventVar = this.safeValue(events, 0);
+        Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, 0);
         List<Object> trades = (List<Object>) this.safeList(eventVar, "trades");
         Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, 0);
         String marketId = this.safeString(trade, "product_id");
@@ -1178,7 +1178,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("level2::" + symbol);
-            Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
             String type = this.safeString(eventVar, "type");
             if (java.util.Objects.equals(type, "snapshot"))

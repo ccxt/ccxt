@@ -288,8 +288,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object priceKey = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : "price";
         Object amountKey = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : "volume";
         Object countOrIdKey = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2;
-        Object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object bids = this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object asks = this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Luno.this.sortBy(bids, 0, true) );

@@ -274,7 +274,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //
         String marketId = this.safeStringLower(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object trades = this.safeValue(message, "trades");
+        List<Object> trades = (List<Object>) this.safeList(message, "trades");
         if (!java.util.Objects.equals(trades, null))
         {
             Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -285,7 +285,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            for (var i = 0; i < Helpers.getArrayLength(trades); i++)
+            for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Object trade = this.parseWsTrade(Helpers.GetValue(trades, i), market);
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
@@ -411,12 +411,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String symbol = this.safeSymbol(marketId, market);
         List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
         Object timeframe = this.findTimeframe(timeframeId);
-        Object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
+        Map<String, Object> ohlcvsBySymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol);
         if (java.util.Objects.equals(ohlcvsBySymbol, null))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

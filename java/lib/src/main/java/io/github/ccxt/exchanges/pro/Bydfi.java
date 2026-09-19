@@ -817,7 +817,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object orders = (this.watchPrivate(messageHashes, parameters)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(orders, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1164,7 +1164,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public void fetchBalanceSnapshot(Client client)
     {
-        Object options = this.safeValue(this.options, "watchBalance");
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {

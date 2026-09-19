@@ -1365,7 +1365,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
-        Object topic = this.safeValue(message, "channel");
+        String topic = this.safeString(message, "channel");
         Object messageHash = Helpers.add(topic, "::balance");
         Object info = null;
         Object rawBalances = new ArrayList<Object>(Arrays.asList());

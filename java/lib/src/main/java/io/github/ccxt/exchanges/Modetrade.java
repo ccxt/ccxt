@@ -1878,32 +1878,32 @@ public class Modetrade extends ModetradeApi
         String amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         String orderType = this.safeStringLower2(order, "order_type", "type");
-        Object status = this.safeValue2(order, "status", "algoStatus");
+        String status = this.safeString2(order, "status", "algoStatus");
         Boolean success = (Boolean) this.safeBool(order, "success");
         if (!java.util.Objects.equals(success, null))
         {
             status = ((Boolean.TRUE.equals(success))) ? "NEW" : "REJECTED";
         }
         String side = this.safeStringLower(order, "side");
-        Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        Object filled = this.omitZero(this.safeString2(order, "executed", "totalExecutedQuantity"));
         Object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
         String remaining = Precise.stringSub(cost, filled);
-        Object fee = this.safeValue2(order, "total_fee", "totalFee");
+        Double fee = this.safeNumber2(order, "total_fee", "totalFee");
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         Object transactions = this.safeValue(order, "Transactions");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Object takeProfitPrice = null;
         Object stopLossPrice = null;
-        Object childOrders = this.safeValue(order, "childOrders");
+        List<Object> childOrders = (List<Object>) this.safeList(order, "childOrders");
         if (!java.util.Objects.equals(childOrders, null))
         {
-            Object first = this.safeValue(childOrders, 0);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(childOrders, 0);
             List<Object> innerChildOrders = (List<Object>) this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
             Object innerChildOrdersLength = ((List<?>)innerChildOrders).size();
             if (Helpers.isGreaterThan(innerChildOrdersLength, 0))
             {
-                Object takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                Object stopLossOrder = this.safeValue(innerChildOrders, 1);
+                Map<String, Object> takeProfitOrder = (Map<String, Object>) this.safeDict(innerChildOrders, 0);
+                Map<String, Object> stopLossOrder = (Map<String, Object>) this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, "triggerPrice");
                 stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice");
             }
@@ -2219,8 +2219,8 @@ public class Modetrade extends ModetradeApi
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
-                Object stopLoss = this.safeValue(orderParams, "stopLoss");
-                Object takeProfit = this.safeValue(orderParams, "takeProfit");
+                Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss");
+                Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit");
                 Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(orderParams, "childOrders"), null));
                 if (Boolean.TRUE.equals(isConditional))
                 {
@@ -2782,7 +2782,7 @@ public class Modetrade extends ModetradeApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", response);
+            Object data = this.safeDict(response, "data", response);
             List<Object> orders = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

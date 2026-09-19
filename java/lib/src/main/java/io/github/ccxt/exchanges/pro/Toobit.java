@@ -262,7 +262,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object trades = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1518,7 +1518,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object options = this.safeValue(this.options, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             String listenKey = this.safeString(options, "listenKey");
             if (java.util.Objects.equals(listenKey, null))
             {

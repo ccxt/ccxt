@@ -675,7 +675,7 @@ public class Btcturk extends BtcturkApi
                 (this.loadMarkets()).join();
             }
             Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return this.safeValue(tickers, symbol);
+            return this.safeDict(tickers, symbol);
         }).thenApply(Ticker::new);
 
     }
@@ -855,7 +855,7 @@ public class Btcturk extends BtcturkApi
             final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "resolution", Btcturk.this.safeValue(Btcturk.this.timeframes, finalTimeframe, finalTimeframe) );
+                put( "resolution", Btcturk.this.safeString(Btcturk.this.timeframes, finalTimeframe, finalTimeframe) );
             }};
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             ((Map<String, Object>)request).put("to", this.parseToInt((Helpers.divide(until, 1000))));
@@ -994,7 +994,7 @@ public class Btcturk extends BtcturkApi
             }
             if (((Map<?, ?>)parameters).containsKey("clientOrderId"))
             {
-                ((Map<String, Object>)request).put("newClientOrderId", Helpers.GetValue(parameters, "clientOrderId"));
+                ((Map<String, Object>)request).put("newClientOrderId", ((Map<String, Object>)parameters).get("clientOrderId"));
             } else if (!(((Map<?, ?>)parameters).containsKey("newClientOrderId")))
             {
                 ((Map<String, Object>)request).put("newClientOrderId", this.uuid());
@@ -1306,7 +1306,7 @@ public class Btcturk extends BtcturkApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
         if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }

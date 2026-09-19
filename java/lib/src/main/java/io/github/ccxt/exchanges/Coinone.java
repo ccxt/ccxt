@@ -577,7 +577,7 @@ public class Coinone extends CoinoneApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object entry = this.safeValue(tickers, i);
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(tickers, i);
                 String id = this.safeString(entry, "id");
                 String baseId = this.safeStringUpper(entry, "target_currency");
                 String quoteId = this.safeStringUpper(entry, "quote_currency");
@@ -1568,10 +1568,10 @@ public class Coinone extends CoinoneApi
                     continue;
                 }
                 Object parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
-                Object currencyId = this.safeValue(parts, 0);
-                Object secondPart = this.safeValue(parts, 1);
+                String currencyId = this.safeString(parts, 0);
+                String secondPart = this.safeString(parts, 1);
                 String code = this.safeCurrencyCode(currencyId);
-                Object depositAddress = this.safeValue(result, code);
+                Map<String, Object> depositAddress = (Map<String, Object>) this.safeDict(result, code);
                 if (java.util.Objects.equals(depositAddress, null))
                 {
                     final Object finalValue = value;
@@ -1586,12 +1586,12 @@ public class Coinone extends CoinoneApi
                 }
                 String address = this.safeString(depositAddress, "address", value);
                 this.checkAddress(address);
-                Helpers.addElementToObject(depositAddress, "address", address);
-                Helpers.addElementToObject(depositAddress, "info", address);
+                ((Map<String, Object>)depositAddress).put("address", address);
+                ((Map<String, Object>)depositAddress).put("info", address);
                 if ((java.util.Objects.equals(secondPart, "tag") || java.util.Objects.equals(secondPart, "memo")))
                 {
-                    Helpers.addElementToObject(depositAddress, "tag", value);
-                    Helpers.addElementToObject(depositAddress, "info", new ArrayList<Object>(Arrays.asList(address, value)));
+                    ((Map<String, Object>)depositAddress).put("tag", value);
+                    ((Map<String, Object>)depositAddress).put("info", new ArrayList<Object>(Arrays.asList(address, value)));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {

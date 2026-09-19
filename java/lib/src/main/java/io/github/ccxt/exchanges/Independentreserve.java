@@ -1157,9 +1157,9 @@ public class Independentreserve extends IndependentreserveApi
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object fee = this.safeValue(fees, ((Map<String, Object>)market).get("base"), new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, ((Map<String, Object>)market).get("base"), new HashMap<String, Object>() {{}});
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
-        put( "info", Independentreserve.this.safeValue(fee, "info") );
+        put( "info", Independentreserve.this.safeDict(fee, "info") );
         put( "symbol", symbol );
         put( "maker", Independentreserve.this.safeNumber(fee, "fee") );
         put( "taker", Independentreserve.this.safeNumber(fee, "fee") );

@@ -2450,7 +2450,7 @@ public class Woo extends WooApi
             {
                 response = (this.v3PrivateGetTradeOrders(this.extend(request, parameters))).join();
             }
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2652,7 +2652,7 @@ public class Woo extends WooApi
         String amount = this.safeString(order, "quantity"); // This is base amount
         String cost = this.safeString(order, "amount"); // This is quote amount
         String orderType = this.safeStringLower(order, "type");
-        Object status = this.safeValue2(order, "status", "algoStatus");
+        String status = this.safeString2(order, "status", "algoStatus");
         String side = this.safeStringLower(order, "side");
         String filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
@@ -5691,7 +5691,7 @@ public class Woo extends WooApi
             }
         }
         // if it was not returned according to above options, then return the first network of currency
-        return this.safeValue(networkKeys, 0);
+        return this.safeString(networkKeys, 0);
     }
 
     public void setSandboxMode(Object enable)

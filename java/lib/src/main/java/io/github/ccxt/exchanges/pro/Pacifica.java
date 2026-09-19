@@ -1333,13 +1333,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        Object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         Object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
         if (java.util.Objects.equals(ohlcv, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(symbolOhlcvs, timeframe, ohlcv);
+            ((Map<String, Object>)symbolOhlcvs).put((String)timeframe, ohlcv);
         }
         Object parsed = this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});

@@ -841,7 +841,7 @@ public class Bitmex extends BitmexApi
 }});
             }
         }
-        Object currencyEnabled = this.safeValue(currency, "enabled");
+        Boolean currencyEnabled = (Boolean) this.safeBool(currency, "enabled");
         Boolean currencyActive = (java.util.Objects.equals(currencyEnabled, true)) || (Boolean.TRUE.equals(depositEnabled) || Boolean.TRUE.equals(withdrawEnabled));
         String minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
         Object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
@@ -908,7 +908,7 @@ public class Bitmex extends BitmexApi
     {
         symbol = this.safeSymbol(symbol);
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object oldPrecision = this.safeValue(this.options, "oldPrecision");
+        Boolean oldPrecision = (Boolean) this.safeBool(this.options, "oldPrecision");
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (!java.util.Objects.equals(oldPrecision, true)))
         {
             amount = this.convertFromRealAmount(((Map<String, Object>)market).get("base"), amount);
@@ -919,7 +919,7 @@ public class Bitmex extends BitmexApi
     public Object convertFromRawQuantity(Object symbol, Object rawQuantity, Object... optionalArgs)
     {
         Object currencySide = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "base";
-        if (java.util.Objects.equals(this.safeValue(this.options, "oldPrecision"), true))
+        if (java.util.Objects.equals(this.safeBool(this.options, "oldPrecision"), true))
         {
             return this.parseNumber(rawQuantity);
         }
@@ -2150,7 +2150,7 @@ public class Bitmex extends BitmexApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             List<Object> response = (this.publicGetInstrument(this.extend(request, parameters))).join();
-            Object ticker = this.safeValue(response, 0);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, 0);
             if (java.util.Objects.equals(ticker, null))
             {
                 throw new BadSymbol((((this.id + " fetchTicker() symbol ") + symbol) + " not found")) ;
@@ -2963,7 +2963,7 @@ public class Bitmex extends BitmexApi
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId")));
             }
             List<Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
-            Object order = this.safeValue(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             String error = this.safeString(order, "error");
             if (!java.util.Objects.equals(error, null))
             {
@@ -3391,7 +3391,7 @@ public class Bitmex extends BitmexApi
         market = this.safeMarket(this.safeString(position, "symbol"), market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String datetime = this.safeString(position, "timestamp");
-        Object crossMargin = this.safeValue(position, "crossMargin");
+        Boolean crossMargin = (Boolean) this.safeBool(position, "crossMargin");
         String marginMode = (((java.util.Objects.equals(crossMargin, true)))) ? "cross" : "isolated";
         String notionalString = Precise.stringAbs(this.safeString2(position, "foreignNotional", "homeNotional"));
         String settleCurrencyCode = this.safeString(market, "settle");
@@ -4608,7 +4608,7 @@ public class Bitmex extends BitmexApi
         }
         if (Helpers.isGreaterThanOrEqual(code, 400))
         {
-            Object error = this.safeValue(response, "error", new HashMap<String, Object>() {{}});
+            Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", new HashMap<String, Object>() {{}});
             String message = this.safeString(error, "message");
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);

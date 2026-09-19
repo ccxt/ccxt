@@ -830,8 +830,8 @@ public class Whitebit extends WhitebitApi
         quoteId = (((java.util.Objects.equals(quoteId, "PERP")))) ? "USDT" : quoteId;
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object active = this.safeValue(market, "tradesEnabled");
-        Object isCollateral = this.safeValue(market, "isCollateral");
+        Boolean active = (Boolean) this.safeBool(market, "tradesEnabled");
+        Boolean isCollateral = (Boolean) this.safeBool(market, "isCollateral");
         String typeId = this.safeString(market, "type");
         Object type = null;
         Object settle = null;
@@ -1138,12 +1138,12 @@ public class Whitebit extends WhitebitApi
                 Object currency = Helpers.GetValue(currenciesIds, i);
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, currency, new HashMap<String, Object>() {{}});
                 String code = this.safeCurrencyCode(currency);
-                Object withdraw = this.safeValue(data, "withdraw", new HashMap<String, Object>() {{}});
+                Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(code, null))
                 {
                     ((Map<String, Object>)withdrawFees).put((String)code, this.safeString(withdraw, "fixed"));
                 }
-                Object deposit = this.safeValue(data, "deposit", new HashMap<String, Object>() {{}});
+                Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, "deposit", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(code, null))
                 {
                     ((Map<String, Object>)depositFees).put((String)code, this.safeString(deposit, "fixed"));
@@ -1284,15 +1284,15 @@ public class Whitebit extends WhitebitApi
             String code = this.safeCurrencyCode(currencyId);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
                     ((Map<String, Object>)depositWithdrawFees).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "info"), entry, feeInfo);
                 String networkId = this.safeString(splitEntry, 1);
-                Object withdraw = this.safeValue(feeInfo, "withdraw");
-                Object deposit = this.safeValue(feeInfo, "deposit");
+                Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(feeInfo, "withdraw");
+                Map<String, Object> deposit = (Map<String, Object>) this.safeDict(feeInfo, "deposit");
                 Double withdrawFee = this.safeNumber(withdraw, "fixed");
                 Double depositFee = this.safeNumber(deposit, "fixed");
                 final Object finalWithdrawFee = withdrawFee;
@@ -1376,7 +1376,7 @@ public class Whitebit extends WhitebitApi
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object fee = this.safeValue(response, ((Map<String, Object>)market).get("baseId"), new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = (Map<String, Object>) this.safeDict(response, ((Map<String, Object>)market).get("baseId"), new HashMap<String, Object>() {{}});
                 String makerFee = this.safeString(fee, "maker_fee");
                 String takerFee = this.safeString(fee, "taker_fee");
                 makerFee = Precise.stringDiv(makerFee, "100");
@@ -2295,7 +2295,7 @@ public class Whitebit extends WhitebitApi
                 {
                     Object marketId = Helpers.GetValue(keys, i);
                     Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
-                    Object rawTrades = this.safeValue(response, marketId, new ArrayList<Object>(Arrays.asList()));
+                    List<Object> rawTrades = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                     List<Object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                     results = this.arrayConcat(results, parsed);
                 }
@@ -3109,7 +3109,7 @@ public class Whitebit extends WhitebitApi
                 response = (this.v4PrivatePostCollateralAccountBalance(parameters)).join();
             } else
             {
-                Object options = this.safeValue(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
                 String defaultAccount = this.safeString(options, "account");
                 String account = this.safeString2(parameters, "account", "type", defaultAccount);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account", "type")));
@@ -3725,7 +3725,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             String url = this.safeString(response, "url");
-            Object account = this.safeValue(response, "account", new HashMap<String, Object>() {{}});
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(response, "account", new HashMap<String, Object>() {{}});
             String address = this.safeString(account, "address", url);
             String tag = this.safeString(account, "memo");
             this.checkAddress(address);
@@ -3927,7 +3927,7 @@ public class Whitebit extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeValue(this.options, "accountsByType");
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType");
             String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
             Object amountString = this.currencyToPrecision(code, amount);
@@ -4191,7 +4191,7 @@ public class Whitebit extends WhitebitApi
             //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
             //     }
             //
-            Object records = this.safeValue(response, "records", new ArrayList<Object>(Arrays.asList()));
+            List<Object> records = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(records, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(first, currency);
         });
@@ -5227,7 +5227,7 @@ public class Whitebit extends WhitebitApi
 
     public Object isFiat(Object currency)
     {
-        Object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fiatCurrencies = (List<Object>) this.safeList(this.options, "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         return this.inArray(currency, fiatCurrencies);
     }
 
@@ -5395,7 +5395,7 @@ public class Whitebit extends WhitebitApi
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             String status = this.safeString(response, "status");
-            Object errors = this.safeValue(response, "errors");
+            Map<String, Object> errors = (Map<String, Object>) this.safeDict(response, "errors");
             // {"code":10,"message":"Unauthorized request."}
             String message = this.safeString(response, "message");
             // For these cases where we have a generic code variable error key

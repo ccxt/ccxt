@@ -874,10 +874,10 @@ public class Btse extends BtseApi
                 type = "swap";
             }
         }
-        Object fees = this.safeValue(this.fees, "contract");
+        Object fees = this.safeDict(this.fees, "contract", new HashMap<String, Object>() {{}});
         if (Boolean.TRUE.equals(isSpot))
         {
-            fees = this.safeValue(this.fees, "spot");
+            fees = this.safeDict(this.fees, "spot", new HashMap<String, Object>() {{}});
         }
         final Object finalSymbol = symbol;
         final Object finalBase = base;
@@ -905,8 +905,8 @@ public class Btse extends BtseApi
             put( "contract", Boolean.TRUE.equals(finalIsSwap) || Boolean.TRUE.equals(isFuture) );
             put( "linear", ((Boolean.TRUE.equals(isSpot))) ? null : true );
             put( "inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false );
-            put( "taker", Helpers.GetValue(finalFees, "taker") );
-            put( "maker", Helpers.GetValue(finalFees, "maker") );
+            put( "taker", ((Map<String, Object>)finalFees).get("taker") );
+            put( "maker", ((Map<String, Object>)finalFees).get("maker") );
             put( "contractSize", Btse.this.parseNumber(finalContractSize) );
             put( "expiry", finalExpiry );
             put( "expiryDatetime", Btse.this.iso8601(finalExpiry) );

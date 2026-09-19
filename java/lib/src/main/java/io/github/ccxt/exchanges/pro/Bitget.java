@@ -450,9 +450,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object arg = this.safeValue(message, "arg", new HashMap<String, Object>() {{}});
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object ticker = this.safeValue(data, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Long utaTimestamp = this.safeInteger(message, "ts");
         Long timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
         String instType = this.safeStringLower(arg, "instType");
@@ -569,9 +569,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public Object parseWsBidAsk(Object message, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object arg = this.safeValue(message, "arg", new HashMap<String, Object>() {{}});
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object ticker = this.safeValue(data, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Long utaTimestamp = this.safeInteger(message, "ts");
         Long timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
         String instType = this.safeStringLower(arg, "instType");
@@ -622,7 +622,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object timeframes = this.safeValue(this.options, "timeframes");
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes");
             String interval = this.safeString(timeframes, timeframe);
             String messageHash = null;
             Object instType = null;
@@ -783,13 +783,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //         "ts": 1755594421877
         //     }
         //
-        Object arg = this.safeValue(message, "arg", new HashMap<String, Object>() {{}});
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String instType = this.safeStringLower(arg, "instType");
         String marketType = (((java.util.Objects.equals(instType, "spot")))) ? "spot" : "contract";
         String marketId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         String channel = this.safeString2(arg, "channel", "topic", "");
         String interval = this.safeString(arg, "interval");
         Object isUta = null;
@@ -801,7 +801,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             isUta = true;
         }
-        Object timeframes = this.safeValue(this.options, "timeframes");
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes");
         Object timeframe = this.findTimeframe(interval, timeframes);
         if (java.util.Objects.equals(timeframe, null))
         {
@@ -1090,7 +1090,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //     "ts": 1755937421337
         // }
         //
-        Object arg = this.safeValue(message, "arg");
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channel = this.safeString2(arg, "channel", "topic", "");
         String instType = this.safeStringLower(arg, "instType");
         String marketType = (((java.util.Objects.equals(instType, "spot")))) ? "spot" : "contract";
@@ -1098,8 +1098,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook:" + symbol);
-        Object data = this.safeValue(message, "data");
-        Object rawOrderBook = this.safeValue(data, 0);
+        List<Object> data = (List<Object>) this.safeList(message, "data");
+        Map<String, Object> rawOrderBook = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(rawOrderBook, "ts");
         Boolean incrementalBook = java.util.Objects.equals(channel, "books");
         if (Boolean.TRUE.equals(incrementalBook))
@@ -1158,16 +1158,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String bidsKey = "bids";
             String asksKey = "asks";
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
-            if (Helpers.inOp(rawOrderBook, "a"))
+            if (rawOrderBook.containsKey("a"))
             {
-                if (!(Helpers.inOp(rawOrderBook, "asks")))
+                if (!(rawOrderBook.containsKey("asks")))
                 {
                     asksKey = "a";
                 }
             }
-            if (Helpers.inOp(rawOrderBook, "b"))
+            if (rawOrderBook.containsKey("b"))
             {
-                if (!(Helpers.inOp(rawOrderBook, "bids")))
+                if (!(rawOrderBook.containsKey("bids")))
                 {
                     bidsKey = "b";
                 }
@@ -1302,7 +1302,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object trades = (this.watchPublicMultiple(uta, messageHashes, topics, parameters)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1380,7 +1380,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //         "ts": 1701910980730
         //     }
         //
-        Object arg = this.safeValue(message, "arg", new HashMap<String, Object>() {{}});
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String instType = this.safeStringLower(arg, "instType");
         String marketType = (((java.util.Objects.equals(instType, "spot")))) ? "spot" : "contract";
         String marketId = this.safeString2(arg, "instId", "symbol");
@@ -2335,8 +2335,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Long timestamp = (Long) this.safeInteger2(order, "cTime", "createdTime");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String rawStatus = this.safeString2(order, "status", "orderStatus");
-        Object orderFee = this.safeValue(order, "feeDetail", new ArrayList<Object>(Arrays.asList()));
-        Object fee = this.safeValue(orderFee, 0);
+        List<Object> orderFee = (List<Object>) this.safeList(order, "feeDetail", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> fee = (Map<String, Object>) this.safeDict(orderFee, 0);
         String feeAmount = this.safeString(fee, "fee");
         Object feeObject = null;
         if (!java.util.Objects.equals(feeAmount, null))
@@ -3272,18 +3272,18 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             put( "account-crossed", "handleBalance");
             put( "kline", "handleOHLCV");
         }};
-        Object arg = this.safeValue(message, "arg", new HashMap<String, Object>() {{}});
-        Object topic = this.safeValue2(arg, "channel", "topic", "");
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        String topic = this.safeString2(arg, "channel", "topic", "");
         Object method = this.safeValue(methods, topic);
         if (!java.util.Objects.equals(method, null))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
         }
-        if (Helpers.getIndexOf(topic, "candle") >= 0)
+        if (((String)topic).indexOf("candle") >= 0)
         {
             this.handleOHLCV(client, message);
         }
-        if (Helpers.getIndexOf(topic, "books") >= 0)
+        if (((String)topic).indexOf("books") >= 0)
         {
             this.handleOrderBook(client, message);
         }
@@ -3438,7 +3438,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             isUta = true;
         }
-        Object timeframes = this.safeValue(this.options, "timeframes");
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes");
         Object timeframe = this.findTimeframe(interval, timeframes);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = ((Map<String, Object>)market).get("symbol");

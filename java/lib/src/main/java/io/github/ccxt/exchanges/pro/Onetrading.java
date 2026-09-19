@@ -464,7 +464,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (java.util.Objects.equals(type, "ORDER_BOOK_UPDATE"))
         {
-            Object changes = this.safeValue(message, "changes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(orderbook, changes);
         } else
         {
@@ -1087,7 +1087,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
         Object symbol = null;
         Object orders = this.orders;
-        Object update = this.safeValue(message, "update", new HashMap<String, Object>() {{}});
+        Map<String, Object> update = (Map<String, Object>) this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         String updateType = this.safeString(update, "type");
         if (java.util.Objects.equals(updateType, "ORDER_REJECTED") || java.util.Objects.equals(updateType, "ORDER_CLOSED") || java.util.Objects.equals(updateType, "STOP_ORDER_TRIGGERED"))
         {
@@ -1204,8 +1204,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             symbol = ((Map<String, Object>)market).get("symbol");
             Object marketId = ((Map<String, Object>)market).get("id");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
-            Object timeframeId = this.safeValue(timeframes, timeframe);
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(timeframes, timeframe);
             if (java.util.Objects.equals(timeframeId, null))
             {
                 throw new NotSupported((this.id + " this interval is not supported, please provide one of the supported timeframes")) ;
@@ -1220,7 +1220,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 subscription = this.safeValue(client.subscriptions, subscriptionHash);
                 if (!java.util.Objects.equals(subscription, null))
                 {
-                    Object ohlcvMarket = this.safeValue(subscription, marketId, new HashMap<String, Object>() {{}});
+                    Map<String, Object> ohlcvMarket = (Map<String, Object>) this.safeDict(subscription, marketId, new HashMap<String, Object>() {{}});
                     Boolean marketSubscribed = (Boolean) this.safeBool(ohlcvMarket, timeframe, false);
                     if (!java.util.Objects.equals(marketSubscribed, true))
                     {
@@ -1232,7 +1232,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     subscription = new HashMap<String, Object>() {{}};
                 }
             }
-            Object subscriptionMarketId = this.safeValue(subscription, marketId);
+            Map<String, Object> subscriptionMarketId = (Map<String, Object>) this.safeDict(subscription, marketId);
             if (java.util.Objects.equals(subscriptionMarketId, null))
             {
                 if (!java.util.Objects.equals(marketId, null))
@@ -1251,7 +1251,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 List<Object> marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, Helpers.GetValue(marketIds, i)));
                 for (var ii = 0; ii < ((List<?>)marketIdtimeframes).size(); ii++)
                 {
-                    Object marketTimeframeId = this.safeValue(timeframes, timeframe);
+                    Map<String, Object> marketTimeframeId = (Map<String, Object>) this.safeDict(timeframes, timeframe);
                     final Object finalI = i;
                     Map<String, Object> property = new HashMap<String, Object>() {{
                         put( "instrument_code", Helpers.GetValue(marketIds, finalI) );
@@ -1317,13 +1317,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String marketId = this.safeString(message, "instrument_code");
         String symbol = this.safeSymbol(marketId);
         String dateTime = this.safeString(message, "time");
-        Object timeframeId = this.safeValue(message, "granularity");
-        Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(message, "granularity");
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(timeframeId, timeframes);
         Object channel = Helpers.add((("ohlcv." + symbol) + "."), timeframe);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1396,13 +1396,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
     public void handleMessage(Client client, Object message)
     {
-        Object error = this.safeValue(message, "error");
+        String error = this.safeString(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
             this.handleErrorMessage(client, message);
             return;
         }
-        Object type = this.safeValue(message, "type");
+        String type = this.safeString(message, "type");
         Map<String, Object> handlers = new HashMap<String, Object>() {{
             put( "ORDER_BOOK_UPDATE", "handleOrderBook");
             put( "ORDER_BOOK_SNAPSHOT", "handleOrderBook");
@@ -1543,7 +1543,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
+            Map<String, Object> authenticated = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
                 this.checkRequiredCredentials();

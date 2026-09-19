@@ -112,7 +112,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Long interval = this.safeInteger(timeframes, timeframe);
             Object marketId = ((Map<String, Object>)market).get("id");
             // currently there is no way of knowing
@@ -208,7 +208,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             String messageHash = (("orderbook" + ":") + ((Map<String, Object>)market).get("symbol"));
             Object method = "depth_subscribe";
-            Object options = this.safeValue(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             String defaultPriceInterval = this.safeString(options, "priceInterval", "0");
             String priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
             parameters = this.omit(parameters, "priceInterval");
@@ -258,12 +258,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //     "id":null
         //  }
         //
-        Object parameters = this.safeValue(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         Object isSnapshot = this.safeValue(parameters, 0);
         String marketId = this.safeString(parameters, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object data = this.safeValue(parameters, 1);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, 1);
         Object timestamp = this.safeTimestamp(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -279,8 +279,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeValue(data, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeValue(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         }
@@ -396,11 +396,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //       "id": null
         //   }
         //
-        Object tickers = this.safeValue(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tickers = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(tickers, 0);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object rawTicker = this.safeValue(tickers, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 1, new HashMap<String, Object>() {{}});
         String messageHash = (("ticker" + ":") + symbol);
         Object ticker = this.parseTicker(rawTicker, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -492,7 +492,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //        ]
         //    }
         //
-        Object parameters = this.safeValue(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(parameters, 0);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -503,7 +503,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object data = this.safeValue(parameters, 1, new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(parameters, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
@@ -740,8 +740,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         // }
         //
         Object subscription = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = this.safeValue(message, "params", new ArrayList<Object>(Arrays.asList()));
-        Object data = this.safeValue(parameters, 1);
+        List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, 1);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);

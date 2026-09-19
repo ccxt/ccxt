@@ -995,7 +995,7 @@ public class Bitrue extends BitrueApi
                 }
             }
             Object promises = (Helpers.promiseAll(promisesRaw)).join();
-            Object spotMarkets = this.safeValue(this.safeValue(promises, 0), "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = (List<Object>) this.safeList(this.safeDict(promises, 0), "symbols", new ArrayList<Object>(Arrays.asList()));
             Object futureMarkets = this.safeValue(promises, 1);
             Object deliveryMarkets = this.safeValue(promises, 2);
             Object markets = spotMarkets;
@@ -2360,7 +2360,7 @@ public class Bitrue extends BitrueApi
                     ((Map<String, Object>)request).put("volume", this.parseToNumeric(amount));
                 }
                 ((Map<String, Object>)request).put("positionType", 1);
-                Object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only");
+                Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
                 ((Map<String, Object>)request).put("open", (((java.util.Objects.equals(reduceOnly, true)))) ? "CLOSE" : "OPEN");
                 String leverage = this.safeString(parameters, "leverage", "1");
                 ((Map<String, Object>)request).put("leverage", this.parseToNumeric(leverage));
@@ -2388,7 +2388,7 @@ public class Bitrue extends BitrueApi
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId")));
                     ((Map<String, Object>)request).put("newClientOrderId", clientOrderId);
                 }
-                Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+                Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
@@ -2453,7 +2453,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+            String origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
@@ -2744,7 +2744,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+            String origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
@@ -3952,6 +3952,6 @@ public class Bitrue extends BitrueApi
                 }
             }
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 }

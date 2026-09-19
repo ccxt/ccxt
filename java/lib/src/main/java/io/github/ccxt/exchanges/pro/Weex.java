@@ -527,7 +527,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object trades = (this.subscribePublic(messageHashes, channels, isContract, parameters)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -2020,7 +2020,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "type", finalType );
             }};
             Object response = (this.fetchBalance((Object)(parameters))).join();
-            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new HashMap<String, Object>() {{}})));
+            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.inOp(client.futures, messageHash))
             {

@@ -1060,12 +1060,12 @@ public class Btcbox extends BtcboxApi
         {
             return null;  // resort to defaultErrorHandler
         }
-        Object result = this.safeValue(response, "result");
+        Boolean result = (Boolean) this.safeBool(response, "result");
         if (java.util.Objects.equals(result, null) || java.util.Objects.equals(result, true))
         {
             return null;  // either public API (no error codes expected) or success
         }
-        Object code = this.safeValue(response, "code");
+        String code = this.safeString(response, "code");
         String feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError(feedback) ;

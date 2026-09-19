@@ -1753,12 +1753,12 @@ public class Luno extends LunoApi
                 }
                 currency = this.currency(code);
                 Map<String, Object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
-                Object account = this.safeValue(accountsByCurrencyCode, code);
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(accountsByCurrencyCode, code);
                 if (java.util.Objects.equals(account, null))
                 {
                     throw new ExchangeError(((this.id + " fetchLedger() could not find account id for ") + code)) ;
                 }
-                id = Helpers.GetValue(account, "id");
+                id = ((Map<String, Object>)account).get("id");
             }
             if (java.util.Objects.equals(min_row, null) && java.util.Objects.equals(max_row, null))
             {
@@ -1791,7 +1791,7 @@ public class Luno extends LunoApi
                 put( "max_row", finalMax_row );
             }};
             Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
-            Object entries = this.safeValue(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> entries = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(entries, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 

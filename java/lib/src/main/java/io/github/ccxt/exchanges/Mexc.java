@@ -1697,13 +1697,13 @@ public class Mexc extends MexcApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
-                Object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
+                Boolean isSpotTradingAllowed = (Boolean) this.safeBool(market, "isSpotTradingAllowed");
                 Boolean active = false;
                 if ((java.util.Objects.equals(status, "1")) && (java.util.Objects.equals(isSpotTradingAllowed, true)))
                 {
                     active = true;
                 }
-                Object isMarginTradingAllowed = this.safeValue(market, "isMarginTradingAllowed");
+                Boolean isMarginTradingAllowed = (Boolean) this.safeBool(market, "isMarginTradingAllowed");
                 Double makerCommission = this.safeNumber(market, "makerCommission");
                 Double takerCommission = this.safeNumber(market, "takerCommission");
                 Double maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount");
@@ -1974,7 +1974,7 @@ public class Mexc extends MexcApi
                 //         }
                 //     }
                 //
-                Object data = this.safeValue(response, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
                 Long timestamp = this.safeInteger(data, "timestamp");
                 orderbook = this.parseOrderBook(data, symbol, timestamp);
                 Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "version"));
@@ -2207,9 +2207,9 @@ public class Mexc extends MexcApi
                 timestamp = this.safeInteger2(trade, "time", "T");
                 amountString = this.safeString2(trade, "qty", "q");
                 costString = this.safeString(trade, "quoteQty");
-                Object isBuyer = this.safeValue(trade, "isBuyer");
-                Object isMaker = this.safeValue(trade, "isMaker");
-                Object buyerMaker = this.safeValue2(trade, "isBuyerMaker", "m");
+                Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
+                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
+                Object buyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
                 if (!java.util.Objects.equals(isMaker, null))
                 {
                     takerOrMaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
@@ -2305,8 +2305,8 @@ public class Mexc extends MexcApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
-            Object options = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
-            Object timeframes = this.safeValue(options, ((Map<String, Object>)market).get("type"), new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, ((Map<String, Object>)market).get("type"), new HashMap<String, Object>() {{}});
             String timeframeValue = this.safeString(timeframes, timeframe);
             Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2490,7 +2490,7 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                tickers = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+                tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
             if (Boolean.TRUE.equals(isSingularMarket))
@@ -2561,7 +2561,7 @@ public class Mexc extends MexcApi
                 //         }
                 //     }
                 //
-                ticker = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+                ticker = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
             return this.parseTicker(ticker, market);
@@ -2587,7 +2587,7 @@ public class Mexc extends MexcApi
         String changePcnt = null;
         String changeValue = null;
         String prevClose = null;
-        Object isSwap = this.safeValue(market, "swap");
+        Boolean isSwap = (Boolean) this.safeBool(market, "swap");
         // if swap
         if ((java.util.Objects.equals(isSwap, true)) || (((Map<?, ?>)ticker).containsKey("timestamp")))
         {
@@ -3242,7 +3242,7 @@ public class Mexc extends MexcApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -3986,11 +3986,11 @@ public class Mexc extends MexcApi
                 //     }
                 //
                 data = this.safeValue(response, "data");
-                Object order = this.safeValue(data, 0);
-                Object errorMsg = this.safeValue(order, "errorMsg", "");
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0);
+                String errorMsg = this.safeString(order, "errorMsg", "");
                 if (!java.util.Objects.equals(errorMsg, "success"))
                 {
-                    throw new InvalidOrder(Helpers.add((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: "), errorMsg)) ;
+                    throw new InvalidOrder(((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
                 }
             }
             return this.parseOrder(data, market);
@@ -4478,7 +4478,7 @@ public class Mexc extends MexcApi
                 // wrap the swap asset list so this helper always returns an account
                 // dict with a `balances` array — fetchAccounts reads response['balances']
                 return new HashMap<String, Object>() {{
-                    put( "balances", Mexc.this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList())) );
+                    put( "balances", Mexc.this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())) );
                 }};
             }
             return null;
@@ -4662,8 +4662,8 @@ public class Mexc extends MexcApi
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
                 Object entry = Helpers.GetValue(wallet, i);
-                Object base = this.safeValue(entry, "baseAsset", new HashMap<String, Object>() {{}});
-                Object quote = this.safeValue(entry, "quoteAsset", new HashMap<String, Object>() {{}});
+                Map<String, Object> base = (Map<String, Object>) this.safeDict(entry, "baseAsset", new HashMap<String, Object>() {{}});
+                Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quoteAsset", new HashMap<String, Object>() {{}});
                 String baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (!java.util.Objects.equals(baseCode, null))
@@ -4759,7 +4759,7 @@ public class Mexc extends MexcApi
                 String symbol = this.safeString(parameters, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
-                    Object symbols = this.safeValue(parameters, "symbols");
+                    List<Object> symbols = (List<Object>) this.safeList(parameters, "symbols");
                     if (!java.util.Objects.equals(symbols, null))
                     {
                         Object symbolIds = this.marketIds(symbols);
@@ -5248,7 +5248,7 @@ public class Mexc extends MexcApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> resultList = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)resultList).size(); i++)
@@ -5386,7 +5386,7 @@ public class Mexc extends MexcApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseFundingRate(result, market);
         }).thenApply(FundingRate::new);
 
@@ -5453,7 +5453,7 @@ public class Mexc extends MexcApi
             //        }
             //    }
             //
-            Object data = this.safeValue(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             List<Object> result = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
@@ -5694,7 +5694,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
                 {
                     Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
-                    Object networkInfo = this.safeValue(network, "info", new HashMap<String, Object>() {{}});
+                    Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(network, "info", new HashMap<String, Object>() {{}});
                     networkId = this.safeString(networkInfo, "network");
                 } else
                 {
@@ -5760,7 +5760,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
             {
                 Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
-                Object networkInfo = this.safeValue(network, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(network, "info", new HashMap<String, Object>() {{}});
                 networkId = this.safeString(networkInfo, "network");
             } else
             {
@@ -6124,7 +6124,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 put( "10", "pending" );
             }} );
         }};
-        Object statuses = this.safeValue(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -6184,7 +6184,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object response = (this.fetchPositions((Object)(null), (Object)(this.extend(request, parameters)))).join();
-            return this.safeValue(response, 0);
+            return this.safeDict(response, 0);
         }).thenApply(Position::new);
 
     }
@@ -6514,7 +6514,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     ((Map<String, Object>)request).put("page_size", limit);
                 }
                 Map<String, Object> response = (this.contractPrivateGetAccountTransferRecord(this.extend(request, parameters))).join();
-                Object data = this.safeValue(response, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
                 resultList = this.safeValue(data, "resultList");
             }
             return this.parseTransfers(resultList, currency, since, limit);

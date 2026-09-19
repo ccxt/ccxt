@@ -1050,10 +1050,10 @@ public class Deribit extends DeribitApi
     public Object codeFromOptions(Object methodName, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        Object defaultCode = this.safeValue(this.options, "code", "BTC");
-        Object options = this.safeValue(this.options, methodName, new HashMap<String, Object>() {{}});
-        Object code = this.safeValue(options, "code", defaultCode);
-        return this.safeValue(parameters, "code", code);
+        String defaultCode = this.safeString(this.options, "code", "BTC");
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, methodName, new HashMap<String, Object>() {{}});
+        String code = this.safeString(options, "code", defaultCode);
+        return this.safeString(parameters, "code", code);
     }
 
     /**
@@ -1083,7 +1083,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             String locked = this.safeString(result, "locked");
             Long updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
             final Object finalLocked = locked;
@@ -1151,7 +1151,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(result);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
@@ -1333,7 +1333,7 @@ public class Deribit extends DeribitApi
                     String base = this.safeCurrencyCode(baseId);
                     String quote = this.safeCurrencyCode(quoteId);
                     String settle = this.safeCurrencyCode(settleId);
-                    Object settlementPeriod = this.safeValue(market, "settlement_period");
+                    String settlementPeriod = this.safeString(market, "settlement_period");
                     Boolean swap = (java.util.Objects.equals(settlementPeriod, "perpetual"));
                     if (java.util.Objects.equals(kind, null))
                     {
@@ -1423,7 +1423,7 @@ public class Deribit extends DeribitApi
                         put( "swap", swap );
                         put( "future", future );
                         put( "option", finalOption );
-                        put( "active", Deribit.this.safeValue(market, "is_active") );
+                        put( "active", Deribit.this.safeBool(market, "is_active") );
                         put( "contract", !Boolean.TRUE.equals(isSpot) );
                         put( "linear", finalLinear );
                         put( "inverse", finalInverse );
@@ -1472,7 +1472,7 @@ public class Deribit extends DeribitApi
             put( "info", balance );
         }};
         Object summaries = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.inOp(balance, "summaries"))
+        if (((Map<?, ?>)balance).containsKey("summaries"))
         {
             summaries = this.safeList(balance, "summaries", new ArrayList<Object>(Arrays.asList()));
         } else
@@ -1615,7 +1615,7 @@ public class Deribit extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String address = this.safeString(result, "address");
             this.checkAddress(address);
             return new HashMap<String, Object>() {{
@@ -1670,7 +1670,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String address = this.safeString(result, "address");
             this.checkAddress(address);
             return new HashMap<String, Object>() {{
@@ -1737,7 +1737,7 @@ public class Deribit extends DeribitApi
         String marketId = this.safeString(ticker, "instrument_name");
         String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString2(ticker, "last_price", "last");
-        Object stats = this.safeValue(ticker, "stats", ticker);
+        Object stats = this.safeDict(ticker, "stats", ticker);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -2207,7 +2207,7 @@ public class Deribit extends DeribitApi
             //          "testnet":false
             //      }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -2288,7 +2288,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> fees = (List<Object>) this.safeList(result, "fees", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> perpetualFee = new HashMap<String, Object>() {{}};
             Map<String, Object> futureFee = new HashMap<String, Object>() {{}};
@@ -2420,7 +2420,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
             Long nonce = this.safeInteger(result, "change_id");
             Object orderbook = this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp);
@@ -2542,9 +2542,9 @@ public class Deribit extends DeribitApi
         String rawType = this.safeString(order, "order_type");
         String type = this.parseOrderType(rawType);
         // injected in createOrder
-        Object trades = this.safeValue(order, "trades");
+        List<Object> trades = (List<Object>) this.safeList(order, "trades");
         String timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
-        Object postOnly = this.safeValue(order, "post_only");
+        Boolean postOnly = (Boolean) this.safeBool(order, "post_only");
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalMarket_2 = market;
         final Object finalPriceString = priceString;
@@ -2826,9 +2826,9 @@ public class Deribit extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object order = this.safeValue(result, "order");
-            Object trades = this.safeValue(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(order, "trades", trades);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -2883,9 +2883,9 @@ public class Deribit extends DeribitApi
                 parameters = this.omit(parameters, "trigger_offset");
             }
             Map<String, Object> response = (this.privateGetEdit(this.extend(request, parameters))).join();
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object order = this.safeValue(result, "order");
-            Object trades = this.safeValue(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(order, "trades", trades);
             return this.parseOrder(order);
         }).thenApply(Order::new);
@@ -3235,7 +3235,7 @@ public class Deribit extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -3299,7 +3299,7 @@ public class Deribit extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3367,7 +3367,7 @@ public class Deribit extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3799,7 +3799,7 @@ public class Deribit extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> transfers = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
@@ -3839,7 +3839,7 @@ public class Deribit extends DeribitApi
             parameters = this.omit(parameters, "method");
             if (java.util.Objects.equals(method, null))
             {
-                Object transferOptions = this.safeValue(this.options, "transfer", new HashMap<String, Object>() {{}});
+                Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
                 method = this.safeString(transferOptions, "method", "privateGetSubmitTransferToSubaccount");
             }
             Object response = null;
@@ -4309,9 +4309,9 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(result, "continuation");
-            Object settlements = this.safeValue(result, "settlements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> settlements = (List<Object>) this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
             Object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
             return this.parseLiquidations(settlementsWithCursor, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
@@ -4406,7 +4406,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> settlements = (List<Object>) this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(settlements, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
@@ -4512,7 +4512,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseGreeks(result, market);
         }).thenApply(Greeks::new);
 
@@ -4563,7 +4563,7 @@ public class Deribit extends DeribitApi
         Long timestamp = this.safeInteger(greeks, "timestamp");
         String marketId = this.safeString(greeks, "instrument_name");
         String symbol = this.safeSymbol(marketId, market);
-        Object stats = this.safeValue(greeks, "greeks", new HashMap<String, Object>() {{}});
+        Map<String, Object> stats = (Map<String, Object>) this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -4955,7 +4955,7 @@ public class Deribit extends DeribitApi
         //         "usDiff": 36
         //     }
         //
-        Object error = this.safeValue(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
             String errorCode = this.safeString(error, "code");

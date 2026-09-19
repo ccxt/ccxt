@@ -135,7 +135,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeStringUpper(data, "target_currency");
         String quoteId = this.safeStringUpper(data, "quote_currency");
         String base = this.safeCurrencyCode(baseId);
@@ -151,8 +151,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             Helpers.callDynamically(orderbook, "reset", new Object[]{});
         }
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Object asks = this.safeValue(data, "asks", new ArrayList<Object>(Arrays.asList()));
-        Object bids = this.safeValue(data, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -235,7 +235,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(data);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -364,7 +364,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object trade = this.parseWsTrade(data);
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         Object stored = this.safeValue(this.trades, symbol);
@@ -400,7 +400,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Long timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
-        Object isSellerMaker = this.safeValue(trade, "is_seller_maker");
+        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker");
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {

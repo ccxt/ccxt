@@ -185,7 +185,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Long nonce = this.safeInteger(orderbook, "nonce");
-        Object firstDelta = this.safeValue(cache, 0);
+        Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0);
         Long firstDeltaNonce = (Long) this.safeInteger2(firstDelta, "i", "u");
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaNonce, null)) && (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1))))
         {

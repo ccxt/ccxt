@@ -136,7 +136,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 (this.loadMarkets()).join();
             }
-            Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Long channel = this.safeInteger(timeframes, timeframe);
             if (java.util.Objects.equals(channel, null))
             {
@@ -308,7 +308,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object trades = (this.watchMultiple(url, messageHashes, query, messageHashes, null)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -536,7 +536,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
-        Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(subscription, "limit");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -556,7 +556,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         {
             for (var i = 0; i < ((List<?>)bids).size(); i++)
             {
-                Object bid = this.safeValue(bids, i);
+                List<Object> bid = (List<Object>) this.safeList(bids, i);
                 Double price = this.safeNumber(bid, 0);
                 Double amount = this.safeNumber(bid, 1);
                 Object bookSide = Helpers.GetValue(orderbook, "bids");
@@ -567,7 +567,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         {
             for (var i = 0; i < ((List<?>)asks).size(); i++)
             {
-                Object ask = this.safeValue(asks, i);
+                List<Object> ask = (List<Object>) this.safeList(asks, i);
                 Double price = this.safeNumber(ask, 0);
                 Double amount = this.safeNumber(ask, 1);
                 Object bookside = Helpers.GetValue(orderbook, "asks");

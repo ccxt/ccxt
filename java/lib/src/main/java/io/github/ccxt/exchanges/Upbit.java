@@ -497,13 +497,13 @@ public class Upbit extends UpbitApi
             //         }
             //     }
             //
-            Object memberInfo = this.safeValue(response, "member_level", new HashMap<String, Object>() {{}});
-            Object currencyInfo = this.safeValue(response, "currency", new HashMap<String, Object>() {{}});
-            Object withdrawLimits = this.safeValue(response, "withdraw_limit", new HashMap<String, Object>() {{}});
-            Object canWithdraw = this.safeValue(withdrawLimits, "can_withdraw");
+            Map<String, Object> memberInfo = (Map<String, Object>) this.safeDict(response, "member_level", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(response, "currency", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawLimits = (Map<String, Object>) this.safeDict(response, "withdraw_limit", new HashMap<String, Object>() {{}});
+            Boolean canWithdraw = (Boolean) this.safeBool(withdrawLimits, "can_withdraw");
             String walletState = this.safeString(currencyInfo, "wallet_state");
-            Object walletLocked = this.safeValue(memberInfo, "wallet_locked");
-            Object locked = this.safeValue(memberInfo, "locked");
+            Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked");
+            Boolean locked = (Boolean) this.safeBool(memberInfo, "locked");
             Boolean active = true;
             if ((!java.util.Objects.equals(canWithdraw, null)) && (!java.util.Objects.equals(canWithdraw, true)))
             {
@@ -614,9 +614,9 @@ public class Upbit extends UpbitApi
             //         }
             //     }
             //
-            Object marketInfo = this.safeValue(response, "market");
-            Object bid = this.safeValue(marketInfo, "bid");
-            Object ask = this.safeValue(marketInfo, "ask");
+            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(response, "market");
+            Map<String, Object> bid = (Map<String, Object>) this.safeDict(marketInfo, "bid");
+            Map<String, Object> ask = (Map<String, Object>) this.safeDict(marketInfo, "ask");
             String marketId = this.safeString(marketInfo, "id");
             String baseId = this.safeString(ask, "currency");
             String quoteId = this.safeString(bid, "currency");
@@ -1552,7 +1552,7 @@ public class Upbit extends UpbitApi
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         String quoteAmount = null;
-        Object createMarketBuyOrderRequiresPrice = this.safeValue(this.options, "createMarketBuyOrderRequiresPrice");
+        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice");
         String cost = this.safeString(parameters, "cost");
         if (!java.util.Objects.equals(cost, null))
         {
@@ -2413,7 +2413,7 @@ public class Upbit extends UpbitApi
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
-                    Object tradeFee = this.safeValue(Helpers.GetValue(trades, i), "fee", new HashMap<String, Object>() {{}});
+                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(Helpers.GetValue(trades, i), "fee", new HashMap<String, Object>() {{}});
                     String tradeFeeCost = this.safeString(tradeFee, "cost");
                     if (!java.util.Objects.equals(tradeFeeCost, null))
                     {
@@ -3081,7 +3081,7 @@ public class Upbit extends UpbitApi
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        Object error = this.safeValue(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
             String message = this.safeString(error, "message");

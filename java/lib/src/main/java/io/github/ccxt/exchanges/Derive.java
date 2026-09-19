@@ -2349,7 +2349,7 @@ public class Derive extends DeriveApi
             //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
             // }
             //
-            Object data = this.safeValue(response, "result");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result");
             Long page = this.safeInteger(parameters, "page");
             if (!java.util.Objects.equals(page, null))
             {

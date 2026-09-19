@@ -413,7 +413,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String messageHash = null;
         if (!java.util.Objects.equals(account, null))
         {
-            if (java.util.Objects.equals(this.safeValue(this.balance, account), null))
+            if (java.util.Objects.equals(this.safeDict(this.balance, account), null))
             {
                 Helpers.addElementToObject(this.balance, account, new HashMap<String, Object>() {{}});
             }
@@ -457,7 +457,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
         if (!java.util.Objects.equals(accountType, null))
         {
-            if (java.util.Objects.equals(this.safeValue(this.balance, accountType), null))
+            if (java.util.Objects.equals(this.safeDict(this.balance, accountType), null))
             {
                 Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
             }
@@ -695,7 +695,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "created_at");
-        Boolean isSpot = (Helpers.inOp(trade, "margin_market"));
+        Boolean isSpot = (((Map<?, ?>)trade).containsKey("margin_market"));
         String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         String marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
@@ -1418,7 +1418,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Long timestamp = this.safeInteger(order, "created_at");
         String marketId = this.safeString(order, "market");
         String status = this.safeString(order, "status");
-        Boolean isSpot = (Helpers.inOp(order, "margin_market"));
+        Boolean isSpot = (((Map<?, ?>)order).containsKey("margin_market"));
         String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         Object fee = null;
@@ -1680,7 +1680,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
     public void handleSubscriptionStatus(Client client, Object message)
     {
         Object id = this.safeInteger(message, "id");
-        Object subscription = this.safeValue(client.subscriptions, id);
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, id);
         if (!java.util.Objects.equals(subscription, null))
         {
             String futureIndex = this.safeString(subscription, "future");

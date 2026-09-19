@@ -364,7 +364,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object data = this.safeValue(message, "data");
-        data = this.safeValue(data, 0);
+        data = this.safeDict(data, 0);
         Long timestamp = this.safeInteger(data, "t");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -384,7 +384,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Helpers.addElementToObject(orderbook, "nonce", nonce);
         } else
         {
-            books = this.safeValue(data, "update", new HashMap<String, Object>() {{}});
+            books = this.safeDict(data, "update", new HashMap<String, Object>() {{}});
             Long previousNonce = this.safeInteger(data, "pu");
             Object currentNonce = Helpers.GetValue(orderbook, "nonce");
             if (!Helpers.isEqual(currentNonce, previousNonce))
@@ -396,8 +396,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }
             }
         }
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeValue(books, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeValue(books, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         String messageHash = ("orderbook:" + symbol);
@@ -483,7 +483,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object trades = (this.watchPublicMultiple(topics, topics, parameters)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1033,7 +1033,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(message, "interval");
         Object timeframe = this.findTimeframe(interval);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1291,8 +1291,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object firstData = this.safeValue(data, 0, new HashMap<String, Object>() {{}});
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> firstData = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         List<Object> rawPositions = (List<Object>) this.safeList(firstData, "positions", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -1505,7 +1505,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object rawOrder = this.safeValue(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Object order = this.parseOrder(rawOrder);
         client.resolve(order, messageHash);
     }
@@ -1724,7 +1724,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-                Object messageString = this.safeValue(message, "message");
+                String messageString = this.safeString(message, "message");
                 if (!java.util.Objects.equals(messageString, null))
                 {
                     this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);

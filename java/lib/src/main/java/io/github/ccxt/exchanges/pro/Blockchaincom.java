@@ -238,11 +238,11 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             String marketId = this.safeString(message, "symbol");
             String symbol = this.safeSymbol(marketId, null, "-");
             String messageHash = ("ohlcv:" + symbol);
-            Object request = this.safeValue(client.subscriptions, messageHash);
+            Map<String, Object> request = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash);
             String timeframeId = this.safeString(request, "granularity");
             Object timeframe = this.findTimeframe(timeframeId);
-            Object ohlcv = this.safeValue(message, "price", new ArrayList<Object>(Arrays.asList()));
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            List<Object> ohlcv = (List<Object>) this.safeList(message, "price", new ArrayList<Object>(Arrays.asList()));
+            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
@@ -335,7 +335,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             ticker = this.parseTicker(message, market);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            Object lastTicker = this.safeValue(this.tickers, symbol);
+            Map<String, Object> lastTicker = (Map<String, Object>) this.safeDict(this.tickers, symbol);
             ticker = this.parseWsUpdatedTicker(message, lastTicker, market);
         }
         String messageHash = ("ticker:" + symbol);
@@ -379,7 +379,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "average", null );
             put( "baseVolume", Blockchaincom.this.safeString(lastTicker, "baseVolume") );
             put( "quoteVolume", null );
-            put( "info", Blockchaincom.this.extend(Blockchaincom.this.safeValue(lastTicker, "info", new HashMap<String, Object>() {{}}), ticker) );
+            put( "info", Blockchaincom.this.extend(Blockchaincom.this.safeDict(lastTicker, "info", new HashMap<String, Object>() {{}}), ticker) );
         }}, market);
     }
 

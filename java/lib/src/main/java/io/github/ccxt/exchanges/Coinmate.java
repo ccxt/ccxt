@@ -605,7 +605,7 @@ public class Coinmate extends CoinmateApi
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             Object code = this.safeCurrencyCode(currencyId);
-            Object balance = this.safeValue(balances, currencyId);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId);
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved"));
@@ -767,7 +767,7 @@ public class Coinmate extends CoinmateApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(keys, i));
-                Object ticker = this.parseTicker(this.safeValue(data, Helpers.GetValue(keys, i)), market);
+                Object ticker = this.parseTicker(this.safeDict(data, Helpers.GetValue(keys, i)), market);
                 ((Map<String, Object>)result).put((String)((Map<String, Object>)market).get("symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -985,7 +985,7 @@ public class Coinmate extends CoinmateApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Map<String, Object> methods = (Map<String, Object>) this.safeDict(withdrawOptions, "methods", new HashMap<String, Object>() {{}});
             String method = this.safeString(methods, code);
             if (java.util.Objects.equals(method, null))
@@ -1043,7 +1043,7 @@ public class Coinmate extends CoinmateApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             Object transaction = this.parseTransaction(data, currency);
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
@@ -1262,7 +1262,7 @@ public class Coinmate extends CoinmateApi
             //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String makerString = this.safeString(data, "maker");
             String takerString = this.safeString(data, "taker");
             Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));

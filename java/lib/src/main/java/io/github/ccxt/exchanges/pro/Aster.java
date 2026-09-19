@@ -839,7 +839,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object trades = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1550,7 +1550,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             return;
         }
-        Object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
+        Map<String, Object> ohlcvsByTimeframe = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol);
         if (java.util.Objects.equals(ohlcvsByTimeframe, null))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
@@ -1751,7 +1751,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             return;
         }
-        Object options = this.safeValue(this.options, "watchBalance");
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
@@ -1779,7 +1779,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "type", finalType );
             }};
             Object response = (this.fetchBalance((Object)(parameters))).join();
-            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new HashMap<String, Object>() {{}})));
+            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.inOp(client.futures, messageHash))
             {
@@ -2261,55 +2261,55 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 Object cachedOrders = this.orders;
                 if (!java.util.Objects.equals(cachedOrders, null))
                 {
-                    Object orders = this.safeValue(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-                    Object order = this.safeValue(orders, orderId);
+                    Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+                    Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId);
                     if (!java.util.Objects.equals(order, null))
                     {
                         // accumulate order fees
-                        Object fees = this.safeValue(order, "fees");
-                        Object fee = this.safeValue(order, "fee");
+                        List<Object> fees = (List<Object>) this.safeList(order, "fees", new ArrayList<Object>(Arrays.asList()));
+                        Map<String, Object> fee = (Map<String, Object>) this.safeDict(order, "fee");
                         if (!this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
-                            for (var i = 0; i < Helpers.getArrayLength(fees); i++)
+                            for (var i = 0; i < ((List<?>)fees).size(); i++)
                             {
                                 Object orderFee = Helpers.GetValue(fees, i);
                                 if (Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), ((Map<String, Object>)tradeFee).get("currency")))
                                 {
                                     Object feeCost = this.sum(((Map<String, Object>)tradeFee).get("cost"), Helpers.GetValue(orderFee, "cost"));
                                     Object feeCostString = this.currencyToPrecision(((Map<String, Object>)tradeFee).get("currency"), feeCost);
-                                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(order, "fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Helpers.parseFloat(feeCostString));
+                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Helpers.parseFloat(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             if (Boolean.TRUE.equals(insertNewFeeCurrency))
                             {
-                                ((List<Object>)Helpers.GetValue(order, "fees")).add(tradeFee);
+                                ((List<Object>)((Map<String, Object>)order).get("fees")).add(tradeFee);
                             }
                         } else if (!java.util.Objects.equals(fee, null))
                         {
-                            if (Helpers.isEqual(Helpers.GetValue(fee, "currency"), ((Map<String, Object>)tradeFee).get("currency")))
+                            if (Helpers.isEqual(((Map<String, Object>)fee).get("currency"), ((Map<String, Object>)tradeFee).get("currency")))
                             {
-                                Object feeCost = this.sum(Helpers.GetValue(fee, "cost"), ((Map<String, Object>)tradeFee).get("cost"));
+                                Object feeCost = this.sum(((Map<String, Object>)fee).get("cost"), ((Map<String, Object>)tradeFee).get("cost"));
                                 Object feeCostString = this.currencyToPrecision(((Map<String, Object>)tradeFee).get("currency"), feeCost);
-                                Helpers.addElementToObject(Helpers.GetValue(order, "fee"), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Helpers.parseFloat(feeCostString));
-                            } else if (java.util.Objects.equals(Helpers.GetValue(fee, "currency"), null))
+                                Helpers.addElementToObject(order.get("fee"), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Helpers.parseFloat(feeCostString));
+                            } else if (java.util.Objects.equals(((Map<String, Object>)fee).get("currency"), null))
                             {
-                                Helpers.addElementToObject(order, "fee", tradeFee);
+                                ((Map<String, Object>)order).put("fee", tradeFee);
                             } else
                             {
-                                Helpers.addElementToObject(order, "fees", new ArrayList<Object>(Arrays.asList(fee, tradeFee)));
-                                Helpers.addElementToObject(order, "fee", null);
+                                ((Map<String, Object>)order).put("fees", new ArrayList<Object>(Arrays.asList(fee, tradeFee)));
+                                ((Map<String, Object>)order).put("fee", null);
                             }
                         } else
                         {
-                            Helpers.addElementToObject(order, "fee", tradeFee);
+                            ((Map<String, Object>)order).put("fee", tradeFee);
                         }
                         // save this trade in the order
                         List<Object> orderTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)orderTrades).add(trade);
-                        Helpers.addElementToObject(order, "trades", orderTrades);
+                        ((Map<String, Object>)order).put("trades", orderTrades);
                     }
                 }
             }

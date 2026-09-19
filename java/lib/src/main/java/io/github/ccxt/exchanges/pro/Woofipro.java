@@ -537,8 +537,8 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String interval = this.safeString(data, "type");
         Object timeframe = this.findTimeframe(interval);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -720,7 +720,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         String messageHash = "authenticated";
-        Object success = this.safeValue(message, "success");
+        Boolean success = (Boolean) this.safeBool(message, "success");
         if (java.util.Objects.equals(success, true))
         {
             // client.resolve (message, messageHash);

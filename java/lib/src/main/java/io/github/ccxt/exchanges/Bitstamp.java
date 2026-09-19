@@ -1367,7 +1367,7 @@ public class Bitstamp extends BitstampApi
             // this method is now redundant
             // currencies are now fetched before markets
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object options = this.safeValue(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
             Long now = this.milliseconds();
@@ -1693,7 +1693,7 @@ public class Bitstamp extends BitstampApi
             return currencyId;
         }
         transaction = this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
-        List<Object> ids = Helpers.objectKeys(transaction);
+        Object ids = new ArrayList<Object>(((Map<String, Object>)transaction).keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -1712,7 +1712,7 @@ public class Bitstamp extends BitstampApi
     public Object getMarketFromTrade(Object trade)
     {
         trade = this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
-        List<Object> currencyIds = Helpers.objectKeys(trade);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
         Object numCurrencyIds = ((List<?>)currencyIds).size();
         if (Helpers.isGreaterThan(numCurrencyIds, 2))
         {
@@ -2043,7 +2043,7 @@ public class Bitstamp extends BitstampApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> ohlc = (List<Object>) this.safeList(data, "ohlc", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -2280,7 +2280,7 @@ public class Bitstamp extends BitstampApi
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
-            Object fees = this.safeValue(response, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String code = this.safeCurrencyCode(id);
             if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
             {
@@ -2804,7 +2804,7 @@ public class Bitstamp extends BitstampApi
             //         ]
             //     }
             //
-            Object values = this.safeValue(response, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
+            List<Object> values = (List<Object>) this.safeList(response, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(values, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -3199,7 +3199,7 @@ public class Bitstamp extends BitstampApi
         String symbol = this.safeSymbol(marketId, market, "/");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String amount = this.safeString(order, "amount");
-        Object transactions = this.safeValue(order, "transactions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> transactions = (List<Object>) this.safeList(order, "transactions", new ArrayList<Object>(Arrays.asList()));
         String price = this.safeString(order, "price");
         final Object finalSide = side;
         return this.safeOrder(new HashMap<String, Object>() {{

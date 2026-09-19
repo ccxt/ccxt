@@ -728,7 +728,7 @@ public class Gemini extends GeminiApi
             //    }
             //
             Helpers.addElementToObject(this.options, "tradingPairs", this.safeList(data, "tradingPairs"));
-            Object currenciesArray = this.safeValue(data, "currencies", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesArray = (List<Object>) this.safeList(data, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesArray);
         });
 
@@ -813,7 +813,7 @@ public class Gemini extends GeminiApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object method = this.safeValue(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
+            String method = this.safeString(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
             if (java.util.Objects.equals(method, "fetch_markets_from_web"))
             {
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
@@ -1387,7 +1387,7 @@ public class Gemini extends GeminiApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object method = this.safeValue(this.options, "fetchTickerMethod", "fetchTickerV1");
+            String method = this.safeString(this.options, "fetchTickerMethod", "fetchTickerV1");
             if (java.util.Objects.equals(method, "fetchTickerV1"))
             {
                 return (this.fetchTickerV1(symbol, parameters)).join();
@@ -1440,7 +1440,7 @@ public class Gemini extends GeminiApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object volume = this.safeValue(ticker, "volume", new HashMap<String, Object>() {{}});
+        Map<String, Object> volume = (Map<String, Object>) this.safeDict(ticker, "volume", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(volume, "timestamp");
         Object symbol = null;
         String marketId = this.safeStringLower(ticker, "pair");
@@ -1914,7 +1914,7 @@ public class Gemini extends GeminiApi
         String id = this.safeString(order, "order_id");
         String side = this.safeStringLower(order, "side");
         String clientOrderId = this.safeString(order, "client_order_id");
-        Object optionsArray = this.safeValue(order, "options", new ArrayList<Object>(Arrays.asList()));
+        List<Object> optionsArray = (List<Object>) this.safeList(order, "options", new ArrayList<Object>(Arrays.asList()));
         String option = this.safeString(optionsArray, 0);
         String timeInForce = "GTC";
         Boolean postOnly = false;

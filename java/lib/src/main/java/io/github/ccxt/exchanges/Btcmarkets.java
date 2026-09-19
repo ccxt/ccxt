@@ -680,7 +680,7 @@ public class Btcmarkets extends BtcmarketsApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object fees = this.safeValue(this.safeDict(this.options, "fees", new HashMap<String, Object>() {{}}), quote, this.fees);
+        Object fees = this.safeDict(this.safeDict(this.options, "fees", new HashMap<String, Object>() {{}}), quote, this.fees);
         Object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         Double minAmount = this.safeNumber(market, "minOrderAmount");
         Double maxAmount = this.safeNumber(market, "maxOrderAmount");
@@ -713,8 +713,8 @@ public class Btcmarkets extends BtcmarketsApi
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
-            put( "taker", Helpers.GetValue(fees, "taker") );
-            put( "maker", Helpers.GetValue(fees, "maker") );
+            put( "taker", ((Map<String, Object>)fees).get("taker") );
+            put( "maker", ((Map<String, Object>)fees).get("maker") );
             put( "contractSize", null );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1200,7 +1200,7 @@ public class Btcmarkets extends BtcmarketsApi
                 put( "side", (((java.util.Objects.equals(finalSide, "buy")))) ? "Bid" : "Ask" );
             }};
             Object lowercaseType = ((String)type).toLowerCase();
-            Object orderTypes = this.safeValue(this.options, "orderTypes", new HashMap<String, Object>() {{
+            Object orderTypes = this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
                 put( "limit", "Limit" );
                 put( "market", "Market" );
                 put( "stop", "Stop" );

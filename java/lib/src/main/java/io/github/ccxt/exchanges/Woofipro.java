@@ -2264,7 +2264,7 @@ public class Woofipro extends WoofiproApi
         String amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         String orderType = this.safeStringLower2(order, "order_type", "type");
-        Object status = this.safeValue2(order, "status", "algoStatus");
+        String status = this.safeString2(order, "status", "algoStatus");
         Boolean success = (Boolean) this.safeBool(order, "success");
         if (!java.util.Objects.equals(success, null))
         {
@@ -2280,16 +2280,16 @@ public class Woofipro extends WoofiproApi
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Object takeProfitPrice = null;
         Object stopLossPrice = null;
-        Object childOrders = this.safeValue(order, "childOrders");
+        List<Object> childOrders = (List<Object>) this.safeList(order, "childOrders");
         if (!java.util.Objects.equals(childOrders, null))
         {
-            Object first = this.safeValue(childOrders, 0);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(childOrders, 0);
             List<Object> innerChildOrders = (List<Object>) this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
             Object innerChildOrdersLength = ((List<?>)innerChildOrders).size();
             if (Helpers.isGreaterThan(innerChildOrdersLength, 0))
             {
-                Object takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                Object stopLossOrder = this.safeValue(innerChildOrders, 1);
+                Map<String, Object> takeProfitOrder = (Map<String, Object>) this.safeDict(innerChildOrders, 0);
+                Map<String, Object> stopLossOrder = (Map<String, Object>) this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, "triggerPrice");
                 stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice");
             }
@@ -2409,8 +2409,8 @@ public class Woofipro extends WoofiproApi
             put( "side", finalOrderSide );
         }};
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        Object stopLoss = this.safeValue(parameters, "stopLoss");
-        Object takeProfit = this.safeValue(parameters, "takeProfit");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         String algoType = this.safeString(parameters, "algoType");
@@ -2536,9 +2536,9 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            Object stopLoss = this.safeValue(parameters, "stopLoss");
-            Object takeProfit = this.safeValue(parameters, "takeProfit");
-            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
+            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeList(parameters, "childOrders"), null));
             Object response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2586,9 +2586,9 @@ public class Woofipro extends WoofiproApi
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
-                Object stopLoss = this.safeValue(orderParams, "stopLoss");
-                Object takeProfit = this.safeValue(orderParams, "takeProfit");
-                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(orderParams, "childOrders"), null));
+                Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss");
+                Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit");
+                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeList(orderParams, "childOrders"), null));
                 if (Boolean.TRUE.equals(isConditional))
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
@@ -3152,7 +3152,7 @@ public class Woofipro extends WoofiproApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", response);
+            Object data = this.safeDict(response, "data", response);
             List<Object> orders = (List<Object>) this.safeList(data, "rows");
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

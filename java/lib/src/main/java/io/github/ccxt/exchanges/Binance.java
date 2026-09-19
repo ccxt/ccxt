@@ -4453,7 +4453,7 @@ public class Binance extends BinanceApi
                 for (var i = 0; i < Helpers.getArrayLength(markets); i++)
                 {
                     Object market = Helpers.GetValue(markets, i);
-                    if (java.util.Objects.equals(this.safeValue(market, defaultType), true))
+                    if (java.util.Objects.equals(this.safeBool(market, defaultType), true))
                     {
                         return market;
                     }
@@ -6139,7 +6139,7 @@ public class Binance extends BinanceApi
                 response = (this.eapiPublicGetDepth(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object rpi = this.safeValue(parameters, "rpi", false);
+                Boolean rpi = (Boolean) this.safeBool(parameters, "rpi", false);
                 parameters = this.omit(parameters, "rpi");
                 if (java.util.Objects.equals(rpi, true))
                 {
@@ -7813,7 +7813,7 @@ public class Binance extends BinanceApi
         {
             ((Map<String, Object>)request).put("newClientOrderId", clientOrderId);
         }
-        ((Map<String, Object>)request).put("newOrderRespType", this.safeValue(((Map<String, Object>)this.options).get("newOrderRespType"), type, "RESULT")); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        ((Map<String, Object>)request).put("newOrderRespType", this.safeString(((Map<String, Object>)this.options).get("newOrderRespType"), type, "RESULT")); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         Boolean timeInForceIsRequired = false;
         Boolean priceIsRequired = false;
         Boolean triggerPriceIsRequired = false;
@@ -9459,7 +9459,7 @@ public class Binance extends BinanceApi
             {
                 if (java.util.Objects.equals(upperCaseSide, "BUY"))
                 {
-                    Object precision = this.safeValue(((Map<String, Object>)market).get("precision"), "price");
+                    Double precision = this.safeNumber(((Map<String, Object>)market).get("precision"), "price");
                     String quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
                     Object notional = null;
                     if (!java.util.Objects.equals(quoteOrderQtyNew, null))
@@ -9501,7 +9501,7 @@ public class Binance extends BinanceApi
                 if (java.util.Objects.equals(quoteOrderQty, true))
                 {
                     String quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
-                    Object precision = this.safeValue(((Map<String, Object>)market).get("precision"), "price");
+                    Double precision = this.safeNumber(((Map<String, Object>)market).get("precision"), "price");
                     if (!java.util.Objects.equals(quoteOrderQtyNew, null))
                     {
                         ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
@@ -12364,14 +12364,14 @@ public class Binance extends BinanceApi
         String code = this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transfer, "amount");
         String type = this.safeString(transfer, "type");
-        Object fromAccount = null;
-        Object toAccount = null;
+        String fromAccount = null;
+        String toAccount = null;
         Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(type, null))
         {
             Object parts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("_"))));
-            fromAccount = this.safeValue(parts, 0);
-            toAccount = this.safeValue(parts, 1);
+            fromAccount = this.safeString(parts, 0);
+            toAccount = this.safeString(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
@@ -13979,7 +13979,7 @@ public class Binance extends BinanceApi
         Object percentage = null;
         String liquidationPriceStringRaw = null;
         Object liquidationPrice = null;
-        Object contractSize = this.safeValue(market, "contractSize");
+        Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, "0"))
         {
@@ -14215,7 +14215,7 @@ public class Binance extends BinanceApi
         }
         String entryPriceString = this.safeString(position, "entryPrice");
         Object entryPrice = this.parseNumber(entryPriceString);
-        Object contractSize = this.safeValue(market, "contractSize");
+        Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (Helpers.inOp(position, "notional"));
@@ -16470,13 +16470,13 @@ final Object finalMarket = market;
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         if ((((Map<?, ?>)config).containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
         {
-            return Helpers.GetValue(config, "noCoin");
+            return ((Map<String, Object>)config).get("noCoin");
         } else if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
+            return ((Map<String, Object>)config).get("noSymbol");
         } else if ((((Map<?, ?>)config).containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
         {
-            return Helpers.GetValue(config, "noPoolId");
+            return ((Map<String, Object>)config).get("noPoolId");
         } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
@@ -16490,7 +16490,7 @@ final Object finalMarket = market;
                 }
             }
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 
     public CompletableFuture<Object> request(Object path, Object... optionalArgs)

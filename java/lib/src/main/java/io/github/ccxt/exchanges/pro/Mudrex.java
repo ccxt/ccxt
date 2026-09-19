@@ -271,8 +271,8 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(s.toUpperCase());
         Object symbol = ((Map<String, Object>)market).get("symbol");
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), tf);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

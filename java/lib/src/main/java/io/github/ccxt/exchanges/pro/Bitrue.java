@@ -174,7 +174,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //      "u": 2285311
         //    }
         //
-        Object balances = this.safeValue(message, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         this.parseWSBalances(balances);
         String messageHash = "balance";
         client.resolve(this.balance, messageHash);
@@ -474,7 +474,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(message, "ts");
-        Object tick = this.safeValue(message, "tick", new HashMap<String, Object>() {{}});
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         Object parseable = tick;
         if (Boolean.TRUE.equals(isFutures))
         {
@@ -635,7 +635,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object tick = this.safeValue(message, "tick", new HashMap<String, Object>() {{}});
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         Boolean appended = false;
         Object stored = this.safeValue(this.trades, symbol);
@@ -777,7 +777,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String wsInterval = this.safeString(parts, 4);
         Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
-        Object tick = this.safeValue(message, "tick");
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
         if (java.util.Objects.equals(tick, null))
         {
             return;
@@ -884,7 +884,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object tick = this.safeValue(message, "tick");
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
         if (java.util.Objects.equals(tick, null))
         {
             return;
@@ -1021,7 +1021,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object listenKey = this.safeValue(this.options, "listenKey");
+            String listenKey = this.safeString(this.options, "listenKey");
             if (java.util.Objects.equals(listenKey, null))
             {
                 // single-flight leader election on a never-dialed client, see
@@ -1056,7 +1056,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     //         }
                     //     }
                     //
-                    Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     String key = this.safeString(data, "listenKey");
                     if (java.util.Objects.equals(key, null))
                     {

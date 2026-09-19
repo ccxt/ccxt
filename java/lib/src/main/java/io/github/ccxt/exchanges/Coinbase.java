@@ -1980,7 +1980,7 @@ public class Coinbase extends CoinbaseApi
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
                 Object market = Helpers.GetValue(result, i);
-                Object info = this.safeValue(market, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                 List<Object> realMarketIds = (List<Object>) this.safeList(info, "alias_to", new ArrayList<Object>(Arrays.asList()));
                 Object length = ((List<?>)realMarketIds).size();
                 if (Helpers.isGreaterThan(length, 0))

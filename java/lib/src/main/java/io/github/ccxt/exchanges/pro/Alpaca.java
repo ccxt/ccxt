@@ -577,8 +577,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //        }
         //      }
         //
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
-        Object rawOrder = this.safeValue(data, "order", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, "order", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -640,13 +640,13 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //        }
         //      }
         //
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String eventVar = this.safeString(data, "event");
         if (!java.util.Objects.equals(eventVar, "fill") && !java.util.Objects.equals(eventVar, "partial_fill"))
         {
             return;
         }
-        Object rawOrder = this.safeValue(data, "order", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, "order", new HashMap<String, Object>() {{}});
         Object myTrades = this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
@@ -886,7 +886,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String T = this.safeString(message, "T");
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String status = this.safeString(data, "status");
         if (java.util.Objects.equals(T, "success") || java.util.Objects.equals(status, "authorized"))
         {

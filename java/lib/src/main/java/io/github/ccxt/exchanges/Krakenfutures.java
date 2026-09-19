@@ -1426,8 +1426,8 @@ public class Krakenfutures extends KrakenfuturesApi
         String marketId = this.safeString(trade, "symbol");
         String side = this.safeString(trade, "side");
         String type = null;
-        Object priorEdit = this.safeValue(trade, "orderPriorEdit");
-        Object priorExecution = this.safeValue(trade, "orderPriorExecution");
+        Map<String, Object> priorEdit = (Map<String, Object>) this.safeDict(trade, "orderPriorEdit");
+        Map<String, Object> priorExecution = (Map<String, Object>) this.safeDict(trade, "orderPriorExecution");
         if (!java.util.Objects.equals(priorExecution, null))
         {
             order = this.safeString(priorExecution, "orderId");
@@ -1762,7 +1762,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 if (!(extendedParams.containsKey("order_tag")))
                 {
@@ -1871,7 +1871,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> response = (this.privatePostCancelorder(this.extend(new HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
-            String status = this.safeString(this.safeValue(response, "cancelStatus", new HashMap<String, Object>() {{}}), "status");
+            String status = this.safeString(this.safeDict(response, "cancelStatus", new HashMap<String, Object>() {{}}), "status");
             this.verifyOrderActionSuccess(status, "cancelOrder");
             Object order = new HashMap<String, Object>() {{}};
             if (response.containsKey("cancelStatus"))
@@ -2813,7 +2813,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     } else if (!Boolean.TRUE.equals(fixedVar))
                     {
                         String executedPrice = this.safeString(item, "price");
-                        Object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
+                        Map<String, Object> orderPriorExecution = (Map<String, Object>) this.safeDict(item, "orderPriorExecution");
                         details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
                         if (java.util.Objects.equals(executedPrice, null))
                         {
@@ -3474,8 +3474,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 type = (((java.util.Objects.equals(symbol, null)))) ? "flex" : symbol;
             }
             Object accountName = this.parseAccount(type);
-            Object accounts = this.safeValue(response, "accounts");
-            Object account = this.safeValue(accounts, accountName);
+            Map<String, Object> accounts = (Map<String, Object>) this.safeDict(response, "accounts");
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, accountName);
             if (java.util.Objects.equals(account, null))
             {
                 type = (((java.util.Objects.equals(type, null)))) ? "" : type;
@@ -3587,7 +3587,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 ((Map<String, Object>)account).put("total", balance);
             } else
             {
-                Object auxiliary = this.safeValue(response, "auxiliary");
+                Map<String, Object> auxiliary = (Map<String, Object>) this.safeDict(response, "auxiliary");
                 ((Map<String, Object>)account).put("free", this.safeString(auxiliary, "af"));
                 ((Map<String, Object>)account).put("total", this.safeString(auxiliary, "pv"));
             }
@@ -3626,7 +3626,7 @@ public class Krakenfutures extends KrakenfuturesApi
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
                 Object entry = Helpers.GetValue(tickers, i);
-                Object entry_symbol = this.safeValue(entry, "symbol");
+                String entry_symbol = this.safeString(entry, "symbol");
                 if (!java.util.Objects.equals(marketIds, null))
                 {
                     if (!this.inArray(entry_symbol, marketIds))
@@ -4033,7 +4033,7 @@ public class Krakenfutures extends KrakenfuturesApi
         //    }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object marginLevels = this.safeValue(info, "marginLevels");
+        List<Object> marginLevels = (List<Object>) this.safeList(info, "marginLevels");
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
@@ -4041,7 +4041,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             return tiers;
         }
-        for (var i = 0; i < Helpers.getArrayLength(marginLevels); i++)
+        for (var i = 0; i < ((List<?>)marginLevels).size(); i++)
         {
             Object tier = Helpers.GetValue(marginLevels, i);
             String initialMargin = this.safeString(tier, "initialMargin");
@@ -4367,8 +4367,8 @@ final Object finalI = i;
         {
             throw new DDoSProtection(((this.id + " ") + body)) ;
         }
-        Object errors = this.safeValue(response, "errors");
-        Object firstError = this.safeValue(errors, 0);
+        List<Object> errors = (List<Object>) this.safeList(response, "errors");
+        Map<String, Object> firstError = (Map<String, Object>) this.safeDict(errors, 0);
         String firtErrorMessage = this.safeString(firstError, "message");
         String message = this.safeString(response, "error", firtErrorMessage);
         if (java.util.Objects.equals(message, null))
@@ -4392,13 +4392,13 @@ final Object finalI = i;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object apiVersions = this.safeValue(((Map<String, Object>)this.options).get("versions"), api, new HashMap<String, Object>() {{}});
-        Object methodVersions = this.safeValue(apiVersions, method, new HashMap<String, Object>() {{}});
+        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("versions"), api, new HashMap<String, Object>() {{}});
+        Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, method, new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.version);
         String version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
-        Object apiAccess = this.safeValue(((Map<String, Object>)this.options).get("access"), api, new HashMap<String, Object>() {{}});
-        Object methodAccess = this.safeValue(apiAccess, method, new HashMap<String, Object>() {{}});
+        Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("access"), api, new HashMap<String, Object>() {{}});
+        Map<String, Object> methodAccess = (Map<String, Object>) this.safeDict(apiAccess, method, new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
         Object endpoint = Helpers.add(Helpers.add(version, "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));

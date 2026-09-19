@@ -989,7 +989,7 @@ public class Poloniex extends PoloniexApi
             Object reload = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object markets = (super.loadMarkets(reload, parameters)).join();
-            Object currenciesByNumericId = this.safeValue(this.options, "currenciesByNumericId");
+            Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId");
             if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(reload))
             {
                 Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexBy(this.currencies, "numericId"));
@@ -1128,7 +1128,7 @@ public class Poloniex extends PoloniexApi
         String quote = this.safeCurrencyCode(quoteId);
         String state = this.safeString(market, "state");
         Boolean active = java.util.Objects.equals(state, "NORMAL");
-        Object symbolTradeLimit = this.safeValue(market, "symbolTradeLimit");
+        Map<String, Object> symbolTradeLimit = (Map<String, Object>) this.safeDict(market, "symbolTradeLimit");
         // these are known defaults
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -2265,7 +2265,7 @@ public class Poloniex extends PoloniexApi
                 Object max = (((java.util.Objects.equals(marketType, "spot")))) ? 2000 : 100;
                 ((Map<String, Object>)request).put("limit", Helpers.mathMax(limit, max));
             }
-            Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marketType, "spot"))
@@ -2720,7 +2720,7 @@ public class Poloniex extends PoloniexApi
                 id = clientOrderId;
             }
             ((Map<String, Object>)request).put("id", id);
-            Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger", "stop")));
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(isTrigger, true))
@@ -2798,7 +2798,7 @@ public class Poloniex extends PoloniexApi
                 response = this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
                 return this.parseOrders(response, market);
             }
-            Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -2868,7 +2868,7 @@ public class Poloniex extends PoloniexApi
             {
                 throw new NotSupported((((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
             }
-            Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(isTrigger, true))
@@ -3006,11 +3006,11 @@ public class Poloniex extends PoloniexApi
         // for spot
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object account = this.safeValue(response, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             Object balances = this.safeValue(account, "balances");
             for (var j = 0; j < Helpers.getArrayLength(balances); j++)
             {
-                Object balance = this.safeValue(balances, j);
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, j);
                 String currencyId = this.safeString(balance, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 Object newAccount = this.account();
@@ -3406,7 +3406,7 @@ public class Poloniex extends PoloniexApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeValue(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, fromAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3624,8 +3624,8 @@ public class Poloniex extends PoloniexApi
             {
                 currency = this.currency(code);
             }
-            Object withdrawals = this.safeValue(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
-            Object deposits = this.safeValue(response, "deposits", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             List<Object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
             List<Object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
             List<Object> transactions = (List<Object>) this.arrayConcat(depositTransactions, withdrawalTransactions);
@@ -3660,7 +3660,7 @@ public class Poloniex extends PoloniexApi
             {
                 currency = this.currency(code);
             }
-            Object withdrawals = this.safeValue(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3774,7 +3774,7 @@ public class Poloniex extends PoloniexApi
                         Object networkId = Helpers.GetValue(childChains, j);
                         networkId = Helpers.replace(((String)networkId), code, "");
                         Object networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
-                        Object networkInfo = this.safeValue(response, networkId);
+                        Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(response, networkId);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};
                         Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
                         if (!java.util.Objects.equals(networkCode, null))
@@ -3855,7 +3855,7 @@ public class Poloniex extends PoloniexApi
             {
                 currency = this.currency(code);
             }
-            Object deposits = this.safeValue(response, "deposits", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(deposits, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -4479,7 +4479,7 @@ public class Poloniex extends PoloniexApi
         if (java.util.Objects.equals(api, "public") || java.util.Objects.equals(api, "swapPublic"))
         {
             url = Helpers.add(url, ("/" + implodedPath));
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
             {
                 url = Helpers.add(url, ("?" + this.urlencode(query)));
             }
@@ -4493,7 +4493,7 @@ public class Poloniex extends PoloniexApi
             if ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PUT")) || (java.util.Objects.equals(method, "DELETE")))
             {
                 auth = (auth + "\n"); // eslint-disable-line quotes
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
                 {
                     body = this.json(query);
                     auth = (auth + (("requestBody=" + body) + "&"));
@@ -4506,7 +4506,7 @@ public class Poloniex extends PoloniexApi
                 }}, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth = (auth + ("\n" + this.urlencode(sortedQuery))); // eslint-disable-line quotes
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
                 {
                     url = Helpers.add(url, ("?" + this.urlencode(query)));
                 }

@@ -675,7 +675,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        Object data = this.safeValue(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         Object balance = this.parseBalance(data);
         this.balance = this.extend(this.balance, balance);
         String messageHash = this.safeString(message, "table");
@@ -744,7 +744,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         String table = "trade";
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataByMarketIds = this.groupBy(data, "symbol");
         Object marketIds = new ArrayList<Object>(((Map<String, Object>)dataByMarketIds).keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -1306,11 +1306,11 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 Object currentOrder = Helpers.GetValue(data, i);
                 String orderId = this.safeString(currentOrder, "orderID");
-                Object previousOrder = this.safeValue(((io.github.ccxt.ws.ArrayCache)stored).hashmap, orderId);
+                Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)stored).hashmap, orderId);
                 Object rawOrder = currentOrder;
                 if (!java.util.Objects.equals(previousOrder, null))
                 {
-                    rawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), currentOrder);
+                    rawOrder = this.extend(((Map<String, Object>)previousOrder).get("info"), currentOrder);
                 }
                 Object order = this.parseOrder(rawOrder);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
@@ -1435,9 +1435,9 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         String messageHash = this.safeString(message, "table");
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataByExecType = this.groupBy(data, "execType");
-        Object rawTrades = this.safeValue(dataByExecType, "Trade", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(dataByExecType, "Trade", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawTrades);
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -1589,7 +1589,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics, null)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1723,7 +1723,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Object symbol = ((Map<String, Object>)market).get("symbol");
             Object messageHash = Helpers.add(Helpers.add(table, ":"), ((Map<String, Object>)market).get("id"));
             List<Object> result = new ArrayList<Object>(Arrays.asList(Helpers.subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), Helpers.multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")));
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
@@ -1821,7 +1821,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         if (java.util.Objects.equals(action, "partial"))
         {
             Map<String, Object> filter = (Map<String, Object>) this.safeDict(message, "filter", new HashMap<String, Object>() {{}});
-            Object marketId = this.safeValue(filter, "symbol");
+            String marketId = this.safeString(filter, "symbol");
             if (java.util.Objects.equals(marketId, null))
             {
                 return;  // protecting from weird update
@@ -1860,16 +1860,16 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Map<String, Object> numUpdatesByMarketId = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object marketId = this.safeValue(Helpers.GetValue(data, i), "symbol");
+                String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {
                     return;  // protecting from weird update
                 }
-                if (!(Helpers.inOp(numUpdatesByMarketId, marketId)))
+                if (!(numUpdatesByMarketId.containsKey(marketId)))
                 {
-                    Helpers.addElementToObject(numUpdatesByMarketId, marketId, 0);
+                    ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, 0);
                 }
-                Helpers.addElementToObject(numUpdatesByMarketId, marketId, this.sum(Helpers.GetValue(numUpdatesByMarketId, marketId), 1));
+                ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, this.sum(Helpers.GetValue(numUpdatesByMarketId, marketId), 1));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
@@ -1948,7 +1948,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         String error = this.safeString(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            Object request = this.safeValue(message, "request", new HashMap<String, Object>() {{}});
+            Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});
             List<Object> args = (List<Object>) this.safeList(request, "args", new ArrayList<Object>(Arrays.asList()));
             Object numArgs = ((List<?>)args).size();
             if (Helpers.isGreaterThan(numArgs, 0))
@@ -2029,8 +2029,8 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Object method = this.safeValue(methods, table);
             if (java.util.Objects.equals(method, null))
             {
-                Object request = this.safeValue(message, "request", new HashMap<String, Object>() {{}});
-                Object op = this.safeValue(request, "op");
+                Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});
+                String op = this.safeString(request, "op");
                 if (java.util.Objects.equals(op, "authKeyExpires"))
                 {
                     this.handleAuthenticationMessage(client, message);

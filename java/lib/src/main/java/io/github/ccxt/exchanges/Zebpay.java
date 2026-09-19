@@ -1431,24 +1431,24 @@ public class Zebpay extends ZebpayApi
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         String clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "cost", "timeInForce", "clientOrderId")));
-        Helpers.addElementToObject(request, "type", upperCaseType);
-        Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
-        Helpers.addElementToObject(request, "timeInForce", timeInForce);
+        ((Map<String, Object>)request).put("type", upperCaseType);
+        ((Map<String, Object>)request).put("clientOrderId", clientOrderId);
+        ((Map<String, Object>)request).put("timeInForce", timeInForce);
         if (java.util.Objects.equals(upperCaseType, "MARKET"))
         {
             if (java.util.Objects.equals(quoteOrderQty, null))
             {
                 throw new ExchangeError((this.id + " spot market orders require cost in params")) ;
             }
-            Helpers.addElementToObject(request, "quoteOrderAmount", this.costToPrecision(symbol, quoteOrderQty));
+            ((Map<String, Object>)request).put("quoteOrderAmount", this.costToPrecision(symbol, quoteOrderQty));
         } else
         {
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                Helpers.addElementToObject(request, "stopLossPrice", this.priceToPrecision(symbol, triggerPrice));
+                ((Map<String, Object>)request).put("stopLossPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }

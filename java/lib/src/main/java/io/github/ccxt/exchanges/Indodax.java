@@ -512,9 +512,9 @@ public class Indodax extends IndodaxApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
         Map<String, Object> free = (Map<String, Object>) this.safeDict(balances, "balance", new HashMap<String, Object>() {{}});
-        Object used = this.safeValue(balances, "balance_hold", new HashMap<String, Object>() {{}});
+        Map<String, Object> used = (Map<String, Object>) this.safeDict(balances, "balance_hold", new HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(balances, "server_time");
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1247,7 +1247,7 @@ public class Indodax extends IndodaxApi
                 ((Map<String, Object>)request).put((String)((String)((Map<String, Object>)market).get("baseId")), this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> result = (this.privatePostTrade(this.extend(request, parameters))).join();
-            Object data = this.safeValue(result, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
             String id = this.safeString(data, "order_id");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
@@ -1354,7 +1354,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(data, "currency");
             return new HashMap<String, Object>() {{
                 put( "info", response );
@@ -1496,7 +1496,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
             Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, "deposit", new HashMap<String, Object>() {{}});
             Object transactions = new ArrayList<Object>(Arrays.asList());
@@ -1518,8 +1518,8 @@ public class Indodax extends IndodaxApi
             } else
             {
                 currency = this.currency(code);
-                Object withdraws = this.safeValue(withdraw, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
-                Object deposits = this.safeValue(deposit, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
+                List<Object> withdraws = (List<Object>) this.safeList(withdraw, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
+                List<Object> deposits = (List<Object>) this.safeList(deposit, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
                 transactions = this.arrayConcat(withdraws, deposits);
             }
             return this.parseTransactions(transactions, currency, since, limit);
@@ -1866,7 +1866,7 @@ public class Indodax extends IndodaxApi
         {
             return null;  // public endpoints may return []-arrays
         }
-        Object error = this.safeValue(response, "error", "");
+        String error = this.safeString(response, "error", "");
         if (!(Helpers.inOp(response, "success")) && java.util.Objects.equals(error, ""))
         {
             return null;  // no 'success' property on public responses

@@ -743,7 +743,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Object timeframe = ((String)this.findTimeframe(interval));
         Object messageHash = this.getMessageHash("ohlcv", null, symbol);
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1028,7 +1028,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object reload = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object markets = (super.loadMarkets(reload, parameters)).join();
-            Object marketsByWsName = this.safeValue(this.options, "marketsByWsName");
+            Map<String, Object> marketsByWsName = (Map<String, Object>) this.safeDict(this.options, "marketsByWsName");
             if ((java.util.Objects.equals(marketsByWsName, null)) || Helpers.isTrue(reload))
             {
                 marketsByWsName = new HashMap<String, Object>() {{}};
@@ -1039,9 +1039,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     {
                         Object symbol = Helpers.GetValue(symbols, i);
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                        Object info = this.safeValue(market, "info", new HashMap<String, Object>() {{}});
+                        Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                         Object wsName = this.safeString(info, "wsname");
-                        Helpers.addElementToObject(marketsByWsName, wsName, market);
+                        ((Map<String, Object>)marketsByWsName).put((String)wsName, market);
                     }
                 }
                 Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
@@ -1158,7 +1158,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object symbol = this.safeString(first, "symbol");
         List<Object> a = (List<Object>) this.safeList(first, "asks", new ArrayList<Object>(Arrays.asList()));
-        Object b = this.safeValue(first, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> b = (List<Object>) this.safeList(first, "bids", new ArrayList<Object>(Arrays.asList()));
         Long c = this.safeInteger(first, "checksum");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
         Object orderbook = null;
@@ -1644,12 +1644,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String id = this.safeString(order, "order_id");
                 Object parsed = this.parseWsOrder(order);
                 String symbol = this.safeString(order, "symbol");
-                Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)stored).hashmap, symbol);
-                Object previousOrder = this.safeValue(previousOrders, id);
+                Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)stored).hashmap, symbol);
+                Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrders, id);
                 Object newOrder = parsed;
                 if (!java.util.Objects.equals(previousOrder, null))
                 {
-                    Map<String, Object> newRawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), ((Map<String, Object>)newOrder).get("info"));
+                    Map<String, Object> newRawOrder = this.extend(((Map<String, Object>)previousOrder).get("info"), ((Map<String, Object>)newOrder).get("info"));
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
                 Object length = ((List<?>)stored).size();
@@ -1867,7 +1867,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         String type = "spot";
         Object balance = this.safeBalance(result);
-        Object oldBalance = this.safeValue(this.balance, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> oldBalance = (Map<String, Object>) this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
         Map<String, Object> newBalance = this.deepExtend(oldBalance, balance);
         Helpers.addElementToObject(this.balance, type, this.safeBalance(newBalance));
         String channel = this.safeString(message, "channel");

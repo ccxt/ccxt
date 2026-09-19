@@ -1053,7 +1053,7 @@ public class Cex extends CexApi
     {
         Object useKeyAsId = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> keys = Helpers.objectKeys(response);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1214,7 +1214,7 @@ public class Cex extends CexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> keys = Helpers.objectKeys(response);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

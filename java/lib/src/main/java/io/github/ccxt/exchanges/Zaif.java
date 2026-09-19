@@ -424,8 +424,8 @@ public class Zaif extends ZaifApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
-        Object deposit = this.safeValue(balances, "deposit");
+        Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+        Map<String, Object> deposit = (Map<String, Object>) this.safeDict(balances, "deposit");
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -443,7 +443,7 @@ public class Zaif extends ZaifApi
             ((Map<String, Object>)account).put("total", balance);
             if (!java.util.Objects.equals(deposit, null))
             {
-                if (Helpers.inOp(deposit, currencyId))
+                if (deposit.containsKey(currencyId))
                 {
                     ((Map<String, Object>)account).put("total", this.safeString(deposit, currencyId));
                 }
@@ -994,7 +994,7 @@ public class Zaif extends ZaifApi
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         currency = this.safeCurrency(null, currency);
         Object fee = null;
-        Object feeCost = this.safeValue(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalFeeCost = feeCost;

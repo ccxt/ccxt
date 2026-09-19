@@ -1537,7 +1537,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
         if (!java.util.Objects.equals(market, null))
         {
-            ((Map<String, Object>)stream).put("product_id", this.parseToInt(Helpers.GetValue(market, "id")));
+            ((Map<String, Object>)stream).put("product_id", this.parseToInt(((Map<String, Object>)market).get("id")));
         }
         return new HashMap<String, Object>() {{
             put( "method", method );
@@ -2440,7 +2440,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         String id = this.safeString(message, "id");
         Boolean hasResult = (Helpers.inOp(message, "result"));
-        Object result = this.safeValue(message, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
         String method = this.safeString(result, "method");
         if (java.util.Objects.equals(method, "pong"))
         {
@@ -2458,13 +2458,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         if ((!java.util.Objects.equals(id, null)) && Boolean.TRUE.equals(hasResult))
         {
-            Object authentication = this.safeValue(client.subscriptions, ("authentication:" + id));
+            String authentication = this.safeString(client.subscriptions, ("authentication:" + id));
             if (!java.util.Objects.equals(authentication, null))
             {
                 this.handleAuthentication(client, message);
                 return;
             }
-            Object subscription = this.safeValue(client.subscriptions, ("subscription:" + id));
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, ("subscription:" + id));
             if (!java.util.Objects.equals(subscription, null))
             {
                 this.handleSubscription(client, message);

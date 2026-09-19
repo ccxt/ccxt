@@ -210,8 +210,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String marketId = this.safeString(parts, 3);
         String symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-        Object nonce = this.safeValue(storedOrderBook, "nonce");
-        Object delta = this.safeValue(message, "data");
+        Long nonce = this.safeInteger(storedOrderBook, "nonce");
+        Map<String, Object> delta = (Map<String, Object>) this.safeDict(message, "data");
         Long deltaNonce = this.safeInteger(delta, "microtimestamp");
         if (java.util.Objects.equals(deltaNonce, null))
         {
@@ -244,8 +244,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "microtimestamp"));
-        Object bids = this.safeValue(delta, "bids", new ArrayList<Object>(Arrays.asList()));
-        Object asks = this.safeValue(delta, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
         Object storedBids = Helpers.GetValue(orderbook, "bids");
         Object storedAsks = Helpers.GetValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
@@ -1117,7 +1117,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         if (java.util.Objects.equals(eventVar, "bts:error"))
         {
             String feedback = ((this.id + " ") + this.json(message));
-            Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             Double code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
         }

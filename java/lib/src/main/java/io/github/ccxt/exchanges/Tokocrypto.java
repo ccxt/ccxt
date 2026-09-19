@@ -884,7 +884,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadTimeDifference()).join();
             }
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)list).size(); i++)
@@ -899,7 +899,7 @@ public class Tokocrypto extends TokocryptoApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                Object filters = this.safeValue(market, "filters", new ArrayList<Object>(Arrays.asList()));
+                List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (java.util.Objects.equals(status, "1"));
@@ -984,7 +984,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 if (filtersByType.containsKey("LOT_SIZE"))
                 {
-                    Object filter = this.safeValue(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(entry.get("precision"), "amount", this.safeNumber(filter, "stepSize"));
                     Helpers.addElementToObject(entry.get("limits"), "amount", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
@@ -993,7 +993,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 if (filtersByType.containsKey("MARKET_LOT_SIZE"))
                 {
-                    Object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(entry.get("limits"), "market", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
@@ -1001,7 +1001,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 if (filtersByType.containsKey("MIN_NOTIONAL"))
                 {
-                    Object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
                 }
                 ((List<Object>)result).add(entry);
@@ -1077,7 +1077,7 @@ public class Tokocrypto extends TokocryptoApi
             //         },
             //         "timestamp":1692262634599
             //     }
-            Object data = this.safeValue(response, "data", response);
+            Object data = this.safeDict(response, "data", response);
             Long timestamp = (Long) this.safeInteger2(response, "T", "timestamp");
             Object orderbook = this.parseOrderBook(data, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "lastUpdateId"));
@@ -1192,7 +1192,7 @@ public class Tokocrypto extends TokocryptoApi
         id = this.safeString2(trade, "id", "tradeId", id);
         Object side = null;
         String orderId = this.safeString(trade, "orderId");
-        Object buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
+        Object buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(buyerMaker, null))
         {
@@ -1822,7 +1822,7 @@ public class Tokocrypto extends TokocryptoApi
             put( "timestamp", timestamp );
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
         }};
-        Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
@@ -1984,7 +1984,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             side = "sell";
         }
-        Object fills = this.safeValue(order, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fills = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String clientOrderId = this.safeString2(order, "clientOrderId", "clientId");
         String timeInForce = this.safeString(order, "timeInForce");
         if (java.util.Objects.equals(timeInForce, "GTX"))
@@ -2118,7 +2118,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                Object broker = this.safeValue(this.options, "broker");
+                Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker");
                 if (!java.util.Objects.equals(broker, null))
                 {
                     String brokerId = this.safeString(broker, "marketType");
@@ -2311,8 +2311,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710056523
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object list = this.safeValue(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
         }).thenApply(Order::new);
@@ -2393,7 +2393,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1572860756458
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2582,7 +2582,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1573723498893
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -2612,7 +2612,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
-            Object networks = this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (!java.util.Objects.equals(network, null))
@@ -2638,7 +2638,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1660685915746
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String address = this.safeString(data, "address");
             String tag = this.safeString(data, "addressTag", "");
             if ((tag.length() == 0))
@@ -2730,7 +2730,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659758865998
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> deposits = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2804,7 +2804,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659759062187
             //     }
             //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> withdrawals = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2829,7 +2829,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "10", "ok" );
             }} );
         }};
-        Object statuses = this.safeValue(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -2932,7 +2932,7 @@ public class Tokocrypto extends TokocryptoApi
         String id = this.safeString(transaction, "id");
         if (java.util.Objects.equals(id, null))
         {
-            Object data = this.safeValue(transaction, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(transaction, "data", new HashMap<String, Object>() {{}});
             id = this.safeString(data, "withdrawId");
             type = "withdrawal";
         }

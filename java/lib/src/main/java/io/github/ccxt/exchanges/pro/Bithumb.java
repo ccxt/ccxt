@@ -576,7 +576,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             return;
         }
         String streamType = this.safeString(message, "stream_type");
-        Object options = this.safeValue(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long obLimit = this.safeInteger(options, "limit", 1000);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (java.util.Objects.equals(streamType, "SNAPSHOT")))
         {

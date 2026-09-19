@@ -2259,7 +2259,7 @@ public class Gate extends GateApi
             {
                 Map<String, Object> spotMarket = (Map<String, Object>) this.safeDict(spotMarketsResponse, i, new HashMap<String, Object>() {{}});
                 String id = this.safeString(spotMarket, "id");
-                Object marginMarket = this.safeValue(marginMarkets, id);
+                Map<String, Object> marginMarket = (Map<String, Object>) this.safeDict(marginMarkets, id);
                 Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
                 var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
@@ -2347,7 +2347,7 @@ public class Gate extends GateApi
             {
                 swapSettlementCurrencies = new ArrayList<Object>(Arrays.asList("usdt")); // gate sandbox only has usdt-margined swaps
             }
-            for (var c = 0; c < Helpers.getArrayLength(swapSettlementCurrencies); c++)
+            for (var c = 0; c < ((List<?>)swapSettlementCurrencies).size(); c++)
             {
                 Object settleId = Helpers.GetValue(swapSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2378,7 +2378,7 @@ public class Gate extends GateApi
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
-            for (var c = 0; c < Helpers.getArrayLength(futureSettlementCurrencies); c++)
+            for (var c = 0; c < ((List<?>)futureSettlementCurrencies).size(); c++)
             {
                 Object settleId = Helpers.GetValue(futureSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2606,7 +2606,7 @@ public class Gate extends GateApi
             {
                 Object underlying = Helpers.GetValue(underlyings, i);
                 Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
-                Helpers.addElementToObject(query, "underlying", underlying);
+                ((Map<String, Object>)query).put("underlying", underlying);
                 List<Object> response = (this.publicOptionsGetContracts(query)).join();
                 //
                 //    [
@@ -2658,7 +2658,7 @@ public class Gate extends GateApi
                     Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                     Object expiry = this.safeTimestamp(market, "expiration_time");
                     String strike = this.safeString(market, "strike_price");
-                    Object isCall = this.safeValue(market, "is_call");
+                    Boolean isCall = (Boolean) this.safeBool(market, "is_call");
                     String optionLetter = (((java.util.Objects.equals(isCall, true)))) ? "C" : "P";
                     String optionType = (((java.util.Objects.equals(isCall, true)))) ? "call" : "put";
                     symbol = Helpers.add((Helpers.add((((Helpers.add((symbol + ":"), quote) + "-") + this.yymmdd(expiry)) + "-"), strike) + "-"), optionLetter);
@@ -2924,10 +2924,10 @@ public class Gate extends GateApi
 
     public Object getSettlementCurrencies(Object type, Object method)
     {
-        Object options = this.safeValue(this.options, type, new HashMap<String, Object>() {{}}); // [ 'BTC', 'USDT' ] unified codes
-        Object fetchMarketsContractOptions = this.safeValue(options, method, new HashMap<String, Object>() {{}});
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}}); // [ 'BTC', 'USDT' ] unified codes
+        Map<String, Object> fetchMarketsContractOptions = (Map<String, Object>) this.safeDict(options, method, new HashMap<String, Object>() {{}});
         List<Object> defaultSettle = (((java.util.Objects.equals(type, "swap")))) ? new ArrayList<Object>(Arrays.asList("usdt")) : new ArrayList<Object>(Arrays.asList("btc"));
-        return this.safeValue(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
+        return this.safeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
     }
 
     /**
@@ -2945,7 +2945,7 @@ public class Gate extends GateApi
 
             // sandbox/testnet only supports future markets
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object apiBackup = this.safeValue(this.urls, "apiBackup");
+            Map<String, Object> apiBackup = (Map<String, Object>) this.safeDict(this.urls, "apiBackup");
             if (!java.util.Objects.equals(apiBackup, null))
             {
                 return new HashMap<String, Object>() {{}};
@@ -3370,7 +3370,7 @@ public class Gate extends GateApi
                 put( "currency", ((Map<String, Object>)finalCurrency).get("id") );
             }};
             Map<String, Object> response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
-            Object chains = this.safeValue(response, "multichain_addresses", new ArrayList<Object>(Arrays.asList()));
+            List<Object> chains = (List<Object>) this.safeList(response, "multichain_addresses", new ArrayList<Object>(Arrays.asList()));
             String currencyId = this.safeString(response, "currency");
             currency = (Map<String, Object>) this.safeCurrency(currencyId, currency);
             Object parsed = this.parseDepositAddresses(chains, null, false);
@@ -3546,10 +3546,10 @@ public class Gate extends GateApi
         //    }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object gtDiscount = this.safeValue(info, "gt_discount");
+        Boolean gtDiscount = (Boolean) this.safeBool(info, "gt_discount");
         String taker = (((java.util.Objects.equals(gtDiscount, true)))) ? "gt_taker_fee" : "taker_fee";
         String maker = (((java.util.Objects.equals(gtDiscount, true)))) ? "gt_maker_fee" : "maker_fee";
-        Object contract = this.safeValue(market, "contract");
+        Boolean contract = (Boolean) this.safeBool(market, "contract");
         String takerKey = (((java.util.Objects.equals(contract, true)))) ? "futures_taker_fee" : taker;
         String makerKey = (((java.util.Objects.equals(contract, true)))) ? "futures_maker_fee" : maker;
         return new HashMap<String, Object>() {{
@@ -3614,13 +3614,13 @@ public class Gate extends GateApi
                 {
                     continue;
                 }
-                Object withdrawFixOnChains = this.safeValue(entry, "withdraw_fix_on_chains");
+                Map<String, Object> withdrawFixOnChains = (Map<String, Object>) this.safeDict(entry, "withdraw_fix_on_chains");
                 if (java.util.Objects.equals(withdrawFixOnChains, null))
                 {
                     withdrawFees = this.safeNumber(entry, "withdraw_fix");
                 } else
                 {
-                    List<Object> networkIds = Helpers.objectKeys(withdrawFixOnChains);
+                    Object networkIds = new ArrayList<Object>(((Map<String, Object>)withdrawFixOnChains).keySet());
                     for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                     {
                         Object networkId = Helpers.GetValue(networkIds, j);
@@ -3708,7 +3708,7 @@ public class Gate extends GateApi
         //    }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object withdrawFixOnChains = this.safeValue(fee, "withdraw_fix_on_chains");
+        Map<String, Object> withdrawFixOnChains = (Map<String, Object>) this.safeDict(fee, "withdraw_fix_on_chains");
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -3723,7 +3723,7 @@ public class Gate extends GateApi
         }};
         if (!java.util.Objects.equals(withdrawFixOnChains, null))
         {
-            List<Object> chainKeys = Helpers.objectKeys(withdrawFixOnChains);
+            Object chainKeys = new ArrayList<Object>(((Map<String, Object>)withdrawFixOnChains).keySet());
             for (var i = 0; i < ((List<?>)chainKeys).size(); i++)
             {
                 Object chainKey = Helpers.GetValue(chainKeys, i);
@@ -4073,7 +4073,7 @@ public class Gate extends GateApi
                 }
             } else
             {
-                ticker = this.safeValue(response, 0);
+                ticker = this.safeDict(response, 0);
             }
             if (java.util.Objects.equals(ticker, null))
             {
@@ -4274,7 +4274,7 @@ public class Gate extends GateApi
         ((Map<String, Object>)account).put("used", this.safeString2(entry, "freeze", "locked"));
         ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
         ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
-        if (Helpers.inOp(entry, "borrowed"))
+        if (((Map<?, ?>)entry).containsKey("borrowed"))
         {
             ((Map<String, Object>)account).put("debt", this.safeString(entry, "borrowed"));
         }
@@ -4589,8 +4589,8 @@ public class Gate extends GateApi
                 Object entry = Helpers.GetValue(data, i);
                 if (Boolean.TRUE.equals(isolated))
                 {
-                    Object base = this.safeValue(entry, "base", new HashMap<String, Object>() {{}});
-                    Object quote = this.safeValue(entry, "quote", new HashMap<String, Object>() {{}});
+                    Map<String, Object> base = (Map<String, Object>) this.safeDict(entry, "base", new HashMap<String, Object>() {{}});
+                    Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quote", new HashMap<String, Object>() {{}});
                     Object baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
                     Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                     result = this.mergeBalanceAccount(result, ((String)baseCode), this.parseBalanceHelper(base));
@@ -5930,14 +5930,14 @@ final Object finalPointFee = pointFee;
             String side = this.safeString(rawOrder, "side");
             Object amount = this.safeValue(rawOrder, "amount");
             Object price = this.safeValue(rawOrder, "price");
-            Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Object triggerValue = this.safeValueN(orderParams, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (!java.util.Objects.equals(triggerValue, null))
             {
                 throw new NotSupported((this.id + " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
             }
-            Helpers.addElementToObject(extendedParams, "textIsRequired", true); // the exchange requires a text parameter for each order here
+            ((Map<String, Object>)extendedParams).put("textIsRequired", true); // the exchange requires a text parameter for each order here
             Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((List<Object>)ordersRequests).add(orderRequest);
         }
@@ -6248,7 +6248,7 @@ final Object finalPointFee = pointFee;
             } else
             {
                 // spot conditional order
-                Object options = this.safeValue(this.options, "createOrder", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
                 Object marginMode = null;
                 var marginModeparametersVariable = this.getMarginMode(true, parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -6707,8 +6707,8 @@ final Object finalPointFee = pointFee;
                 put( "id", Gate.this.safeString(order, "id") );
             }});
         }
-        Object put = this.safeValue2(order, "put", "initial", new HashMap<String, Object>() {{}});
-        Object trigger = this.safeValue(order, "trigger", new HashMap<String, Object>() {{}});
+        Object put = this.safeDict2(order, "put", "initial", new HashMap<String, Object>() {{}});
+        Map<String, Object> trigger = (Map<String, Object>) this.safeDict(order, "trigger", new HashMap<String, Object>() {{}});
         String contract = this.safeString(put, "contract");
         String type = this.safeString(put, "type");
         String timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
@@ -6885,7 +6885,7 @@ final Object finalRebate = rebate;
             put( "cost", Precise.stringAbs(finalCost) );
             put( "filled", null );
             put( "remaining", finalRemaining );
-            put( "fee", ((Boolean.TRUE.equals(multipleFeeCurrencies))) ? null : Gate.this.safeValue(fees, 0) );
+            put( "fee", ((Boolean.TRUE.equals(multipleFeeCurrencies))) ? null : Gate.this.safeDict(fees, 0) );
             put( "fees", ((Boolean.TRUE.equals(multipleFeeCurrencies))) ? fees : new ArrayList<Object>(Arrays.asList()) );
             put( "trades", null );
             put( "info", order );
@@ -9069,7 +9069,7 @@ final Object finalI = i;
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            Object first = this.safeValue(parameters, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(parameters, 0, new HashMap<String, Object>() {{}});
             path = this.implodeParams(path, first);
         } else
         {
@@ -9235,7 +9235,7 @@ final Object finalI = i;
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", total );
-            put( "code", Gate.this.safeValue(finalMarket, "quote") );
+            put( "code", Gate.this.safeString(finalMarket, "quote") );
             put( "status", "ok" );
             put( "timestamp", null );
             put( "datetime", null );
@@ -9570,8 +9570,8 @@ final Object finalI = i;
                 //
                 response = (this.privateOptionsGetMySettlements(this.extend(request, parameters))).join();
             }
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object data = this.safeValue(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);

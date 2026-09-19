@@ -73,7 +73,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public Object requestId(Object url)
     {
-        Object options = this.safeValue(this.options, "requestId", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
@@ -743,8 +743,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
                 }
                 Object cachedOrders = this.orders;
-                Object orders = this.safeValue(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-                Object order = (((java.util.Objects.equals(orderId, null)))) ? null : this.safeValue(orders, orderId);
+                Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+                Object order = (((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId);
                 if (!java.util.Objects.equals(order, null))
                 {
                     Object fee = this.safeValue(order, "fee");
@@ -859,7 +859,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if (!(Helpers.inOp(message, "error")))
+        if (!(((Map<?, ?>)message).containsKey("error")))
         {
             return false;
         }
@@ -934,17 +934,17 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Helpers.callDynamically(this, method, new Object[] {client, message});
             return;
         }
-        if (Helpers.inOp(message, "id"))
+        if (((Map<?, ?>)message).containsKey("id"))
         {
             String id = this.safeString(message, "id");
             Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-            Object subscription = (((java.util.Objects.equals(id, null)))) ? new HashMap<String, Object>() {{}} : this.safeValue(subscriptionsById, id, new HashMap<String, Object>() {{}});
-            if (Helpers.inOp(subscription, "method"))
+            Object subscription = (((java.util.Objects.equals(id, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
+            if (((Map<?, ?>)subscription).containsKey("method"))
             {
-                if (java.util.Objects.equals(Helpers.GetValue(subscription, "method"), "public/login"))
+                if (java.util.Objects.equals(((Map<String, Object>)subscription).get("method"), "public/login"))
                 {
                     this.handleAuth(client, message);
-                } else if (java.util.Objects.equals(Helpers.GetValue(subscription, "method"), "unsubscribe"))
+                } else if (java.util.Objects.equals(((Map<String, Object>)subscription).get("method"), "unsubscribe"))
                 {
                     this.handleUnSubscribe(client, message);
                 }

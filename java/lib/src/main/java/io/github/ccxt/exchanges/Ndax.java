@@ -889,7 +889,7 @@ public class Ndax extends NdaxApi
         String base = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
         String quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
         String sessionStatus = this.safeString(market, "SessionStatus");
-        Object isDisable = this.safeValue(market, "IsDisable");
+        Boolean isDisable = (Boolean) this.safeBool(market, "IsDisable");
         Boolean sessionRunning = (java.util.Objects.equals(sessionStatus, "Running"));
         final Object finalBase = base;
         final Object finalSessionRunning = sessionRunning;
@@ -3032,7 +3032,7 @@ public class Ndax extends NdaxApi
                 put( "Confirmed2Fa", "pending" );
             }} );
         }};
-        Object statuses = (((java.util.Objects.equals(type, null)))) ? new HashMap<String, Object>() {{}} : this.safeValue(statusesByType, type, new HashMap<String, Object>() {{}});
+        Object statuses = (((java.util.Objects.equals(type, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(status, null))
         {
             return null;
@@ -3214,8 +3214,8 @@ public class Ndax extends NdaxApi
             //         ]
             //     }
             //
-            Object templateTypes = this.safeValue(withdrawTemplateTypesResponse, "TemplateTypes", new ArrayList<Object>(Arrays.asList()));
-            Object firstTemplateType = this.safeValue(templateTypes, 0);
+            List<Object> templateTypes = (List<Object>) this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> firstTemplateType = (Map<String, Object>) this.safeDict(templateTypes, 0);
             if (java.util.Objects.equals(firstTemplateType, null))
             {
                 throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + ((Map<String, Object>)currency).get("code"))) ;
@@ -3227,7 +3227,7 @@ public class Ndax extends NdaxApi
                 put( "AccountId", accountId );
                 put( "ProductId", ((Map<String, Object>)currency).get("id") );
                 put( "TemplateType", templateName );
-                put( "AccountProviderId", Helpers.GetValue(finalFirstTemplateType, "AccountProviderId") );
+                put( "AccountProviderId", ((Map<String, Object>)finalFirstTemplateType).get("AccountProviderId") );
             }};
             Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
             //

@@ -1010,7 +1010,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         String candleType = this.safeString(subscription, "candleType");
         Object cacheKey = (((java.util.Objects.equals(candleType, "trades")))) ? timeframe : Helpers.add(Helpers.add(timeframe, ":"), candleType);
         String messageHash = this.safeString(subscription, "messageHash");
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), cacheKey);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1056,7 +1056,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        Object error = this.safeValue(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
         if (java.util.Objects.equals(error, null))
         {
             return false;

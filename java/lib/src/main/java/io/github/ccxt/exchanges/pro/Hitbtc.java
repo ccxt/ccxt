@@ -278,7 +278,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object options = this.safeValue(this.options, "watchOrderBook");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook");
             String defaultMethod = this.safeString(options, "method", "orderbook/full");
             Object name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String depth = this.safeString(parameters, "depth", "20");
@@ -430,7 +430,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object options = this.safeValue(this.options, "watchTicker");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
             String defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String speed = this.safeString(parameters, "speed", "1s");
@@ -612,7 +612,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object options = this.safeValue(this.options, "watchBidsAsks");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBidsAsks");
             String defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String speed = this.safeString(parameters, "speed", "100ms");
@@ -943,7 +943,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object marketId = Helpers.GetValue(marketIds, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
@@ -1675,7 +1675,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        "result": true
         //    }
         //
-        Object success = this.safeValue(message, "result");
+        Boolean success = (Boolean) this.safeBool(message, "result");
         String messageHash = "authenticated";
         if (java.util.Objects.equals(success, true))
         {
@@ -1706,7 +1706,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        id: 1700228604325
         //    }
         //
-        Object error = this.safeValue(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
             try

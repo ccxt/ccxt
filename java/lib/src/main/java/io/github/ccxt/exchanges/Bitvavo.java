@@ -1078,7 +1078,7 @@ final Object finalBase = base;
         String id = this.safeString2(trade, "id", "fillId");
         String marketId = this.safeString(trade, "market");
         String symbol = this.safeSymbol(marketId, market, "-");
-        Object taker = this.safeValue(trade, "taker");
+        Boolean taker = (Boolean) this.safeBool(trade, "taker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
@@ -1161,7 +1161,7 @@ final Object finalBase = base;
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object feesValue = this.safeValue(fees, "fees");
+        Map<String, Object> feesValue = (Map<String, Object>) this.safeDict(fees, "fees");
         Double maker = this.safeNumber(feesValue, "maker");
         Double taker = this.safeNumber(feesValue, "taker");
         Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1809,10 +1809,10 @@ final Object finalBase = base;
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "takeProfit"));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLossLimit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
         String timeInForce = this.safeString(parameters, "timeInForce");
-        Object triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
+        String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
         Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
-        Object stopLossPrice = this.safeValue(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
-        Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
+        String stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
+        String takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
         if (Boolean.TRUE.equals(isMarketOrder))
         {
@@ -2585,7 +2585,7 @@ final Object finalBase = base;
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object rawTrades = this.safeValue(order, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = this.safeValue(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
@@ -3187,8 +3187,8 @@ final Object finalBase = base;
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        Object networks = this.safeValue(fee, "networks");
-        Object networkId = this.safeValue(networks, 0); // Bitvavo currently only supports one network per currency
+        List<Object> networks = (List<Object>) this.safeList(fee, "networks");
+        String networkId = this.safeString(networks, 0); // Bitvavo currently only supports one network per currency
         String currencyCode = this.safeString(currency, "code");
         if (java.util.Objects.equals(networkId, "Mainnet"))
         {
@@ -3338,6 +3338,6 @@ final Object finalBase = base;
         {
             return Helpers.GetValue(config, "noMarket");
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 }

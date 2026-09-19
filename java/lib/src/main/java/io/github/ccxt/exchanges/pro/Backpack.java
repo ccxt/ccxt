@@ -863,7 +863,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object trades = (this.watchPublic(topics, messageHashes, parameters)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }

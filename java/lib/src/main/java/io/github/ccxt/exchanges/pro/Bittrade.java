@@ -137,7 +137,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         //         }
         //     }
         //
-        Object tick = this.safeValue(message, "tick", new HashMap<String, Object>() {{}});
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         String ch = this.safeString(message, "ch");
         if (java.util.Objects.equals(ch, null))
         {
@@ -147,7 +147,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
-        Object timestamp = this.safeValue(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
         Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
@@ -231,8 +231,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         //         }
         //     }
         //
-        Object tick = this.safeValue(message, "tick", new HashMap<String, Object>() {{}});
-        Object data = this.safeValue(tick, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
+        List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         String ch = this.safeString(message, "ch");
         if (java.util.Objects.equals(ch, null))
         {
@@ -249,7 +249,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             tradesCache = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesCache);
         }
-        for (var i = 0; i < Helpers.getArrayLength(data); i++)
+        for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
@@ -343,7 +343,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -439,7 +439,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String messageHash = this.safeString(subscription, "messageHash");
         Long timestamp = this.safeInteger(message, "ts");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object data = this.safeValue(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         Object snapshot = this.parseOrderBook(data, symbol);
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seqNum"));
         ((Map<String, Object>)snapshot).put("timestamp", timestamp);
@@ -535,7 +535,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         //         }
         //     }
         //
-        Object tick = this.safeValue(message, "tick", new HashMap<String, Object>() {{}});
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         Long seqNum = this.safeInteger(tick, "seqNum");
         Long prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         if ((java.util.Objects.equals(prevSeqNum, null)) || (java.util.Objects.equals(seqNum, null)))
@@ -544,8 +544,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         if ((Helpers.isLessThanOrEqual(prevSeqNum, Helpers.GetValue(orderbook, "nonce"))) && (Helpers.isGreaterThan(seqNum, Helpers.GetValue(orderbook, "nonce"))))
         {
-            Object asks = this.safeValue(tick, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeValue(tick, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "nonce", seqNum);
@@ -629,7 +629,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             return message;
         }
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeValue(subscriptionsById, id);
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id);
         if (!java.util.Objects.equals(subscription, null))
         {
             Object method = this.safeValue(subscription, "method");
@@ -744,7 +744,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 return false;
             }
             Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-            Object subscription = this.safeValue(subscriptionsById, id);
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id);
             if (!java.util.Objects.equals(subscription, null))
             {
                 String errorCode = this.safeString(message, "err-code");

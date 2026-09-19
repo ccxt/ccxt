@@ -715,7 +715,7 @@ public class Onetrading extends OnetradingApi
             parameters = this.omit(parameters, "method");
             if (java.util.Objects.equals(method, null))
             {
-                Object options = this.safeValue(this.options, "fetchTradingFees", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTradingFees", new HashMap<String, Object>() {{}});
                 method = this.safeString(options, "method", "fetchPrivateTradingFees");
             }
             if (java.util.Objects.equals(method, "fetchPrivateTradingFees"))
@@ -1183,7 +1183,7 @@ public class Onetrading extends OnetradingApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object granularity = this.safeValue(ohlcv, "granularity");
+        Map<String, Object> granularity = (Map<String, Object>) this.safeDict(ohlcv, "granularity");
         String unit = this.safeString(granularity, "unit");
         String period = this.safeString(granularity, "period");
         Map<String, Object> units = new HashMap<String, Object>() {{
@@ -1207,7 +1207,7 @@ public class Onetrading extends OnetradingApi
             throw new ExchangeError((this.id + " parseOHLCV() missing timestamp")) ;
         }
         Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt(Helpers.divide(timestamp, duration)));
-        Object options = this.safeValue(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
         String volumeField = this.safeString(options, "volume", "total_amount");
         return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeField)));
     }
@@ -1322,7 +1322,7 @@ public class Onetrading extends OnetradingApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object feeInfo = this.safeValue(trade, "fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
         trade = this.safeValue(trade, "trade", trade);
         Long timestamp = this.safeInteger(trade, "trade_timestamp");
         if (java.util.Objects.equals(timestamp, null))
@@ -1534,8 +1534,8 @@ public class Onetrading extends OnetradingApi
         String side = this.safeStringLower(rawOrder, "side");
         String type = this.safeStringLower(rawOrder, "type");
         String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
-        Object postOnly = this.safeValue(rawOrder, "is_post_only");
-        Object rawTrades = this.safeValue(order, "trades", new ArrayList<Object>(Arrays.asList()));
+        Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only");
+        List<Object> rawTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2086,7 +2086,7 @@ public class Onetrading extends OnetradingApi
             //         "cursor": "string"
             //     }
             //
-            Object tradeHistory = this.safeValue(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tradeHistory = (List<Object>) this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {

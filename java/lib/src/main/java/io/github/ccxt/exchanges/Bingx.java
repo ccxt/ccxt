@@ -5089,7 +5089,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object clientOrderIds = this.safeValue(parameters, "clientOrderIds");
+            List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds");
             parameters = this.omit(parameters, "clientOrderIds");
             Object idsToParse = ids;
             Boolean areClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null));
@@ -6286,7 +6286,7 @@ public class Bingx extends BingxApi
         // parse withdraw-type output first...
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object data = this.safeValue(transaction, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(transaction, "data");
         String dataId = (((java.util.Objects.equals(data, null)))) ? null : this.safeString(data, "id");
         String id = this.safeString(transaction, "id", dataId);
         String address = this.safeString(transaction, "address");

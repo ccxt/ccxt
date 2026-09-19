@@ -257,7 +257,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(stream, null))
         {
             Object streamIndex = this.safeInteger(this.options, "streamIndex", -1);
-            Object streamLimits = this.safeValue(this.options, "streamLimits");
+            Map<String, Object> streamLimits = (Map<String, Object>) this.safeDict(this.options, "streamLimits");
             Object streamLimit = this.safeInteger(streamLimits, type);
             streamIndex = Helpers.add(streamIndex, 1);
             Object normalizedIndex = Helpers.mod(streamIndex, streamLimit);
@@ -267,7 +267,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 Helpers.addElementToObject(Helpers.GetValue(this.options, "streamBySubscriptionsHash"), subscriptionHash, stream);
             }
-            Object subscriptionsByStreams = this.safeValue(this.options, "numSubscriptionsByStream");
+            Map<String, Object> subscriptionsByStreams = (Map<String, Object>) this.safeDict(this.options, "numSubscriptionsByStream");
             if (java.util.Objects.equals(subscriptionsByStreams, null))
             {
                 Helpers.addElementToObject(this.options, "numSubscriptionsByStream", this.createSafeDictionary());
@@ -551,7 +551,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //        }
         //    }
         //
-        Object rawLiquidation = this.safeValue(message, "o", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawLiquidation = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawLiquidation, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "", "contract");
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1160,9 +1160,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             try
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-                Object type = this.safeValue(subscription, "type");
+                String type = this.safeString(subscription, "type");
                 Object limit = this.safeInteger(subscription, "limit", defaultLimit);
-                Object parameters = this.safeValue(subscription, "params");
+                Object parameters = this.safeDict(subscription, "params");
                 // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
                 // todo: this is a synch blocking call - make it async
                 // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -1246,8 +1246,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public Object handleOrderBookMessage(Client client, Object message, Object orderbook)
     {
         Long u = this.safeInteger(message, "u");
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeValue(message, "a", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeValue(message, "b", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "a", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(message, "b", new ArrayList<Object>(Arrays.asList())));
         Helpers.addElementToObject(orderbook, "nonce", u);
         Long timestamp = this.safeInteger(message, "E");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -1397,10 +1397,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         String symbolOfSubscription = this.safeString(subscription, "symbol"); // watchOrderBook
-        Object symbols = this.safeValue(subscription, "symbols", new ArrayList<Object>(Arrays.asList(symbolOfSubscription))); // watchOrderBookForSymbols
+        List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList(symbolOfSubscription))); // watchOrderBookForSymbols
         Long limit = this.safeInteger(subscription, "limit", defaultLimit);
         // handle list of symbols
-        for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
+        for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
             if (Helpers.inOp(this.orderbooks, symbol))
@@ -1428,7 +1428,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String id = this.safeString(message, "id");
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeValue(subscriptionsById, id, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Object method = this.safeValue(subscription, "method");
         if (!java.util.Objects.equals(method, null))
         {
@@ -1555,7 +1555,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object trades = (this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -2279,7 +2279,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "markPrice_kline", "markPriceKline" );
         }};
         eventVar = this.safeString(eventMap, eventVar, eventVar);
-        Object kline = this.safeValue(message, "k");
+        Map<String, Object> kline = (Map<String, Object>) this.safeDict(message, "k");
         String marketId = this.safeString2(kline, "s", "ps");
         if (java.util.Objects.equals(eventVar, "indexPriceKline"))
         {
@@ -2296,8 +2296,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         String symbol = this.safeSymbol(marketId, null, null, marketType);
         String messageHash = Helpers.add((("ohlcv::" + symbol) + "::"), unifiedTimeframe);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), unifiedTimeframe);
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), unifiedTimeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -3241,7 +3241,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeValue(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(result, "future");
         client.resolve(ticker, messageHash);
     }
@@ -3342,15 +3342,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 continue;
             }
             String tickerMarketId = this.safeString(ticker, "s");
-            Object tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
-            Object numTickerMarkets = (((java.util.Objects.equals(tickerMarketsByIdList, null)))) ? 0 : Helpers.getArrayLength(tickerMarketsByIdList);
+            List<Object> tickerMarketsByIdList = (List<Object>) this.safeList(this.markets_by_id, tickerMarketId);
+            Object numTickerMarkets = (((java.util.Objects.equals(tickerMarketsByIdList, null)))) ? 0 : ((List<?>)tickerMarketsByIdList).size();
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            Object tickerMarketById = (((Helpers.isEqual(numTickerMarkets, 1)))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
+            Object tickerMarketById = (((Helpers.isEqual(numTickerMarkets, 1)))) ? this.safeDict(tickerMarketsByIdList, 0) : null;
             Object isSpot = this.isSpotUrl(client);
             String tickerFallbackType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
-            Object tickerMarketType = (((!java.util.Objects.equals(tickerMarketById, null)))) ? Helpers.GetValue(tickerMarketById, "type") : tickerFallbackType;
+            Object tickerMarketType = (((!java.util.Objects.equals(tickerMarketById, null)))) ? ((Map<String, Object>)tickerMarketById).get("type") : tickerFallbackType;
             Object parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
             Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -3704,7 +3704,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             parameters = this.omit(parameters, "symbol");
             Boolean isStock = (java.util.Objects.equals(type, "stock"));
-            Object options = this.safeValue(this.options, type, new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
             String refreshRateKey = ((Boolean.TRUE.equals(isStock))) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
             Long listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
@@ -3834,7 +3834,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return null;
             }
             Boolean isStock = (java.util.Objects.equals(type, "stock"));
-            Object options = this.safeValue(this.options, type, new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
             String listenKey = this.safeString(options, "listenKey");
             if (java.util.Objects.equals(listenKey, null))
             {
@@ -3954,7 +3954,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             return;
         }
-        Object options = this.safeValue(this.options, "watchBalance");
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
@@ -3988,7 +3988,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((Map<String, Object>)parameters).put("portfolioMargin", true);
             }
             Object response = (this.fetchBalance((Object)(parameters))).join();
-            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new HashMap<String, Object>() {{}})));
+            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.inOp(client.futures, messageHash))
             {
@@ -6686,13 +6686,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object cachedOrders = this.orders;
                 if (!java.util.Objects.equals(cachedOrders, null))
                 {
-                    Object orders = this.safeValue(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-                    Object order = this.safeValue(orders, orderId);
+                    Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+                    Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId);
                     if (!java.util.Objects.equals(order, null))
                     {
                         // accumulate order fees
                         Object fees = this.safeValue(order, "fees");
-                        Object fee = this.safeValue(order, "fee");
+                        Map<String, Object> fee = (Map<String, Object>) this.safeDict(order, "fee");
                         if (!this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
@@ -6707,49 +6707,49 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                     {
                                         feeCostString = "0";
                                     }
-                                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(order, "fees"), i), "cost", Helpers.parseFloat(feeCostString));
+                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", Helpers.parseFloat(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             if (Boolean.TRUE.equals(insertNewFeeCurrency))
                             {
-                                ((List<Object>)Helpers.GetValue(order, "fees")).add(tradeFee);
+                                ((List<Object>)((Map<String, Object>)order).get("fees")).add(tradeFee);
                             }
                         } else if (!java.util.Objects.equals(fee, null))
                         {
-                            if (Helpers.isEqual(Helpers.GetValue(fee, "currency"), ((Map<String, Object>)tradeFee).get("currency")))
+                            if (Helpers.isEqual(((Map<String, Object>)fee).get("currency"), ((Map<String, Object>)tradeFee).get("currency")))
                             {
-                                Object feeCost = this.sum(Helpers.GetValue(fee, "cost"), ((Map<String, Object>)tradeFee).get("cost"));
+                                Object feeCost = this.sum(((Map<String, Object>)fee).get("cost"), ((Map<String, Object>)tradeFee).get("cost"));
                                 Object feeCostString = this.currencyToPrecision(((Map<String, Object>)tradeFee).get("currency"), feeCost);
                                 if (java.util.Objects.equals(feeCostString, null))
                                 {
                                     feeCostString = "0";
                                 }
-                                Helpers.addElementToObject(Helpers.GetValue(order, "fee"), "cost", Helpers.parseFloat(feeCostString));
-                            } else if (java.util.Objects.equals(Helpers.GetValue(fee, "currency"), null))
+                                Helpers.addElementToObject(order.get("fee"), "cost", Helpers.parseFloat(feeCostString));
+                            } else if (java.util.Objects.equals(((Map<String, Object>)fee).get("currency"), null))
                             {
-                                Helpers.addElementToObject(order, "fee", tradeFee);
+                                ((Map<String, Object>)order).put("fee", tradeFee);
                             } else
                             {
-                                Helpers.addElementToObject(order, "fees", new ArrayList<Object>(Arrays.asList(fee, tradeFee)));
-                                Helpers.addElementToObject(order, "fee", null);
+                                ((Map<String, Object>)order).put("fees", new ArrayList<Object>(Arrays.asList(fee, tradeFee)));
+                                ((Map<String, Object>)order).put("fee", null);
                             }
                         } else
                         {
-                            Helpers.addElementToObject(order, "fee", tradeFee);
+                            ((Map<String, Object>)order).put("fee", tradeFee);
                         }
                         // save this trade in the order
                         List<Object> orderTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)orderTrades).add(trade);
-                        Helpers.addElementToObject(order, "trades", orderTrades);
+                        ((Map<String, Object>)order).put("trades", orderTrades);
                         // write the updated order back into the cache: php
                         // arrays are value types, so the fee/trades mutations
                         // above only touched a local copy there — the cache
                         // hashmap rows are wired by reference, so this
                         // assignment reaches the cached row (and is a no-op
                         // in the reference-semantics runtimes)
-                        Helpers.addElementToObject(orders, orderId, order);
+                        ((Map<String, Object>)orders).put((String)orderId, order);
                     }
                 }
             }
@@ -6779,8 +6779,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object cachedOrders = this.orders;
-            Object orders = this.safeValue(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-            Object order = this.safeValue(orders, orderId);
+            Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId);
             if (!java.util.Objects.equals(order, null))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -7007,7 +7007,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         // user subscription wraps message in subscriptionId and event
         String id = this.safeString(message, "id");
-        Object subscriptions = this.safeValue(client.subscriptions, id);
+        Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(client.subscriptions, id);
         Object method = this.safeValue(subscriptions, "method");
         if (!java.util.Objects.equals(method, null))
         {

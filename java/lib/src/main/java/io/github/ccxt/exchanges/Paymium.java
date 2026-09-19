@@ -244,7 +244,7 @@ public class Paymium extends PaymiumApi
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object currencyId = ((Map<String, Object>)currency).get("id");
             String free = ("balance_" + currencyId);
-            if (Helpers.inOp(response, free))
+            if (((Map<?, ?>)response).containsKey(free))
             {
                 Object account = this.account();
                 String used = ("locked_" + currencyId);
@@ -783,8 +783,8 @@ public class Paymium extends PaymiumApi
         String currencyId = this.safeString(transfer, "currency");
         String updatedAt = this.safeString(transfer, "updated_at");
         Object timetstamp = this.parseDate(updatedAt);
-        Object accountOperations = this.safeValue(transfer, "account_operations");
-        Object firstOperation = this.safeValue(accountOperations, 0, new HashMap<String, Object>() {{}});
+        List<Object> accountOperations = (List<Object>) this.safeList(transfer, "account_operations");
+        Map<String, Object> firstOperation = (Map<String, Object>) this.safeDict(accountOperations, 0, new HashMap<String, Object>() {{}});
         String status = this.safeString(transfer, "state");
         return new HashMap<String, Object>() {{
             put( "info", transfer );

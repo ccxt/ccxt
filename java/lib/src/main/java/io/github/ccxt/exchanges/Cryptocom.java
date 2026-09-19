@@ -1607,7 +1607,7 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            Object orderBook = this.safeValue(data, 0);
+            Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(data, 0);
             Long timestamp = this.safeInteger(orderBook, "t");
             return this.parseOrderBook(orderBook, symbol, timestamp);
         }).thenApply(OrderBook::new);
@@ -3211,12 +3211,12 @@ public class Cryptocom extends CryptocomApi
         Long created = this.safeInteger(order, "create_time");
         String marketId = this.safeString(order, "instrument_name");
         String symbol = this.safeSymbol(marketId, market);
-        Object execInst = this.safeValue(order, "exec_inst");
+        List<Object> execInst = (List<Object>) this.safeList(order, "exec_inst");
         Object postOnly = null;
         if (!java.util.Objects.equals(execInst, null))
         {
             postOnly = false;
-            for (var i = 0; i < Helpers.getArrayLength(execInst); i++)
+            for (var i = 0; i < ((List<?>)execInst).size(); i++)
             {
                 Object inst = Helpers.GetValue(execInst, i);
                 if (java.util.Objects.equals(inst, "POST_ONLY"))
@@ -3500,7 +3500,7 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.v1PrivatePostPrivateGetCurrencyNetworks(parameters)).join();
-            Object data = this.safeValue(response, "result");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result");
             List<Object> currencyMap = (List<Object>) this.safeList(data, "currency_map");
             return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
         }).thenApply(DepositWithdrawFees::new);

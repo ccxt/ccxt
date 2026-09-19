@@ -1018,9 +1018,9 @@ public class Coinsph extends CoinsphApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 Map<String, Object> limits = this.indexBy(this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList())), "filterType");
-                Object amountLimits = this.safeValue(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
-                Object priceLimits = this.safeValue(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-                Object costLimits = this.safeValue(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
+                Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
+                Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+                Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -1746,7 +1746,7 @@ public class Coinsph extends CoinsphApi
                 put( "type", finalOrderType );
                 put( "side", finalOrderSide );
             }};
-            Object options = this.safeValue(this.options, "createOrder", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
             Object newOrderRespType = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
             // if limit order
             if (java.util.Objects.equals(orderType, "LIMIT") || java.util.Objects.equals(orderType, "STOP_LOSS_LIMIT") || java.util.Objects.equals(orderType, "TAKE_PROFIT_LIMIT") || java.util.Objects.equals(orderType, "LIMIT_MAKER"))
@@ -2376,7 +2376,7 @@ public class Coinsph extends CoinsphApi
 
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object options = this.safeValue(this.options, "withdraw");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "withdraw");
             Boolean warning = (Boolean) this.safeBool(options, "warning", true);
             if (java.util.Objects.equals(warning, true))
             {

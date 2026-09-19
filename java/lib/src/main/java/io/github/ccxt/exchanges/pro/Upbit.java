@@ -215,7 +215,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object trades = (this.watchPublicMultiple(symbols, "trade")).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -351,7 +351,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String marketId = this.safeString(message, "code");
         String symbol = this.safeSymbol(marketId, null, "-");
         String type = this.safeString(message, "stream_type");
-        Object options = this.safeValue(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
         if (java.util.Objects.equals(type, "SNAPSHOT"))
         {
@@ -793,8 +793,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedOrders = this.orders;
-        Object orders = (((java.util.Objects.equals(symbol, null)))) ? new HashMap<String, Object>() {{}} : this.safeValue(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-        Object order = (((java.util.Objects.equals(orderId, null)))) ? null : this.safeValue(orders, orderId);
+        Object orders = (((java.util.Objects.equals(symbol, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+        Object order = (((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId);
         if (!java.util.Objects.equals(order, null))
         {
             Object fee = this.safeValue(order, "fee");

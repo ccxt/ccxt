@@ -1763,7 +1763,7 @@ public class Coinex extends CoinexApi
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object symbol = this.safeValue(symbols, 0);
+                String symbol = this.safeString(symbols, 0);
                 market = this.market(symbol);
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -2140,7 +2140,7 @@ public class Coinex extends CoinexApi
     public Object parseTradingFee(Object fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object marketId = this.safeValue(fee, "market");
+        String marketId = this.safeString(fee, "market");
         String symbol = this.safeSymbol(marketId, market);
         return new HashMap<String, Object>() {{
             put( "info", fee );
@@ -3093,9 +3093,9 @@ public class Coinex extends CoinexApi
                 }
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(type, "limit"))
                 {
                     throw new NotSupported((Helpers.add((this.id + " createOrders() does not support "), type) + " orders, only limit orders are accepted")) ;
@@ -3389,8 +3389,8 @@ public class Coinex extends CoinexApi
                     ((List<Object>)orderSymbols).add(marketId);
                 }
                 String id = this.safeString(rawOrder, "id");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginMode = null;
                 List<Object> marginModeorderParamsVariable = (List<Object>) this.handleMarginModeAndParams("editOrders", orderParams);
@@ -4954,7 +4954,7 @@ final Object finalI = i;
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object symbol = this.safeValue(symbols, 0);
+                String symbol = this.safeString(symbols, 0);
                 market = this.market(symbol);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
@@ -5389,7 +5389,7 @@ final Object finalI = i;
         String currencyId = this.safeString(transfer, "ccy");
         String fromId = this.safeString(transfer, "from_account_type");
         String toId = this.safeString(transfer, "to_account_type");
-        Object accountsById = this.safeValue(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "id", null );
             put( "timestamp", timestamp );
@@ -5786,7 +5786,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object rows = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));

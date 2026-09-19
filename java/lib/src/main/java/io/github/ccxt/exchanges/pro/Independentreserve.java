@@ -110,7 +110,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //        "Event": "Trade"
         //    }
         //
-        Object data = this.safeValue(message, "Data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "Pair");
         String symbol = this.safeSymbol(marketId, null, "-");
         String messageHash = ("trades:" + symbol);
@@ -238,7 +238,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = Helpers.add((("orderbook:" + symbol) + ":"), depth);
-        Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Boolean receivedSnapshot = (Boolean) this.safeBool(subscription, "receivedSnapshot", false);
         Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);

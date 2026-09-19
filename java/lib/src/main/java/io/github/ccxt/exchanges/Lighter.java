@@ -1052,8 +1052,8 @@ public class Lighter extends LighterApi
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
-        Object stopLoss = this.safeValue(parameters, "stopLoss");
-        Object takeProfit = this.safeValue(parameters, "takeProfit");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         Boolean isConditional = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
@@ -4325,7 +4325,7 @@ public class Lighter extends LighterApi
                 put( "Authorization", Lighter.this.createAuth(parameters) );
             }};
         }
-        if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+        if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
         {
             if (java.util.Objects.equals(method, "POST"))
             {

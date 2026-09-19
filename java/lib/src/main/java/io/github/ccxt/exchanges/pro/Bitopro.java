@@ -225,7 +225,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
-        Object rawData = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawData = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawData, market);
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
@@ -309,7 +309,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(data, "base");
         String quoteId = this.safeString(data, "quote");
         String base = this.safeCurrencyCode(baseId);
@@ -384,7 +384,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 put( "rate", null );
             }};
         }
-        Object isMaker = this.safeValue(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -564,10 +564,10 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String eventVar = this.safeString(message, "event");
-        Object data = this.safeValue(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.safeString(message, "datetime");
-        List<Object> currencies = Helpers.objectKeys(data);
+        Object currencies = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );
@@ -576,7 +576,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             String currency = this.safeString(currencies, i);
-            Object balance = this.safeValue(data, currency);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

@@ -378,7 +378,7 @@ public class Bit2c extends Bit2cApi
             Object account = this.account();
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
-            if (Helpers.inOp(response, uppercase))
+            if (((Map<?, ?>)response).containsKey(uppercase))
             {
                 ((Map<String, Object>)account).put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
                 ((Map<String, Object>)account).put("total", this.safeString(response, uppercase));
@@ -688,7 +688,7 @@ public class Bit2c extends Bit2cApi
             {
                 Object marketId = Helpers.GetValue(keys, i);
                 String symbol = this.safeSymbol(marketId);
-                Object fee = this.safeValue(fees, marketId);
+                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, marketId);
                 String makerString = this.safeString(fee, "FeeMaker");
                 String takerString = this.safeString(fee, "FeeTaker");
                 Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
@@ -821,8 +821,8 @@ public class Bit2c extends Bit2cApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
-            Object orders = this.safeValue(response, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
-            Object asks = this.safeValue(orders, "ask", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
+            List<Object> asks = (List<Object>) this.safeList(orders, "ask", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1165,7 +1165,7 @@ public class Bit2c extends Bit2cApi
             String marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);
-            Object isMaker = this.safeValue(trade, "isMaker");
+            Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
             makerOrTaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
             orderId = (((java.util.Objects.equals(isMaker, true)))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
             Long action = this.safeInteger(trade, "action");

@@ -419,7 +419,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Object trades = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -595,7 +595,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Object timeframeId = Helpers.replace(secondPart, (String)"-TRADE", (String)"");
         Object timeframe = this.findTimeframe(timeframeId);
         String messageHash = Helpers.add((("ohlcv::" + symbol) + "::"), timeframe);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (!(((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(((String)timeframe))))
         {
             Object limit = this.handleOption("watchOHLCV", "limit", 1000);

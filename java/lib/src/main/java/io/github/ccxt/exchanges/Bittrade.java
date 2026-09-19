@@ -732,7 +732,7 @@ public class Bittrade extends BittradeApi
             //                 "market-sell-order-rate-must-less-than":  0.1,
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
-            return this.parseTradingLimits(this.safeValue(response, "data", new HashMap<String, Object>() {{}}));
+            return this.parseTradingLimits(this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
         });
 
     }
@@ -1067,7 +1067,7 @@ public class Bittrade extends BittradeApi
                 {
                     throw new BadSymbol(((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
                 }
-                Object tick = this.safeValue(response, "tick");
+                Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
                 Object result = this.parseOrderBook(tick, symbol, timestamp);
                 ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
@@ -1565,7 +1565,7 @@ public class Bittrade extends BittradeApi
             //         ]
             //     }
             //
-            Object currencies = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -1573,11 +1573,11 @@ public class Bittrade extends BittradeApi
 
     public Object parseCurrency(Object currency)
     {
-        Object id = this.safeValue(currency, "name");
+        String id = this.safeString(currency, "name");
         String code = this.safeCurrencyCode(id);
-        Object depositEnabled = this.safeValue(currency, "deposit-enabled");
-        Object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
-        Object countryDisabled = this.safeValue(currency, "country-disabled");
+        Boolean depositEnabled = (Boolean) this.safeBool(currency, "deposit-enabled");
+        Boolean withdrawEnabled = (Boolean) this.safeBool(currency, "withdraw-enabled");
+        Boolean countryDisabled = (Boolean) this.safeBool(currency, "country-disabled");
         Boolean visible = (Boolean) this.safeBool(currency, "visible", false);
         String state = this.safeString(currency, "state");
         Boolean active = (java.util.Objects.equals(visible, true)) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
@@ -2115,7 +2115,7 @@ public class Bittrade extends BittradeApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                Object broker = this.safeValue(this.options, "broker", new HashMap<String, Object>() {{}});
+                Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                 String brokerId = this.safeString(broker, "id");
                 ((Map<String, Object>)request).put("client-order-id", Helpers.add(brokerId, this.uuid()));
             } else
@@ -2427,7 +2427,7 @@ public class Bittrade extends BittradeApi
         currency = this.safeCurrency(currencyId, currency);
         String code = this.safeCurrencyCode(currencyId, currency);
         String networkId = this.safeString(depositAddress, "chain");
-        Object networks = this.safeValue(currency, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         Map<String, Object> networksById = this.indexBy(networks, "id");
         Object networkValue = this.safeValue(networksById, networkId, networkId);
         String network = this.safeString(networkValue, "network");
@@ -2690,7 +2690,7 @@ public class Bittrade extends BittradeApi
             {
                 ((Map<String, Object>)request).put("addr-tag", tag); // only for XRP?
             }
-            Object networks = this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
             if (!java.util.Objects.equals(network, null))

@@ -1463,7 +1463,7 @@ public class Bitfinex extends BitfinexApi
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> result = (List<Object>) this.safeList(transfer, "result");
         Long timestamp = this.safeInteger(result, 0);
-        Object info = this.safeValue(result, 4);
+        List<Object> info = (List<Object>) this.safeList(result, 4);
         String fromAccount = this.safeString(info, 1);
         String toAccount = this.safeString(info, 2);
         String currencyId = this.safeString(info, 5);
@@ -1498,9 +1498,9 @@ public class Bitfinex extends BitfinexApi
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        Object info = this.safeValue(currency, "info");
+        List<Object> info = (List<Object>) this.safeList(currency, "info");
         String transferId = this.safeString(info, 0);
-        Object underlying = this.safeValue(info, 4, new ArrayList<Object>(Arrays.asList()));
+        List<Object> underlying = (List<Object>) this.safeList(info, 4, new ArrayList<Object>(Arrays.asList()));
         Object currencyId = null;
         if (java.util.Objects.equals(type, "derivatives"))
         {
@@ -2106,7 +2106,7 @@ public class Bitfinex extends BitfinexApi
             put( "4096", new ArrayList<Object>(Arrays.asList("postOnly")) );
             put( "5120", new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly")) );
         }};
-        return this.safeValue(flagValues, flags);
+        return this.safeList(flagValues, flags);
     }
 
     public String parseTimeInForce(Object orderType)
@@ -2135,14 +2135,14 @@ public class Bitfinex extends BitfinexApi
         String amount = Precise.stringAbs(signedAmount);
         String side = ((Precise.stringLt(signedAmount, "0"))) ? "sell" : "buy";
         String orderType = this.safeString(orderList, 8);
-        String type = this.safeString(this.safeValue(this.options, "exchangeTypes"), orderType);
+        String type = this.safeString(this.safeDict(this.options, "exchangeTypes"), orderType);
         String timeInForce = this.parseTimeInForce(orderType);
         String rawFlags = this.safeString(orderList, 12);
         Object flags = this.parseOrderFlags(rawFlags);
         Boolean postOnly = false;
         if (!java.util.Objects.equals(flags, null))
         {
-            for (var i = 0; i < Helpers.getArrayLength(flags); i++)
+            for (var i = 0; i < ((List<?>)flags).size(); i++)
             {
                 if (java.util.Objects.equals(Helpers.GetValue(flags, i), "postOnly"))
                 {
@@ -3116,8 +3116,8 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             // if not provided explicitly we will try to match using the currency name
             String network = this.safeString(parameters, "network", code);
-            Object currencyNetworks = this.safeValue(currency, "networks", new HashMap<String, Object>() {{}});
-            Object currencyNetwork = this.safeValue(currencyNetworks, network);
+            Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencyNetwork = (Map<String, Object>) this.safeDict(currencyNetworks, network);
             String networkId = this.safeString(currencyNetwork, "id");
             if (java.util.Objects.equals(networkId, null))
             {
@@ -3151,7 +3151,7 @@ public class Bitfinex extends BitfinexApi
             //         "success", // TEXT Text of the notification
             //     ]
             //
-            Object result = this.safeValue(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             String poolAddress = this.safeString(result, 5);
             String address = (((java.util.Objects.equals(poolAddress, null)))) ? this.safeString(result, 4) : poolAddress;
             String tag = (((java.util.Objects.equals(poolAddress, null)))) ? null : this.safeString(result, 4);
@@ -3255,7 +3255,7 @@ public class Bitfinex extends BitfinexApi
         String comment = null;
         if (java.util.Objects.equals(transactionLength, 8))
         {
-            Object data = this.safeValue(transaction, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(transaction, 4, new ArrayList<Object>(Arrays.asList()));
             timestamp = this.safeInteger(transaction, 0);
             if (!java.util.Objects.equals(currency, null))
             {
@@ -3438,9 +3438,9 @@ public class Bitfinex extends BitfinexApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> fiat = (Map<String, Object>) this.safeDict(this.options, "fiat", new HashMap<String, Object>() {{}});
-            Object feeData = this.safeValue(response, 4, new ArrayList<Object>(Arrays.asList()));
-            Object makerData = this.safeValue(feeData, 0, new ArrayList<Object>(Arrays.asList()));
-            Object takerData = this.safeValue(feeData, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> feeData = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> makerData = (List<Object>) this.safeList(feeData, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> takerData = (List<Object>) this.safeList(feeData, 1, new ArrayList<Object>(Arrays.asList()));
             Double makerFee = this.safeNumber(makerData, 0);
             Double makerFeeFiat = this.safeNumber(makerData, 2);
             Double makerFeeDeriv = this.safeNumber(makerData, 5);
@@ -3585,8 +3585,8 @@ public class Bitfinex extends BitfinexApi
             // if not provided explicitly we will try to match using the currency name
             String network = this.safeString(parameters, "network", code);
             parameters = this.omit(parameters, "network");
-            Object currencyNetworks = this.safeValue(currency, "networks", new HashMap<String, Object>() {{}});
-            Object currencyNetwork = this.safeValue(currencyNetworks, network);
+            Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencyNetwork = (Map<String, Object>) this.safeDict(currencyNetworks, network);
             String networkId = this.safeString(currencyNetwork, "id");
             if (java.util.Objects.equals(networkId, null))
             {
@@ -3605,7 +3605,7 @@ public class Bitfinex extends BitfinexApi
             {
                 ((Map<String, Object>)request).put("payment_id", tag);
             }
-            Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
             if (java.util.Objects.equals(includeFee, true))
             {

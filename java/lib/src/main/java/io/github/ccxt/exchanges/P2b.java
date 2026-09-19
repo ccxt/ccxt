@@ -520,7 +520,7 @@ public class P2b extends P2bApi
             //        current_time: '1699252644.487566'
             //    }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTickers(result, symbols);
         }).thenApply(Tickers::new);
 
@@ -570,7 +570,7 @@ public class P2b extends P2bApi
             //        current_time: '1699252958.859391'
             //    }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(response, "cache_time", 1000);
             return this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
@@ -617,7 +617,7 @@ public class P2b extends P2bApi
         Long timestamp = this.safeIntegerProduct(ticker, "at", 1000);
         if (Helpers.inOp(ticker, "ticker"))
         {
-            ticker = this.safeValue(ticker, "ticker");
+            ticker = this.safeDict(ticker, "ticker");
         }
         String last = this.safeString(ticker, "last");
         final Object finalTicker = ticker;
@@ -703,7 +703,7 @@ public class P2b extends P2bApi
             //        "current_time": 1698733470.469274
             //    }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(response, "current_time", 1000);
             return this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1);
         }).thenApply(OrderBook::new);
@@ -966,7 +966,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseBalance(result);
         }).thenApply(Balances::new);
 
@@ -1260,7 +1260,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> records = (List<Object>) this.safeList(result, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(records, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1358,7 +1358,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> deals = (List<Object>) this.safeList(result, "deals", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(deals, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1459,9 +1459,9 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Object result = this.safeValue(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orders = new ArrayList<Object>(Arrays.asList());
-            List<Object> keys = Helpers.objectKeys(result);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)result).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);

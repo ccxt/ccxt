@@ -330,7 +330,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets()).join();
             }
             Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
-            Object trigger = this.safeValueN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
+            Object trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             var type = ((List<Object>) typequeryVariable).get(0);
@@ -814,7 +814,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String rawMarketType = this.safeString(channelParts, 0);
         Boolean isSpot = java.util.Objects.equals(rawMarketType, "spot");
         String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
-        Object delta = this.safeValue(message, "result");
+        Map<String, Object> delta = (Map<String, Object>) this.safeDict(message, "result");
         Long deltaStart = this.safeInteger(delta, "U");
         Long deltaEnd = this.safeInteger(delta, "u");
         String marketId = this.safeString(delta, "s");
@@ -905,8 +905,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
-        Object bids = this.safeValue(delta, "b", new ArrayList<Object>(Arrays.asList()));
-        Object asks = this.safeValue(delta, "a", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
         Object storedBids = Helpers.GetValue(orderbook, "bids");
         Object storedAsks = Helpers.GetValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
@@ -1198,7 +1198,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object trades = (this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -2060,7 +2060,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //         ]
         //     }
         //
-        Object orders = this.safeValue(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
         Boolean isTrigger = (((String)channel).indexOf("autoorders") >= 0) || (((String)channel).indexOf("priceorders") >= 0);
         String hashPrefix = ((Boolean.TRUE.equals(isTrigger))) ? "triggerOrders" : "orders";
@@ -2077,7 +2077,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Object parsed = Helpers.GetValue(parsedOrders, i);
             // inject order status
-            Object info = this.safeValue(parsed, "info");
+            Map<String, Object> info = (Map<String, Object>) this.safeDict(parsed, "info");
             String eventVar = this.safeString(info, "event");
             if (java.util.Objects.equals(eventVar, "put") || java.util.Objects.equals(eventVar, "update"))
             {
@@ -2267,7 +2267,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object liquidation = this.parseWsLiquidation(rawLiquidation);
             Helpers.callDynamically(cache, "append", new Object[]{liquidation});
             String symbol = this.safeString(liquidation, "symbol");
-            Object symbolLiquidations = this.safeValue(cache, symbol, new ArrayList<Object>(Arrays.asList()));
+            List<Object> symbolLiquidations = (List<Object>) this.safeList(cache, symbol, new ArrayList<Object>(Arrays.asList()));
             client.resolve(symbolLiquidations, Helpers.add("myLiquidations::", symbol));
         }
         client.resolve(newLiquidations, "myLiquidations");
@@ -2626,7 +2626,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             return;
         }
         Object channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
-        Object channelType = this.safeValue(channelParts, 1);
+        String channelType = this.safeString(channelParts, 1);
         Map<String, Object> v4Methods = new HashMap<String, Object>() {{
             put( "usertrades", "handleMyTrades");
             put( "candlesticks", "handleOHLCV");
