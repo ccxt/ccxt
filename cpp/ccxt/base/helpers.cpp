@@ -1,4 +1,5 @@
 #include "helpers.h"
+#include "JsonView.h"
 #include "Precise.h"
 #include "ws/Cache.h"
 #include "ws/Client.h"
@@ -161,6 +162,20 @@ ccxt::any getValue (const ccxt::any& target, const ccxt::any& key) {
     if (!target.has_value ()) {
         return ccxt::any {};
     }
+    // lazy json views: array indexing produces a deferred element view;
+    // field access resolves through the shared sequential cursor
+    if (target.tag_ == ccxt::any::kView) {
+        const ccxt::jsonView& v = ccxt::viewOf (target);
+        if (v.kind == ccxt::kJvArray) {
+            double idx = 0;
+            if (numericValue (key, idx) && idx >= 0
+                && idx == static_cast<double> (static_cast<std::uint32_t> (idx))) {
+                return ccxt::viewElement (v, static_cast<std::uint32_t> (idx));
+            }
+            return ccxt::any {};
+        }
+        return ccxt::viewGet (v, key);
+    }
     // ws client: url, subscriptions, futures, rejections, mockSentMessages
     if (target.type () == typeid (ccxt::ws::Client)) {
         ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (target);
@@ -248,6 +263,12 @@ ccxt::any getValue (const ccxt::any& target, const ccxt::any& key) {
 }
 
 void setValue (const ccxt::any& target, const ccxt::any& key, const ccxt::any& value) {
+    if (target.tag_ == ccxt::any::kView) {
+        // views are read-only; the mutation applies to a materialised copy
+        // (no transpiled code path mutates a parsed response)
+        setValue (ccxt::viewMaterialize (ccxt::viewOf (target)), key, value);
+        return;
+    }
     if (ccxt::isDict (target)) {
         ccxt::any_cast<dict> (target).set (anyToString (key), value);
         return;
@@ -269,6 +290,10 @@ void setValue (const ccxt::any& target, const ccxt::any& key, const ccxt::any& v
 }
 
 void deleteKey (const ccxt::any& target, const ccxt::any& key) {
+    if (target.tag_ == ccxt::any::kView) {
+        deleteKey (ccxt::viewMaterialize (ccxt::viewOf (target)), key);
+        return;
+    }
     if (ccxt::isDict (target)) {
         ccxt::any_cast<dict> (target).erase (anyToString (key));
     }
@@ -291,8 +316,17 @@ bool isTrue (const ccxt::any& v) {
 }
 
 bool isEqual (const ccxt::any& a, const ccxt::any& b) {
+    // the undefined fast path FIRST: comparing a view against undefined must
+    // not materialise the view (a full sub-parse of a huge array for the
+    // ubiquitous `value == undefined` idiom would be catastrophic)
     if (!a.has_value () || !b.has_value ()) {
         return !a.has_value () && !b.has_value ();
+    }
+    if (a.tag_ == ccxt::any::kView) {
+        return isEqual (ccxt::viewMaterialize (ccxt::viewOf (a)), b);
+    }
+    if (b.tag_ == ccxt::any::kView) {
+        return isEqual (a, ccxt::viewMaterialize (ccxt::viewOf (b)));
     }
     if (ccxt::isStr (a) && ccxt::isStr (b)) {
         return ccxt::any_cast<std::string> (a) == ccxt::any_cast<std::string> (b);
@@ -359,6 +393,9 @@ bool isLessThanOrEqual (const ccxt::any& a, const ccxt::any& b) {
 }
 
 bool inOp (const ccxt::any& container, const ccxt::any& key) {
+    if (container.tag_ == ccxt::any::kView) {
+        return ccxt::viewHasKey (ccxt::viewOf (container), key);
+    }
     if (ccxt::isDict (container)) {
         return ccxt::any_cast<dict> (container).has (anyToString (key));
     }
@@ -473,6 +510,14 @@ bool isInteger (const ccxt::any& v) {
 // ---------------------------------------------------------------------------
 
 ccxt::any getArrayLength (const ccxt::any& v) {
+    if (v.tag_ == ccxt::any::kView) {
+        const ccxt::jsonView& jv = ccxt::viewOf (v);
+        if (jv.kind == ccxt::kJvArray) {
+            return ccxt::viewArrayLength (jv);
+        }
+        // a deferred/object view: materialise and take the length
+        return getArrayLength (ccxt::viewMaterialize (jv));
+    }
     if (ccxt::isList (v)) return ccxt::any (static_cast<int> (ccxt::any_cast<list> (v).size ()));
     if (ccxt::isDict (v)) return ccxt::any (static_cast<int> (ccxt::any_cast<dict> (v).size ()));
     if (ccxt::isStr (v))  return ccxt::any (static_cast<int> (ccxt::any_cast<std::string> (v).size ()));
@@ -503,6 +548,9 @@ ccxt::any getStringLength (const ccxt::any& v) {
 }
 
 ccxt::any getObjectKeys (const ccxt::any& v) {
+    if (v.tag_ == ccxt::any::kView) {
+        return getObjectKeys (ccxt::viewMaterialize (ccxt::viewOf (v)));
+    }
     list out;
     if (ccxt::isDict (v)) {
         for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
@@ -535,6 +583,9 @@ ccxt::any sortedObjectKeys (const ccxt::any& v) {
 }
 
 ccxt::any getObjectValues (const ccxt::any& v) {
+    if (v.tag_ == ccxt::any::kView) {
+        return getObjectValues (ccxt::viewMaterialize (ccxt::viewOf (v)));
+    }
     list out;
     if (ccxt::isDict (v)) {
         for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
@@ -591,16 +642,39 @@ ccxt::any reverse (const ccxt::any& arr) {
     return arr;   // JS Array#reverse mutates and returns the same array
 }
 
+// a list-shaped view: iterate its elements as deferred views without
+// materialising the whole array (the concat of fetchMarkets results is the
+// hot path — materialising the 17MB symbols tree there defeats the laziness)
+static list viewListOf (const ccxt::any& v) {
+    const ccxt::jsonView& jv = ccxt::viewOf (v);
+    if (jv.kind != ccxt::kJvArray) {
+        return ccxt::any_cast<list> (ccxt::viewMaterialize (jv));
+    }
+    list out;
+    const ccxt::any n = ccxt::viewArrayLength (jv);
+    const std::size_t count = ccxt::any_cast<std::size_t> (n);
+    for (std::size_t i = 0; i < count; ++i) {
+        out.push (ccxt::viewElement (jv, static_cast<std::uint32_t> (i)));
+    }
+    return out;
+}
+
 ccxt::any concat (const ccxt::any& a, const ccxt::any& b) {
     if (ccxt::isStr (a) || ccxt::isStr (b)) {
         return ccxt::any (anyToString (a) + anyToString (b));
     }
     list out;
     if (ccxt::isList (a)) {
-        for (const auto& item : ccxt::any_cast<list> (a).items ()) out.push (item);
+        const list l = (a.tag_ == ccxt::any::kView)
+            ? viewListOf (a)
+            : ccxt::any_cast<list> (a);
+        for (const auto& item : l.items ()) out.push (item);
     }
     if (ccxt::isList (b)) {
-        for (const auto& item : ccxt::any_cast<list> (b).items ()) out.push (item);
+        const list l = (b.tag_ == ccxt::any::kView)
+            ? viewListOf (b)
+            : ccxt::any_cast<list> (b);
+        for (const auto& item : l.items ()) out.push (item);
     } else if (b.has_value ()) {
         out.push (b);
     }
@@ -653,6 +727,9 @@ ccxt::any slice (const ccxt::any& target, const ccxt::any& start, const ccxt::an
 }
 
 bool includes (const ccxt::any& haystack, const ccxt::any& needle) {
+    if (haystack.tag_ == ccxt::any::kView) {
+        return includes (ccxt::viewMaterialize (ccxt::viewOf (haystack)), needle);
+    }
     if (ccxt::isStr (haystack)) {
         return ccxt::any_cast<std::string> (haystack).find (anyToString (needle)) != std::string::npos;
     }
@@ -667,6 +744,9 @@ bool includes (const ccxt::any& haystack, const ccxt::any& needle) {
 }
 
 ccxt::any getIndexOf (const ccxt::any& haystack, const ccxt::any& needle) {
+    if (haystack.tag_ == ccxt::any::kView) {
+        return getIndexOf (ccxt::viewMaterialize (ccxt::viewOf (haystack)), needle);
+    }
     if (ccxt::isStr (haystack)) {
         const std::size_t at = ccxt::any_cast<std::string> (haystack).find (anyToString (needle));
         return ccxt::any (at == std::string::npos ? -1 : static_cast<int> (at));

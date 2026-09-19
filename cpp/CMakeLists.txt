@@ -51,6 +51,7 @@ find_package (simdjson QUIET)
 
 add_library (ccxt STATIC
     ccxt/base/helpers.cpp
+    ccxt/base/JsonView.cpp
     ccxt/base/ExchangeBase.cpp
     ccxt/base/Exchange.SetMarkets.cpp
     ccxt/base/Crypto.cpp
@@ -77,6 +78,9 @@ set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIO
 # isEqual/safeString/...) that setMarkets-style generated code calls millions
 # of times through std::any; same one-TU -O2 treatment.
 set_source_files_properties (ccxt/base/helpers.cpp PROPERTIES COMPILE_OPTIONS "-O2")
+# the lazy-view resolution (field scans, sub-parses, the byte-scan counter) is
+# the same hot loop at -O0 otherwise.
+set_source_files_properties (ccxt/base/JsonView.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 # the out-of-line setMarkets definition (see Exchange.SetMarkets.cpp)
 set_source_files_properties (ccxt/base/Exchange.SetMarkets.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
