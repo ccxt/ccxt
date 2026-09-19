@@ -2312,7 +2312,7 @@ public class Coinbase extends CoinbaseApi
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
             Long now = this.milliseconds();
-            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan((Helpers.subtract(now, timestamp)), expires)))
+            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan(((now - timestamp)), expires)))
             {
                 List<Object> promises = new ArrayList<Object>(Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)));
                 Object promisesResult = (Helpers.promiseAll(promises)).join();
@@ -4729,7 +4729,7 @@ public class Coinbase extends CoinbaseApi
             ((Map<String, Object>)request).put("start", sinceString);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("end", this.numberToString(this.parseToInt(Helpers.divide(until, 1000))));
+                ((Map<String, Object>)request).put("end", this.numberToString(this.parseToInt((((double) until) / ((double) 1000)))));
             } else
             {
                 // 300 candles max

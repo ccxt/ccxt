@@ -3514,7 +3514,7 @@ public class Poloniex extends PoloniexApi
             (this.loadMarkets()).join();
             Integer year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
             Long now = this.seconds();
-            Object start = (((!java.util.Objects.equals(since, null)))) ? this.parseToInt(Helpers.divide(since, 1000)) : Helpers.subtract(now, Helpers.multiply(10, year));
+            Object start = (((!java.util.Objects.equals(since, null)))) ? this.parseToInt(Helpers.divide(since, 1000)) : (now - (10L * ((long) year)));
             final Object finalNow = now;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "start", start );

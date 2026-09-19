@@ -1200,13 +1200,13 @@ public class Onetrading extends OnetradingApi
         }
         String timeframe = (period + lowercaseUnit);
         int durationInSeconds = this.parseTimeframe(timeframe);
-        Object duration = Helpers.multiply(durationInSeconds, 1000);
+        Long duration = (((long) durationInSeconds) * 1000L);
         Long timestamp = this.parse8601(this.safeString(ohlcv, "time"));
         if (java.util.Objects.equals(timestamp, null))
         {
             throw new ExchangeError((this.id + " parseOHLCV() missing timestamp")) ;
         }
-        Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt(Helpers.divide(timestamp, duration)));
+        Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt((((double) timestamp) / ((double) duration))));
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
         String volumeField = this.safeString(options, "volume", "total_amount");
         return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeField)));
@@ -1247,7 +1247,7 @@ public class Onetrading extends OnetradingApi
             var period = ((List<Object>) periodunitVariable).get(0);
             var unit = ((List<Object>) periodunitVariable).get(1);
             int durationInSeconds = this.parseTimeframe(timeframe);
-            Object duration = Helpers.multiply(durationInSeconds, 1000);
+            Long duration = (((long) durationInSeconds) * 1000L);
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 1500;

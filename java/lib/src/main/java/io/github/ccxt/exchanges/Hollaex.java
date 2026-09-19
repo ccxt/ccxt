@@ -1131,7 +1131,7 @@ public class Hollaex extends HollaexApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
             Object until = this.safeInteger(parameters, "until");
-            Object timeDelta = Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
+            Long timeDelta = ((((long) this.parseTimeframe(timeframe)) * ((long) maxLimit)) * 1000L);
             Object start = since;
             Long now = this.milliseconds();
             if (java.util.Objects.equals(until, null))

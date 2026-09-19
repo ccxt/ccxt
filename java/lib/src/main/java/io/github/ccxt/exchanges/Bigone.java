@@ -1143,7 +1143,7 @@ public class Bigone extends BigoneApi
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            return this.parseToInt(Helpers.divide(timestamp, 1000000));
+            return this.parseToInt((((double) timestamp) / ((double) 1000000)));
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
@@ -1569,14 +1569,14 @@ public class Bigone extends BigoneApi
                 Object endByLimit = this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000));
                 if (Boolean.TRUE.equals(untilIsDefined))
                 {
-                    ((Map<String, Object>)request).put("time", this.iso8601(Helpers.mathMin(endByLimit, Helpers.add(until, 1))));
+                    ((Map<String, Object>)request).put("time", this.iso8601(Helpers.mathMin(endByLimit, (until + 1L))));
                 } else
                 {
                     ((Map<String, Object>)request).put("time", this.iso8601(endByLimit));
                 }
             } else if (Boolean.TRUE.equals(untilIsDefined))
             {
-                ((Map<String, Object>)request).put("time", this.iso8601(Helpers.add(until, 1)));
+                ((Map<String, Object>)request).put("time", this.iso8601((until + 1L)));
             }
             parameters = this.omit(parameters, "until");
             Map<String, Object> response = (this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, parameters))).join();

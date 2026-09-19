@@ -1823,7 +1823,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(future, null))
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
-                Object expiration = Helpers.add(this.seconds(), expiryDelta);
+                Object expiration = (this.seconds() + expiryDelta);
                 Object payload = Helpers.add(this.apiKey, String.valueOf(expiration));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";

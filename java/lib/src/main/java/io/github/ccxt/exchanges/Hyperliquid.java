@@ -887,7 +887,7 @@ public class Hyperliquid extends HyperliquidApi
             // Integer digits is always 0 in this case (0 doesn't count)
             Integer integerDigits = 0;
             // Calculate the price precision
-            pricePrecision = Helpers.mathMin(Helpers.subtract(maxDecimals, amountPrecision), Helpers.subtract(significantDigits, integerDigits));
+            pricePrecision = Helpers.mathMin(Helpers.subtract(maxDecimals, amountPrecision), (((long) significantDigits) - ((long) integerDigits)));
         } else if (Precise.stringGt(priceStr, "0") && Precise.stringLt(priceStr, "1"))
         {
             // Significant digits, always 5 in this case
@@ -1609,7 +1609,7 @@ public class Hyperliquid extends HyperliquidApi
         Double funding = this.safeNumber(info, "funding");
         Double markPx = this.safeNumber(info, "markPx");
         Double oraclePx = this.safeNumber(info, "oraclePx");
-        Object fundingTimestamp = Helpers.multiply(Helpers.multiply(Helpers.multiply((Helpers.add((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(Helpers.divide(this.milliseconds(), 60), 60), 1000))))), 1)), 60), 60), 1000);
+        Object fundingTimestamp = Helpers.multiply(Helpers.multiply(Helpers.multiply((Helpers.add((Math.floor(Double.parseDouble(String.valueOf((((double) (((double) (((double) this.milliseconds()) / ((double) 60))) / ((double) 60))) / ((double) 1000)))))), 1)), 60), 60), 1000);
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -1704,7 +1704,7 @@ public class Hyperliquid extends HyperliquidApi
                 if (!java.util.Objects.equals(limit, null))
                 {
                     // optimization if limit is provided
-                    Object timeframeInMilliseconds = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                    Long timeframeInMilliseconds = (((long) this.parseTimeframe(timeframe)) * 1000L);
                     since = this.sum(until, Helpers.multiply(Helpers.multiply(timeframeInMilliseconds, limit), -1));
                     if (Helpers.isLessThan(since, 0))
                     {

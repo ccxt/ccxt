@@ -1754,7 +1754,7 @@ public class Bingx extends BingxApi
                 ((Map<String, Object>)request).put("endTime", until);
             } else if ((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)) && (!java.util.Objects.equals(since, null)))
             {
-                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
                 ((Map<String, Object>)request).put("endTime", this.sum(since, Helpers.multiply(duration, requestLimit)));
             }
             Object response = null;
@@ -6714,7 +6714,7 @@ public class Bingx extends BingxApi
                     ((Map<String, Object>)request).put((String)startTimeReq, since);
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
-                    ((Map<String, Object>)request).put("startTs", Helpers.subtract(now, ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
+                    ((Map<String, Object>)request).put("startTs", (now - ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
                 }
                 Long until = this.safeInteger(parameters, "until");
                 parameters = this.omit(parameters, "until");

@@ -1655,28 +1655,28 @@ public class Bitfinex extends BitfinexApi
         if (Boolean.TRUE.equals(isFundingCurrency))
         {
             // per api docs, they are different array type
-            last = this.safeString(ticker, Helpers.subtract(10, minusIndex));
-            bid = this.safeString(ticker, Helpers.subtract(2, minusIndex));
-            ask = this.safeString(ticker, Helpers.subtract(5, minusIndex));
-            change = this.safeString(ticker, Helpers.subtract(8, minusIndex));
+            last = this.safeString(ticker, (10L - ((long) minusIndex)));
+            bid = this.safeString(ticker, (2L - ((long) minusIndex)));
+            ask = this.safeString(ticker, (5L - ((long) minusIndex)));
+            change = this.safeString(ticker, (8L - ((long) minusIndex)));
             // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
             // branch reads at index 6 and scales
-            percentage = Precise.stringMul(this.safeString(ticker, Helpers.subtract(9, minusIndex)), "100");
-            volume = this.safeString(ticker, Helpers.subtract(11, minusIndex));
-            high = this.safeString(ticker, Helpers.subtract(12, minusIndex));
-            low = this.safeString(ticker, Helpers.subtract(13, minusIndex));
+            percentage = Precise.stringMul(this.safeString(ticker, (9L - ((long) minusIndex))), "100");
+            volume = this.safeString(ticker, (11L - ((long) minusIndex)));
+            high = this.safeString(ticker, (12L - ((long) minusIndex)));
+            low = this.safeString(ticker, (13L - ((long) minusIndex)));
         } else
         {
             // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
-            last = this.safeString(ticker, Helpers.subtract(7, minusIndex));
-            bid = this.safeString(ticker, Helpers.subtract(1, minusIndex));
-            ask = this.safeString(ticker, Helpers.subtract(3, minusIndex));
-            change = this.safeString(ticker, Helpers.subtract(5, minusIndex));
-            percentage = this.safeString(ticker, Helpers.subtract(6, minusIndex));
+            last = this.safeString(ticker, (7L - ((long) minusIndex)));
+            bid = this.safeString(ticker, (1L - ((long) minusIndex)));
+            ask = this.safeString(ticker, (3L - ((long) minusIndex)));
+            change = this.safeString(ticker, (5L - ((long) minusIndex)));
+            percentage = this.safeString(ticker, (6L - ((long) minusIndex)));
             percentage = Precise.stringMul(percentage, "100");
-            volume = this.safeString(ticker, Helpers.subtract(8, minusIndex));
-            high = this.safeString(ticker, Helpers.subtract(9, minusIndex));
-            low = this.safeString(ticker, Helpers.subtract(10, minusIndex));
+            volume = this.safeString(ticker, (8L - ((long) minusIndex)));
+            high = this.safeString(ticker, (9L - ((long) minusIndex)));
+            low = this.safeString(ticker, (10L - ((long) minusIndex)));
         }
         final Object finalSymbol = symbol;
         final Object finalHigh = high;

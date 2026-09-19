@@ -1794,7 +1794,7 @@ public class Apex extends ApexApi
             Object decimalsNumber = (((java.util.Objects.equals(decimalsNum, null)))) ? 0 : decimalsNum;
             Object mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
             Long amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
-            Long timestampSeconds = this.parseToInt(Helpers.divide(this.milliseconds(), 1000));
+            Long timestampSeconds = this.parseToInt((((double) this.milliseconds()) / ((double) 1000)));
             Object clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (java.util.Objects.equals(clientOrderId, null))
             {
@@ -1806,7 +1806,7 @@ public class Apex extends ApexApi
             {
                 String formattedUint32 = "4294967295";
                 String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
-                Object expireTime = Helpers.add(timestampSeconds, ((3600L * 24L) * 28L));
+                Object expireTime = (timestampSeconds + ((3600L * 24L) * 28L));
                 Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                     put( "zkAccountId", zkSignAccountId );
                     put( "receiverAddress", ethAddress );

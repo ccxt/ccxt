@@ -1055,7 +1055,7 @@ public class Bitso extends BitsoApi
             {
                 Long now = this.milliseconds();
                 ((Map<String, Object>)request).put("end", now);
-                ((Map<String, Object>)request).put("start", Helpers.subtract(now, Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), 1000), limit)));
+                ((Map<String, Object>)request).put("start", Helpers.subtract(now, Helpers.multiply((((long) this.parseTimeframe(timeframe)) * 1000L), limit)));
             }
             Map<String, Object> response = (this.publicGetOhlc(this.extend(request, parameters))).join();
             //

@@ -3917,7 +3917,7 @@ public class Bybit extends BybitApi
                 // https://github.com/ccxt/ccxt/issues/26736 - align the requested
                 // start up to the interval boundary so that the exchange returns
                 // candles from the first bucket at or after `since`
-                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
                 Object rounded = Helpers.multiply(this.parseToInt(Helpers.divide(since, duration)), duration);
                 ((Map<String, Object>)request).put("start", (((Helpers.isEqual(rounded, since)))) ? since : this.sum(rounded, duration));
             }
@@ -4051,7 +4051,7 @@ public class Bybit extends BybitApi
         Object intervalString = null;
         if (!java.util.Objects.equals(fundingInterval, null))
         {
-            Long interval = this.parseToInt(Helpers.divide(fundingInterval, 60));
+            Long interval = this.parseToInt((((double) fundingInterval) / ((double) 60)));
             intervalString = (String.valueOf(interval) + "h");
         }
         final Object finalTicker = ticker;
@@ -4248,10 +4248,10 @@ public class Bybit extends BybitApi
                 if (!java.util.Objects.equals(since, null))
                 {
                     // end time is required when since is not empty
-                    Object fundingInterval = (((60L * 60L) * 8L) * 1000L);
+                    Long fundingInterval = (((60L * 60L) * 8L) * 1000L);
                     if (!java.util.Objects.equals(fundingTimeFrameMins, null))
                     {
-                        fundingInterval = Helpers.multiply(Helpers.multiply(fundingTimeFrameMins, 60), 1000);
+                        fundingInterval = ((fundingTimeFrameMins * 60L) * 1000L);
                     }
                     ((Map<String, Object>)request).put("endTime", this.sum(since, Helpers.multiply(limit, fundingInterval)));
                 }

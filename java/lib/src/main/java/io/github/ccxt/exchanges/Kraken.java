@@ -1464,8 +1464,8 @@ public class Kraken extends KrakenApi
                 {
                     throw new ExchangeError((this.id + " fetchOHLCV() missing parsedTimeframe")) ;
                 }
-                Object timeFrameInSeconds = Helpers.multiply(parsedTimeframe, 60);
-                ((Map<String, Object>)request).put("since", this.numberToString(Helpers.subtract(scaledSince, timeFrameInSeconds))); // expected to be in seconds
+                Long timeFrameInSeconds = (parsedTimeframe * 60L);
+                ((Map<String, Object>)request).put("since", this.numberToString((scaledSince - timeFrameInSeconds))); // expected to be in seconds
             }
             Map<String, Object> response = (this.publicGetOHLC(this.extend(request, parameters))).join();
             //

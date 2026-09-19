@@ -904,7 +904,7 @@ public class Lighter extends LighterApi
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "skipNonce", false );
             }}))).join();
-            Object expiry = (this.milliseconds() + (365L * 864000L));
+            Long expiry = (this.milliseconds() + (365L * 864000L));
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "integrator_account_index", builder );
                 put( "integrator_taker_fee", takerFeeRate );
@@ -2136,10 +2136,10 @@ public class Lighter extends LighterApi
                 Integer defaultLimit = 100;
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    startTs = Helpers.subtract(endTs, Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), 1000), limit));
+                    startTs = Helpers.subtract(endTs, Helpers.multiply((((long) this.parseTimeframe(timeframe)) * 1000L), limit));
                 } else
                 {
-                    startTs = Helpers.subtract(endTs, Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), 1000), defaultLimit));
+                    startTs = Helpers.subtract(endTs, ((((long) this.parseTimeframe(timeframe)) * 1000L) * ((long) defaultLimit)));
                 }
             }
             final Object finalStartTs = startTs;
@@ -2545,7 +2545,7 @@ public class Lighter extends LighterApi
             Long imf = this.parseToInt(imfStr);
             if (Helpers.isGreaterThan(imf, 0))
             {
-                leverage = Helpers.divide(100, imf);
+                leverage = (((double) 100) / ((double) imf));
             }
         }
         final Object finalMarket = market;

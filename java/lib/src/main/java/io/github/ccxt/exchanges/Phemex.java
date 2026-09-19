@@ -1788,7 +1788,7 @@ public class Phemex extends PhemexApi
                     } else
                     {
                         // when 'to' is defined since is mandatory
-                        since = Helpers.subtract(Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(until, 1000)))), (Helpers.multiply(maxLimit, candleDuration)));
+                        since = Helpers.subtract(Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(until, 1000)))), ((((long) maxLimit) * ((long) candleDuration))));
                         ((Map<String, Object>)request).put("from", since);
                     }
                     if (!java.util.Objects.equals(until, null))
@@ -1797,7 +1797,7 @@ public class Phemex extends PhemexApi
                     } else
                     {
                         // when since is defined 'to' is mandatory
-                        Object to = Helpers.add(since, (Helpers.multiply(maxLimit, candleDuration)));
+                        Object to = Helpers.add(since, ((((long) maxLimit) * ((long) candleDuration))));
                         Long now = this.seconds();
                         if (Helpers.isGreaterThan(to, now))
                         {
@@ -1816,7 +1816,7 @@ public class Phemex extends PhemexApi
                 {
                     // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
                     // we do not send since param to the exchange, instead we calculate appropriate limit param
-                    Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                    Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
                     Object timeDelta = Helpers.subtract(this.milliseconds(), since);
                     limit = this.parseToInt(Helpers.divide(timeDelta, duration)); // setting limit to the number of candles after since
                 }

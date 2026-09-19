@@ -950,7 +950,7 @@ public class Hitbtc extends HitbtcApi
                     symbol = ((symbol + ":") + settle);
                     if (Boolean.TRUE.equals(future))
                     {
-                        symbol = Helpers.add((symbol + "-"), expiry);
+                        symbol = ((symbol + "-") + expiry);
                         type = "future";
                     } else
                     {

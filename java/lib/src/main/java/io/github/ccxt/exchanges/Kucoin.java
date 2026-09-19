@@ -4071,7 +4071,7 @@ public class Kucoin extends KucoinApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "interval", Kucoin.this.safeString(Kucoin.this.timeframes, timeframe, timeframe) );
             }};
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object endAt = this.milliseconds(); // required param
             Integer denominator = 1000;
             if (!java.util.Objects.equals(since, null))
@@ -4181,7 +4181,7 @@ public class Kucoin extends KucoinApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "type", Kucoin.this.safeString(Kucoin.this.timeframes, timeframe, timeframe) );
             }};
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object endAt = this.milliseconds(); // required param
             Integer denominator = 1000;
             if (!java.util.Objects.equals(since, null))
@@ -4266,7 +4266,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("granularity", timeframe);
             }
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object endAt = this.milliseconds(); // required param
             if (!java.util.Objects.equals(since, null))
             {
@@ -4767,10 +4767,10 @@ public class Kucoin extends KucoinApi
                 Long nanoseconds = this.safeInteger(data, "ts");
                 if (!java.util.Objects.equals(nanoseconds, null))
                 {
-                    timestamp = this.parseToInt(Helpers.divide(nanoseconds, 1000000));
+                    timestamp = this.parseToInt((((double) nanoseconds) / ((double) 1000000)));
                 }
             }
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", Helpers.subtract(level, 2), Helpers.subtract(level, 1));
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", (level - 2L), (level - 1L));
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);

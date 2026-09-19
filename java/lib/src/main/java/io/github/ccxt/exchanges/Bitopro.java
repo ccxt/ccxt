@@ -1067,7 +1067,7 @@ public class Bitopro extends BitoproApi
                 ((Map<String, Object>)request).put("from", Helpers.subtract(((Map<String, Object>)request).get("to"), (Helpers.multiply(limit, timeframeInSeconds))));
             } else
             {
-                Object timeframeInMilliseconds = Helpers.multiply(timeframeInSeconds, 1000);
+                Long timeframeInMilliseconds = (((long) timeframeInSeconds) * 1000L);
                 alignedSince = Helpers.multiply((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, timeframeInMilliseconds))))), timeframeInMilliseconds);
                 ((Map<String, Object>)request).put("from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
                 ((Map<String, Object>)request).put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, timeframeInSeconds)));

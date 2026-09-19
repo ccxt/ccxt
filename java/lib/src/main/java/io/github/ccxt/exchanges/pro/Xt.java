@@ -187,7 +187,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Long nonce = this.safeInteger(orderbook, "nonce");
         Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0);
         Long firstDeltaNonce = (Long) this.safeInteger2(firstDelta, "i", "u");
-        if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaNonce, null)) && (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1))))
+        if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaNonce, null)) && (Helpers.isLessThan(nonce, (firstDeltaNonce - 1L))))
         {
             return -1;
         }

@@ -2315,7 +2315,7 @@ public class Bitmex extends BitmexApi
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("endTime", this.iso8601(until));
             }
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object useOpenTimestamp = null;
             List<Object> useOpenTimestampparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
             useOpenTimestamp = ((List<Object>) useOpenTimestampparametersVariable).get(0);

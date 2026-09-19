@@ -327,7 +327,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object refreshInterval = (((1000L * 60L) * 60L) * 24L); // 24 hours
             refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
             Long now = this.milliseconds();
-            Boolean expired = Helpers.isGreaterThanOrEqual((Helpers.subtract(now, lastUpdate)), refreshInterval);
+            Boolean expired = Helpers.isGreaterThanOrEqual(((now - lastUpdate)), refreshInterval);
             String messageHash = "utaToken";
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             Client client = this.client(url);

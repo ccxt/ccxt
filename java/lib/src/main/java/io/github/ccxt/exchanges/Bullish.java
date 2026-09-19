@@ -1709,7 +1709,7 @@ public class Bullish extends BullishApi
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");
             int duration = this.parseTimeframe(timeframe);
-            Object maxDelta = Helpers.multiply(Helpers.multiply(1000, duration), maxLimit);
+            Long maxDelta = ((1000L * ((long) duration)) * ((long) maxLimit));
             Object startTime = since;
             // both of since and until are required
             if (java.util.Objects.equals(startTime, null) && java.util.Objects.equals(until, null))
@@ -1941,7 +1941,7 @@ public class Bullish extends BullishApi
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Long ninetyDays = ((((90L * 24L) * 60L) * 60L) * 1000L);
         Long now = this.milliseconds();
-        Object allowedSince = Helpers.subtract(now, ninetyDays);
+        Long allowedSince = (now - ninetyDays);
         if ((!java.util.Objects.equals(since, null)) && (Helpers.isLessThan(since, allowedSince)))
         {
             throw new BadRequest((((this.id + " ") + method) + "() only allows fetching entries up to 90 days in the past")) ;
@@ -3453,7 +3453,7 @@ public class Bullish extends BullishApi
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(startTimestamp, null))
             {
-                startTimestamp = Helpers.subtract(now, ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
+                startTimestamp = (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
             }
             if (java.util.Objects.equals(until, null))
             {

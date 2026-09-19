@@ -1504,7 +1504,7 @@ public class Upbit extends UpbitApi
             }
             if (java.util.Objects.equals(timeframeValue, "minutes"))
             {
-                Object numMinutes = Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(timeframePeriod, 60))));
+                Object numMinutes = Math.round(Double.parseDouble(String.valueOf((((double) timeframePeriod) / ((double) 60)))));
                 ((Map<String, Object>)request).put("unit", numMinutes);
                 response = (this.publicGetCandlesTimeframeUnit(this.extend(request, parameters))).join();
             } else
