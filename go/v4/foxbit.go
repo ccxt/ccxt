@@ -450,8 +450,8 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
 		var networkDepositInfo map[string]any = SafeMapTyped(network, "deposit_info")
-		var isWithdrawEnabled bool = IsEqual(this.SafeString(networkWithdrawInfo, "status"), "ENABLED")
-		var isDepositEnabled bool = IsEqual(this.SafeString(networkDepositInfo, "status"), "ENABLED")
+		var isWithdrawEnabled bool = (this.SafeString(networkWithdrawInfo, "status") != nil && *this.SafeString(networkWithdrawInfo, "status") == "ENABLED")
+		var isDepositEnabled bool = (this.SafeString(networkDepositInfo, "status") != nil && *this.SafeString(networkDepositInfo, "status") == "ENABLED")
 		if networkCode != nil {
 			AddElementToObject(parsedNetworks, networkCode, map[string]any{
 				"info":      rawCurrency,

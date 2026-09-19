@@ -1726,7 +1726,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			tradeMarket := (<-this.LoadTradeMarketAsync(marketId))
 			ccxt.PanicOnError(tradeMarket)
 			var info any = this.SafeDict(tradeMarket, "info", map[string]any{})
-			var isYes bool = (ccxt.IsEqual(this.SafeStringLower(trade, "outcomeSideEnum"), "yes"))
+			var isYes bool = (this.SafeStringLower(trade, "outcomeSideEnum") != nil && *this.SafeStringLower(trade, "outcomeSideEnum") == "yes")
 			ccxt.AddElementToObject(trade, "tokenId", func() any {
 				if isYes {
 					return this.SafeString(info, "yesTokenId")

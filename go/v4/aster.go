@@ -1347,7 +1347,7 @@ func (this *Aster) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var active bool = IsEqual(this.SafeString(market, "status"), "TRADING")
+	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
 	var spot any = nil
 	var symbol any = nil
 	var settle any = nil

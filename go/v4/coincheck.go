@@ -742,9 +742,9 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var orderId any = nil
 	if InOp(trade, "liquidity") {
-		if IsEqual(this.SafeString(trade, "liquidity"), "T") {
+		if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "T" {
 			takerOrMaker = "taker"
-		} else if IsEqual(this.SafeString(trade, "liquidity"), "M") {
+		} else if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "M" {
 			takerOrMaker = "maker"
 		}
 		var funds map[string]any = SafeMapTyped(trade, "funds")

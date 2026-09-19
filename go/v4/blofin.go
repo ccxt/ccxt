@@ -834,7 +834,7 @@ func (this *Blofin) ParseMarket(market any) any {
 	var maker *float64 = this.SafeNumber(fees, "maker")
 	var maxLeverage *string = this.SafeString(market, "maxLeverage", "100")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
-	var isActive bool = (IsEqual(this.SafeString(market, "state"), "live"))
+	var isActive bool = (this.SafeString(market, "state") != nil && *this.SafeString(market, "state") == "live")
 	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
 	var contractType *string = this.SafeString(market, "contractType")
 	var maxLimitAmount *float64 = this.SafeNumber(market, "maxLimitSize")

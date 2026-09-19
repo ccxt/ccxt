@@ -247,7 +247,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	return nil
 }
 func (this *Mudrex) HandleMessage(client any, message any) {
-	if ccxt.IsEqual(this.SafeString(message, "method"), "PONG") {
+	if this.SafeString(message, "method") != nil && *this.SafeString(message, "method") == "PONG" {
 		return
 	}
 	var error any = this.SafeDict(message, "error")

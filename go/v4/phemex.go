@@ -1438,7 +1438,7 @@ func (this *Phemex) ParseCurrency(rawCurrency any) any {
 		"info":      rawCurrency,
 		"code":      code,
 		"name":      this.SafeString(rawCurrency, "name"),
-		"active":    IsEqual(this.SafeString(rawCurrency, "status"), "Listed"),
+		"active":    (this.SafeString(rawCurrency, "status") != nil && *this.SafeString(rawCurrency, "status") == "Listed"),
 		"deposit":   nil,
 		"withdraw":  nil,
 		"fee":       nil,
@@ -2023,7 +2023,7 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.V1GetMdSpotTicker24hrAll(query))
 		PanicOnError(response)
-	} else if (IsEqual(subType, "inverse")) || IsEqual(this.SafeString(market, "settle"), "USD") {
+	} else if (IsEqual(subType, "inverse")) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USD") {
 
 		response = (<-this.V1GetMdTicker24hrAll(query))
 		PanicOnError(response)
@@ -3973,7 +3973,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 	var response any = nil
-	if (symbol == nil) || (IsEqual(this.SafeString(market, "settle"), "USDT")) {
+	if (symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT") {
 		request["currency"] = this.SafeString(params, "settle", "USDT")
 
 		response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
@@ -4083,7 +4083,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		limit = mathMin(200, limit)
 		request["limit"] = limit
 	}
-	var isUSDTSettled bool = (!IsEqual(typeVar, "spot")) && ((symbol == nil) || (IsEqual(this.SafeString(market, "settle"), "USDT")))
+	var isUSDTSettled bool = (!IsEqual(typeVar, "spot")) && ((symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT"))
 	if isUSDTSettled {
 		request["currency"] = "USDT"
 		request["offset"] = 0
@@ -4997,7 +4997,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 			return "isolated"
 		}(),
 		"side":            side,
-		"hedged":          IsEqual(this.SafeString(position, "posMode"), "Hedged"),
+		"hedged":          (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
 		"percentage":      nil,
 		"stopLossPrice":   nil,
 		"takeProfitPrice": nil,

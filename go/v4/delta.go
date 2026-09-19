@@ -730,9 +730,9 @@ func (this *Delta) ParseCurrency(rawCurrency any) any {
 				"network":  networkCode,
 				"name":     this.SafeString(chain, "name"),
 				"info":     chain,
-				"active":   IsEqual(this.SafeString(chain, "status"), "enabled"),
-				"deposit":  IsEqual(this.SafeString(chain, "deposit_status"), "enabled"),
-				"withdraw": IsEqual(this.SafeString(chain, "withdrawal_status"), "enabled"),
+				"active":   (this.SafeString(chain, "status") != nil && *this.SafeString(chain, "status") == "enabled"),
+				"deposit":  (this.SafeString(chain, "deposit_status") != nil && *this.SafeString(chain, "deposit_status") == "enabled"),
+				"withdraw": (this.SafeString(chain, "withdrawal_status") != nil && *this.SafeString(chain, "withdrawal_status") == "enabled"),
 				"fee":      this.SafeNumber(chain, "base_withdrawal_fee"),
 				"limits": map[string]any{
 					"deposit": map[string]any{
@@ -754,8 +754,8 @@ func (this *Delta) ParseCurrency(rawCurrency any) any {
 		"name":      this.SafeString(rawCurrency, "name"),
 		"info":      rawCurrency,
 		"active":    nil,
-		"deposit":   IsEqual(this.SafeString(rawCurrency, "deposit_status"), "enabled"),
-		"withdraw":  IsEqual(this.SafeString(rawCurrency, "withdrawal_status"), "enabled"),
+		"deposit":   (this.SafeString(rawCurrency, "deposit_status") != nil && *this.SafeString(rawCurrency, "deposit_status") == "enabled"),
+		"withdraw":  (this.SafeString(rawCurrency, "withdrawal_status") != nil && *this.SafeString(rawCurrency, "withdrawal_status") == "enabled"),
 		"fee":       this.SafeNumber(rawCurrency, "base_withdrawal_fee"),
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))),
 		"limits": map[string]any{

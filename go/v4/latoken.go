@@ -699,7 +699,7 @@ func (this *Latoken) ParseCurrency(currency any) any {
 			}
 			return "other"
 		}(),
-		"active":    IsEqual(this.SafeString(currency, "status"), "CURRENCY_STATUS_ACTIVE"),
+		"active":    (this.SafeString(currency, "status") != nil && *this.SafeString(currency, "status") == "CURRENCY_STATUS_ACTIVE"),
 		"deposit":   nil,
 		"withdraw":  nil,
 		"fee":       this.SafeNumber(currency, "fee"),

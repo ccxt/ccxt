@@ -1564,11 +1564,11 @@ func (this *Bingx) ParseMarket(market any) any {
 		}()
 	}
 	var isActive bool = false
-	if (IsEqual(this.SafeString(market, "apiStateOpen"), "true")) && (IsEqual(this.SafeString(market, "apiStateClose"), "true")) {
+	if (this.SafeString(market, "apiStateOpen") != nil && *this.SafeString(market, "apiStateOpen") == "true") && (this.SafeString(market, "apiStateClose") != nil && *this.SafeString(market, "apiStateClose") == "true") {
 		isActive = true // swap active
-	} else if (IsEqual(this.SafeBool(market, "apiStateSell"), true)) && (IsEqual(this.SafeBool(market, "apiStateBuy"), true)) && (IsEqual(this.SafeString(market, "status"), "1")) {
+	} else if (IsEqual(this.SafeBool(market, "apiStateSell"), true)) && (IsEqual(this.SafeBool(market, "apiStateBuy"), true)) && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
 		isActive = true // spot active
-	} else if checkIsInverse && (IsEqual(this.SafeString(market, "status"), "1")) {
+	} else if checkIsInverse && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
 		isActive = true // inverse swap active
 	}
 	var isInverse any = func() any {
@@ -2152,7 +2152,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = this.SafeString(trade, "volume")
 	}
 	var price *string = this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
-	if (market != nil) && (GetValue(market, "linear") == true) && (IsEqual(this.SafeString(trade, "x"), "TRADE")) {
+	if (market != nil) && (GetValue(market, "linear") == true) && (this.SafeString(trade, "x") != nil && *this.SafeString(trade, "x") == "TRADE") {
 		var lastAmount *string = this.SafeString(trade, "l")
 		var lastPrice *string = this.SafeString(trade, "L")
 		if (lastAmount != nil) && (lastPrice != nil) {

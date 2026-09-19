@@ -3644,7 +3644,7 @@ func (this *Myriad) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	if !ccxt.IsEqual(chartsList, nil) {
 		for i := 0; i < ccxt.GetArrayLength(chartsList); i++ {
 			var chartObj any = ccxt.GetValue(chartsList, i)
-			if ccxt.IsEqual(this.SafeString(chartObj, "timeframe"), bucketKey) {
+			if this.SafeString(chartObj, "timeframe") == bucketKey || (this.SafeString(chartObj, "timeframe") != nil && bucketKey != nil && *this.SafeString(chartObj, "timeframe") == *bucketKey) {
 				chart = chartObj
 				break
 			}

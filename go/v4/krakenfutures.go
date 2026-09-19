@@ -2829,7 +2829,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 		var executions []any = []any{}
 		for i := 0; i < GetArrayLength(orderEvents); i++ {
 			var item any = GetValue(orderEvents, i)
-			if IsEqual(this.SafeString(item, "type"), "EXECUTION") {
+			if this.SafeString(item, "type") != nil && *this.SafeString(item, "type") == "EXECUTION" {
 				executions = append(executions, item)
 			}
 			// Final order (after placement / editing / execution / canceling)

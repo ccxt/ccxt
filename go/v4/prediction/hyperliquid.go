@@ -1761,7 +1761,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		if error != nil {
 			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))
 		}
-		var success bool = (ccxt.IsEqual(status, "success")) || (ccxt.IsEqual(this.SafeString(status, "status"), "success"))
+		var success bool = (ccxt.IsEqual(status, "success")) || (this.SafeString(status, "status") != nil && *this.SafeString(status, "status") == "success")
 		if !success {
 			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" cancelOrders() received an unexpected status: ", this.Json(status))))
 		}
@@ -2009,7 +2009,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		ccxt.PanicOnError(retRes158612)
 		var outcomeObj any = this.Outcome(outcome)
 		var expected *string = this.SafeString(outcomeObj, "outcome")
-		if !ccxt.IsEqual(this.SafeString(parsed, "outcome"), expected) {
+		if this.SafeString(parsed, "outcome") != expected && (this.SafeString(parsed, "outcome") == nil || expected == nil || *this.SafeString(parsed, "outcome") != *expected) {
 			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOrder() order ", id), " is not in outcome "), expected)))
 		}
 	}

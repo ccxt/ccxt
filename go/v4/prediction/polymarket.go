@@ -1039,7 +1039,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		var active *bool = this.SafeBool(market, "active", false)
 		var closed *bool = this.SafeBool(market, "closed", false)
 		// resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-		var marketResolved bool = (closed != nil && *closed == true) || (ccxt.IsEqual(this.SafeStringLower(market, "umaResolutionStatus"), "resolved"))
+		var marketResolved bool = (closed != nil && *closed == true) || (this.SafeStringLower(market, "umaResolutionStatus") != nil && *this.SafeStringLower(market, "umaResolutionStatus") == "resolved")
 		var resolvedOutcome any = nil
 		// gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
 		var tickSize *float64 = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
@@ -4217,7 +4217,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 		var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
 		var price *float64 = this.SafeNumber(change, "price")
 		var size *float64 = this.SafeNumber(change, "size")
-		var isBuy bool = ccxt.IsEqual(this.SafeStringUpper(change, "side", ""), "BUY")
+		var isBuy bool = (this.SafeStringUpper(change, "side", "") != nil && *this.SafeStringUpper(change, "side", "") == "BUY")
 		var side any = func() any {
 			if isBuy {
 				return ccxt.GetValue(orderbook, "bids")

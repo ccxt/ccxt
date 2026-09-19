@@ -727,8 +727,8 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 	var isFiat bool = this.InArray(code, fiatCurrencies)
 	var networks map[string]any = map[string]any{}
 	var networksArray any = this.SafeList(rawCurrency, "networks", []any{})
-	var deposit bool = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
-	var withdrawal bool = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
+	var deposit bool = (this.SafeString(rawCurrency, "depositStatus") != nil && *this.SafeString(rawCurrency, "depositStatus") == "OK")
+	var withdrawal bool = (this.SafeString(rawCurrency, "withdrawalStatus") != nil && *this.SafeString(rawCurrency, "withdrawalStatus") == "OK")
 	var active bool = deposit && withdrawal
 	var withdrawFee *float64 = this.SafeNumber(rawCurrency, "withdrawalFee")
 	var precision *string = this.SafeString(rawCurrency, "decimals", "8")

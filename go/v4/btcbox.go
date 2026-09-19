@@ -350,7 +350,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(tradeDetails, "pricedecimal"))),
 				"amount": nil,
 			},
-			"active":  IsEqual(this.SafeString(tradeDetails, "enable"), "1"),
+			"active":  (this.SafeString(tradeDetails, "enable") != nil && *this.SafeString(tradeDetails, "enable") == "1"),
 			"created": nil,
 			"info":    res,
 		}))

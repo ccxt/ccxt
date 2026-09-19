@@ -4530,8 +4530,8 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 					},
 				},
 				"active":    nil,
-				"deposit":   IsEqual(this.SafeString(chainEntry, "depositStatus"), "allowed"),
-				"withdraw":  IsEqual(this.SafeString(chainEntry, "withdrawStatus"), "allowed"),
+				"deposit":   (this.SafeString(chainEntry, "depositStatus") != nil && *this.SafeString(chainEntry, "depositStatus") == "allowed"),
+				"withdraw":  (this.SafeString(chainEntry, "withdrawStatus") != nil && *this.SafeString(chainEntry, "withdrawStatus") == "allowed"),
 				"fee":       this.SafeNumber(chainEntry, "transactFeeWithdraw"),
 				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chainEntry, "withdrawPrecision"))),
 			})
@@ -4541,7 +4541,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 		"info":     rawCurrency,
 		"code":     code,
 		"id":       currencyId,
-		"active":   IsEqual(this.SafeString(rawCurrency, "instStatus"), "normal"),
+		"active":   (this.SafeString(rawCurrency, "instStatus") != nil && *this.SafeString(rawCurrency, "instStatus") == "normal"),
 		"deposit":  nil,
 		"withdraw": nil,
 		"fee":      nil,
@@ -5790,7 +5790,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(retRes434516)
 			for i := 0; i < GetArrayLength(this.Accounts); i++ {
 				var account any = GetValue(this.Accounts, i)
-				if IsEqual(this.SafeString(account, "type"), "spot") {
+				if this.SafeString(account, "type") != nil && *this.SafeString(account, "type") == "spot" {
 					accountId = this.SafeString(account, "id")
 					if accountId != nil {
 						break
