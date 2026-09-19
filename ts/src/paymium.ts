@@ -159,7 +159,7 @@ export default class paymium extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
@@ -432,7 +432,7 @@ export default class paymium extends Exchange {
         return this.parseDepositAddresses (response, codes, false);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -607,8 +607,8 @@ export default class paymium extends Exchange {
         const currencyId = this.safeString (transfer, 'currency');
         const updatedAt = this.safeString (transfer, 'updated_at');
         const timetstamp = this.parseDate (updatedAt);
-        const accountOperations = this.safeValue (transfer, 'account_operations');
-        const firstOperation = this.safeValue (accountOperations, 0, {});
+        const accountOperations = this.safeList (transfer, 'account_operations');
+        const firstOperation = this.safeDict (accountOperations, 0, {});
         const status = this.safeString (transfer, 'state');
         return {
             'info': transfer,

@@ -282,7 +282,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: any, message: Dict) {
         //
         //     {
         //         "channel": "l2Book",
@@ -542,7 +542,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any): boolean {
+    handleWsTickers (client: Client, message: Dict): boolean {
         // hip3 mids
         // {
         //     channel: 'allMids',
@@ -582,7 +582,7 @@ export default class hyperliquid extends hyperliquidRest {
         return true;
     }
 
-    handleActiveAssetCtx (client: Client, message: any): boolean {
+    handleActiveAssetCtx (client: Client, message: Dict): boolean {
         //
         //     {
         //         "channel": "activeAssetCtx",
@@ -622,7 +622,7 @@ export default class hyperliquid extends hyperliquidRest {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "userFills",
@@ -743,7 +743,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trades",
@@ -916,7 +916,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         channel: 'candle',
@@ -1058,7 +1058,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         // {
@@ -1114,7 +1114,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        const topic = this.safeValue (message, 'channel');
+        const topic = this.safeString (message, 'channel');
         const messageHash = topic + '::balance';
         let info: NullableDict = undefined;
         let rawBalances: any[] = [];
@@ -1263,7 +1263,7 @@ export default class hyperliquid extends hyperliquidRest {
         this.positions = new ArrayCacheBySymbolBySide ();
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: any, message: Dict) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1416,7 +1416,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         channel: 'orderUpdates',
@@ -1465,7 +1465,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //      "channel": "post",
@@ -1670,7 +1670,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleSubscriptionResponse (client: Client, message: any) {
+    handleSubscriptionResponse (client: Client, message: Dict) {
         // {
         //     "channel":"subscriptionResponse",
         //     "data":{
@@ -1722,7 +1722,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         //
         // {
         //     "channel":"subscriptionResponse",
@@ -1778,7 +1778,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict) {
         //
         //   {
         //       "channel": "pong"
