@@ -515,7 +515,7 @@ export default class gate extends gateRest {
         return await this.unSubscribePublicMultiple (url, 'orderbook', [ symbol ], [ messageHash ], [ subMessageHash ], payload, channel, params);
     }
 
-    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol !== undefined) {
@@ -523,7 +523,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handleNewSpotOrderBook (client: Client, message: any) {
+    handleNewSpotOrderBook (client: Client, message: Dict): void {
         //
         //   {
         //      "channel":"spot.obu",
@@ -578,7 +578,7 @@ export default class gate extends gateRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // spot
         //
@@ -698,7 +698,7 @@ export default class gate extends gateRest {
         return cache.length;
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any) {
+    handleBidAsks (bookSide: any, bidAsks: any[]): void {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
             if (Array.isArray (bidAsk)) {
@@ -761,7 +761,7 @@ export default class gate extends gateRest {
         return this.subscribeWatchTickersAndBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         //    {
         //        "time": 1649326221,
@@ -798,7 +798,7 @@ export default class gate extends gateRest {
         return this.subscribeWatchTickersAndBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict): void {
         //
         //    {
         //        "time": 1671363004,
@@ -819,7 +819,7 @@ export default class gate extends gateRest {
         this.handleTickerAndBidAsk ('bidask', client, message);
     }
 
-    async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, callerMethodName: Str = undefined, params = {}): Promise<Tickers> {
+    async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, callerMethodName: Str = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -852,7 +852,7 @@ export default class gate extends gateRest {
         return this.filterByArray (result, 'symbol', symbols, true);
     }
 
-    handleTickerAndBidAsk (objectName: string, client: Client, message: any) {
+    handleTickerAndBidAsk (objectName: string, client: Client, message: Dict): void {
         const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
@@ -982,7 +982,7 @@ export default class gate extends gateRest {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         // {
         //     "time": 1648725035,
@@ -1056,7 +1056,7 @@ export default class gate extends gateRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         // {
         //     "time": 1606292600,
@@ -1167,7 +1167,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict): void {
         //
         // {
         //     "time": 1543205083,
@@ -1253,7 +1253,7 @@ export default class gate extends gateRest {
         return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         // spot order fill
         //     {
@@ -1409,7 +1409,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolsSinceLimit (this.safeValue (this.positions, type), symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined): void {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1428,7 +1428,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any, type: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: any) {
         const positions = await this.fetchPositions (undefined, { 'type': type });
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
@@ -1447,7 +1447,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict): void {
         //
         //    {
         //        time: 1693158497,
@@ -1598,7 +1598,7 @@ export default class gate extends gateRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict): void {
         //
         //     {
         //         "time": 1774613210,
@@ -1754,7 +1754,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message: any) {
+    handleLiquidation (client: Client, message: Dict): void {
         //
         // future / delivery
         //     {
@@ -1816,7 +1816,7 @@ export default class gate extends gateRest {
         client.resolve (newLiquidations, 'myLiquidations');
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         // future / delivery
         //    {
@@ -1864,7 +1864,7 @@ export default class gate extends gateRest {
         });
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "time": 1647274664,
@@ -1957,11 +1957,11 @@ export default class gate extends gateRest {
         return false;
     }
 
-    handleBalanceSubscription (client: Client, message: any, subscription: Dict | undefined = undefined) {
+    handleBalanceSubscription (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
         this.balance = {};
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): void {
         const channel = this.safeString (message, 'channel') as string;
         const methods: Dict = {
             'balance': this.handleBalanceSubscription,
@@ -1986,7 +1986,7 @@ export default class gate extends gateRest {
         }
     }
 
-    handleUnSubscribe (client: Client, message: any) {
+    handleUnSubscribe (client: Client, message: Dict): void {
         //
         // {
         //     "time":1725534679,
@@ -2175,7 +2175,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getUrlByMarket (market: any) {
+    getUrlByMarket (market: any): string {
         const baseUrl = this.urls['api'][market['type']];
         if (market['contract'] === true) {
             return (market['linear'] === true) ? baseUrl['usdt'] : baseUrl['btc'];
@@ -2184,7 +2184,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getTypeByMarket (market: Market) {
+    getTypeByMarket (market: Market): Str {
         if (market === undefined) {
             return undefined;
         }
@@ -2197,7 +2197,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getUrlByMarketType (type: Str, isInverse = false) {
+    getUrlByMarketType (type: Str, isInverse: Bool = false): Str {
         const api = this.urls['api'];
         const url = this.safeValue (api, type);
         if ((type === 'swap') || (type === 'future')) {
@@ -2207,7 +2207,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getMarketTypeByUrl (url: string) {
+    getMarketTypeByUrl (url: string): string {
         const findBy: Dict = {
             'op-': 'option',
             'delivery': 'future',
@@ -2224,7 +2224,7 @@ export default class gate extends gateRest {
         return 'spot';
     }
 
-    requestId () {
+    requestId (): number {
         // their support said that reqid must be an int32, not documented
         this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
@@ -2233,7 +2233,7 @@ export default class gate extends gateRest {
         return reqid;
     }
 
-    async subscribePublic (url: any, messageHash: any, payload: any, channel: any, params = {}, subscription: Dict | undefined = undefined) {
+    async subscribePublic (url: Str, messageHash: string, payload: any[], channel: Str, params: Dict = {}, subscription: Dict | undefined = undefined): Promise<any> {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2254,7 +2254,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async subscribePublicMultiple (url: any, messageHashes: any, payload: any, channel: any, params = {}) {
+    async subscribePublicMultiple (url: Str, messageHashes: string[], payload: any[], channel: Str, params: Dict = {}): Promise<any> {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2268,7 +2268,7 @@ export default class gate extends gateRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async unSubscribePublicMultiple (url: any, topic: any, symbols: any, messageHashes: any, subMessageHashes: any, payload: any, channel: any, params = {}) {
+    async unSubscribePublicMultiple (url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params: Dict = {}): Promise<any> {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2290,7 +2290,7 @@ export default class gate extends gateRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, sub);
     }
 
-    async authenticate (url: any, messageType: any) {
+    async authenticate (url: Str, messageType: Str): Promise<any> {
         const channel = messageType + '.login';
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -2302,13 +2302,13 @@ export default class gate extends gateRest {
         return future;
     }
 
-    handleAuthenticationMessage (client: Client, message: any) {
+    handleAuthenticationMessage (client: Client, message: Dict): void {
         const messageHash = 'authenticated';
         const future = this.safeValue (client.futures, messageHash);
         future.resolve (true);
     }
 
-    async requestPrivate (url: any, reqParams: any, channel: any, requestId: Str = undefined) {
+    async requestPrivate (url: Str, reqParams: Dict, channel: Str, requestId: Str = undefined): Promise<any> {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         const event = 'api';
@@ -2343,7 +2343,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, request, messageHash, requestId);
     }
 
-    async subscribePrivate (url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid = false) {
+    async subscribePrivate (url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid: Bool = false): Promise<any> {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
