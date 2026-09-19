@@ -17,6 +17,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { installCcxtGoLocalTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES } from './go-local-types.js';
+import { installCacheRemoveCall } from './cache-remove-call.js';
 
 type dict = { [key: string]: string };
 
@@ -1507,6 +1508,7 @@ class NewTranspiler {
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
         // build/go-worker.js installs the same hook for the Piscina path
         installCcxtGoLocalTypes (this.transpiler.goTranspiler);
+        installCacheRemoveCall (this.transpiler, 'go');
     }
 
     createGeneratedHeader() {
