@@ -165,11 +165,11 @@ export default class gate extends gateRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleNewSpotOrderBook(client: Client, message: any): void;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription?: Dict | undefined): void;
+    handleNewSpotOrderBook(client: Client, message: Dict): void;
+    handleOrderBook(client: Client, message: Dict): void;
     getCacheIndex(orderBook: any, cache: any): any;
-    handleBidAsks(bookSide: any, bidAsks: any): void;
+    handleBidAsks(bookSide: any, bidAsks: any[]): void;
     handleDelta(orderbook: any, delta: any): void;
     /**
      * @method
@@ -195,7 +195,7 @@ export default class gate extends gateRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchBidsAsks
@@ -208,9 +208,9 @@ export default class gate extends gateRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidAsk(client: Client, message: any): void;
-    subscribeWatchTickersAndBidsAsks(symbols?: Strings, callerMethodName?: Str, params?: {}): Promise<Tickers>;
-    handleTickerAndBidAsk(objectName: string, client: Client, message: any): void;
+    handleBidAsk(client: Client, message: Dict): void;
+    subscribeWatchTickersAndBidsAsks(symbols?: Strings, callerMethodName?: Str, params?: Dict): Promise<Tickers>;
+    handleTickerAndBidAsk(objectName: string, client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchTrades
@@ -259,7 +259,7 @@ export default class gate extends gateRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchOHLCV
@@ -275,7 +275,7 @@ export default class gate extends gateRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchMyTrades
@@ -291,7 +291,7 @@ export default class gate extends gateRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any): void;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchBalance
@@ -304,7 +304,7 @@ export default class gate extends gateRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchPositions
@@ -320,8 +320,8 @@ export default class gate extends gateRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
-    handlePositions(client: any, message: any): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, type: any): Promise<void>;
+    handlePositions(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchOrders
@@ -341,7 +341,7 @@ export default class gate extends gateRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
+    handleOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchMyLiquidations
@@ -370,23 +370,23 @@ export default class gate extends gateRest {
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleBalanceSubscription(client: Client, message: any, subscription?: Dict | undefined): void;
-    handleSubscriptionStatus(client: Client, message: any): void;
-    handleUnSubscribe(client: Client, message: any): void;
+    handleLiquidation(client: Client, message: Dict): void;
+    parseWsLiquidation(liquidation: Dict, market?: Market): Liquidation;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleBalanceSubscription(client: Client, message: Dict, subscription?: Dict | undefined): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
+    handleUnSubscribe(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
-    getUrlByMarket(market: any): any;
-    getTypeByMarket(market: Market): "futures" | "options" | "spot" | undefined;
-    getUrlByMarketType(type: Str, isInverse?: boolean): any;
-    getMarketTypeByUrl(url: string): any;
-    requestId(): any;
-    subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
-    subscribePublicMultiple(url: any, messageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
-    unSubscribePublicMultiple(url: any, topic: any, symbols: any, messageHashes: any, subMessageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
-    authenticate(url: any, messageType: any): Promise<any>;
-    handleAuthenticationMessage(client: Client, message: any): void;
-    requestPrivate(url: any, reqParams: any, channel: any, requestId?: Str): Promise<any>;
-    subscribePrivate(url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid?: boolean): Promise<any>;
+    getUrlByMarket(market: any): string;
+    getTypeByMarket(market: Market): Str;
+    getUrlByMarketType(type: Str, isInverse?: Bool): Str;
+    getMarketTypeByUrl(url: string): string;
+    requestId(): number;
+    subscribePublic(url: Str, messageHash: string, payload: any[], channel: Str, params?: Dict, subscription?: Dict | undefined): Promise<any>;
+    subscribePublicMultiple(url: Str, messageHashes: string[], payload: any[], channel: Str, params?: Dict): Promise<any>;
+    unSubscribePublicMultiple(url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params?: Dict): Promise<any>;
+    authenticate(url: Str, messageType: Str): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: Dict): void;
+    requestPrivate(url: Str, reqParams: Dict, channel: Str, requestId?: Str): Promise<any>;
+    subscribePrivate(url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid?: Bool): Promise<any>;
 }

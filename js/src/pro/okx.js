@@ -240,7 +240,7 @@ export default class okx extends okxRest {
         const url = this.getUrl(channel, access);
         const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -330,7 +330,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const marketId = this.safeString(arg, 'instId');
         const symbol = this.safeSymbol(marketId);
@@ -599,7 +599,7 @@ export default class okx extends okxRest {
         //     }
         //
         this.handleBidAsk(client, message);
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
@@ -857,7 +857,7 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
         const accessType = (isTrigger === true) ? 'business' : 'private';
         await this.authenticate({ 'access': accessType });
@@ -1170,7 +1170,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         if (channel === undefined) {
             return;
@@ -1184,8 +1184,8 @@ export default class okx extends okxRest {
         const timeframe = this.findTimeframe(interval);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV(data[i], market);
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+            let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp(limit);
@@ -1385,8 +1385,8 @@ export default class okx extends okxRest {
         //         "seqId": 123457
         //     }
         //
-        const asks = this.safeValue(message, 'asks', []);
-        const bids = this.safeValue(message, 'bids', []);
+        const asks = this.safeList(message, 'asks', []);
+        const bids = this.safeList(message, 'bids', []);
         const storedAsks = orderbook['asks'];
         const storedBids = orderbook['bids'];
         this.handleDeltas(storedAsks, asks);
@@ -1711,7 +1711,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const balance = this.parseTradingBalance(message);
         const newBalance = this.deepExtend(this.balance, balance);
@@ -1719,7 +1719,7 @@ export default class okx extends okxRest {
         client.resolve(this.balance, channel);
     }
     orderToTrade(order, market = undefined) {
-        const info = this.safeValue(order, 'info', {});
+        const info = this.safeDict(order, 'info', {});
         const timestamp = this.safeInteger(info, 'fillTime');
         const feeMarketId = this.safeString(info, 'fillFeeCcy');
         const isTaker = this.safeString(info, 'execType', '') === 'T';
@@ -1909,7 +1909,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
@@ -1957,7 +1957,7 @@ export default class okx extends okxRest {
         let type = undefined;
         // By default, receive order updates from any instrument type
         [type, params] = this.handleOptionAndParams(params, 'watchOrders', 'type', 'ANY');
-        const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -2050,7 +2050,7 @@ export default class okx extends okxRest {
         //     }
         //
         this.handleMyTrades(client, message);
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const orders = this.safeList(message, 'data', []);
         const ordersLength = orders.length;
@@ -2132,7 +2132,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const rawOrders = this.safeList(message, 'data', []);
         const filteredOrders = [];
@@ -2242,7 +2242,7 @@ export default class okx extends okxRest {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        let args = this.safeValue(message, 'data', []);
+        let args = this.safeList(message, 'data', []);
         // filter out partial errors
         args = this.filterBy(args, 'sCode', '0');
         // if empty means request failed and handle error
@@ -2425,7 +2425,7 @@ export default class okx extends okxRest {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         client.resolve(data, messageHash);
     }
     handleSubscriptionStatus(client, message) {
@@ -2465,7 +2465,7 @@ export default class okx extends okxRest {
                 if (errorCode !== '1') {
                     this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 }
-                let messageString = this.safeValue(message, 'msg');
+                let messageString = this.safeString(message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
@@ -2477,7 +2477,7 @@ export default class okx extends okxRest {
                         if (errorCode !== undefined) {
                             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                         }
-                        messageString = this.safeValue(d, 'sMsg');
+                        messageString = this.safeString(d, 'sMsg');
                         if (messageString !== undefined) {
                             this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                         }
@@ -2578,7 +2578,7 @@ export default class okx extends okxRest {
             }
         }
         else {
-            const arg = this.safeValue(message, 'arg', {});
+            const arg = this.safeDict(message, 'arg', {});
             const channel = this.safeString(arg, 'channel');
             if (channel === undefined) {
                 return;

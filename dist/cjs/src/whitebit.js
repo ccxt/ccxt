@@ -514,8 +514,8 @@ class whitebit extends whitebit$1["default"] {
         quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const active = this.safeValue(market, 'tradesEnabled');
-        const isCollateral = this.safeValue(market, 'isCollateral');
+        const active = this.safeBool(market, 'tradesEnabled');
+        const isCollateral = this.safeBool(market, 'isCollateral');
         const typeId = this.safeString(market, 'type');
         let type;
         let settle = undefined;
@@ -789,11 +789,11 @@ class whitebit extends whitebit$1["default"] {
             const currency = currenciesIds[i];
             const data = this.safeDict(response, currency, {});
             const code = this.safeCurrencyCode(currency);
-            const withdraw = this.safeValue(data, 'withdraw', {});
+            const withdraw = this.safeDict(data, 'withdraw', {});
             if (code !== undefined) {
                 withdrawFees[code] = this.safeString(withdraw, 'fixed');
             }
-            const deposit = this.safeValue(data, 'deposit', {});
+            const deposit = this.safeDict(data, 'deposit', {});
             if (code !== undefined) {
                 depositFees[code] = this.safeString(deposit, 'fixed');
             }
@@ -915,14 +915,14 @@ class whitebit extends whitebit$1["default"] {
             const feeInfo = response[entry];
             const code = this.safeCurrencyCode(currencyId);
             if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
                 let networkId = this.safeString(splitEntry, 1);
-                const withdraw = this.safeValue(feeInfo, 'withdraw');
-                const deposit = this.safeValue(feeInfo, 'deposit');
+                const withdraw = this.safeDict(feeInfo, 'withdraw');
+                const deposit = this.safeDict(feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber(withdraw, 'fixed');
                 const depositFee = this.safeNumber(deposit, 'fixed');
                 const withdrawResult = {
@@ -993,7 +993,7 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeValue(response, market['baseId'], {});
+            const fee = this.safeDict(response, market['baseId'], {});
             let makerFee = this.safeString(fee, 'maker_fee');
             let takerFee = this.safeString(fee, 'taker_fee');
             makerFee = Precise["default"].stringDiv(makerFee, '100');
@@ -1774,7 +1774,7 @@ class whitebit extends whitebit$1["default"] {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket(marketId, undefined, '_');
-                const rawTrades = this.safeValue(response, marketId, []);
+                const rawTrades = this.safeList(response, marketId, []);
                 const parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
@@ -2413,7 +2413,7 @@ class whitebit extends whitebit$1["default"] {
             response = await this.v4PrivatePostCollateralAccountBalance(params);
         }
         else {
-            const options = this.safeValue(this.options, 'fetchBalance', {});
+            const options = this.safeDict(this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString(options, 'account');
             const account = this.safeString2(params, 'account', 'type', defaultAccount);
             params = this.omit(params, ['account', 'type']);
@@ -2913,7 +2913,7 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const url = this.safeString(response, 'url');
-        const account = this.safeValue(response, 'account', {});
+        const account = this.safeDict(response, 'account', {});
         const address = this.safeString(account, 'address', url);
         const tag = this.safeString(account, 'memo');
         this.checkAddress(address);
@@ -3073,7 +3073,7 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType');
+        const accountsByType = this.safeDict(this.options, 'accountsByType');
         const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         const amountString = this.currencyToPrecision(code, amount);
@@ -3299,7 +3299,7 @@ class whitebit extends whitebit$1["default"] {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue(response, 'records', []);
+        const records = this.safeList(response, 'records', []);
         const first = this.safeDict(records, 0, {});
         return this.parseTransaction(first, currency);
     }
@@ -4158,7 +4158,7 @@ class whitebit extends whitebit$1["default"] {
         });
     }
     isFiat(currency) {
-        const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
     }
     /**
@@ -4270,7 +4270,7 @@ class whitebit extends whitebit$1["default"] {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             const status = this.safeString(response, 'status');
-            const errors$1 = this.safeValue(response, 'errors');
+            const errors$1 = this.safeDict(response, 'errors');
             // {"code":10,"message":"Unauthorized request."}
             const message = this.safeString(response, 'message');
             // For these cases where we have a generic code variable error key

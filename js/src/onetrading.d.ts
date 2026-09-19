@@ -1,5 +1,5 @@
 import Exchange from './abstract/onetrading.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 /**
  * @class onetrading
  * @augments Exchange
@@ -46,12 +46,9 @@ export default class onetrading extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchPublicTradingFees(params?: {}): Promise<Dict>;
-    fetchPrivateTradingFees(params?: {}): Promise<Dict>;
-    parseFeeTiers(feeTiers: any, market?: Market): {
-        maker: List;
-        taker: List;
-    };
+    fetchPublicTradingFees(params?: Dict): Promise<Dict>;
+    fetchPrivateTradingFees(params?: Dict): Promise<Dict>;
+    parseFeeTiers(feeTiers: any[], market?: Market): Dict;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -223,11 +220,6 @@ export default class onetrading extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

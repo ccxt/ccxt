@@ -553,7 +553,7 @@ export default class btcturk extends Exchange {
             await this.loadMarkets();
         }
         const tickers = await this.fetchTickers([symbol], params);
-        return this.safeValue(tickers, symbol);
+        return this.safeDict(tickers, symbol);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -705,7 +705,7 @@ export default class btcturk extends Exchange {
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'resolution': this.safeValue(this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
+            'resolution': this.safeString(this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger(params, 'until', this.milliseconds());
         request['to'] = this.parseToInt((until / 1000));

@@ -644,7 +644,7 @@ class aster extends aster$1["default"] {
         }
         const trades = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1213,7 +1213,7 @@ class aster extends aster$1["default"] {
         if (timeframe === undefined) {
             return;
         }
-        const ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
+        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
@@ -1369,7 +1369,7 @@ class aster extends aster$1["default"] {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
-        const options = this.safeValue(this.options, 'watchBalance');
+        const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
@@ -1387,7 +1387,7 @@ class aster extends aster$1["default"] {
             'type': type,
         };
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1770,12 +1770,12 @@ class aster extends aster$1["default"] {
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
                 if (cachedOrders !== undefined) {
-                    const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-                    const order = this.safeValue(orders, orderId);
+                    const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+                    const order = this.safeDict(orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeValue(order, 'fees');
-                        const fee = this.safeValue(order, 'fee');
+                        const fees = this.safeList(order, 'fees', []);
+                        const fee = this.safeDict(order, 'fee');
                         if (!this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {

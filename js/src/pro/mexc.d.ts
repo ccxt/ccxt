@@ -14,7 +14,7 @@ export default class mexc extends mexcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name mexc#watchTickers
@@ -25,7 +25,7 @@ export default class mexc extends mexcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTickers(client: Client, message: any): void;
+    handleTickers(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -37,12 +37,12 @@ export default class mexc extends mexcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: Market): Ticker;
-    watchSpotPublic(channel: any, messageHash: any, params?: {}): Promise<any>;
-    watchSpotPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;
-    watchSwapPublic(channel: any, messageHash: any, requestParams: any, params?: {}): Promise<any>;
-    watchSwapPrivate(messageHash: any, params?: {}): Promise<any>;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
+    watchSpotPublic(channel: string, messageHash: string, params?: Dict): Promise<any>;
+    watchSpotPrivate(channel: string, messageHash: string, params?: Dict): Promise<any>;
+    watchSwapPublic(channel: string, messageHash: string, requestParams: Dict, params?: Dict): Promise<any>;
+    watchSwapPrivate(messageHash: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name mexc#watchOHLCV
@@ -57,7 +57,7 @@ export default class mexc extends mexcRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -72,9 +72,9 @@ export default class mexc extends mexcRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBookSubscription(client: Client, message: any): void;
+    handleOrderBookSubscription(client: Client, message: Dict): void;
     getCacheIndex(orderbook: any, cache: any): any;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleBooksideDelta(bookside: any, bidasks: any): void;
     handleDelta(orderbook: any, delta: any): void;
     /**
@@ -90,7 +90,7 @@ export default class mexc extends mexcRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name mexc#watchMyTrades
@@ -104,7 +104,7 @@ export default class mexc extends mexcRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrade(client: Client, message: any, subscription?: Dict | undefined): void;
+    handleMyTrade(client: Client, message: Dict, subscription?: Dict | undefined): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
@@ -120,11 +120,11 @@ export default class mexc extends mexcRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
+    handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: any, market?: Market): Order;
-    parseWsOrderStatus(status: any, market?: Market): string;
-    parseWsOrderType(type: any): Str;
-    parseWsTimeInForce(timeInForce: any): Str;
+    parseWsOrderStatus(status: Str, market?: Market): Str;
+    parseWsOrderType(type: Str): Str;
+    parseWsTimeInForce(timeInForce: Str): Str;
     /**
      * @method
      * @name mexc#watchBalance
@@ -135,7 +135,7 @@ export default class mexc extends mexcRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name mexc#watchFundingRate
@@ -156,7 +156,7 @@ export default class mexc extends mexcRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     unWatchFundingRate(symbol: string, params?: {}): Promise<any>;
-    handleFundingRate(client: Client, message: any): void;
+    handleFundingRate(client: Client, message: Dict): void;
     /**
      * @method
      * @name mexc#unWatchTicker
@@ -216,11 +216,11 @@ export default class mexc extends mexcRest {
      */
     unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleUnsubscriptions(client: Client, messageHashes: string[]): void;
-    authenticate(subscriptionHash: any, params?: {}): Promise<Str>;
-    keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
-    handlePong(client: Client, message: any): any;
-    handleSubscriptionStatus(client: Client, message: any): void;
-    handleProtobufMessage(client: Client, message: any): boolean;
+    authenticate(subscriptionHash: Str, params?: Dict): Promise<any>;
+    keepAliveListenKey(listenKey: Str, params?: Dict): Promise<void>;
+    handlePong(client: Client, message: Dict): Dict;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
+    handleProtobufMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         method: string;

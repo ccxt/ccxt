@@ -1,5 +1,5 @@
 import blockchaincomRest from '../blockchaincom.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Market } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, NullableDict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blockchaincom extends blockchaincomRest {
     describe(): any;
@@ -12,7 +12,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name blockchaincom#watchOHLCV
@@ -26,7 +26,7 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name blockchaincom#watchTicker
@@ -37,8 +37,8 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): void;
-    parseWsUpdatedTicker(ticker: any, lastTicker?: undefined, market?: Market): Ticker;
+    handleTicker(client: Client, message: Dict): void;
+    parseWsUpdatedTicker(ticker: Dict, lastTicker?: NullableDict, market?: Market): Ticker;
     /**
      * @method
      * @name blockchaincom#watchTrades
@@ -51,8 +51,8 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name blockchaincom#fetchOrders
@@ -65,9 +65,9 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
-    parseWsOrderStatus(status: any): string;
+    handleOrders(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsOrderStatus(status: Str): Str;
     /**
      * @method
      * @name blockchaincom#watchOrderBook
@@ -80,10 +80,10 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleMessage(client: Client, message: any): void;
-    handleAuthenticationMessage(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: Dict): void;
+    authenticate(params?: Dict): Promise<any>;
 }

@@ -3,7 +3,7 @@ import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, 
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
     describe(): any;
-    orderRequestWs(method: string, symbol: string, type: string, request: Dict, amount: Num, price?: Num, params?: {}): {}[];
+    orderRequestWs(method: string, symbol: string, type: string, request: Dict, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
     /**
      * @method
      * @name kraken#createOrderWs
@@ -17,8 +17,8 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    handleCreateEditOrder(client: Client, message: any): void;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    handleCreateEditOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name kraken#editOrderWs
@@ -33,7 +33,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name kraken#cancelOrdersWs
@@ -44,7 +44,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name kraken#cancelOrderWs
@@ -55,8 +55,8 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    handleCancelOrder(client: Client, message: any): void;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    handleCancelOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name kraken#cancelAllOrdersWs
@@ -66,12 +66,12 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    handleCancelAllOrders(client: Client, message: any): void;
-    handleTicker(client: any, message: any): void;
-    handleTrades(client: Client, message: any): void;
-    handleOHLCV(client: Client, message: any): void;
-    requestId(): any;
+    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    handleCancelAllOrders(client: Client, message: Dict): void;
+    handleTicker(client: Client, message: Dict): void;
+    handleTrades(client: Client, message: Dict): void;
+    handleOHLCV(client: Client, message: Dict): void;
+    requestId(): number;
     /**
      * @method
      * @name kraken#watchTicker
@@ -81,7 +81,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name kraken#watchTickers
@@ -91,7 +91,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name kraken#watchBidsAsks
@@ -113,7 +113,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name kraken#watchTradesForSymbols
@@ -125,7 +125,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name kraken#watchOrderBook
@@ -136,7 +136,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name kraken#watchOrderBookForSymbols
@@ -147,7 +147,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name kraken#watchOHLCV
@@ -160,18 +160,18 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    loadMarkets(reload?: boolean, params?: {}): Promise<import("../base/types.js").Dictionary<Market>>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    loadMarkets(reload?: boolean, params?: Dict): Promise<import("../base/types.js").Dictionary<Market>>;
     ping(client: Client): Dict;
-    handlePong(client: Client, message: any): any;
-    watchHeartbeat(params?: {}): Promise<any>;
-    handleHeartbeat(client: Client, message: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    customHandleDeltas(bookside: any, deltas: any): void;
-    formatNumber(data: any): string;
-    handleSystemStatus(client: Client, message: any): any;
-    authenticate(params?: {}): Promise<Str>;
-    watchPrivate(name: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handlePong(client: Client, message: Dict): Dict;
+    watchHeartbeat(params?: Dict): Promise<any>;
+    handleHeartbeat(client: Client, message: Dict): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    customHandleDeltas(bookside: any, deltas: any[]): void;
+    formatNumber(data: string): string;
+    handleSystemStatus(client: Client, message: Dict): Dict;
+    authenticate(params?: Dict): Promise<Str>;
+    watchPrivate(name: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
     /**
      * @method
      * @name kraken#watchMyTrades
@@ -184,7 +184,7 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
+    handleMyTrades(client: Client, message: Dict, subscription?: Dict | undefined): void;
     parseWsTrade(trade: any, market?: Market): {
         info: any;
         id: Str;
@@ -211,10 +211,10 @@ export default class kraken extends krakenRest {
      * @param {object} [params] maximum number of orderic to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any, subscription?: Dict | undefined): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrders(client: Client, message: Dict, subscription?: Dict | undefined): void;
     parseWsOrder(order: any, market?: Market): Order;
-    watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
+    watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: Dict | undefined, params?: Dict): Promise<any>;
     /**
      * @method
      * @name kraken#watchBalance
@@ -223,10 +223,10 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
-    handleSubscriptionStatus(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
 }
