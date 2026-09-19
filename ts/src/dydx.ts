@@ -938,7 +938,7 @@ export default class dydx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'UNTRIGGERED': 'open',
             'OPEN': 'open',
@@ -949,7 +949,7 @@ export default class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'LIMIT',
             'STOP_LIMIT': 'LIMIT',
@@ -1087,7 +1087,7 @@ export default class dydx extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // {
         //     "market": "BTC-USD",
@@ -1217,7 +1217,7 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: any, privateKey: any): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -1228,7 +1228,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: any): Dict {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1275,7 +1275,7 @@ export default class dydx extends Exchange {
         return credentials;
     }
 
-    async fetchDydxAccount () {
+    async fetchDydxAccount (): Promise<NullableDict> {
         // required in js
         await this.loadDydxProtos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
@@ -1314,7 +1314,7 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    pow (n: string, m: Str) {
+    pow (n: string, m: Str): Str {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap
@@ -1828,7 +1828,7 @@ export default class dydx extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const ledgerType: Dict = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
@@ -2492,7 +2492,7 @@ export default class dydx extends Exchange {
         return this.safeBalance (result);
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
@@ -2511,7 +2511,7 @@ export default class dydx extends Exchange {
         throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    override sign (path: any, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const pathWithParams = this.implodeParams (path, params);
         let url = this.urls['api'][section];
         params = this.omit (params, this.extractParams (path));
@@ -2558,7 +2558,7 @@ export default class dydx extends Exchange {
         return undefined;
     }
 
-    override setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean): void {
         super.setSandboxMode (enable);
         // rewrite testnet parameters
         this.options['chainName'] = 'dydx-testnet-4';

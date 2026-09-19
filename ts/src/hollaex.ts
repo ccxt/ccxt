@@ -1254,7 +1254,7 @@ export default class hollaex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'pfilled': 'open',
@@ -2069,7 +2069,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {

@@ -948,7 +948,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'live': 'open',
             'partially_filled': 'open',
@@ -1276,7 +1276,7 @@ export default class coinone extends Exchange {
         return result as DepositAddress[];
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';

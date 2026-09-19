@@ -89,7 +89,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTrades (client: any, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         // {
         //     "type": "subscribed",
@@ -132,7 +132,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // {
         //     "id": "02b6148d0000000200000003",
@@ -212,7 +212,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // {
         //     "type": "subscribed",
@@ -325,7 +325,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         // {
         //     "type": "subscribed",
@@ -418,7 +418,7 @@ export default class dydx extends dydxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             this.handleErrorMessage (client, message);
