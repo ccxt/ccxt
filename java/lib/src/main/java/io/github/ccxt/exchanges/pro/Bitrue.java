@@ -490,7 +490,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbook = (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
         Object snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = Helpers.add("orderbook:", symbol);

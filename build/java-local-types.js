@@ -3856,7 +3856,10 @@ export function installJavaLocalTypes (transpiler) {
         if (info.anyValueShape !== true) {
             const prefixes = info.valuePrefixes !== undefined ? info.valuePrefixes
                 : [ info.valuePrefix === undefined ? 'this.' : info.valuePrefix ];
-            if (!prefixes.some ((prefix) => value.startsWith (prefix))) {
+            // the guarded native field read (javaTranspiler JAVA_FIELD_TYPES) wraps the
+            // accessor in a null test, so it matches no prefix but is still the ws map read
+            const nativeFieldRead = /\(\(java\.util\.Map<\?, \?>\)this\.|\(\(Map<\?, \?>\)this\./;
+            if (!prefixes.some ((prefix) => value.startsWith (prefix)) && !nativeFieldRead.test (value)) {
                 return printed; // unexpected shape — leave it as the printer emitted it
             }
         }

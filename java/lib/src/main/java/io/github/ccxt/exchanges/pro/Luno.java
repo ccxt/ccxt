@@ -269,12 +269,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
-            Object ob = (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
             this.handleDelta(ob, message);
             Helpers.addElementToObject(ob, "timestamp", timestamp);
             Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
         }
-        Object orderbook = (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
         Long nonce = this.safeInteger(message, "sequence");
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         client.resolve(orderbook, messageHash);
