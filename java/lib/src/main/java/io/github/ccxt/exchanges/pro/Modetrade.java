@@ -362,9 +362,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object ticker = this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Object ticker = this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
             Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
@@ -430,7 +430,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.parseWsBidAsk(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Object ticker = this.parseWsBidAsk(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "ts", timestamp );
             }}));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
@@ -1343,7 +1343,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString(rawPosition, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object position = this.parseWsPosition(rawPosition, market);

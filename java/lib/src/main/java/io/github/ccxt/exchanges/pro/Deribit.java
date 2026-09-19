@@ -119,7 +119,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
-                Object currencyCode = Helpers.GetValue(currencies, i);
+                Object currencyCode = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
                 ((List<Object>)channels).add(Helpers.add("user.portfolio.", currencyCode));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -544,7 +544,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Object trade = Helpers.GetValue(trades, i);
+            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Object parsed = this.parseTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -646,7 +646,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Object trade = Helpers.GetValue(parsed, i);
+            Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             ((Map<String, Object>)marketIds).put((String)((String)symbol), true);
@@ -822,12 +822,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         List<Object> cleanedBids = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bids).size(); i++)
         {
-            ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(Helpers.GetValue(bids, i), 1), Helpers.GetValue(Helpers.GetValue(bids, i), 2))));
+            ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((bids == null || i < 0 || i >= bids.size() ? null : bids.get(i)), 1), Helpers.GetValue((bids == null || i < 0 || i >= bids.size() ? null : bids.get(i)), 2))));
         }
         List<Object> cleanedAsks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)asks).size(); i++)
         {
-            ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(Helpers.GetValue(asks, i), 1), Helpers.GetValue(Helpers.GetValue(asks, i), 2))));
+            ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 1), Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 2))));
         }
         ((Map<String, Object>)data).put("bids", cleanedBids);
         ((Map<String, Object>)data).put("asks", cleanedAsks);

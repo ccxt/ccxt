@@ -840,7 +840,7 @@ public class Hollaex extends HollaexApi
         List<Object> keys = Helpers.objectKeys(tickers);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object ticker = Helpers.GetValue(tickers, key);
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");

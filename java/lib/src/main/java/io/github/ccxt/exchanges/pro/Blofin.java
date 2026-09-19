@@ -187,7 +187,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(data, i);
+            Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object trade = this.parseWsTrade(rawTrade);
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             Object stored = this.safeValue(this.trades, symbol);
@@ -400,7 +400,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.parseWsTicker(Helpers.GetValue(data, i));
+            Object ticker = this.parseWsTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Object messageHash = Helpers.add(Helpers.add(channelName, ":"), symbol);
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -472,7 +472,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.parseWsBidAsk(Helpers.GetValue(data, i));
+            Object ticker = this.parseWsBidAsk((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             String messageHash = Helpers.add("bidask:", symbol);
             Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
@@ -601,7 +601,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object candle = Helpers.GetValue(data, i);
+            Object candle = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object parsed = this.parseOHLCV(candle, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -765,7 +765,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object order = this.parseWsOrder(Helpers.GetValue(data, i));
+            Object order = this.parseWsOrder((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             Object symbol = ((Map<String, Object>)order).get("symbol");
             Object messageHash = Helpers.add(Helpers.add(channelName, ":"), symbol);
             Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -836,7 +836,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object position = this.parseWsPosition(Helpers.GetValue(data, i));
+            Object position = this.parseWsPosition((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             Object messageHash = Helpers.add(Helpers.add(channelName, ":"), ((Map<String, Object>)position).get("symbol"));

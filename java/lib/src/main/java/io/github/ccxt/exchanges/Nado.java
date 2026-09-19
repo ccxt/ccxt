@@ -844,7 +844,7 @@ public class Nado extends NadoApi
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
-                }}, Helpers.GetValue(cancelledOrders, i)), market));
+                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -960,7 +960,7 @@ public class Nado extends NadoApi
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
-                }}, Helpers.GetValue(cancelledOrders, i)), market));
+                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1372,7 +1372,7 @@ public class Nado extends NadoApi
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 if (Helpers.isTrue(this.isArchiveOrderClosed(order)))
                 {
                     ((List<Object>)closedOrders).add(this.extend(new HashMap<String, Object>() {{
@@ -1531,7 +1531,7 @@ public class Nado extends NadoApi
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)matches).size(); i++)
             {
-                Object match = Helpers.GetValue(matches, i);
+                Object match = (matches == null || i < 0 || i >= matches.size() ? null : matches.get(i));
                 String submissionIdx = this.safeString(match, "submission_idx");
                 Map<String, Object> tx = (Map<String, Object>) this.safeDict(txsBySubmission, submissionIdx, new HashMap<String, Object>() {{}});
                 ((List<Object>)trades).add(this.extend(tx, match));
@@ -1731,12 +1731,12 @@ public class Nado extends NadoApi
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)events).size(); i++)
             {
-                Object eventVar = Helpers.GetValue(events, i);
+                Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
                 String submissionIdx = this.safeString(eventVar, "submission_idx");
                 Object tx = new HashMap<String, Object>() {{}};
                 for (var j = 0; j < ((List<?>)txs).size(); j++)
                 {
-                    Object rawTx = Helpers.GetValue(txs, j);
+                    Object rawTx = (txs == null || j < 0 || j >= txs.size() ? null : txs.get(j));
                     String txSubmissionIdx = this.safeString(rawTx, "submission_idx");
                     if (java.util.Objects.equals(txSubmissionIdx, submissionIdx))
                     {
@@ -1820,7 +1820,7 @@ public class Nado extends NadoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(position, "balance", new HashMap<String, Object>() {{}});
                 String amount = this.safeString(balance, "amount");
                 if ((java.util.Objects.equals(amount, null)) || Precise.stringEquals(amount, "0"))
@@ -1831,7 +1831,7 @@ public class Nado extends NadoApi
                 Object product = new HashMap<String, Object>() {{}};
                 for (var j = 0; j < ((List<?>)products).size(); j++)
                 {
-                    Object rawProduct = Helpers.GetValue(products, j);
+                    Object rawProduct = (products == null || j < 0 || j >= products.size() ? null : products.get(j));
                     String rawProductId = this.safeString(rawProduct, "product_id");
                     if (java.util.Objects.equals(rawProductId, productId))
                     {
@@ -1946,7 +1946,7 @@ public class Nado extends NadoApi
             Map<String, Object> pairsById = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)pairs).size(); i++)
             {
-                Object rawPair = Helpers.GetValue(pairs, i);
+                Object rawPair = (pairs == null || i < 0 || i >= pairs.size() ? null : pairs.get(i));
                 String pairProductId = this.safeString(rawPair, "product_id");
                 if (!java.util.Objects.equals(pairProductId, null))
                 {
@@ -1956,7 +1956,7 @@ public class Nado extends NadoApi
             Map<String, Object> assetsById = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
-                Object rawAsset = Helpers.GetValue(assets, i);
+                Object rawAsset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
                 String assetProductId = this.safeString(rawAsset, "product_id");
                 if (!java.util.Objects.equals(assetProductId, null))
                 {
@@ -1966,7 +1966,7 @@ public class Nado extends NadoApi
             Map<String, Object> assetsByCode = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
-                Object rawAsset = Helpers.GetValue(assets, i);
+                Object rawAsset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
                 String assetSymbol = this.safeString(rawAsset, "symbol");
                 String assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
                 if (java.util.Objects.equals(assetCode, null))
@@ -1992,7 +1992,7 @@ public class Nado extends NadoApi
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object market = Helpers.GetValue(symbols, i);
+                Object market = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 String id = this.safeString(market, "product_id");
                 Map<String, Object> pair = (Map<String, Object>) this.safeDict(pairsById, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> asset = (Map<String, Object>) this.safeDict(assetsById, id, new HashMap<String, Object>() {{}});
@@ -2110,7 +2110,7 @@ public class Nado extends NadoApi
             List<Object> assets = this.toArray(response);
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
-                Object currency = Helpers.GetValue(assets, i);
+                Object currency = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
                 Object parsed = this.parseCurrency(currency);
                 String code = this.safeString(parsed, "code");
                 if (java.util.Objects.equals(code, null))
@@ -2329,7 +2329,7 @@ public class Nado extends NadoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fundingPayments).size(); i++)
             {
-                ((List<Object>)result).add(this.parseFundingHistory(Helpers.GetValue(fundingPayments, i), market));
+                ((List<Object>)result).add(this.parseFundingHistory((fundingPayments == null || i < 0 || i >= fundingPayments.size() ? null : fundingPayments.get(i)), market));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
@@ -3020,7 +3020,7 @@ public class Nado extends NadoApi
         List<Object> balances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object rawBalance = Helpers.GetValue(balances, i);
+            Object rawBalance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(rawBalance, "product_id");
             String code = this.safeCurrencyCode(currencyId);
             if (java.util.Objects.equals(code, "0"))

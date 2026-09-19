@@ -404,7 +404,7 @@ public class Bitbns extends BitbnsApi
             List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
             {
-                Object market = Helpers.GetValue(rawMarkets, i);
+                Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 String id = this.safeString(market, "id");
                 String baseId = this.safeString(market, "base");
                 String quoteId = this.safeString(market, "quote");

@@ -1825,7 +1825,7 @@ public class Grvt extends GrvtApi
         String availableBalance = this.safeString(response, "available_balance");
         for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
         {
-            Object balance = Helpers.GetValue(spotBalances, i);
+            Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -2795,7 +2795,7 @@ public class Grvt extends GrvtApi
         List<Object> legs = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orderLegs).size(); i++)
         {
-            Object leg = Helpers.GetValue(orderLegs, i);
+            Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(leg, "instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "base"));

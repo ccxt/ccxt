@@ -444,7 +444,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(rawTrades, i));
+            Object trade = this.parseTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)));
             String symbol = this.safeString(trade, "symbol");
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
@@ -459,7 +459,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(subscriptions, i);
+            Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             if (Helpers.isEqual(((String)messageHash).indexOf("myTrades:"), 0))
             {
                 client.resolve(stored, messageHash);
@@ -551,7 +551,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString(rawPosition, "market");
             if (java.util.Objects.equals(marketId, null))
             {
@@ -640,7 +640,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(subscriptions, i);
+            Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             if (Helpers.isEqual(((String)messageHash).indexOf("orders:"), 0))
             {
                 client.resolve(orders, messageHash);
@@ -905,7 +905,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         ((Map<String, Object>)subscription).put("nonce", nonce);
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
+            Object trade = this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         client.resolve(stored, messageHash);
@@ -1029,7 +1029,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object parsed = this.parseOHLCV(Helpers.GetValue(data, i));
+            Object parsed = this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, messageHash);
@@ -1040,7 +1040,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, key);
             String subscriptionName = this.safeString(subscription, "name");
             if (java.util.Objects.equals(subscriptionName, name))

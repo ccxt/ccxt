@@ -641,7 +641,7 @@ public class Apex extends ApexApi
             List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
             for (var f = 0; f < ((List<?>)tokens).size(); f++)
             {
-                Object token = Helpers.GetValue(tokens, f);
+                Object token = (tokens == null || f < 0 || f >= tokens.size() ? null : tokens.get(f));
                 String tokenName = this.safeString(token, "token");
                 if (java.util.Objects.equals(tokenName, currencyId))
                 {
@@ -1345,7 +1345,7 @@ public class Apex extends ApexApi
             List<Object> resultList = (List<Object>) this.safeList(data, "historyFunds", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)resultList).size(); i++)
             {
-                Object entry = Helpers.GetValue(resultList, i);
+                Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "fundingTimestamp");
                 String marketId = this.safeString(entry, "symbol");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{

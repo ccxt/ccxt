@@ -480,7 +480,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Object position = this.parseWsPosition(rawPosition);
             Long timestamp = this.safeInteger(message, "timestamp");
             Helpers.addElementToObject(position, "timestamp", timestamp);
@@ -1141,7 +1141,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Object cachedOrders = this.orders;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object order = Helpers.GetValue(orders, i);
+            Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
             Object parsed = this.parseWsOrder(order);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1466,7 +1466,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         for (var i = 0; i < ((List<?>)bids).size(); i++)
         {
-            Object bid = Helpers.GetValue(bids, i);
+            Object bid = (bids == null || i < 0 || i >= bids.size() ? null : bids.get(i));
             Double price = this.safeNumber(bid, "price");
             Double qty = this.safeNumber(bid, "qty");
             Object bidsSide = Helpers.GetValue(orderbook, "bids");
@@ -1474,7 +1474,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         for (var i = 0; i < ((List<?>)asks).size(); i++)
         {
-            Object ask = Helpers.GetValue(asks, i);
+            Object ask = (asks == null || i < 0 || i >= asks.size() ? null : asks.get(i));
             Double price = this.safeNumber(ask, "price");
             Double qty = this.safeNumber(ask, "qty");
             Object asksSide = Helpers.GetValue(orderbook, "asks");
@@ -1794,7 +1794,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Map<String, Object> tradeSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Object trade = Helpers.GetValue(trades, i);
+            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Object parsedTrade = this.parseWsMyTrade(trade);
             if (!java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("symbol"), null))
             {

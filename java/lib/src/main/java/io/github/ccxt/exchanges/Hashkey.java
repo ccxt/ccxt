@@ -1384,7 +1384,7 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
-            Object network = Helpers.GetValue(networks, j);
+            Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "chainType");
             Object networkCode = this.networkCodeToId(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -2134,7 +2134,7 @@ public class Hashkey extends HashkeyApi
         List<Object> balances = (List<Object>) this.safeList(balance, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balanceEntry = Helpers.GetValue(balances, i);
+            Object balanceEntry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balanceEntry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -4362,7 +4362,7 @@ public class Hashkey extends HashkeyApi
             List<Object> rows = this.toArray(response);
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object entry = Helpers.GetValue(rows, i);
+                Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 Long timestamp = this.safeInteger(entry, "settleTime");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -4902,7 +4902,7 @@ public class Hashkey extends HashkeyApi
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)riskLimits).size(); i++)
         {
-            Object tier = Helpers.GetValue(riskLimits, i);
+            Object tier = (riskLimits == null || i < 0 || i >= riskLimits.size() ? null : riskLimits.get(i));
             String initialMarginRate = this.safeString(tier, "initialMargin");
 final Object finalI = i;
             final Object finalMarket = market;

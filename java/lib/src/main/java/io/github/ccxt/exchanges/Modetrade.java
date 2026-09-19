@@ -1049,7 +1049,7 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
-            Object network = Helpers.GetValue(networks, j);
+            Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             // TODO: transform chain id to human readable name
             String networkId = this.safeString(network, "chain_id", "");
             Object precision = this.parsePrecision(this.safeString(network, "decimals"));
@@ -1488,7 +1488,7 @@ public class Modetrade extends ModetradeApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
@@ -1681,7 +1681,7 @@ public class Modetrade extends ModetradeApi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -3024,7 +3024,7 @@ public class Modetrade extends ModetradeApi
         List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));

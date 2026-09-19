@@ -1281,7 +1281,7 @@ public class Deepcoin extends DeepcoinApi
         List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String symbol = this.safeString(balance, "ccy");
             Object code = this.safeCurrencyCode(symbol);
             Object account = this.account();

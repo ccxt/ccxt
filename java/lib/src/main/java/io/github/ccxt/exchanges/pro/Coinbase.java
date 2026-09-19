@@ -586,11 +586,11 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object tickersObj = Helpers.GetValue(events, i);
+            Object tickersObj = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
             List<Object> tickers = (List<Object>) this.safeList(tickersObj, "tickers", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)tickers).size(); j++)
             {
-                Object ticker = Helpers.GetValue(tickers, j);
+                Object ticker = (tickers == null || j < 0 || j >= tickers.size() ? null : tickers.get(j));
                 String wsMarketId = this.safeString(ticker, "product_id");
                 if (java.util.Objects.equals(wsMarketId, null))
                 {
@@ -971,7 +971,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object currentEvent = Helpers.GetValue(events, i);
+            Object currentEvent = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
             List<Object> currentTrades = (List<Object>) this.safeList(currentEvent, "trades");
             if (java.util.Objects.equals(currentTrades, null))
             {
@@ -1032,7 +1032,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = Helpers.GetValue(events, i);
+            Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
             List<Object> responseOrders = (List<Object>) this.safeList(eventVar, "orders");
             if (java.util.Objects.equals(responseOrders, null))
             {
@@ -1040,7 +1040,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             for (var j = 0; j < ((List<?>)responseOrders).size(); j++)
             {
-                Object responseOrder = Helpers.GetValue(responseOrders, j);
+                Object responseOrder = (responseOrders == null || j < 0 || j >= responseOrders.size() ? null : responseOrders.get(j));
                 Object parsed = this.parseWsOrder(responseOrder);
                 Object cachedOrders = this.orders;
                 String marketId = this.safeString(responseOrder, "product_id");
@@ -1056,7 +1056,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = Helpers.GetValue(marketIds, i);
+            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             String symbol = this.safeSymbol(marketId);
             String messageHash = ("user::" + symbol);
             client.resolve(this.orders, messageHash);
@@ -1171,7 +1171,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String datetime = this.safeString(message, "timestamp");
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = Helpers.GetValue(events, i);
+            Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
             List<Object> updates = (List<Object>) this.safeList(eventVar, "updates", new ArrayList<Object>(Arrays.asList()));
             String marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1242,8 +1242,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> subMessageHashes = (List<Object>) this.safeList(unSubObject, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
-                Object messageHash = Helpers.GetValue(messageHashes, i);
-                Object subHash = Helpers.GetValue(subMessageHashes, i);
+                Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
             this.cleanCache(unSubObject);

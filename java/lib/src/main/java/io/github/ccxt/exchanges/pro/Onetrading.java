@@ -263,7 +263,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String datetime = this.safeString(message, "time");
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
-            Object ticker = Helpers.GetValue(tickers, i);
+            Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(ticker, "instrument");
             String symbol = this.safeSymbol(marketId);
             Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker(ticker));
@@ -835,14 +835,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Object orders = this.orders;
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Object order = this.parseOrder(Helpers.GetValue(rawOrders, i));
+            Object order = this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)));
             String symbol = this.safeString(order, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{order});
             client.resolve(this.orders, ("orders:" + symbol));
-            List<Object> rawTrades = (List<Object>) this.safeList(Helpers.GetValue(rawOrders, i), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTrades = (List<Object>) this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < ((List<?>)rawTrades).size(); ii++)
             {
-                Object trade = this.parseTrade(Helpers.GetValue(rawTrades, ii));
+                Object trade = this.parseTrade((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii)));
                 symbol = this.safeString(trade, "symbol", symbol);
                 Helpers.callDynamically(this.myTrades, "append", new Object[]{trade});
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
@@ -1351,7 +1351,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         List<Object> keys = Helpers.objectKeys(timeframes);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(timeframes, key), "unit"), Helpers.GetValue(timeframe, "unit")) && Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(timeframes, key), "period"), Helpers.GetValue(timeframe, "period")))
             {
                 return key;

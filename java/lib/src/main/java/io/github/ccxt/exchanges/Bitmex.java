@@ -798,7 +798,7 @@ public class Bitmex extends BitmexApi
         Object precision = this.parseNumber(precisionString);
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "asset");
             Object network = this.networkIdToCode(networkId, code);
             String withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
@@ -1486,7 +1486,7 @@ public class Bitmex extends BitmexApi
             List<Object> orders = this.toArray(response);
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 String side = (((java.util.Objects.equals(Helpers.GetValue(order, "side"), "Sell")))) ? "asks" : "bids";
                 Object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
                 Double price = this.safeNumber(order, "price");
@@ -2187,7 +2187,7 @@ public class Bitmex extends BitmexApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
+                Object ticker = this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)));
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2350,7 +2350,7 @@ public class Bitmex extends BitmexApi
                 // so the previous close becomes the current open, and we drop the first candle
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, i), 0, Helpers.subtract(this.parseToInt(((List<Object>)Helpers.GetValue(result, i)).get(0)), duration));
+                    Helpers.addElementToObject(Helpers.GetValue(result, i), 0, Helpers.subtract(this.parseToInt(((List<Object>)(result == null || i < 0 || i >= result.size() ? null : result.get(i))).get(0)), duration));
                 }
             }
             return result;
@@ -3536,7 +3536,7 @@ public class Bitmex extends BitmexApi
             List<Object> rawItems = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawItems).size(); i++)
             {
-                Object item = Helpers.GetValue(rawItems, i);
+                Object item = (rawItems == null || i < 0 || i >= rawItems.size() ? null : rawItems.get(i));
                 String marketId = this.safeString(item, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Boolean swap = (Boolean) this.safeBool(market, "swap", false);
@@ -3883,7 +3883,7 @@ public class Bitmex extends BitmexApi
             Object precision = this.parsePrecision(scale);
             for (var i = 0; Helpers.isLessThan(i, networksLength); i++)
             {
-                Object network = Helpers.GetValue(networks, i);
+                Object network = (networks == null || i < 0 || i >= networks.size() ? null : networks.get(i));
                 String networkId = this.safeString(network, "asset");
                 String currencyCode = this.safeString(currency, "code");
                 Object networkCode = this.networkIdToCode(networkId, currencyCode);

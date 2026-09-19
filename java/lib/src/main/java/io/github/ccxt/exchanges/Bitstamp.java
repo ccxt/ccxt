@@ -1446,7 +1446,7 @@ public class Bitstamp extends BitstampApi
         List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; i < ((List<?>)arr).size(); i++)
         {
-            Object market = Helpers.GetValue(arr, i);
+            Object market = (arr == null || i < 0 || i >= arr.size() ? null : arr.get(i));
             var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
             var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
             var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
@@ -3819,7 +3819,7 @@ public class Bitstamp extends BitstampApi
                 List<Object> keys = Helpers.objectKeys(error);
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
-                    Object key = Helpers.GetValue(keys, i);
+                    Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                     Object value = this.safeValue(error, key);
                     if ((value instanceof List))
                     {
@@ -3839,7 +3839,7 @@ public class Bitstamp extends BitstampApi
                 List<Object> all = (List<Object>) this.safeList(reasonInner, "__all__", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)all).size(); i++)
                 {
-                    ((List<Object>)errors).add(Helpers.GetValue(all, i));
+                    ((List<Object>)errors).add((all == null || i < 0 || i >= all.size() ? null : all.get(i)));
                 }
             }
             String code = this.safeString(response, "code");

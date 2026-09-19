@@ -1360,7 +1360,7 @@ public class Aster extends AsterApi
             List<Object> fapiRowsFiltered = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fapiRows).size(); i++)
             {
-                Object market = Helpers.GetValue(fapiRows, i);
+                Object market = (fapiRows == null || i < 0 || i >= fapiRows.size() ? null : fapiRows.get(i));
                 // tmp skip some markets with base = undefined
                 if (!java.util.Objects.equals(this.safeString(market, "baseAsset"), null))
                 {
@@ -2230,9 +2230,9 @@ public class Aster extends AsterApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                String marketId = this.safeString(Helpers.GetValue(rows, i), "symbol");
+                String marketId = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
                 Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-                Map<String, Object> priceData = this.extend(this.parseLastPrice(Helpers.GetValue(rows, i), safeMarket), parameters);
+                Map<String, Object> priceData = this.extend(this.parseLastPrice((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), safeMarket), parameters);
                 ((List<Object>)results).add(priceData);
             }
             symbols = this.marketSymbols(symbols);
@@ -4425,7 +4425,7 @@ public class Aster extends AsterApi
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
-            Object bracket = Helpers.GetValue(leverageBracket, i);
+            Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
             if (Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0)))
             {
                 break;
@@ -4646,7 +4646,7 @@ public class Aster extends AsterApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
             {
-                Object rawPosition = Helpers.GetValue(rawPositions, i);
+                Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
                 String entryPriceString = this.safeString(rawPosition, "entryPrice");
                 if (Precise.stringGt(entryPriceString, "0"))
                 {
@@ -4713,7 +4713,7 @@ public class Aster extends AsterApi
         Map<String, Object> balances = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Object entry = Helpers.GetValue(assets, i);
+            Object entry = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
             String currencyId = this.safeString(entry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             String crossWalletBalance = this.safeString(entry, "crossWalletBalance");
@@ -4729,7 +4729,7 @@ public class Aster extends AsterApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            Object position = Helpers.GetValue(positions, i);
+            Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(position, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
             Object code = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
@@ -4801,7 +4801,7 @@ public class Aster extends AsterApi
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
-            Object bracket = Helpers.GetValue(leverageBracket, i);
+            Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
             if (Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0)))
             {
                 break;
@@ -5032,14 +5032,14 @@ public class Aster extends AsterApi
                 List<Object> entries = this.toArray(response);
                 for (var i = 0; i < ((List<?>)entries).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(entries, i);
+                    Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
                     String marketId = this.safeString(entry, "symbol");
                     String symbol = this.safeSymbol(marketId, null, null, "contract");
                     List<Object> brackets = (List<Object>) this.safeList(entry, "brackets", new ArrayList<Object>(Arrays.asList()));
                     List<Object> result = new ArrayList<Object>(Arrays.asList());
                     for (var j = 0; j < ((List<?>)brackets).size(); j++)
                     {
-                        Object bracket = Helpers.GetValue(brackets, j);
+                        Object bracket = (brackets == null || j < 0 || j >= brackets.size() ? null : brackets.get(j));
                         String floorValue = this.safeString(bracket, "notionalFloor");
                         String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                         ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));

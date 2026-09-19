@@ -220,7 +220,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(payload, i));
+            Object trade = this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)));
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(tradesArray, null))
@@ -335,7 +335,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
-            Object ohlcv = Helpers.GetValue(payload, i);
+            Object ohlcv = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
             String marketId = this.safeString(ohlcv, 8);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -347,7 +347,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             List<Object> keys = Helpers.objectKeys(this.timeframes);
             for (var j = 0; j < ((List<?>)keys).size(); j++)
             {
-                Object timeframe = Helpers.GetValue(keys, j);
+                Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                 String interval = this.safeString(this.timeframes, timeframe, timeframe);
                 Object duration = Helpers.multiply(Helpers.parseInt(interval), 1000);
                 Long timestamp = this.safeInteger(ohlcv, 0);
@@ -412,7 +412,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             List<Object> timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {
-                Object timeframe = Helpers.GetValue(timeframes, j);
+                Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));
                 String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -524,7 +524,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Object nonce = null;
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
-            Object bidask = Helpers.GetValue(payload, i);
+            Object bidask = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
             if (java.util.Objects.equals(timestamp, null))
             {
                 timestamp = this.safeInteger(bidask, 2);

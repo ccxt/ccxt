@@ -251,7 +251,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
+            Object trade = this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
         }
         client.resolve(tradesCache, ch);

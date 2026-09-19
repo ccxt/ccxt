@@ -1536,7 +1536,7 @@ public class Phemex extends PhemexApi
         List<Object> sides = new ArrayList<Object>(Arrays.asList(bidsKey, asksKey));
         for (var i = 0; i < ((List<?>)sides).size(); i++)
         {
-            Object side = Helpers.GetValue(sides, i);
+            Object side = (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             Object bidasks = this.safeValue(orderbook, side);
             for (var k = 0; k < Helpers.getArrayLength(bidasks); k++)
@@ -2505,7 +2505,7 @@ public class Phemex extends PhemexApi
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = Helpers.GetValue(data, i);
+            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
@@ -4752,7 +4752,7 @@ public class Phemex extends PhemexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 ((List<Object>)result).add(this.parsePosition(position));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -5091,7 +5091,7 @@ public class Phemex extends PhemexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object entry = Helpers.GetValue(rows, i);
+                Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 Long timestamp = this.safeInteger(entry, "createTime");
                 String execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
                 String currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
@@ -6631,7 +6631,7 @@ final Object finalI = i;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ranks).size(); i++)
             {
-                Object rank = Helpers.GetValue(ranks, i);
+                Object rank = (ranks == null || i < 0 || i >= ranks.size() ? null : ranks.get(i));
                 ((List<Object>)result).add(this.parseADLRank(rank));
             }
             return this.filterByArrayADLRanks(result, "symbol", symbols, false);

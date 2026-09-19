@@ -910,7 +910,7 @@ public class Blockchaincom extends BlockchaincomApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -1505,7 +1505,7 @@ public class Blockchaincom extends BlockchaincomApi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object entry = Helpers.GetValue(balances, i);
+                Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "currency");
                 Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();

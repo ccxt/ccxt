@@ -647,7 +647,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            Object trade = this.parseWsTrade(Helpers.GetValue(data, i), market);
+            Object trade = this.parseWsTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
             appended = true;
         }

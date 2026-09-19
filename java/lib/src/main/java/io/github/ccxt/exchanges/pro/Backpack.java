@@ -222,7 +222,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     List<Object> keys = Helpers.objectKeys(cache);
                     for (var j = 0; j < ((List<?>)keys).size(); j++)
                     {
-                        Object symbol = Helpers.GetValue(keys, j);
+                        Object symbol = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                         ((Map<String,Object>)this.positions).remove((String)symbol);
                     }
                 } else

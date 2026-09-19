@@ -212,14 +212,14 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Object asks = Helpers.GetValue(orderbook, "asks");
         for (var i = 0; i < ((List<?>)obBids).size(); i++)
         {
-            Object bid = Helpers.GetValue(obBids, i);
+            Object bid = (obBids == null || i < 0 || i >= obBids.size() ? null : obBids.get(i));
             Double price = this.safeNumber(bid, 0);
             Double quantity = this.safeNumber(bid, 1);
             Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
         }
         for (var i = 0; i < ((List<?>)obAsks).size(); i++)
         {
-            Object ask = Helpers.GetValue(obAsks, i);
+            Object ask = (obAsks == null || i < 0 || i >= obAsks.size() ? null : obAsks.get(i));
             Double price = this.safeNumber(ask, 0);
             Double quantity = this.safeNumber(ask, 1);
             Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
@@ -1245,7 +1245,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object tickerData = Helpers.GetValue(data, i);
+            Object tickerData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object ticker = this.parseTicker(tickerData);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1496,7 +1496,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 Object asks = Helpers.GetValue(orderbook, "asks");
                 for (var i = 0; i < ((List<?>)obAsks).size(); i++)
                 {
-                    Object ask = Helpers.GetValue(obAsks, i);
+                    Object ask = (obAsks == null || i < 0 || i >= obAsks.size() ? null : obAsks.get(i));
                     Double price = this.safeNumber(ask, 0);
                     Double quantity = this.safeNumber(ask, 1);
                     Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
@@ -1507,7 +1507,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 Object bids = Helpers.GetValue(orderbook, "bids");
                 for (var i = 0; i < ((List<?>)obBids).size(); i++)
                 {
-                    Object bid = Helpers.GetValue(obBids, i);
+                    Object bid = (obBids == null || i < 0 || i >= obBids.size() ? null : obBids.get(i));
                     Double price = this.safeNumber(bid, 0);
                     Double quantity = this.safeNumber(bid, 1);
                     Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
@@ -1923,8 +1923,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
         {
-            Object unsubHash = Helpers.GetValue(messageHashes, j);
-            Object subHash = Helpers.GetValue(subMessageHashes, j);
+            Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+            Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

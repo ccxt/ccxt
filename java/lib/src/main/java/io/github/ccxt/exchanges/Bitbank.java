@@ -690,7 +690,7 @@ public class Bitbank extends BitbankApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)pairs).size(); i++)
             {
-                Object pair = Helpers.GetValue(pairs, i);
+                Object pair = (pairs == null || i < 0 || i >= pairs.size() ? null : pairs.get(i));
                 String marketId = this.safeString(pair, "name");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -804,7 +804,7 @@ public class Bitbank extends BitbankApi
         List<Object> assets = (List<Object>) this.safeList(data, "assets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Object balance = Helpers.GetValue(assets, i);
+            Object balance = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

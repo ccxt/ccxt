@@ -1420,7 +1420,7 @@ public class Derive extends DeriveApi
         Object result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(tradesArray, i);
+            Object rawTrade = (tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i));
             Boolean isFetchTrades = !(Helpers.inOp(rawTrade, "order_id"));
             String liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (Boolean.TRUE.equals(isFetchTrades) && (java.util.Objects.equals(liquidityRole, "maker")))
@@ -1550,7 +1550,7 @@ public class Derive extends DeriveApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(entry, "timestamp");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -3219,7 +3219,7 @@ public class Derive extends DeriveApi
             List<Object> collaterals = (List<Object>) this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)collaterals).size(); j++)
             {
-                Object balance = Helpers.GetValue(collaterals, j);
+                Object balance = (collaterals == null || j < 0 || j >= collaterals.size() ? null : collaterals.get(j));
                 String code = this.safeCurrencyCode(this.safeString(balance, "currency"));
                 Object account = this.safeDict(result, code);
                 if (java.util.Objects.equals(account, null))

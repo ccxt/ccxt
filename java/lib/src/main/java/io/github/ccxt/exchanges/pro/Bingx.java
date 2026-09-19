@@ -1700,7 +1700,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Object position = this.parseWsPosition(rawPosition);
             String symbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(symbol, null))
@@ -1788,7 +1788,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     List<Object> messageHashes = Helpers.objectKeys(client.futures);
                     for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                     {
-                        Object messageHash = Helpers.GetValue(messageHashes, j);
+                        Object messageHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                         client.reject(error, messageHash);
                     }
                 }
@@ -2128,7 +2128,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = Helpers.GetValue(data, i);
+            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -2244,8 +2244,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object unsubHash = Helpers.GetValue(messageHashes, i);
-            Object subHash = Helpers.GetValue(subMessageHashes, i);
+            Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

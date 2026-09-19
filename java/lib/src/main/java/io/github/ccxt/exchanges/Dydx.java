@@ -1030,7 +1030,7 @@ public class Dydx extends DydxApi
             List<Object> rows = (List<Object>) this.safeList(response, "historicalFunding", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object entry = Helpers.GetValue(rows, i);
+                Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 Long timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
                 String marketId = this.safeString(entry, "ticker");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
@@ -2946,7 +2946,7 @@ public class Dydx extends DydxApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object account = Helpers.GetValue(rows, i);
+                Object account = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String accountId = this.safeString(account, "subaccountNumber");
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", accountId );

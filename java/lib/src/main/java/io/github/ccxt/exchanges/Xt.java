@@ -1364,7 +1364,7 @@ public class Xt extends XtApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)currenciesData).size(); i++)
             {
-                Object entry = Helpers.GetValue(currenciesData, i);
+                Object entry = (currenciesData == null || i < 0 || i >= currenciesData.size() ? null : currenciesData.get(i));
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(chainsDataIndexed, currencyId, new HashMap<String, Object>() {{}});
@@ -1372,7 +1372,7 @@ public class Xt extends XtApi
                 Map<String, Object> networks = new HashMap<String, Object>() {{}};
                 for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
                 {
-                    Object rawNetwork = Helpers.GetValue(rawNetworks, j);
+                    Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
                     String networkId = this.safeString(rawNetwork, "chain");
                     Object networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
@@ -1766,7 +1766,7 @@ public class Xt extends XtApi
         Object amountPrecision = null;
         for (var i = 0; i < ((List<?>)filters).size(); i++)
         {
-            Object entry = Helpers.GetValue(filters, i);
+            Object entry = (filters == null || i < 0 || i >= filters.size() ? null : filters.get(i));
             String filter = this.safeString(entry, "filter");
             if (java.util.Objects.equals(filter, "QUANTITY"))
             {
@@ -2385,7 +2385,7 @@ public class Xt extends XtApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
+                Object ticker = this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2488,7 +2488,7 @@ public class Xt extends XtApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object rawTicker = Helpers.GetValue(tickers, i);
+                Object rawTicker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 // the spot and contract payloads share the same field names, so
                 // the market type cannot be inferred from the entry itself
                 String marketId = this.safeString(rawTicker, "s");
@@ -5839,7 +5839,7 @@ public class Xt extends XtApi
         List<Object> brackets = (List<Object>) this.safeList(info, "leverageBrackets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
-            Object tier = Helpers.GetValue(brackets, i);
+            Object tier = (brackets == null || i < 0 || i >= brackets.size() ? null : brackets.get(i));
             String marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId, market, "_", "contract");
             Double minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
@@ -5947,7 +5947,7 @@ final Object finalMarket = market;
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)items).size(); i++)
             {
-                Object entry = Helpers.GetValue(items, i);
+                Object entry = (items == null || i < 0 || i >= items.size() ? null : items.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = this.safeSymbol(marketId, market);
                 Long timestamp = this.safeInteger(entry, "createdTime");
@@ -6263,7 +6263,7 @@ final Object finalMarket = market;
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? ((Map<String, Object>)market).get("inverse") : ((Map<String, Object>)market).get("linear");
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
@@ -6368,7 +6368,7 @@ final Object finalMarket = market;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)items).size(); i++)
             {
-                Object entry = Helpers.GetValue(items, i);
+                Object entry = (items == null || i < 0 || i >= items.size() ? null : items.get(i));
                 ((List<Object>)result).add(this.parseFundingHistory(entry, market));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
@@ -6536,7 +6536,7 @@ final Object finalMarket = market;
             Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList())));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object entry = Helpers.GetValue(positions, i);
+                Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
                 String positionSize = this.safeString(entry, "positionSize");
@@ -6636,7 +6636,7 @@ final Object finalMarket = market;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object entry = Helpers.GetValue(positions, i);
+                Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
                 Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);

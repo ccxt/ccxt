@@ -138,7 +138,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(rawTrades, i);
+            Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             Object trade = this.parseTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
@@ -409,7 +409,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> handlers = new ArrayList<Object>(Arrays.asList("handleOrderBook", "handleTrades"));
         for (var j = 0; j < ((List<?>)handlers).size(); j++)
         {
-            Object handler = Helpers.GetValue(handlers, j);
+            Object handler = (handlers == null || j < 0 || j >= handlers.size() ? null : handlers.get(j));
             Helpers.callDynamically(this, handler, new Object[] {client, message, (subscriptions == null || 0 >= ((List<?>)subscriptions).size() ? null : ((List<?>)subscriptions).get(0))});
         }
     }

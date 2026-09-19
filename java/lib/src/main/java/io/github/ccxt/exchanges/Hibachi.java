@@ -984,7 +984,7 @@ public class Hibachi extends HibachiApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -1216,7 +1216,7 @@ public class Hibachi extends HibachiApi
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
-                Object responseOrder = Helpers.GetValue(responseOrders, i);
+                Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
                 ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
@@ -1349,7 +1349,7 @@ public class Hibachi extends HibachiApi
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
-                Object responseOrder = Helpers.GetValue(responseOrders, i);
+                Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
                 ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
@@ -1443,7 +1443,7 @@ public class Hibachi extends HibachiApi
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
-                Object responseOrder = Helpers.GetValue(responseOrders, i);
+                Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
                 ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
@@ -2939,7 +2939,7 @@ public class Hibachi extends HibachiApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );

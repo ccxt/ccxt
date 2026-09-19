@@ -397,7 +397,7 @@ public class Btcturk extends BtcturkApi
         Object minCost = null;
         for (var j = 0; j < ((List<?>)filters).size(); j++)
         {
-            Object filter = Helpers.GetValue(filters, j);
+            Object filter = (filters == null || j < 0 || j >= filters.size() ? null : filters.get(j));
             String filterType = this.safeString(filter, "filterType");
             if (java.util.Objects.equals(filterType, "PRICE_FILTER"))
             {
@@ -477,7 +477,7 @@ public class Btcturk extends BtcturkApi
         }};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object entry = Helpers.GetValue(data, i);
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(entry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

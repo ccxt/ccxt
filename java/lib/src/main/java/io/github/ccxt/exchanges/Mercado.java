@@ -384,7 +384,7 @@ public class Mercado extends MercadoApi
             List<Object> coins = this.toArray(response);
             for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
-                Object coin = Helpers.GetValue(coins, i);
+                Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
                 Object baseId = coin;
                 String quoteId = "BRL";
                 String base = this.safeCurrencyCode(baseId);
@@ -1271,7 +1271,7 @@ public class Mercado extends MercadoApi
             List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < ((List<?>)trades).size(); y++)
             {
-                ((List<Object>)result).add(Helpers.GetValue(trades, y));
+                ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
             }
         }
         return result;

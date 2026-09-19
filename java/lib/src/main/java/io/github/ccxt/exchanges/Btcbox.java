@@ -438,7 +438,7 @@ public class Btcbox extends BtcboxApi
         List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
-            Object code = Helpers.GetValue(codes, i);
+            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object currencyId = ((Map<String, Object>)currency).get("id");
             String free = (currencyId + "_balance");

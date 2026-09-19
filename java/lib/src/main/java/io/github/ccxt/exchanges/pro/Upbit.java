@@ -113,7 +113,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
-                Object key = Helpers.GetValue(channelKeys, i);
+                Object key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
                 ((List<Object>)finalMessage).add(Helpers.GetValue(subscriptions, key));
             }
             return (this.watchMultiple(url, messageHashes, finalMessage, messageHashes, null)).join();
@@ -369,7 +369,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object entry = Helpers.GetValue(data, i);
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Double ask_price = this.safeFloat(entry, "ask_price");
             Double ask_size = this.safeFloat(entry, "ask_size");
             Double bid_price = this.safeFloat(entry, "bid_price");
@@ -526,14 +526,14 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
-                ((List<Object>)requests).add(Helpers.GetValue(subscriptions, Helpers.GetValue(channelKeys, i)));
+                ((List<Object>)requests).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
             }
             List<Object> message = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Upbit.this.uuid() );
     }}));
             for (var i = 0; i < ((List<?>)requests).size(); i++)
             {
-                ((List<Object>)message).add(Helpers.GetValue(requests, i));
+                ((List<Object>)message).add((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)));
             }
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
@@ -867,7 +867,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = Helpers.GetValue(data, i);
+            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             String available = this.safeString(balance, "balance");

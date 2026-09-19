@@ -1101,7 +1101,7 @@ public class Pacifica extends PacificaApi
             List<Object> spotBalances = (List<Object>) this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
             {
-                Object balance = Helpers.GetValue(spotBalances, i);
+                Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
                 String currencyId = this.safeString(balance, "symbol");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -2245,7 +2245,7 @@ public class Pacifica extends PacificaApi
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object order = Helpers.GetValue(results, i);
+                Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String error = this.safeString(order, "error");
                 Boolean success = (Boolean) this.safeBool(order, "success", false);
                 String status = null;
@@ -2324,7 +2324,7 @@ public class Pacifica extends PacificaApi
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object order = Helpers.GetValue(results, i);
+                Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String error = this.safeString(order, "error");
                 Boolean success = (Boolean) this.safeBool(order, "success", false);
                 String status = null;
@@ -2367,7 +2367,7 @@ public class Pacifica extends PacificaApi
         parameters = this.omit(parameters, "clientOrderIds");
         for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
         {
-            Object cloid = Helpers.GetValue(clientOrderIds, i);
+            Object cloid = (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i));
             Map<String, Object> cloidParams = new HashMap<String, Object>() {{
                 put( "clientOrderId", cloid );
             }};
@@ -2758,7 +2758,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object info = Helpers.GetValue(data, i);
+                Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Object ticker = this.parseTicker(info);
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -3428,7 +3428,7 @@ public class Pacifica extends PacificaApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
+                ((List<Object>)result).add(this.parsePosition((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));

@@ -970,7 +970,7 @@ public class Gemini extends GeminiApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fetchUsdtMarkets).size(); i++)
             {
-                Object marketId = Helpers.GetValue(fetchUsdtMarkets, i);
+                Object marketId = (fetchUsdtMarkets == null || i < 0 || i >= fetchUsdtMarkets.size() ? null : fetchUsdtMarkets.get(i));
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", marketId );
                 }};
@@ -1008,9 +1008,9 @@ public class Gemini extends GeminiApi
             }
             for (var i = 0; i < ((List<?>)allMarketIds).size(); i++)
             {
-                if (!this.inArray(Helpers.GetValue(allMarketIds, i), brokenPairs))
+                if (!this.inArray((allMarketIds == null || i < 0 || i >= allMarketIds.size() ? null : allMarketIds.get(i)), brokenPairs))
                 {
-                    ((List<Object>)marketIds).add(Helpers.GetValue(allMarketIds, i));
+                    ((List<Object>)marketIds).add((allMarketIds == null || i < 0 || i >= allMarketIds.size() ? null : allMarketIds.get(i)));
                 }
             }
             if (Boolean.TRUE.equals(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
@@ -1018,7 +1018,7 @@ public class Gemini extends GeminiApi
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                 {
-                    Object marketId = Helpers.GetValue(marketIds, i);
+                    Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                     Map<String, Object> request = new HashMap<String, Object>() {{
                         put( "symbol", marketId );
                     }};
@@ -1038,7 +1038,7 @@ public class Gemini extends GeminiApi
                     Map<String, Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
-                        Object marketId = Helpers.GetValue(marketIds, i);
+                        Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                         List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
@@ -1049,9 +1049,9 @@ public class Gemini extends GeminiApi
                 {
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
-                        if (!this.inArray(Helpers.GetValue(marketIds, i), brokenPairs))
+                        if (!this.inArray((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), brokenPairs))
                         {
-                            ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(marketIds, i)));
+                            ((List<Object>)result).add(this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))));
                         }
                     }
                 }
@@ -1742,7 +1742,7 @@ public class Gemini extends GeminiApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );

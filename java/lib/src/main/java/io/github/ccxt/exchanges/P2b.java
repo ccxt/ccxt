@@ -992,7 +992,7 @@ public class P2b extends P2bApi
         List<Object> keys = Helpers.objectKeys(response);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(keys, i);
+            Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object balance = Helpers.GetValue(response, currencyId);
             Object code = this.safeCurrencyCode(currencyId);
             String used = this.safeString(balance, "freeze");

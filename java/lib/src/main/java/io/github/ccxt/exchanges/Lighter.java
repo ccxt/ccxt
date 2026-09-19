@@ -1607,7 +1607,7 @@ public class Lighter extends LighterApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market_id");
                 String type = this.safeString(market, "market_type");
                 type = (((java.util.Objects.equals(type, "perp")))) ? "swap" : type;
@@ -2252,10 +2252,10 @@ public class Lighter extends LighterApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                String exchange = this.safeString(Helpers.GetValue(data, i), "exchange");
+                String exchange = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "exchange");
                 if (java.util.Objects.equals(exchange, "lighter"))
                 {
-                    ((List<Object>)result).add(Helpers.GetValue(data, i));
+                    ((List<Object>)result).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
                 }
             }
             return this.parseFundingRates(result, symbols);
@@ -2347,13 +2347,13 @@ public class Lighter extends LighterApi
             List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = Helpers.GetValue(accounts, i);
+                Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < ((List<?>)assets).size(); j++)
                     {
-                        Object asset = Helpers.GetValue(assets, j);
+                        Object asset = (assets == null || j < 0 || j >= assets.size() ? null : assets.get(j));
                         String codeId = this.safeString(asset, "symbol");
                         String code = this.safeCurrencyCode(codeId);
                         Object balance = this.safeDict(result, code, this.account());
@@ -2490,11 +2490,11 @@ public class Lighter extends LighterApi
             List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = Helpers.GetValue(accounts, i);
+                Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                 List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)positions).size(); j++)
                 {
-                    ((List<Object>)allPositions).add(Helpers.GetValue(positions, j));
+                    ((List<Object>)allPositions).add((positions == null || j < 0 || j >= positions.size() ? null : positions.get(j)));
                 }
             }
             return this.parsePositions(allPositions, symbols);

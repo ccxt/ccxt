@@ -578,7 +578,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object trade = this.parseWsTrade(Helpers.GetValue(rawTrades, i), market);
+            Object trade = this.parseWsTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), market);
             Helpers.addElementToObject(trade, "symbol", symbol);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }

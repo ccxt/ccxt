@@ -1145,7 +1145,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }};
             for (var i = 0; i < ((List<?>)changes).size(); i++)
             {
-                Object change = Helpers.GetValue(changes, i);
+                Object change = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
                 String key = this.safeString(change, 0);
                 String side = this.safeString(sides, key);
                 Double price = this.safeNumber(change, 1);

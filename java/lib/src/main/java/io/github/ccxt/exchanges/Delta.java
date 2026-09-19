@@ -733,7 +733,7 @@ public class Delta extends DeltaApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "network");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -820,7 +820,7 @@ public class Delta extends DeltaApi
         List<Object> keys = Helpers.objectKeys(input);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object item = Helpers.GetValue(input, key);
             String numericIdString = this.safeString(item, "numericId");
             if (java.util.Objects.equals(numericIdString, null))
@@ -1029,7 +1029,7 @@ public class Delta extends DeltaApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String type = this.safeString(market, "contract_type");
                 if ((java.util.Objects.equals(type, "options_combos")) || (java.util.Objects.equals(type, "binary_call_options")) || (java.util.Objects.equals(type, "binary_put_options")))
                 {
@@ -1629,7 +1629,7 @@ public class Delta extends DeltaApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object rawTicker = Helpers.GetValue(tickers, i);
+                Object rawTicker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 String contractType = this.safeString(rawTicker, "contract_type");
                 if ((java.util.Objects.equals(contractType, "options_combos")) || (java.util.Objects.equals(contractType, "binary_call_options")) || (java.util.Objects.equals(contractType, "binary_put_options")))
                 {
@@ -1960,7 +1960,7 @@ public class Delta extends DeltaApi
         Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "asset_id");
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(currenciesByNumericId, currencyId);
             Object code = (((java.util.Objects.equals(currency, null)))) ? currencyId : ((Map<String, Object>)currency).get("code");

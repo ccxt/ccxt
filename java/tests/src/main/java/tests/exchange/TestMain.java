@@ -156,7 +156,7 @@ public class TestMain extends BaseTest
             {
                 for (var i = 0; i < ((List<?>)testFileNames).size(); i++)
                 {
-                    Object testFileName = Helpers.GetValue(testFileNames, i);
+                    Object testFileName = (testFileNames == null || i < 0 || i >= testFileNames.size() ? null : testFileNames.get(i));
                     for (var j = 0; j < Helpers.getArrayLength(possibleMethodNames); j++)
                     {
                         Object methodName = Helpers.GetValue(possibleMethodNames, j);
@@ -198,7 +198,7 @@ public class TestMain extends BaseTest
         List<Object> objkeys = Helpers.objectKeys(reqCreds);
         for (var i = 0; i < ((List<?>)objkeys).size(); i++)
         {
-            Object credential = Helpers.GetValue(objkeys, i);
+            Object credential = (objkeys == null || i < 0 || i >= objkeys.size() ? null : objkeys.get(i));
             Object isRequired = Helpers.GetValue(reqCreds, credential);
             if ((java.util.Objects.equals(isRequired, true)) && (java.util.Objects.equals(getExchangeProp(exchange, credential), null)))
             {
@@ -238,7 +238,7 @@ public class TestMain extends BaseTest
             List<Object> settingKeys = Helpers.objectKeys(exchangeSettings);
             for (var i = 0; i < ((List<?>)settingKeys).size(); i++)
             {
-                Object key = Helpers.GetValue(settingKeys, i);
+                Object key = (settingKeys == null || i < 0 || i >= settingKeys.size() ? null : settingKeys.get(i));
                 Object settingValue = Helpers.GetValue(exchangeSettings, key);
                 Boolean settingIsEmpty = (java.util.Objects.equals(settingValue, null)) || (java.util.Objects.equals(settingValue, null)) || (java.util.Objects.equals(settingValue, "")) || (java.util.Objects.equals(settingValue, false)) || (Helpers.isEqual(settingValue, 0));
                 if (!Boolean.TRUE.equals(settingIsEmpty))
@@ -386,7 +386,7 @@ public class TestMain extends BaseTest
         List<Object> methodNames = new ArrayList<Object>(Arrays.asList(methodName, ((methodName + ".") + this.ext)));
         for (var i = 0; i < ((List<?>)methodNames).size(); i++)
         {
-            Object mName = Helpers.GetValue(methodNames, i);
+            Object mName = (methodNames == null || i < 0 || i >= methodNames.size() ? null : methodNames.get(i));
             if (Helpers.inOp(this.skippedMethods, mName))
             {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
@@ -412,7 +412,7 @@ public class TestMain extends BaseTest
         List<Object> objectNames = Helpers.objectKeys(objectSkips);
         for (var i = 0; i < ((List<?>)objectNames).size(); i++)
         {
-            Object objectName = Helpers.GetValue(objectNames, i);
+            Object objectName = (objectNames == null || i < 0 || i >= objectNames.size() ? null : objectNames.get(i));
             Object objectMethods = Helpers.GetValue(objectSkips, objectName);
             if (Helpers.isTrue(exchange.inArray(methodName, objectMethods)))
             {
@@ -644,7 +644,7 @@ public class TestMain extends BaseTest
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)testNames).size(); i++)
             {
-                Object testName = Helpers.GetValue(testNames, i);
+                Object testName = (testNames == null || i < 0 || i >= testNames.size() ? null : testNames.get(i));
                 Object testArgs = Helpers.GetValue(tests, testName);
                 ((List<Object>)promises).add(this.testSafe(testName, exchange, testArgs, isPublicTest));
             }
@@ -655,7 +655,7 @@ public class TestMain extends BaseTest
             Object failedMethods = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)testNames).size(); i++)
             {
-                Object testName = Helpers.GetValue(testNames, i);
+                Object testName = (testNames == null || i < 0 || i >= testNames.size() ? null : testNames.get(i));
                 Object testReturnedValue = Helpers.GetValue(results, i);
                 if (!java.util.Objects.equals(testReturnedValue, true))
                 {
@@ -749,7 +749,7 @@ public class TestMain extends BaseTest
         List<Object> keys = Helpers.objectKeys(markets);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object market = Helpers.GetValue(markets, key);
             if (Helpers.isTrue(spot) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
             {
@@ -893,7 +893,7 @@ public class TestMain extends BaseTest
             List<Object> tickerSymbols = Helpers.objectKeys(tickers);
             for (var i = 0; i < ((List<?>)tickerSymbols).size(); i++)
             {
-                Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
+                Object tickerSymbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
                 Object market = exchange.safeDict(exchange.markets, tickerSymbol);
                 if (!java.util.Objects.equals(market, null))
                 {
@@ -1069,7 +1069,7 @@ public class TestMain extends BaseTest
                 List<Object> pinnedKeys = Helpers.objectKeys(exchange.markets);
                 for (var i = 0; i < ((List<?>)pinnedKeys).size(); i++)
                 {
-                    Object pinnedMarket = Helpers.GetValue(exchange.markets, Helpers.GetValue(pinnedKeys, i));
+                    Object pinnedMarket = Helpers.GetValue(exchange.markets, (pinnedKeys == null || i < 0 || i >= pinnedKeys.size() ? null : pinnedKeys.get(i)));
                     Object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < Helpers.getArrayLength(pinnedOutcomes); j++)
                     {
@@ -1095,7 +1095,7 @@ public class TestMain extends BaseTest
                 List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
                 for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
                 {
-                    Object market = Helpers.GetValue(exchange.markets, Helpers.GetValue(marketKeys, i));
+                    Object market = Helpers.GetValue(exchange.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)));
                     Object outcomesList = exchange.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
                     Object outcomesListLength = Helpers.getArrayLength(outcomesList);
                     if (Helpers.isGreaterThan(outcomesListLength, 0))
@@ -1200,7 +1200,7 @@ public class TestMain extends BaseTest
                     Object scopesToTestLength = ((List<?>)scopesToTest).size();
                     for (var sj = 0; Helpers.isLessThan(sj, scopesToTestLength); sj++)
                     {
-                        Object scope = Helpers.GetValue(scopesToTest, sj);
+                        Object scope = (scopesToTest == null || sj < 0 || sj >= scopesToTest.size() ? null : scopesToTest.get(sj));
                         // fetchEvents scoped by a single parameter must return a non-empty, valid list
                         Object scopedEvents = (callExchangeMethodDynamically(exchange, "fetchEvents", new ArrayList<Object>(Arrays.asList(scope)))).join();
                         Object scopedList = exchange.safeList(new HashMap<String, Object>() {{
@@ -1892,7 +1892,7 @@ public class TestMain extends BaseTest
             List<Object> keys = Helpers.objectKeys(value);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                if (!Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(value, Helpers.GetValue(keys, i)))))
+                if (!Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(value, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))))))
                 {
                     return false;
                 }
@@ -1910,7 +1910,7 @@ public class TestMain extends BaseTest
         Object count = 0;
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!Helpers.isTrue((exchange.inArray(key, otherKeys))) && Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(target, key))))
             {
                 continue;
@@ -1969,7 +1969,7 @@ public class TestMain extends BaseTest
             // iterate over the keys
             for (var i = 0; i < ((List<?>)storedOutputKeys).size(); i++)
             {
-                Object key = Helpers.GetValue(storedOutputKeys, i);
+                Object key = (storedOutputKeys == null || i < 0 || i >= storedOutputKeys.size() ? null : storedOutputKeys.get(i));
                 if (Helpers.isTrue(exchange.inArray(key, skipKeys)))
                 {
                     continue;
@@ -2286,7 +2286,7 @@ public class TestMain extends BaseTest
                     List<Object> storedHeaderKeys = Helpers.objectKeys(storedHeaders);
                     for (var i = 0; i < ((List<?>)storedHeaderKeys).size(); i++)
                     {
-                        Object headerKey = Helpers.GetValue(storedHeaderKeys, i);
+                        Object headerKey = (storedHeaderKeys == null || i < 0 || i >= storedHeaderKeys.size() ? null : storedHeaderKeys.get(i));
                         Object storedHeaderValue = Helpers.GetValue(storedHeaders, headerKey);
                         String sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
                         this.AssertStaticError(Helpers.isEqual(sentHeaderValue, storedHeaderValue), ("header mismatch for " + headerKey), storedHeaderValue, sentHeaderValue);
@@ -2525,7 +2525,7 @@ public class TestMain extends BaseTest
             List<Object> methodsNames = Helpers.objectKeys(methods);
             for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
             {
-                Object method = Helpers.GetValue(methodsNames, i);
+                Object method = (methodsNames == null || i < 0 || i >= methodsNames.size() ? null : methodsNames.get(i));
                 Object results = Helpers.GetValue(methods, method);
                 for (var j = 0; j < Helpers.getArrayLength(results); j++)
                 {
@@ -2771,7 +2771,7 @@ public class TestMain extends BaseTest
             List<Object> methodsNames = Helpers.objectKeys(methods);
             for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
             {
-                Object method = Helpers.GetValue(methodsNames, i);
+                Object method = (methodsNames == null || i < 0 || i >= methodsNames.size() ? null : methodsNames.get(i));
                 Object results = Helpers.GetValue(methods, method);
                 for (var j = 0; j < Helpers.getArrayLength(results); j++)
                 {
@@ -2870,7 +2870,7 @@ public class TestMain extends BaseTest
             List<Object> methodsNames = Helpers.objectKeys(methods);
             for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
             {
-                Object method = Helpers.GetValue(methodsNames, i);
+                Object method = (methodsNames == null || i < 0 || i >= methodsNames.size() ? null : methodsNames.get(i));
                 Object results = Helpers.GetValue(methods, method);
                 for (var j = 0; j < Helpers.getArrayLength(results); j++)
                 {
@@ -2942,7 +2942,7 @@ public class TestMain extends BaseTest
         List<Object> methodsNames = Helpers.objectKeys(methods);
         for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
         {
-            Object method = Helpers.GetValue(methodsNames, i);
+            Object method = (methodsNames == null || i < 0 || i >= methodsNames.size() ? null : methodsNames.get(i));
             Object results = Helpers.GetValue(methods, method);
             Object resultsLength = Helpers.getArrayLength(results);
             sum = exchange.sum(sum, resultsLength);
@@ -3046,7 +3046,7 @@ public class TestMain extends BaseTest
             }
             for (var i = 0; i < ((List<?>)exchanges).size(); i++)
             {
-                Object exchangeName = Helpers.GetValue(exchanges, i);
+                Object exchangeName = (exchanges == null || i < 0 || i >= exchanges.size() ? null : exchanges.get(i));
                 Object exchangeData = Helpers.GetValue(staticData, exchangeName);
                 Object disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
                 if (Helpers.isTrue(disabled))

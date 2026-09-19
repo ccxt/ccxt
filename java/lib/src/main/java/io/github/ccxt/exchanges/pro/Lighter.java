@@ -1655,7 +1655,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> orders = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)orders).size(); j++)
             {
-                Object order = this.parseOrder(Helpers.GetValue(orders, j), market);
+                Object order = this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), market);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = ((Map<String, Object>)order).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -1700,7 +1700,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
-                    Object subscriptionHash = Helpers.GetValue(subscriptionKeys, i);
+                    Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
                     String subscriptionId = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "id");
                     String subscription = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "subscription");
                     if (java.util.Objects.equals(id, subscriptionId))
@@ -1864,7 +1864,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> subscriptionHashes = Helpers.objectKeys(client.subscriptions);
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
-                Object subscriptionHash = Helpers.GetValue(subscriptionHashes, i);
+                Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
                 if (Helpers.isTrue(((String)subscriptionHash).startsWith("ticker")))
                 {
                     Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, subscriptionHash);

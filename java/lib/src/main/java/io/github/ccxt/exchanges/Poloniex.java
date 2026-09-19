@@ -1563,7 +1563,7 @@ public class Poloniex extends PoloniexApi
         Object chainsLength = ((List<?>)chains).size();
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String chainId = this.safeString(chain, "blockchain");
             Object networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -2990,7 +2990,7 @@ public class Poloniex extends PoloniexApi
             List<Object> details = (List<Object>) this.safeList(response, "details", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)details).size(); i++)
             {
-                Object balance = Helpers.GetValue(details, i);
+                Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
                 String currencyId = this.safeString(balance, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -3141,7 +3141,7 @@ public class Poloniex extends PoloniexApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -3718,7 +3718,7 @@ public class Poloniex extends PoloniexApi
             }
             for (var i = 0; i < ((List<?>)entries).size(); i++)
             {
-                Object entry = Helpers.GetValue(entries, i);
+                Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
                 List<Object> currencies = Helpers.objectKeys(entry);
                 String currencyId = this.safeString(currencies, 0);
                 ((Map<String, Object>)data).put((String)currencyId, Helpers.GetValue(entry, currencyId));
@@ -3758,7 +3758,7 @@ public class Poloniex extends PoloniexApi
         List<Object> responseKeys = Helpers.objectKeys(response);
         for (var i = 0; i < ((List<?>)responseKeys).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(responseKeys, i);
+            Object currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
             String code = this.safeCurrencyCode(currencyId);
             Object feeInfo = Helpers.GetValue(response, currencyId);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
@@ -4105,7 +4105,7 @@ public class Poloniex extends PoloniexApi
         List<Object> data = (List<Object>) this.safeList(leverage, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object entry = Helpers.GetValue(data, i);
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             marketId = this.safeString(entry, "symbol");
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower

@@ -723,7 +723,7 @@ public class Lbank extends LbankApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object market = Helpers.GetValue(data, i);
+                Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(market, "symbol");
                 Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
                 String baseId = (String) Helpers.GetValue(parts, 0);
@@ -829,7 +829,7 @@ public class Lbank extends LbankApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object market = Helpers.GetValue(data, i);
+                Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCurrency");
                 String settleId = this.safeString(market, "clearCurrency");
@@ -1623,7 +1623,7 @@ public class Lbank extends LbankApi
         {
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object item = Helpers.GetValue(balances, i);
+                Object item = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(item, "asset");
                 String codeInner = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -1935,7 +1935,7 @@ public class Lbank extends LbankApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
@@ -3308,7 +3308,7 @@ public class Lbank extends LbankApi
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String currencyId = this.safeString(entry, "coin");
                 String code = this.safeCurrencyCode(currencyId);
                 List<Object> networkList = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
@@ -3318,7 +3318,7 @@ public class Lbank extends LbankApi
                 }
                 for (var j = 0; j < ((List<?>)networkList).size(); j++)
                 {
-                    Object networkEntry = Helpers.GetValue(networkList, j);
+                    Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
                     Double fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (!java.util.Objects.equals(fee, null))
                     {
@@ -3388,7 +3388,7 @@ public class Lbank extends LbankApi
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object item = Helpers.GetValue(result, i);
+                Object item = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String canWithdraw = this.safeString(item, "canWithDraw");
                 if (java.util.Objects.equals(canWithdraw, "true"))
                 {
@@ -3664,7 +3664,7 @@ public class Lbank extends LbankApi
         List<Object> networkList = (List<Object>) this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object networkEntry = Helpers.GetValue(networkList, j);
+            Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault");

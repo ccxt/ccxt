@@ -403,7 +403,7 @@ public class Bitflyer extends BitflyerApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "product_code");
                 Object currencies = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 String marketType = this.safeString(market, "market_type");

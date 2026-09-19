@@ -969,7 +969,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
-                Object coin = Helpers.GetValue(coins, i);
+                Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
                 Object parsed = this.parseCurrency(coin);
                 if (!java.util.Objects.equals(parsed, null))
                 {
@@ -990,7 +990,7 @@ public class Toobit extends ToobitApi
         List<Object> rawNetworks = (List<Object>) this.safeList(rawCurrency, "chainTypes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
         {
-            Object rawNetwork = Helpers.GetValue(rawNetworks, j);
+            Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
             String networkId = this.safeString(rawNetwork, "chainType");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -1201,7 +1201,7 @@ public class Toobit extends ToobitApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)all).size(); i++)
             {
-                Object market = Helpers.GetValue(all, i);
+                Object market = (all == null || i < 0 || i >= all.size() ? null : all.get(i));
                 Object parsed = this.parseMarket(market);
                 if (!java.util.Objects.equals(parsed, null))
                 {

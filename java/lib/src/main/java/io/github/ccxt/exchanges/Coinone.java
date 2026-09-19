@@ -649,7 +649,7 @@ public class Coinone extends CoinoneApi
         List<Object> currencyIds = Helpers.objectKeys(balances);
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(currencyIds, i);
+            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object balance = Helpers.GetValue(balances, currencyId);
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

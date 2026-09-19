@@ -1469,7 +1469,7 @@ public class Woo extends WooApi
             }
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -2969,7 +2969,7 @@ public class Woo extends WooApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object row = Helpers.GetValue(rows, i);
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -3391,7 +3391,7 @@ public class Woo extends WooApi
         List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
@@ -4694,7 +4694,7 @@ public class Woo extends WooApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object entry = Helpers.GetValue(rows, i);
+                Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
@@ -5525,7 +5525,7 @@ public class Woo extends WooApi
             List<Object> data = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(entry, "token");
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))

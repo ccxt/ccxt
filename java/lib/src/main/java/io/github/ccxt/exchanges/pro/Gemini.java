@@ -287,7 +287,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Object trade = this.parseWsTrade(Helpers.GetValue(trades, i), market);
+                Object trade = this.parseWsTrade((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), market);
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
             }
             String messageHash = ("trades:" + symbol);
@@ -507,7 +507,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         for (var i = 0; i < ((List<?>)changes).size(); i++)
         {
-            Object delta = Helpers.GetValue(changes, i);
+            Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
             Double price = this.safeNumber(delta, 1);
             Double size = this.safeNumber(delta, 2);
             String side = (((java.util.Objects.equals(Helpers.GetValue(delta, 0), "buy")))) ? "bids" : "asks";
@@ -1071,7 +1071,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object eventsLength = ((List<?>)events).size();
             for (var i = 0; i < ((List<?>)events).size(); i++)
             {
-                Object eventVar = Helpers.GetValue(events, i);
+                Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
                 String eventType = this.safeString(eventVar, "type");
                 Boolean isOrderBook = (java.util.Objects.equals(eventType, "change")) && (Helpers.inOp(eventVar, "side")) && this.inArray(Helpers.GetValue(eventVar, "side"), new ArrayList<Object>(Arrays.asList("ask", "bid")));
                 String eventReason = this.safeString(eventVar, "reason");
@@ -1084,7 +1084,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                     ((List<Object>)orderBookItems).add(eventVar);
                 } else if (java.util.Objects.equals(eventType, "trade"))
                 {
-                    ((List<Object>)collectedEventsOfTrades).add(Helpers.GetValue(events, i));
+                    ((List<Object>)collectedEventsOfTrades).add((events == null || i < 0 || i >= events.size() ? null : events.get(i)));
                 }
             }
             Object lengthBa = ((List<?>)bidaskItems).size();

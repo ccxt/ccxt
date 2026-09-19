@@ -467,12 +467,12 @@ public class Independentreserve extends IndependentreserveApi
             List<Object> quoteCurrencyIds = this.toArray(quoteCurrencies);
             for (var i = 0; i < ((List<?>)baseCurrencyIds).size(); i++)
             {
-                Object baseId = Helpers.GetValue(baseCurrencyIds, i);
+                Object baseId = (baseCurrencyIds == null || i < 0 || i >= baseCurrencyIds.size() ? null : baseCurrencyIds.get(i));
                 String base = this.safeCurrencyCode(baseId);
                 Double minAmount = this.safeNumber(limits, baseId);
                 for (var j = 0; j < ((List<?>)quoteCurrencyIds).size(); j++)
                 {
-                    Object quoteId = Helpers.GetValue(quoteCurrencyIds, j);
+                    Object quoteId = (quoteCurrencyIds == null || j < 0 || j >= quoteCurrencyIds.size() ? null : quoteCurrencyIds.get(j));
                     String quote = this.safeCurrencyCode(quoteId);
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final Object finalBase = base;
@@ -1139,7 +1139,7 @@ public class Independentreserve extends IndependentreserveApi
             List<Object> rows = this.toArray(response);
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object fee = Helpers.GetValue(rows, i);
+                Object fee = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String currencyId = this.safeString(fee, "CurrencyCode");
                 String code = this.safeCurrencyCode(currencyId);
                 Double tradingFee = this.safeNumber(fee, "Fee");
@@ -1155,7 +1155,7 @@ public class Independentreserve extends IndependentreserveApi
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, ((Map<String, Object>)market).get("base"), new HashMap<String, Object>() {{}});
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{

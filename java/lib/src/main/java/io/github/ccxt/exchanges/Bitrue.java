@@ -903,7 +903,7 @@ public class Bitrue extends BitrueApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkDetails).size(); j++)
         {
-            Object entry = Helpers.GetValue(networkDetails, j);
+            Object entry = (networkDetails == null || j < 0 || j >= networkDetails.size() ? null : networkDetails.get(j));
             String networkId = this.safeString(entry, "chain");
             Object network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
@@ -1257,7 +1257,7 @@ public class Bitrue extends BitrueApi
         List<Object> balances = (List<Object>) this.safeList2(response, "balances", "account", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -3392,7 +3392,7 @@ public class Bitrue extends BitrueApi
         {
             for (var i = 0; Helpers.isLessThan(i, chainDetailLength); i++)
             {
-                Object chainDetail = Helpers.GetValue(chainDetails, i);
+                Object chainDetail = (chainDetails == null || i < 0 || i >= chainDetails.size() ? null : chainDetails.get(i));
                 String networkId = this.safeString(chainDetail, "chain");
                 String currencyCode = this.safeString(currency, "code");
                 Object networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -3945,7 +3945,7 @@ public class Bitrue extends BitrueApi
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
-                Object entry = Helpers.GetValue(byLimit, i);
+                Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(entry, 0)))
                 {
                     return Helpers.GetValue(entry, 1);

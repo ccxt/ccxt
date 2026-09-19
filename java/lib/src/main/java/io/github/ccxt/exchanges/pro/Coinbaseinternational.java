@@ -324,7 +324,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         List<Object> output = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbols, i);
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("active"), true))
             {
@@ -634,7 +634,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         List<Object> data = (List<Object>) this.safeList(message, "candles", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object tick = Helpers.GetValue(data, i);
+            Object tick = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object parsed = this.parseOHLCV(tick, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }

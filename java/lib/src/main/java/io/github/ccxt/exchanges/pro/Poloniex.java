@@ -443,7 +443,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object order = Helpers.GetValue(data, i);
+            Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object parsedOrder = this.parseWsOrder(order);
             ((List<Object>)orders).add(parsedOrder);
         }
@@ -861,7 +861,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = Helpers.GetValue(data, i);
+            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -1157,7 +1157,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = Helpers.GetValue(marketIds, i);
+            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orders::" + symbol);
@@ -1270,7 +1270,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = Helpers.GetValue(data, i);
+            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -1358,7 +1358,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Boolean update = java.util.Objects.equals(type, "update");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = Helpers.GetValue(data, i);
+            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(item, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");

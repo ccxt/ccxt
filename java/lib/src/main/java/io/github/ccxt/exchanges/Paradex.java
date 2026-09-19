@@ -1148,7 +1148,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Object fee = this.parseTradingFee((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
@@ -2596,7 +2596,7 @@ public class Paradex extends ParadexApi
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
-                Object error = Helpers.GetValue(errors, i);
+                Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
                 ((List<Object>)parsedOrders).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
@@ -2720,7 +2720,7 @@ public class Paradex extends ParadexApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object result = Helpers.GetValue(results, i);
+                Object result = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String marketId = this.safeString(result, "market");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 String status = this.safeString(result, "status");
@@ -3476,7 +3476,7 @@ public class Paradex extends ParadexApi
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object row = Helpers.GetValue(rows, i);
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "DEPOSIT"))
                 {
                     ((List<Object>)deposits).add(row);
@@ -3560,7 +3560,7 @@ public class Paradex extends ParadexApi
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object row = Helpers.GetValue(rows, i);
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "WITHDRAWAL"))
                 {
                     ((List<Object>)deposits).add(row);
@@ -4350,7 +4350,7 @@ public class Paradex extends ParadexApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object rate = Helpers.GetValue(results, i);
+                Object rate = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 Long timestamp = this.safeInteger(rate, "created_at");
                 String datetime = this.iso8601(timestamp);
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{

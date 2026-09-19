@@ -1071,7 +1071,7 @@ public class Cex extends CexApi
         List<Object> symbols = this.symbols;
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbols, i);
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             if (!(result.containsKey(symbol)))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -1746,7 +1746,7 @@ public class Cex extends CexApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = Helpers.GetValue(ids, i);
+                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 ((List<Object>)orders).add(new HashMap<String, Object>() {{
                     put( "clientOrderId", id );
                 }});

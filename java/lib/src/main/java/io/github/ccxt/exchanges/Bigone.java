@@ -616,7 +616,7 @@ public class Bigone extends BigoneApi
         Object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "gateway_name");
             Object networkCode = this.networkIdToCode(networkId, code);
             Boolean deposit = (Boolean) this.safeBool(chain, "is_deposit_enabled");
@@ -769,7 +769,7 @@ public class Bigone extends BigoneApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(market, "base_asset", new HashMap<String, Object>() {{}});
                 Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(market, "quote_asset", new HashMap<String, Object>() {{}});
                 String baseId = this.safeString(baseAsset, "symbol");
@@ -831,7 +831,7 @@ public class Bigone extends BigoneApi
             List<Object> contractMarkets = this.toArray(contractResponse);
             for (var i = 0; i < ((List<?>)contractMarkets).size(); i++)
             {
-                Object market = Helpers.GetValue(contractMarkets, i);
+                Object market = (contractMarkets == null || i < 0 || i >= contractMarkets.size() ? null : contractMarkets.get(i));
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settleCurrency");
@@ -1242,7 +1242,7 @@ public class Bigone extends BigoneApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsksKeys).size(); i++)
         {
-            Object price = Helpers.GetValue(bidsAsksKeys, i);
+            Object price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
             Object amount = Helpers.GetValue(bidsAsks, price);
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount))));
         }
@@ -1619,7 +1619,7 @@ public class Bigone extends BigoneApi
         List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String symbol = this.safeString(balance, "asset_symbol");
             String code = this.safeCurrencyCode(symbol);
             Object account = this.account();
@@ -2031,7 +2031,7 @@ public class Bigone extends BigoneApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)cancelled).size(); i++)
             {
-                Object orderId = Helpers.GetValue(cancelled, i);
+                Object orderId = (cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i));
                 ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", orderId );
                     put( "id", orderId );
@@ -2040,7 +2040,7 @@ public class Bigone extends BigoneApi
             }
             for (var i = 0; i < ((List<?>)failed).size(); i++)
             {
-                Object orderId = Helpers.GetValue(failed, i);
+                Object orderId = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
                 ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", orderId );
                     put( "id", orderId );

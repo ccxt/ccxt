@@ -1685,7 +1685,7 @@ public class Bitteam extends BitteamApi
             }
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Object rawTicker = Helpers.GetValue(rawTickers, i);
+                Object rawTicker = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
                 Object ticker = this.parseTicker(rawTicker);
                 ((List<Object>)tickers).add(ticker);
             }
@@ -2470,7 +2470,7 @@ public class Bitteam extends BitteamApi
         List<Object> rawCurrencyIds = Helpers.objectKeys(balanceByCurrencies);
         for (var i = 0; i < ((List<?>)rawCurrencyIds).size(); i++)
         {
-            Object rawCurrencyId = Helpers.GetValue(rawCurrencyIds, i);
+            Object rawCurrencyId = (rawCurrencyIds == null || i < 0 || i >= rawCurrencyIds.size() ? null : rawCurrencyIds.get(i));
             Map<String, Object> currencyBalance = (Map<String, Object>) this.safeDict(result, rawCurrencyId);
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");

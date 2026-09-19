@@ -144,7 +144,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object entry = Helpers.GetValue(balances, i);
+            Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -644,7 +644,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             List<Object> orders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 Object parsedOrder = this.parseWsOrder(order);
                 Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
             }
