@@ -12,7 +12,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrdersWs(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hyperliquid#createOrderWs
@@ -33,7 +33,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hyperliquid#editOrderWs
@@ -54,7 +54,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrderWs(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hyperliquid#cancelOrdersWs
@@ -67,7 +67,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hyperliquid#cancelOrderWs
@@ -80,7 +80,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hyperliquid#watchOrderBook
@@ -91,7 +91,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name hyperliquid#unWatchOrderBook
@@ -101,8 +101,8 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBook(client: any, message: any): void;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name hyperliquid#watchTicker
@@ -112,7 +112,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name hyperliquid#unWatchTicker
@@ -122,7 +122,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name hyperliquid#watchTickers
@@ -133,7 +133,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name hyperliquid#unWatchTickers
@@ -143,7 +143,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name hyperliquid#watchMyTrades
@@ -156,7 +156,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name hyperliquid#unWatchMyTrades
@@ -167,11 +167,11 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    handleWsTickers(client: Client, message: any): boolean;
-    handleActiveAssetCtx(client: Client, message: any): boolean;
+    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
+    handleWsTickers(client: Client, message: Dict): boolean;
+    handleActiveAssetCtx(client: Client, message: Dict): boolean;
     parseWsTicker(rawTicker: any, market?: Market): Ticker;
-    handleMyTrades(client: Client, message: any): void;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name hyperliquid#watchTrades
@@ -183,7 +183,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name hyperliquid#unWatchTrades
@@ -193,8 +193,8 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -208,7 +208,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name hyperliquid#unWatchOHLCV
@@ -219,8 +219,8 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    handleOHLCV(client: Client, message: Dict): void;
     handleWsPost(client: Client, message: Dict): void;
     /**
      * @method
@@ -231,7 +231,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
+    watchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name hyperliquid#unWatchBalance
@@ -240,9 +240,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchBalance(params?: {}): Promise<any>;
-    handleBalance(client: Client, message: any): void;
-    parseWsBalance(balance: any, accountType?: Str): void;
+    unWatchBalance(params?: Dict): Promise<any>;
+    handleBalance(client: Client, message: Dict): void;
+    parseWsBalance(balance: Dict, accountType?: Str): void;
     /**
      * @method
      * @name hyperliquid#watchPositions
@@ -255,9 +255,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, symbols?: Strings): void;
-    handlePositions(client: any, message: any): void;
+    handlePositions(client: Client, message: Dict): void;
     /**
      * @method
      * @name hyperliquid#unWatchPositions
@@ -267,7 +267,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name hyperliquid#watchOrders
@@ -280,7 +280,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hyperliquid#unWatchOrders
@@ -291,9 +291,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
-    handleOrder(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
+    handleOrder(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;
@@ -303,12 +303,10 @@ export default class hyperliquid extends hyperliquidRest {
     handleMyTradesUnsubscription(client: Client, subscription: Dict): void;
     handlePositionsUnsubscription(client: Client, subscription: Dict): void;
     handleSpotBalanceUnsubscription(client: Client, subscription: Dict): void;
-    handleSubscriptionResponse(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
-    ping(client: Client): {
-        method: string;
-    };
-    handlePong(client: Client, message: any): any;
+    handleSubscriptionResponse(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: Dict): void;
+    ping(client: Client): Dict;
+    handlePong(client: Client, message: Dict): Dict;
     requestId(): number;
     wrapAsPostAction(request: Dict): Dict;
 }

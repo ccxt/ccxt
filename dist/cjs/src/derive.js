@@ -1826,7 +1826,7 @@ class derive extends derive$1["default"] {
         //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
-        const data = this.safeValue(response, 'result');
+        const data = this.safeDict(response, 'result');
         const page = this.safeInteger(params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict(data, 'pagination');

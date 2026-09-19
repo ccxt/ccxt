@@ -25,7 +25,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -59,8 +59,8 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    fetchAccountSettings(params?: {}): Promise<Dict>;
-    loadAccountSettings(refresh?: boolean, params?: {}): Promise<void>;
+    fetchAccountSettings(params?: Dict): Promise<Dict>;
+    loadAccountSettings(refresh?: boolean, params?: Dict): Promise<void>;
     parseAccountSettings(settings: any[]): Dict;
     /**
      * @method
@@ -166,13 +166,9 @@ export default class pacifica extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): [Dict, Str];
-    batchOrdersRequest(actions: any[]): {
-        actions: any[];
-    };
-    createOrdersRequest(orders: OrderRequest[], params?: {}): {
-        actions: any[];
-    };
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): [Dict, Str];
+    batchOrdersRequest(actions: any[]): Dict;
+    createOrdersRequest(orders: OrderRequest[], params?: Dict): Dict;
     /**
      * @method
      * @name pacifica#createOrders
@@ -196,9 +192,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelOrdersRequest(ids: Str[], symbol?: Str, params?: {}): {
-        actions: any[];
-    };
+    cancelOrdersRequest(ids: Str[], symbol?: Str, params?: Dict): Dict;
     /**
      * @method
      * @name pacifica#cancelAllOrders
@@ -211,7 +205,7 @@ export default class pacifica extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelAllOrdersRequest(symbol: Str, params?: {}): Dict;
+    cancelAllOrdersRequest(symbol: Str, params?: Dict): Dict;
     /**
      * @method
      * @name pacifica#cancelOrder
@@ -227,7 +221,7 @@ export default class pacifica extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrderRequest(id: Str, symbol?: Str, params?: {}): Dict;
+    cancelOrderRequest(id: Str, symbol?: Str, params?: Dict): Dict;
     /**
      * @method
      * @name pacifica#editOrder
@@ -245,7 +239,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderRequest(id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params?: {}): Dict;
+    editOrderRequest(id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params?: Dict): Dict;
     /**
      * @method
      * @name pacifica#fetchFundingRateHistory
@@ -338,7 +332,7 @@ export default class pacifica extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    addPaginationCursorToResult(response: any): any[];
+    addPaginationCursorToResult(response: Dict): any[];
     /**
      * @method
      * @name pacifica#fetchOrder
@@ -448,7 +442,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: Dict, market?: Market): OpenInterest;
     /**
      * @method
      * @name pacifica#fetchLedger
@@ -465,7 +459,7 @@ export default class pacifica extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: Str): Str;
     /**
      * @method
      * @name pacifica#fetchFundingHistory
@@ -481,8 +475,8 @@ export default class pacifica extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): {
-        info: any;
+    parseIncome(income: Dict, market?: Market): {
+        info: Dict;
         symbol: string;
         code: Str;
         timestamp: Int;
@@ -519,13 +513,13 @@ export default class pacifica extends Exchange {
      * @returns {object} a response object
      */
     createSubAccount(name: string, params?: {}): Promise<Dict>;
-    bindAgentWallet(agentAddress: string, params?: {}): Promise<Dict>;
-    createApiKey(params?: {}): Promise<Dict>;
-    revokeApiKey(apiKey: string, params?: {}): Promise<Dict>;
-    fetchApiKeys(params?: {}): Promise<Dict>;
-    approveBuilderCode(builderCode: string, maxFeeRate: string, params?: {}): Promise<Dict>;
+    bindAgentWallet(agentAddress: string, params?: Dict): Promise<Dict>;
+    createApiKey(params?: Dict): Promise<Dict>;
+    revokeApiKey(apiKey: string, params?: Dict): Promise<Dict>;
+    fetchApiKeys(params?: Dict): Promise<Dict>;
+    approveBuilderCode(builderCode: string, maxFeeRate: string, params?: Dict): Promise<Dict>;
     fetchBuilderApprovals(address: string): Promise<List>;
-    revokeBuilderCode(builderCode: string, params?: {}): Promise<Dict>;
+    revokeBuilderCode(builderCode: string, params?: Dict): Promise<Dict>;
     handleOriginAndSingleAddress(methodName: string, params: Dict): [Str, Dict];
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {

@@ -836,11 +836,11 @@ export default class btcbox extends Exchange {
         if (httpCode >= 400) {
             return undefined; // resort to defaultErrorHandler
         }
-        const result = this.safeValue(response, 'result');
+        const result = this.safeBool(response, 'result');
         if (result === undefined || result === true) {
             return undefined; // either public API (no error codes expected) or success
         }
-        const code = this.safeValue(response, 'code');
+        const code = this.safeString(response, 'code');
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError(feedback); // unknown message

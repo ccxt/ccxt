@@ -4452,7 +4452,7 @@ export default class bingx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderIds = this.safeValue(params, 'clientOrderIds');
+        const clientOrderIds = this.safeList(params, 'clientOrderIds');
         params = this.omit(params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
@@ -5730,7 +5730,7 @@ export default class bingx extends Exchange {
         //
         // parse withdraw-type output first...
         //
-        const data = this.safeValue(transaction, 'data');
+        const data = this.safeDict(transaction, 'data');
         const dataId = (data === undefined) ? undefined : this.safeString(data, 'id');
         const id = this.safeString(transaction, 'id', dataId);
         const address = this.safeString(transaction, 'address');

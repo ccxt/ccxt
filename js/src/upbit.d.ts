@@ -6,38 +6,10 @@ import type { Balances, Currency, Dict, NullableDict, List, Int, Market, Num, OH
  */
 export default class upbit extends Exchange {
     describe(): any;
-    fetchCurrency(code: string, params?: {}): Promise<{
-        info: Dict;
-        id: Str;
-        code: Str;
-        name: Str;
-        active: boolean;
-        fee: Num;
-        precision: undefined;
-        limits: {
-            withdraw: {
-                min: Num;
-                max: number;
-            };
-        };
-    }>;
-    fetchCurrencyById(id: string, params?: {}): Promise<{
-        info: Dict;
-        id: Str;
-        code: Str;
-        name: Str;
-        active: boolean;
-        fee: Num;
-        precision: undefined;
-        limits: {
-            withdraw: {
-                min: Num;
-                max: number;
-            };
-        };
-    }>;
-    fetchMarket(symbol: string, params?: {}): Promise<Market>;
-    fetchMarketById(id: Str, params?: {}): Promise<Market>;
+    fetchCurrency(code: string, params?: Dict): Promise<Dict>;
+    fetchCurrencyById(id: string, params?: Dict): Promise<Dict>;
+    fetchMarket(symbol: string, params?: Dict): Promise<Market>;
+    fetchMarketById(id: Str, params?: Dict): Promise<Market>;
     /**
      * @method
      * @name upbit#fetchMarkets
@@ -376,11 +348,6 @@ export default class upbit extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     nonce(): number;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
-        url: string;
-        method: string;
-        body: any;
-        headers: NullableDict;
-    };
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }
