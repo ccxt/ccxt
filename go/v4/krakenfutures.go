@@ -1109,7 +1109,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes91419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))
@@ -1221,7 +1221,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes100719 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
@@ -1230,25 +1230,25 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "method", "historyGetMarketSymbolExecutions")
 	method = GetValue(methodparamsVariable, 0)
-	params = GetValue(methodparamsVariable, 1)
+	params = SafeMapTyped(methodparamsVariable, 1)
 	var rawTrades any = []any{}
 	var isFullHistoryEndpoint bool = (IsEqual(method, "historyGetMarketSymbolExecutions"))
 	if isFullHistoryEndpoint {
 		requestparamsVariable := this.HandleUntilOption("before", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
+		request = SafeMapTyped(requestparamsVariable, 0)
+		params = SafeMapTyped(requestparamsVariable, 1)
 		if !IsEqual(since, nil) {
-			AddElementToObject(request, "since", since)
-			AddElementToObject(request, "sort", "asc")
+			request["since"] = since
+			request["sort"] = "asc"
 		}
 		if !IsEqual(limit, nil) {
-			AddElementToObject(request, "count", limit)
+			request["count"] = limit
 		}
 
 		response := (<-this.HistoryGetMarketSymbolExecutions(this.Extend(request, params)))
@@ -1316,8 +1316,8 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		}
 	} else {
 		requestparamsVariable := this.HandleUntilOption("lastTime", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
+		request = SafeMapTyped(requestparamsVariable, 0)
+		params = SafeMapTyped(requestparamsVariable, 1)
 
 		response := (<-this.PublicGetHistory(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1534,7 +1534,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "post")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = SafeMapTyped(postOnlyparamsVariable, 1)
 	if EvalTruthy(postOnly) {
 		typeVar = "post"
 	} else if timeInForce != nil && *timeInForce == "ioc" {

@@ -1765,7 +1765,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
-	query := GetValue(marketTypequeryVariable, 1)
+	query := SafeMapTyped(marketTypequeryVariable, 1)
 	var response any = nil
 	if marketType == "swap" {
 
@@ -2138,7 +2138,7 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var response any = nil
 	if IsEqual(typeVar, "swap") {
 
@@ -2525,11 +2525,11 @@ func (this *Coinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	var isMargin bool = (marginMode != nil) || (IsEqual(marketType, "margin"))
 	if IsEqual(marketType, "swap") {
 
@@ -2957,7 +2957,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
+		params = SafeMapTyped(marginModeparamsVariable, 1)
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
 		} else {
@@ -2967,7 +2967,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			var createMarketBuyOrderRequiresPrice any = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
@@ -3366,7 +3366,7 @@ func (this *Coinex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("editOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if GetValue(market, "spot") == true {
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
@@ -3441,7 +3441,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var marginMode any = nil
 		marginModeorderParamsVariable := this.HandleMarginModeAndParams("editOrders", orderParams)
 		marginMode = GetValue(marginModeorderParamsVariable, 0)
-		orderParams = GetValue(marginModeorderParamsVariable, 1)
+		orderParams = SafeMapTyped(marginModeorderParamsVariable, 1)
 		var market_type string = "SPOT"
 		if GetValue(market, "swap") == true {
 			market_type = "FUTURES"
@@ -3546,7 +3546,7 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if swap == true {
 		request["market_type"] = "FUTURES"
 	} else {
@@ -3664,7 +3664,7 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrders", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
+		params = SafeMapTyped(marginModeparamsVariable, 1)
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
 		} else {
@@ -3785,7 +3785,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var response any = nil
 	var isClosed bool = (IsEqual(status, "finished")) || (IsEqual(status, "closed"))
 	var isOpen bool = (IsEqual(status, "pending")) || (IsEqual(status, "open"))
@@ -3816,7 +3816,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrdersByStatus", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
+		params = SafeMapTyped(marginModeparamsVariable, 1)
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
 		} else {
@@ -4018,7 +4018,7 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a \"network\" parameter"))
 	}
@@ -4109,21 +4109,21 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes409212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var response any = nil
 	if GetValue(market, "swap") == true {
-		AddElementToObject(request, "market_type", "FUTURES")
+		request["market_type"] = "FUTURES"
 
 		response = (<-this.V2PrivateGetFuturesUserDeals(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4131,11 +4131,11 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMyTrades", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
+		params = SafeMapTyped(marginModeparamsVariable, 1)
 		if marginMode != nil {
-			AddElementToObject(request, "market_type", "MARGIN")
+			request["market_type"] = "MARGIN"
 		} else {
-			AddElementToObject(request, "market_type", "SPOT")
+			request["market_type"] = "SPOT"
 		}
 
 		response = (<-this.V2PrivateGetSpotUserDeals(this.Extend(request, params)))
@@ -4178,7 +4178,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethod any = nil
 	var defaultMethodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition")
 	defaultMethod = GetValue(defaultMethodparamsVariable, 0)
-	params = GetValue(defaultMethodparamsVariable, 1)
+	params = SafeMapTyped(defaultMethodparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"market_type": "FUTURES",
@@ -4511,7 +4511,7 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	var minLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "min", 1)
 	var maxLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "max", 100)
 	if (IsLessThan(leverage, minLeverage)) || (IsGreaterThan(leverage, maxLeverage)) {
@@ -4872,18 +4872,18 @@ func (this *Coinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes474712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":      GetValue(market, "id"),
 		"market_type": "FUTURES",
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	response := (<-this.V2PrivateGetFuturesPositionFundingHistory(this.Extend(request, params)))
@@ -5162,7 +5162,7 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -5181,7 +5181,7 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer
 	}
@@ -5275,7 +5275,7 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes506519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
@@ -5284,18 +5284,18 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.V2PublicGetFuturesFundingRateHistory(this.Extend(request, params)))
 	PanicOnError(response)
@@ -5586,27 +5586,27 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"ccy": currency["id"],
 	}
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchTransfers", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if marginMode != nil {
-		AddElementToObject(request, "transfer_type", "MARGIN")
+		request["transfer_type"] = "MARGIN"
 	} else {
-		AddElementToObject(request, "transfer_type", "FUTURES")
+		request["transfer_type"] = "FUTURES"
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.V2PrivateGetAssetsTransferHistory(this.Extend(request, params)))
 	PanicOnError(response)
@@ -6493,19 +6493,19 @@ func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes604512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market_type": "FUTURES",
 		"market":      GetValue(market, "id"),
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(request, params)))
 	PanicOnError(response)
@@ -6655,7 +6655,7 @@ func (this *Coinex) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	var marginMode any = nil
 	marginModeparamsVariable := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if marginMode == nil {
 		if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
 			marginMode = "isolated"
@@ -6847,19 +6847,19 @@ func (this *Coinex) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs .
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory() requires a positionId parameter"))
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":      GetValue(market, "id"),
 		"market_type": "FUTURES",
 		"position_id": positionId,
 	}
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	response := (<-this.V2PrivateGetFuturesPositionMarginHistory(this.Extend(request, params)))

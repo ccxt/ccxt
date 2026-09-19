@@ -1217,7 +1217,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
 	}
@@ -1872,7 +1872,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -1931,7 +1931,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["to"] = until
 	}
@@ -1984,7 +1984,7 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := GetValue(networkCodequeryVariable, 1)
+	query := SafeMapTyped(networkCodequeryVariable, 1)
 	var networkId any = this.NetworkCodeToId(networkCode, currency["code"])
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
@@ -2158,7 +2158,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes"))
 	}
@@ -2345,7 +2345,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = SafeMapTyped(postOnlyparamsVariable, 1)
 	if EvalTruthy(postOnly) {
 		AddElementToObject(params, "postOnly", true)
 	}
@@ -2376,7 +2376,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var selfTradePrevention any = nil
 	var selfTradePreventionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
 	selfTradePrevention = GetValue(selfTradePreventionparamsVariable, 0)
-	params = GetValue(selfTradePreventionparamsVariable, 1)
+	params = SafeMapTyped(selfTradePreventionparamsVariable, 1)
 	if selfTradePrevention != nil {
 		if IsEqual(selfTradePrevention, "EXPIRE_MAKER") {
 			request["selfTradePrevention"] = "RejectMaker"

@@ -1554,7 +1554,7 @@ func (this *Bitmex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes119219 := (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params, 100))
@@ -1705,7 +1705,7 @@ func (this *Bitmex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes127819 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))
@@ -2309,7 +2309,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes178919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params))
@@ -2341,7 +2341,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var useOpenTimestamp any = nil
 	var useOpenTimestampparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "useOpenTimestamp", true)
 	useOpenTimestamp = GetValue(useOpenTimestampparamsVariable, 0)
-	params = GetValue(useOpenTimestampparamsVariable, 1)
+	params = SafeMapTyped(useOpenTimestampparamsVariable, 1)
 	// if since is not set, they will return candles starting from 2017-01-01
 	if !IsEqual(since, nil) {
 		var timestamp any = since
@@ -2672,7 +2672,7 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes211019 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
@@ -3558,7 +3558,7 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -3570,7 +3570,7 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   qty,
@@ -3925,7 +3925,7 @@ func (this *Bitmex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires params[\"network\"]"))
 	}
@@ -4224,7 +4224,7 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes328819 := (<-this.FetchPaginatedCallDynamicAsync("fetchLiquidations", symbol, since, limit, params))
@@ -4233,18 +4233,18 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "count", limit)
+		request["count"] = limit
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 
 	response := (<-this.PublicGetLiquidation(this.Extend(request, params)))
 	PanicOnError(response)

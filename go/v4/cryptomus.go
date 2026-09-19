@@ -679,7 +679,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var level any = 0
 	var levelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "level", level)
 	level = GetValue(levelparamsVariable, 0)
-	params = GetValue(levelparamsVariable, 1)
+	params = SafeMapTyped(levelparamsVariable, 1)
 	request["level"] = level
 
 	response := (<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, params)))
@@ -922,14 +922,14 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	var cost any = nil
 	var costparamsVariable []any = this.HandleParamString(params, "cost")
 	cost = GetValue(costparamsVariable, 0)
-	params = GetValue(costparamsVariable, 1)
+	params = SafeMapTyped(costparamsVariable, 1)
 	var response any = nil
 	if IsEqual(typeVar, "market") {
 		if sideBuy {
 			var createMarketBuyOrderRequiresPrice any = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 				if (IsEqual(price, nil)) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))

@@ -825,7 +825,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	var skipFetchCurrencies any = false
 	var skipFetchCurrenciesparamsVariable []any = this.HandleOptionAndParams(params, "fetchCurrencies", "skipFetchCurrencies", false)
 	skipFetchCurrencies = GetValue(skipFetchCurrenciesparamsVariable, 0)
-	params = GetValue(skipFetchCurrenciesparamsVariable, 1)
+	params = SafeMapTyped(skipFetchCurrenciesparamsVariable, 1)
 	if EvalTruthy(skipFetchCurrencies) {
 
 		// sub-accounts can't access this endpoint
@@ -1350,7 +1350,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes97319 := (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))
@@ -1459,7 +1459,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes105719 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
@@ -1550,7 +1550,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes112119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
@@ -1874,7 +1874,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.CustomHandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
@@ -2217,7 +2217,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *float64 = this.SafeNumber2(params, "cost", "notional")
 		params = this.Omit(params, "cost")
 		if cost != nil {
@@ -2631,7 +2631,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes196619 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))
@@ -2736,7 +2736,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes204912 := (<-this.LoadMarketsAsync())
@@ -2754,7 +2754,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["network_id"] = networkId
@@ -3462,7 +3462,7 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName any, optionalA
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams(methodName, params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if marginMode != nil {
 		if !IsEqual(marginMode, "cross") {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
@@ -3879,7 +3879,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
 	if IsEqual(typeVar, "option") {
 		typeVar = "WARRANT"
@@ -4087,7 +4087,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes319619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))

@@ -1909,19 +1909,19 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchPositions", market, params)
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-		params = ccxt.GetValue(typeVarparamsVariable, 1)
+		params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 		if ccxt.IsEqual(typeVar, "spot") {
 			typeVar = "future"
 		}
 		var subTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "subType", subType)
 		subType = ccxt.GetValue(subTypeparamsVariable, 0)
-		params = ccxt.GetValue(subTypeparamsVariable, 1)
+		params = ccxt.SafeMapTyped(subTypeparamsVariable, 1)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchPositions", params, "cross")
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	params = ccxt.SafeMapTyped(marginModeparamsVariable, 1)
 	var linear bool = (ccxt.IsEqual(subType, "linear"))
 	var swap bool = (ccxt.IsEqual(typeVar, "swap"))
 	var future bool = (ccxt.IsEqual(typeVar, "future"))
@@ -2131,11 +2131,11 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("watchBalance", nil, params, "linear")
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	params = ccxt.SafeMapTyped(subTypeparamsVariable, 1)
 	var isUnifiedAccount *bool = this.SafeBool2(params, "isUnifiedAccount", "unified", false)
 	params = this.Omit(params, []any{"isUnifiedAccount", "unified"})
 	if this.Markets == nil {

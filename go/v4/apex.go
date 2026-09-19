@@ -1028,19 +1028,19 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError(retRes83512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":   this.SafeString(market, "id2"),
 	}
 	if IsEqual(limit, nil) {
 		limit = 200 // default is 200 when requested with `since`
 	}
-	AddElementToObject(request, "limit", limit) // max 200, default 200
+	request["limit"] = limit // max 200, default 200
 	requestparamsVariable := this.HandleUntilOption("end", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start", MathFloor(Divide(since, 1000)))
+		request["start"] = MathFloor(Divide(since, 1000))
 	}
 
 	response := (<-this.PublicGetV3Klines(this.Extend(request, params)))

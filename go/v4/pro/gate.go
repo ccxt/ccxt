@@ -301,12 +301,12 @@ func (this *Gate) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	var channel any = ccxt.Add(messageType, ".order_cancel_cp")
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "channel", channel)
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelparamsVariable, 1)
 	var url any = this.GetUrlByMarket(market)
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
-	query := ccxt.GetValue(typeVarqueryVariable, 1)
+	query := ccxt.SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := func() any {
 		if typeVar == "spot" {
 			return this.MultiOrderSpotPrepareRequest(market, trigger, query)
@@ -365,7 +365,7 @@ func (this *Gate) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) an
 	params = this.Omit(params, []any{"is_stop_order", "stop", "trigger"})
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
-	query := ccxt.GetValue(typeVarqueryVariable, 1)
+	query := ccxt.SafeMapTyped(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := func() any {
 		if (typeVar == "spot") || (typeVar == "margin") {
 			return this.SpotOrderPrepareRequest(market, trigger, query)
@@ -670,7 +670,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}()
 	var intervalqueryVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", intervalDefault)
 	interval := ccxt.GetValue(intervalqueryVariable, 0)
-	query := ccxt.GetValue(intervalqueryVariable, 1)
+	query := ccxt.SafeMapTyped(intervalqueryVariable, 1)
 	var messageType any = this.GetTypeByMarket(market)
 	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	if ccxt.IsEqual(limit, nil) {
@@ -752,7 +752,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var interval any = intervalDefault
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
-	params = ccxt.GetValue(intervalparamsVariable, 1)
+	params = ccxt.SafeMapTyped(intervalparamsVariable, 1)
 	var messageType any = this.GetTypeByMarket(market)
 	var limit any = this.SafeInteger(params, "limit")
 	if ccxt.IsEqual(limit, nil) {
@@ -1168,7 +1168,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	}
 	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
-	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
+	params = ccxt.SafeMapTyped(callerMethodNameparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var market any = this.Market(ccxt.GetValue(symbols, 0))
 	var messageType any = this.GetTypeByMarket(market)
@@ -1176,7 +1176,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	var channelName any = nil
 	var channelNameparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "method")
 	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
-	params = ccxt.GetValue(channelNameparamsVariable, 1)
+	params = ccxt.SafeMapTyped(channelNameparamsVariable, 1)
 	var url any = this.GetUrlByMarket(market)
 	var channel any = ccxt.Add(ccxt.Add(messageType, "."), channelName)
 	if callerMethodName == nil {
@@ -1615,10 +1615,10 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	subTypeparamsVariable := this.HandleSubTypeAndParams("watchMyTrades", market, params)
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	params = ccxt.SafeMapTyped(subTypeparamsVariable, 1)
 	var messageType any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot",
 		"margin": "spot",
@@ -1727,10 +1727,10 @@ func (this *Gate) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	subTypeparamsVariable := this.HandleSubTypeAndParams("watchBalance", nil, params)
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	params = ccxt.SafeMapTyped(subTypeparamsVariable, 1)
 	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var requiresUid bool = (!ccxt.IsEqual(typeVar, "spot"))
@@ -1889,7 +1889,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var query any = nil
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("watchPositions", market, params)
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
-	query = ccxt.GetValue(typeVarqueryVariable, 1)
+	query = ccxt.SafeMapTyped(typeVarqueryVariable, 1)
 	if ccxt.IsEqual(typeVar, "spot") {
 		typeVar = "swap"
 	}
@@ -1909,7 +1909,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	subTypequeryVariable := this.HandleSubTypeAndParams("watchPositions", market, query)
 	subType = ccxt.GetValue(subTypequeryVariable, 0)
-	query = ccxt.GetValue(subTypequeryVariable, 1)
+	query = ccxt.SafeMapTyped(subTypequeryVariable, 1)
 	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var client ccxt.ClientInterface = this.Client(url)
@@ -2114,7 +2114,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var query any = nil
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
-	query = ccxt.GetValue(typeVarqueryVariable, 1)
+	query = ccxt.SafeMapTyped(typeVarqueryVariable, 1)
 	var typeId any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot",
 		"margin": "spot",
@@ -2125,7 +2125,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isTrigger any = false
 	isTriggerqueryVariable := this.HandleParamBool2(query, "trigger", "stop", false)
 	isTrigger = ccxt.GetValue(isTriggerqueryVariable, 0)
-	query = ccxt.GetValue(isTriggerqueryVariable, 1)
+	query = ccxt.SafeMapTyped(isTriggerqueryVariable, 1)
 	if (isTrigger == true) && (ccxt.IsEqual(typeId, "options")) {
 		panic(ccxt.NotSupported(this.Id + " watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202"))
 	}
@@ -2158,7 +2158,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	subTypequeryVariable := this.HandleSubTypeAndParams("watchOrders", market, query)
 	subType = ccxt.GetValue(subTypequeryVariable, 0)
-	query = ccxt.GetValue(subTypequeryVariable, 1)
+	query = ccxt.SafeMapTyped(subTypequeryVariable, 1)
 	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	// uid required for non spot markets
@@ -2354,7 +2354,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	var query any = nil
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
-	query = ccxt.GetValue(typeVarqueryVariable, 1)
+	query = ccxt.SafeMapTyped(typeVarqueryVariable, 1)
 	var typeId any = this.GetSupportedMapping(typeVar, map[string]any{
 		"future": "futures",
 		"swap":   "futures",
@@ -2363,7 +2363,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	var subType any = nil
 	subTypequeryVariable := this.HandleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query)
 	subType = ccxt.GetValue(subTypequeryVariable, 0)
-	query = ccxt.GetValue(subTypequeryVariable, 1)
+	query = ccxt.SafeMapTyped(subTypequeryVariable, 1)
 	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var payload []any = []any{}

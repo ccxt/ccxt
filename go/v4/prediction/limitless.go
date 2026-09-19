@@ -2559,7 +2559,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	}()
 	var makerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "maker", maker)
 	maker = ccxt.GetValue(makerparamsVariable, 0)
-	params = ccxt.GetValue(makerparamsVariable, 1)
+	params = ccxt.SafeMapTyped(makerparamsVariable, 1)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2592,7 +2592,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	}
 	var signerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "signer", signer)
 	signer = ccxt.GetValue(signerparamsVariable, 0)
-	params = ccxt.GetValue(signerparamsVariable, 1)
+	params = ccxt.SafeMapTyped(signerparamsVariable, 1)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2617,7 +2617,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var taker any = ccxt.DerefScalar(this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"))
 	var takerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "taker", taker)
 	taker = ccxt.GetValue(takerparamsVariable, 0)
-	params = ccxt.GetValue(takerparamsVariable, 1)
+	params = ccxt.SafeMapTyped(takerparamsVariable, 1)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2658,7 +2658,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	}()
 	var signatureTypeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "signatureType", signatureType)
 	signatureType = ccxt.GetValue(signatureTypeparamsVariable, 0)
-	params = ccxt.GetValue(signatureTypeparamsVariable, 1)
+	params = ccxt.SafeMapTyped(signatureTypeparamsVariable, 1)
 	var signRequest map[string]any = map[string]any{
 		"salt":          nonce,
 		"maker":         maker,
@@ -2686,7 +2686,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
-	params = ccxt.GetValue(postOnlyparamsVariable, 1)
+	params = ccxt.SafeMapTyped(postOnlyparamsVariable, 1)
 	var timeInForce any = ccxt.DerefScalar(this.SafeString(params, "timeInForce"))
 	params = this.Omit(params, "timeInForce")
 	if ccxt.IsEqual(timeInForce, nil) {
@@ -2702,7 +2702,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = ccxt.SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
 		if ccxt.EvalTruthy(createMarketBuyOrderRequiresPrice) {
@@ -3093,7 +3093,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 		var warn any = true
 		var warnparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
 		warn = ccxt.GetValue(warnparamsVariable, 0)
-		params = ccxt.GetValue(warnparamsVariable, 1)
+		params = ccxt.SafeMapTyped(warnparamsVariable, 1)
 		if ccxt.EvalTruthy(warn) {
 			panic(ccxt.BadRequest(this.Id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message."))
 		}
@@ -3162,7 +3162,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var maxLimit int = 100
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", paginate)
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
-	params = ccxt.GetValue(paginateparamsVariable, 1)
+	params = ccxt.SafeMapTyped(paginateparamsVariable, 1)
 	if ccxt.EvalTruthy(paginate) {
 		params = this.Omit(params, "paginate")
 

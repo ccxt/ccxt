@@ -2840,7 +2840,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes193619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
@@ -2853,20 +2853,20 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		retRes193912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes193912)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "pair", GetValue(market, "id"))
+		request["pair"] = GetValue(market, "id")
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "since_timestamp", MathRound(Divide(since, 1000)))
+		request["since_timestamp"] = MathRound(Divide(since, 1000))
 	}
 	requestparamsVariable := this.HandleUntilOption("until_timestamp", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	response := (<-this.PublicGetFundingRateHistoryPair(this.Extend(request, params)))
@@ -3689,7 +3689,7 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes262712 := (<-this.LoadMarketsAsync())

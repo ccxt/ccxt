@@ -1953,7 +1953,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrdersByStatus", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2115,7 +2115,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["toMs"] = until
 	}
@@ -2840,7 +2840,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchMySettlementHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000))
 	}

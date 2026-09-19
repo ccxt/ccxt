@@ -2737,11 +2737,11 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	var timeInForce any = nil
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "time_in_force", defaultTif)
 	timeInForce = ccxt.GetValue(timeInForceparamsVariable, 0)
-	params = ccxt.GetValue(timeInForceparamsVariable, 1)
+	params = ccxt.SafeMapTyped(timeInForceparamsVariable, 1)
 	var stp any = nil
 	var stpparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "self_trade_prevention_type", "taker_at_cross")
 	stp = ccxt.GetValue(stpparamsVariable, 0)
-	params = ccxt.GetValue(stpparamsVariable, 1)
+	params = ccxt.SafeMapTyped(stpparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"ticker":                     ticker,
 		"side":                       bookSide,

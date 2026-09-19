@@ -1191,7 +1191,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var fetchAllMarkets any = nil
 	var fetchAllMarketsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
 	fetchAllMarkets = GetValue(fetchAllMarketsparamsVariable, 0)
-	params = GetValue(fetchAllMarketsparamsVariable, 1)
+	params = SafeMapTyped(fetchAllMarketsparamsVariable, 1)
 	if EvalTruthy(fetchAllMarkets) {
 
 		instrumentsResponse := (<-this.PublicGetGetInstruments(params))
@@ -1978,7 +1978,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes150219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
@@ -4051,7 +4051,7 @@ func (this *Deribit) withdrawBody(ch chan any, code any, amount any, address any
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -4249,7 +4249,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
 	var eachItemDuration string = "1h"
 	if EvalTruthy(paginate) {
@@ -4399,7 +4399,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes344619 := (<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))

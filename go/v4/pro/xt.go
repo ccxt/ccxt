@@ -258,7 +258,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var subscribe map[string]any = map[string]any{
@@ -352,7 +352,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var unsubscribe map[string]any = map[string]any{

@@ -1419,17 +1419,17 @@ func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		PanicOnError(retRes102712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument": GetValue(market, "id"),
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 
 	response := (<-this.PublicMarketPostFullV1TradeHistory(this.Extend(request, params)))
@@ -1600,7 +1600,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes117219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
@@ -1609,7 +1609,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument": GetValue(market, "id"),
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -1619,15 +1619,15 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		"index": "INDEX",
 	}
 	var selectedPriceType *string = this.SafeString(params, "priceType", "last")
-	AddElementToObject(request, "type", this.SafeString(priceTypeMap, selectedPriceType))
+	request["type"] = this.SafeString(priceTypeMap, selectedPriceType)
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 
 	response := (<-this.PublicMarketPostFullV1Kline(this.Extend(request, params)))
@@ -1716,7 +1716,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes126619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
@@ -1725,17 +1725,17 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument": GetValue(market, "id"),
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 
 	response := (<-this.PublicMarketPostFullV1Funding(this.Extend(request, params)))
@@ -1791,7 +1791,7 @@ func (this *Grvt) GetSubAccountId(params any) any {
 	var subAccountId any = nil
 	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "getSubAccountId", "accountId")
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
-	params = GetValue(subAccountIdparamsVariable, 1)
+	params = SafeMapTyped(subAccountIdparamsVariable, 1)
 	if subAccountId == nil {
 		panic(ArgumentsRequired(this.Id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page"))
 	}
@@ -1938,20 +1938,20 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	retRes14428 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes14428)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
+		request["currency"] = []any{GetValue(currency, "code")}
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
@@ -2020,22 +2020,22 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 	retRes14978 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes14978)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if code == nil {
-		AddElementToObject(request, "currency", nil)
+		request["currency"] = nil
 	} else {
 		currency = this.Currency(code)
-		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
+		request["currency"] = []any{GetValue(currency, "code")}
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
@@ -2283,13 +2283,13 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes17168 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes17168)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var maxLimit int = 1000
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes172319 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", nil, since, limit, params, maxLimit))
@@ -2298,13 +2298,13 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 
 	response := (<-this.PrivateTradingPostFullV1TransferHistory(this.Extend(request, params)))
@@ -2397,11 +2397,11 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 		var tradingAccountId any = nil
 		var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
 		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
-		params = GetValue(tradingAccountIdparamsVariable, 1)
+		params = SafeMapTyped(tradingAccountIdparamsVariable, 1)
 		var fundingAccountId any = nil
 		var fundingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
 		fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
-		params = GetValue(fundingAccountIdparamsVariable, 1)
+		params = SafeMapTyped(fundingAccountIdparamsVariable, 1)
 		if (tradingAccountId == nil) || (fundingAccountId == nil) {
 			panic(ArgumentsRequired(this.Id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)"))
 		}
@@ -2633,7 +2633,7 @@ func (this *Grvt) withdrawBody(ch chan any, code any, amount any, address any, o
 	}
 	networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := GetValue(networkCodequeryVariable, 1)
+	query := SafeMapTyped(networkCodequeryVariable, 1)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
@@ -2760,7 +2760,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	triggerPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 0)
 	stopLossPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 1)
 	takeProfitPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 2)
-	params = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 3)
+	params = SafeMapTyped(triggerPricestopLossPricetakeProfitPriceparamsVariable, 3)
 	if (triggerPrice != nil) || (stopLossPrice != nil) || (takeProfitPrice != nil) {
 		// trigger price
 		var selectedPrice any = nil
@@ -3000,7 +3000,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes228519 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
@@ -3008,27 +3008,27 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes228519
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "base", []any{})
-		retRes229412 := GetValue(request, "base")
+		request["base"] = []any{}
+		retRes229412 := request["base"]
 		AppendToArray(&retRes229412, GetValue(market, "baseId"))
-		AddElementToObject(request, "quote", []any{})
-		retRes229612 := GetValue(request, "quote")
+		request["quote"] = []any{}
+		retRes229612 := request["quote"]
 		AppendToArray(&retRes229612, GetValue(market, "quoteId"))
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 
 	response := (<-this.PrivateTradingPostFullV1FillHistory(this.Extend(request, params)))
@@ -3439,7 +3439,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes261519 := (<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, params, 1000))
@@ -3447,27 +3447,27 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		ch <- retRes261519
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "base", []any{})
-		retRes262412 := GetValue(request, "base")
+		request["base"] = []any{}
+		retRes262412 := request["base"]
 		AppendToArray(&retRes262412, GetValue(market, "baseId"))
-		AddElementToObject(request, "quote", []any{})
-		retRes262612 := GetValue(request, "quote")
+		request["quote"] = []any{}
+		retRes262612 := request["quote"]
 		AppendToArray(&retRes262612, GetValue(market, "quoteId"))
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 
 	response := (<-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(request, params)))
@@ -3552,27 +3552,27 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	retRes26948 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes26948)
 	var subAccountId any = this.GetSubAccountId(params)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "base", []any{})
-		retRes270312 := GetValue(request, "base")
+		request["base"] = []any{}
+		retRes270312 := request["base"]
 		AppendToArray(&retRes270312, GetValue(market, "baseId"))
-		AddElementToObject(request, "quote", []any{})
-		retRes270512 := GetValue(request, "quote")
+		request["quote"] = []any{}
+		retRes270512 := request["quote"]
 		AppendToArray(&retRes270512, GetValue(market, "quoteId"))
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	requestparamsVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		request["start_time"] = this.NumberToString(Multiply(since, 1000000))
 	}
 
 	response := (<-this.PrivateTradingPostFullV1OrderHistory(this.Extend(request, params)))

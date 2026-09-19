@@ -353,7 +353,7 @@ func (this *Zebpay) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var response any = nil
 	var data any = map[string]any{}
@@ -413,7 +413,7 @@ func (this *Zebpay) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var response any = nil
 	var data any = map[string]any{}
@@ -750,7 +750,7 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
 
@@ -923,7 +923,7 @@ func (this *Zebpay) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
 		panic(NotSupported(Add(Add(this.Id+" fetchTickers() does not support ", typeVar), " markets")))
 	}
@@ -1177,7 +1177,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
 		panic(NotSupported(this.Id + " fetchMyTrades() does not support spot markets"))
@@ -1224,7 +1224,7 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
 		panic(NotSupported(Add(Add(this.Id+" fetchOrderTrades() does not support ", typeVar), " markets")))
 	}
@@ -1350,7 +1350,7 @@ func (this *Zebpay) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var response any = nil
 	if isSpot {
@@ -1437,7 +1437,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if GetValue(market, "spot") == true {
 		requestparamsVariable := this.OrderRequest(symbol, typeVar, amount, request, price, params)
 		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
+		params = SafeMapTyped(requestparamsVariable, 1)
 
 		response = (<-this.PrivateSpotPostV2ExOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1599,7 +1599,7 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
 		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() does not support ", typeVar), " markets")))
 	}

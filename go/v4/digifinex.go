@@ -799,7 +799,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchMarketsV2", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var promisesRaw []any = []any{}
 	if !IsEqual(marginMode, nil) {
 		promisesRaw = append(promisesRaw, this.PublicSpotGetMarginSymbols(query))
@@ -1142,10 +1142,10 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var response any = nil
 	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
@@ -1242,7 +1242,7 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var market any = this.Market(symbol)
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
-	query := GetValue(marketTypequeryVariable, 1)
+	query := SafeMapTyped(marketTypequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1347,7 +1347,7 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = SafeMapTyped(typeVarparamsVariable, 1)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsEqual(typeVar, "swap") {
@@ -2329,10 +2329,10 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrderRequest", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrderRequest", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if marginMode != nil {
 		marketType = "margin"
 	}
@@ -2418,7 +2418,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		if isMarketOrder && (IsEqual(side, "buy")) {
 			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
@@ -2525,7 +2525,7 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
@@ -2539,7 +2539,7 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	}
 	marginModequeryVariable := this.HandleMarginModeAndParams("cancelOrder", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var response any = nil
 	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
@@ -2866,10 +2866,10 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	var swap bool = (IsEqual(marketType, "swap"))
 	if swap {
@@ -3005,10 +3005,10 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchOrders", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if IsEqual(marketType, "swap") {
 		if !IsEqual(since, nil) {
@@ -3141,10 +3141,10 @@ func (this *Digifinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchOrder", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
@@ -3276,10 +3276,10 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchMyTrades", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	if IsEqual(marketType, "swap") {
 		if !IsEqual(since, nil) {
 			request["start_timestamp"] = since
@@ -3468,10 +3468,10 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchLedger", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	if IsEqual(marketType, "swap") {
 		if !IsEqual(since, nil) {
 			request["start_timestamp"] = since
@@ -4022,7 +4022,7 @@ func (this *Digifinex) withdrawBody(ch chan any, code any, amount any, address a
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = SafeMapTyped(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -4634,10 +4634,10 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchPositions", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	if !IsEqual(marginMode, nil) {
 		marketType = "margin"
 	}
@@ -4761,10 +4761,10 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = SafeMapTyped(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchPosition", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	query := SafeMapTyped(marginModequeryVariable, 1)
 	if !IsEqual(marginMode, nil) {
 		marketType = "margin"
 	}
@@ -5285,7 +5285,7 @@ func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ..
 	var marginMode any = nil
 	marginModeparamsVariable := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = SafeMapTyped(marginModeparamsVariable, 1)
 	if marginMode != nil {
 		if !IsEqual(marginMode, "cross") {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
@@ -5624,20 +5624,20 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 		retRes440612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes440612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("end_timestamp", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "instrument_id", GetValue(market, "id"))
+		request["instrument_id"] = GetValue(market, "id")
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_timestamp", since)
+		request["start_timestamp"] = since
 	}
 
 	response := (<-this.PrivateSwapGetAccountFundingFee(this.Extend(request, params)))

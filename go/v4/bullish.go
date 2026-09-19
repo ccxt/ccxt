@@ -1203,7 +1203,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 		params = this.HandlePaginationParams("fetchTrades", since, params)
 
@@ -1298,7 +1298,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var paginate any = false
 		var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
+		params = SafeMapTyped(paginateparamsVariable, 1)
 		if EvalTruthy(paginate) {
 			params = this.HandlePaginationParams("fetchMyTrades", since, params)
 
@@ -1644,7 +1644,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan any, method any, optional
 	var maxRetries any = nil
 	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", 3)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
-	params = GetValue(maxRetriesparamsVariable, 1)
+	params = SafeMapTyped(maxRetriesparamsVariable, 1)
 	if (!IsEqual(method, "fetchOHLCV")) && (!IsEqual(method, "fetchFundingRateHistory")) && (!IsEqual(method, "fetchTrades")) {
 		panic(NotSupported(Add(Add(this.Id+" safeDeterministicCall() does not support the ", method), " method")))
 	}
@@ -1750,7 +1750,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes136819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
@@ -1758,14 +1758,14 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- retRes136819
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":     GetValue(market, "id"),
 		"timeBucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"_pageSize":  maxLimit,
 	}
 	requestparamsVariable := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
 	var duration any = this.ParseTimeframe(timeframe)
 	var maxDelta any = Multiply(Multiply(1000, duration), maxLimit)
@@ -1779,8 +1779,8 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else if IsEqual(until, nil) {
 		until = this.Sum(startTime, maxDelta)
 	}
-	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTime))
-	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+	request["createdAtDatetime[gte]"] = this.Iso8601(startTime)
+	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
 	response := (<-this.PublicGetV1MarketsSymbolCandle(this.Extend(request, params)))
 	PanicOnError(response)
@@ -1848,7 +1848,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 		params = this.HandlePaginationParams("fetchFundingRateHistory", since, params)
 
@@ -1966,7 +1966,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var method any = "privateGetV2HistoryOrders"
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "method", method)
 	method = GetValue(methodparamsVariable, 0)
-	params = GetValue(methodparamsVariable, 1)
+	params = SafeMapTyped(methodparamsVariable, 1)
 	var response any = []any{}
 	if IsEqual(method, "privateGetV2Orders") {
 		//
@@ -2352,14 +2352,14 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "POST_ONLY")), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = SafeMapTyped(postOnlyparamsVariable, 1)
 	if EvalTruthy(postOnly) {
 		typeVar = "POST_ONLY"
 	}
 	var timeInForce any = "GTC" // is mandatory
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", timeInForce)
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
-	params = GetValue(timeInForceparamsVariable, 1)
+	params = SafeMapTyped(timeInForceparamsVariable, 1)
 	AddElementToObject(params, "timeInForce", ToUpper(timeInForce))
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2722,16 +2722,16 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 
 	retRes20698 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
 	PanicOnError(retRes20698)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var until *int64 = this.SafeInteger(request, "createdAtDatetime[lte]")
 	if until != nil {
-		AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+		request["createdAtDatetime[lte]"] = this.Iso8601(until)
 	}
 	if !IsEqual(since, nil) {
-		AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(since))
+		request["createdAtDatetime[gte]"] = this.Iso8601(since)
 	}
 
 	response := (<-this.PrivateGetV1WalletsTransactions(this.Extend(request, params)))
@@ -2823,7 +2823,7 @@ func (this *Bullish) withdrawBody(ch chan any, code any, amount any, address any
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = SafeMapTyped(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		request["network"] = this.NetworkCodeToId(networkCode, code)
 	} else {
@@ -2951,7 +2951,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 	var tradingAccountId any = nil
 	var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "loadAccount", "tradingAccountId")
 	tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
-	params = GetValue(tradingAccountIdparamsVariable, 1)
+	params = SafeMapTyped(tradingAccountIdparamsVariable, 1)
 	if IsEqual(tradingAccountId, nil) {
 
 		response := (<-this.PrivateGetV1AccountsTradingAccounts(params))
@@ -3136,7 +3136,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	var network any = nil
 	networkparamsVariable := this.HandleNetworkCodeAndParams(params)
 	network = GetValue(networkparamsVariable, 0)
-	params = GetValue(networkparamsVariable, 1)
+	params = SafeMapTyped(networkparamsVariable, 1)
 	var networkDefinedByUser bool = (network != nil)
 	if (length > 1) || (networkDefinedByUser) {
 		// some currencies have multiple networks
@@ -3437,7 +3437,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = SafeMapTyped(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 		params = this.HandlePaginationParams("fetchTransfers", since, params)
 
@@ -3632,15 +3632,15 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"assetSymbol":      currency["id"],
 		"tradingAccountId": tradingAccountId,
 	}
 	var now int64 = this.Milliseconds()
 	var startTimestamp any = since
 	requestparamsVariable := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	request = SafeMapTyped(requestparamsVariable, 0)
+	params = SafeMapTyped(requestparamsVariable, 1)
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
 	// current endpoint requires both since and until parameters
 	if IsEqual(startTimestamp, nil) {
@@ -3649,8 +3649,8 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	if IsEqual(until, nil) {
 		until = now
 	}
-	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))
-	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+	request["createdAtDatetime[gte]"] = this.Iso8601(startTimestamp)
+	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
 	response := (<-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, params)))
 	PanicOnError(response)

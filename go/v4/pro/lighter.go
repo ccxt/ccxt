@@ -1349,7 +1349,7 @@ func (this *Lighter) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleParamString(params, "type", defaultType)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.SafeMapTyped(typeVarparamsVariable, 1)
 	var accountIndex any = nil
 	accountIndexparamsVariable := (<-this.HandleAccountIndexAsync(params, "watchBalance", "accountIndex", "account_index"))
 	accountIndex = ccxt.GetValue(accountIndexparamsVariable, 0)
