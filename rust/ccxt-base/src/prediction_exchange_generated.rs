@@ -135,7 +135,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_180: bool = true;
             while { if !__for_first_180 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_180 = false; i.as_f64().unwrap_or(f64::NAN) < extraScopeParamsLength } {
-            let mut scopeKey: Value = extraScopeParams.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut scopeKey: Value = get_value(&extraScopeParams, &i);
+            let mut scopeKey: Value = get_value(&extraScopeParams, &i);
             if (in_op(&params, &scopeKey)) {
                 return Value::Null;
             }
@@ -366,7 +367,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut ti: Value = Value::Int(0);
                 let mut __for_first_189: bool = true;
                 while { if !__for_first_189 { ti = (match (&(ti), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_189 = false; ti.as_f64().unwrap_or(f64::NAN) < ((eventTags.len() as i64) as f64) } {
-                let mut tag: Value = eventTags.as_array().and_then(|__arr| match &ti { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut tag: Value = get_value(&eventTags, &ti);
+                let mut tag: Value = get_value(&eventTags, &ti);
                 let mut tagLabel: Value = Value::Null;
                 if matches!(&tag, Value::Str(_)) {
                     tagLabel = tag.clone();
@@ -820,7 +822,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_199: bool = true;
             while { if !__for_first_199 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_199 = false; j.as_f64().unwrap_or(f64::NAN) < ((outcomesList.len() as i64) as f64) } {
-            let mut oc: Value = outcomesList.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut oc: Value = get_value(&outcomesList, &j);
+            let mut oc: Value = get_value(&outcomesList, &j);
             let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".to_string()), Value::Str("symbol".to_string()), &[]);
             let mut ocId: Value = self.safe_string2(oc.clone(), Value::Str("outcomeId".to_string()), Value::Str("id".to_string()), &[]);
             // assign unconditionally — safeString2 keeps the canonical key when present
@@ -898,7 +901,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_201: bool = true;
             while { if !__for_first_201 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_201 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength } {
-            let mut m: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut m: Value = get_value(&markets, &i);
+            let mut m: Value = get_value(&markets, &i);
             let mut marketHandle: Value = self.safe_string2(m.clone(), Value::Str("market".to_string()), Value::Str("symbol".to_string()), &[]);
             if (marketHandle != Value::Null) {
                 add_element_to_object(&mut self.markets, &marketHandle, m.clone());
