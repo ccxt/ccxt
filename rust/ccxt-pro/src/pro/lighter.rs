@@ -1974,7 +1974,7 @@ impl LighterCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_483: bool = true;
                 while { if !__for_first_483 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_483 = false; j.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-                let mut order: Value = self.parse_order(orders.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
+                let mut order: Value = self.parse_order(get_value(&orders, &j), &[market.clone()]);
                 stored.append(order.clone());
                 let mut symbol: Value = order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {

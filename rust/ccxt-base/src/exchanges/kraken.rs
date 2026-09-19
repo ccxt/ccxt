@@ -2893,7 +2893,8 @@ impl KrakenCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_847: bool = true;
             while { if !__for_first_847 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_847 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
-            let mut rawTrade: Value = rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawTrade: Value = get_value(&rawTrades, &i);
+            let mut rawTrade: Value = get_value(&rawTrades, &i);
             if matches!(&rawTrade, Value::Str(_)) {
                 append_to_array(&mut trades, self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4908,7 +4909,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_859: bool = true;
                             while { if !__for_first_859 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_859 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-                            let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                            let mut order: Value = get_value(&orders, &i);
+                            let mut order: Value = get_value(&orders, &i);
                             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
                             if (error != Value::Null) {
                                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), message.clone());

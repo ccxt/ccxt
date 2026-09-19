@@ -801,13 +801,15 @@ impl CoinbaseCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_256: bool = true;
             while { if !__for_first_256 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_256 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut tickersObj: Value = events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut tickersObj: Value = get_value(&events, &i);
+            let mut tickersObj: Value = get_value(&events, &i);
             let mut tickers: Value = self.safe_list_k(tickersObj, "tickers", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_255: bool = true;
                 while { if !__for_first_255 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_255 = false; j.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-                let mut ticker: Value = tickers.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut ticker: Value = get_value(&tickers, &j);
+                let mut ticker: Value = get_value(&tickers, &j);
                 let mut wsMarketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
                 if (wsMarketId.is_none()) {
                     continue;
@@ -1169,7 +1171,8 @@ impl CoinbaseCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_258: bool = true;
             while { if !__for_first_258 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_258 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut currentEvent: Value = events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut currentEvent: Value = get_value(&events, &i);
+            let mut currentEvent: Value = get_value(&events, &i);
             let mut currentTrades: Value = self.safe_list_k(currentEvent, "trades", &[]);
             if (currentTrades == Value::Null) {
                 continue;
@@ -1232,7 +1235,8 @@ impl CoinbaseCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_260: bool = true;
             while { if !__for_first_260 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_260 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut event: Value = get_value(&events, &i);
+            let mut event: Value = get_value(&events, &i);
             let mut responseOrders: Value = self.safe_list_k(event, "orders", &[]);
             if (responseOrders == Value::Null) {
                 continue;
@@ -1241,7 +1245,8 @@ impl CoinbaseCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_259: bool = true;
                 while { if !__for_first_259 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_259 = false; j.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-                let mut responseOrder: Value = responseOrders.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut responseOrder: Value = get_value(&responseOrders, &j);
+                let mut responseOrder: Value = get_value(&responseOrders, &j);
                 let mut parsed: Value = self.parse_ws_order(responseOrder.clone(), &[]);
                 let mut cachedOrders: Value = self.orders.clone();
                 let mut marketId: Value = self.safe_string_k(responseOrder.clone(), "product_id", &[]);
@@ -1382,7 +1387,8 @@ impl CoinbaseCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_263: bool = true;
             while { if !__for_first_263 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_263 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut event: Value = get_value(&events, &i);
+            let mut event: Value = get_value(&events, &i);
             let mut updates: Value = self.safe_list_k(event.clone(), "updates", &[Value::from(vec![])]);
             let mut marketId: Value = self.safe_string_k(event.clone(), "product_id", &[]);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1462,8 +1468,10 @@ impl CoinbaseCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_264: bool = true;
                 while { if !__for_first_264 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_264 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut subHash: Value = subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut messageHash: Value = get_value(&messageHashes, &i);
+                let mut messageHash: Value = get_value(&messageHashes, &i);
+                let mut subHash: Value = get_value(&subMessageHashes, &i);
+                let mut subHash: Value = get_value(&subMessageHashes, &i);
                 self.clean_unsubscription(client.clone(), subHash.clone(), messageHash.clone(), &[]);
             }
             }

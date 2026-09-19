@@ -1285,7 +1285,8 @@ impl BitmexCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_383: bool = true;
             while { if !__for_first_383 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_383 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
-            let mut chain: Value = chains.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "asset", &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut withdrawalFeeRaw: Value = self.safe_string_k(chain.clone(), "withdrawalFee", &[]);
@@ -3911,7 +3912,8 @@ impl BitmexCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_389: bool = true;
                 while { if !__for_first_389 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_389 = false; i.as_f64().unwrap_or(f64::NAN) < networksLength } {
-                let mut network: Value = networks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut network: Value = get_value(&networks, &i);
+                let mut network: Value = get_value(&networks, &i);
                 let mut networkId: Value = self.safe_string_k(network.clone(), "asset", &[]);
                 let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), currencyCode.clone()]);

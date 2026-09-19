@@ -638,7 +638,8 @@ impl BitmexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_133: bool = true;
             while { if !__for_first_133 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_133 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut update: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut update: Value = get_value(&data, &i);
+            let mut update: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(update.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
             if !(in_op(&self.tickers, &symbol)) {
@@ -778,7 +779,8 @@ impl BitmexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_135: bool = true;
             while { if !__for_first_135 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_135 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawLiquidations.len() as i64) as f64) } {
-            let mut rawLiquidation: Value = rawLiquidations.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
+            let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut liquidation: Value = self.parse_liquidation(rawLiquidation.clone(), &[]);
             cache.append(liquidation.clone());
             append_to_array(&mut newLiquidations, liquidation.clone());
@@ -1297,7 +1299,8 @@ impl BitmexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_139 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = get_value(&rawPositions, &i);
+            let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
             let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
             if (side == Value::Null) {
@@ -1556,7 +1559,8 @@ impl BitmexCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_141: bool = true;
                 while { if !__for_first_141 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_141 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
-                let mut currentOrder: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut currentOrder: Value = get_value(&data, &i);
+                let mut currentOrder: Value = get_value(&data, &i);
                 let mut orderId: Value = self.safe_string_k(currentOrder.clone(), "orderID", &[]);
                 let mut previousOrder: Value = self.safe_dict(stored.hashmap(), orderId.clone(), &[]);
                 let mut rawOrder: Value = currentOrder.clone();
@@ -1982,7 +1986,8 @@ impl BitmexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_147: bool = true;
             while { if !__for_first_147 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_147 = false; i.as_f64().unwrap_or(f64::NAN) < ((candles.len() as i64) as f64) } {
-            let mut candle: Value = candles.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut candle: Value = get_value(&candles, &i);
+            let mut candle: Value = get_value(&candles, &i);
             let mut marketId: Value = self.safe_string_k(candle.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2115,15 +2120,15 @@ impl BitmexCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_149: bool = true;
                 while { if !__for_first_149 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_149 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                let mut price: Value = self.safe_float(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
-                let mut size: Value = self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("size".to_string()), &[]), &[]);
-                let mut id: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("id".to_string()), &[]);
-                let mut side: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("side".to_string()), &[]);
+                let mut price: Value = self.safe_float_k(get_value(&data, &i), "price", &[]);
+                let mut size: Value = self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[]), &[]);
+                let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
+                let mut side: Value = self.safe_string_k(get_value(&data, &i), "side", &[]);
                 side = (if is_true(&(side.as_str() == Some("Buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
                 bookside.store_array(Value::from(vec![price.clone(), size.clone(), id.clone()]));
-                let mut datetime: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("timestamp".to_string()), &[]);
+                let mut datetime: Value = self.safe_string_k(get_value(&data, &i), "timestamp", &[]);
                 add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), self.parse8601(datetime.clone()));
                 add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
             }
@@ -2139,7 +2144,7 @@ impl BitmexCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_150: bool = true;
                 while { if !__for_first_150 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_150 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                let mut marketId: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("symbol".to_string()), &[]);
+                let mut marketId: Value = self.safe_string_k(get_value(&data, &i), "symbol", &[]);
                 if (marketId == Value::Null) {
                     return;
                 }
@@ -2150,15 +2155,15 @@ impl BitmexCore {
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-                let mut price: Value = self.safe_number(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("price".to_string()), &[]);
-                let mut size: Value = (if is_true(&(action.as_deref() == Some("delete"))) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("size".to_string()), &[Value::Str("0".to_string())]), &[]) });
-                let mut id: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("id".to_string()), &[]);
-                let mut side: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("side".to_string()), &[]);
+                let mut price: Value = self.safe_number_k(get_value(&data, &i), "price", &[]);
+                let mut size: Value = (if is_true(&(action.as_deref() == Some("delete"))) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[Value::Str("0".to_string())]), &[]) });
+                let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
+                let mut side: Value = self.safe_string_k(get_value(&data, &i), "side", &[]);
                 side = (if is_true(&(side.as_str() == Some("Buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
                 bookside.store_array(Value::from(vec![price.clone(), size.clone(), id.clone()]));
-                let mut datetime: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("timestamp".to_string()), &[]);
+                let mut datetime: Value = self.safe_string_k(get_value(&data, &i), "timestamp", &[]);
                 add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), self.parse8601(datetime.clone()));
                 add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
             }

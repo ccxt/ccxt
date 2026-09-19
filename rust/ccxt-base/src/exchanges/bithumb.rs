@@ -1321,7 +1321,8 @@ impl BithumbCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_370: bool = true;
                 while { if !__for_first_370 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_370 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderBookUnits.len() as i64) as f64) } {
-                let mut entry: Value = orderBookUnits.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = get_value(&orderBookUnits, &i);
+                let mut entry: Value = get_value(&orderBookUnits, &i);
                 append_to_array(&mut bids, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("price".to_string(), self.safe_string_k(entry.clone(), "bid_price", &[]));
@@ -1639,7 +1640,8 @@ impl BithumbCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_375: bool = true;
                 while { if !__for_first_375 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_375 = false; i.as_f64().unwrap_or(f64::NAN) < responsesLength } {
-                let mut response: Value = responses.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut response: Value = get_value(&responses, &i);
+                let mut response: Value = get_value(&responses, &i);
                 if is_true(&self.is_dictionary(response.clone())) && (in_op(&response, &Value::Str("data".to_string()))) && is_true(&(crate::value::get_value_k(&response, "data") != Value::Null)) {
                     response = crate::value::get_value_k(&response, "data");
                 }

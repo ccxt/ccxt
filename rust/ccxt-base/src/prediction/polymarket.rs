@@ -1362,7 +1362,7 @@ impl PolymarketCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 }), &[params.clone()]);
-                add_element_to_object(&mut singleTagParams, &Value::Str("tags".to_string()), Value::from(vec![requestedTags.as_array().and_then(|__arr| match &ti { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]));
+                add_element_to_object(&mut singleTagParams, &Value::Str("tags".to_string()), Value::from(vec![get_value(&requestedTags, &ti)]));
                 let mut tagEvents: Value = Box::pin(self.fetch_raw_events_list(&[singleTagParams.clone()])).await;
                 {
                                         let mut ei: Value = Value::Int(0);
@@ -2597,7 +2597,7 @@ impl PolymarketCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1394: bool = true;
                 while { if !__for_first_1394 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1394 = false; j.as_f64().unwrap_or(f64::NAN) < ((makerOrders.len() as i64) as f64) } {
-                if (self.safe_string(makerOrders.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("order_id".to_string()), &[]).as_str() == id.as_str()) {
+                if (self.safe_string_k(get_value(&makerOrders, &j), "order_id", &[]).as_str() == id.as_str()) {
                     belongs = true;
                 }
             }
@@ -4021,7 +4021,7 @@ impl PolymarketCore {
                         let mut ti: Value = Value::Int(0);
             let mut __for_first_1405: bool = true;
             while { if !__for_first_1405 { ti = (match (&(ti), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1405 = false; ti.as_f64().unwrap_or(f64::NAN) < rawTagsLength } {
-            let mut tagLabel: Value = self.safe_string2(rawTags.as_array().and_then(|__arr| match &ti { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("label".to_string()), Value::Str("slug".to_string()), &[]);
+            let mut tagLabel: Value = self.safe_string2(get_value(&rawTags, &ti), Value::Str("label".to_string()), Value::Str("slug".to_string()), &[]);
             if (tagLabel != Value::Null) {
                 append_to_array(&mut parsedTags, tagLabel.clone());
             }

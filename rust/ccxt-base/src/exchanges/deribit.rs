@@ -1751,7 +1751,7 @@ impl DeribitCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_625: bool = true;
                 while { if !__for_first_625 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((currenciesResult.len() as i64) as f64) } {
-                let mut currencyId: Value = self.safe_string(currenciesResult.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("currency".to_string()), &[]);
+                let mut currencyId: Value = self.safe_string_k(get_value(&currenciesResult, &i), "currency", &[]);
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("currency".to_string(), currencyId.clone());
@@ -1845,7 +1845,8 @@ impl DeribitCore {
                                 let mut k: Value = Value::Int(0);
                 let mut __for_first_626: bool = true;
                 while { if !__for_first_626 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_626 = false; k.as_f64().unwrap_or(f64::NAN) < ((instrumentsResult.len() as i64) as f64) } {
-                let mut market: Value = instrumentsResult.as_array().and_then(|__arr| match &k { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut market: Value = get_value(&instrumentsResult, &k);
+                let mut market: Value = get_value(&instrumentsResult, &k);
                 let mut kind: Value = self.safe_string_k(market.clone(), "kind", &[]);
                 let mut isSpot: Value = (Value::Bool(kind.as_str() == Some("spot")));
                 let mut id: Value = self.safe_string_k(market.clone(), "instrument_name", &[]);
@@ -2464,7 +2465,7 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_630: bool = true;
             while { if !__for_first_630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-            let mut ticker: Value = self.parse_ticker(result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
+            let mut ticker: Value = self.parse_ticker(get_value(&result, &i), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
                 add_element_to_object(&mut tickers, &symbol, ticker.clone());
@@ -2843,7 +2844,8 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_631: bool = true;
             while { if !__for_first_631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
-            let mut fee: Value = fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut fee: Value = get_value(&fees, &i);
+            let mut fee: Value = get_value(&fees, &i);
             let mut instrumentType: Option<String> = self.safe_string_k(fee.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
             if (instrumentType.as_deref() == Some("future")) {
                 futureFee = Value::Map({
@@ -4263,8 +4265,8 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_633: bool = true;
             while { if !__for_first_633 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((volatilityResult.len() as i64) as f64) } {
-            let mut timestamp: Value = self.safe_integer(volatilityResult.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
-            let mut volatilityObj: Value = self.safe_number(volatilityResult.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
+            let mut timestamp: Value = self.safe_integer(get_value(&volatilityResult, &i), Value::Int(0), &[]);
+            let mut volatilityObj: Value = self.safe_number(get_value(&volatilityResult, &i), Value::Int(1), &[]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), volatilityObj.clone());
@@ -4722,7 +4724,8 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_634: bool = true;
             while { if !__for_first_634 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-            let mut fr: Value = result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut fr: Value = get_value(&result, &i);
+            let mut fr: Value = get_value(&result, &i);
             let mut rate: Value = self.parse_funding_rate(fr.clone(), &[market.clone()]);
             append_to_array(&mut rates, rate.clone());
         }

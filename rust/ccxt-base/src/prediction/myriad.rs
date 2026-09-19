@@ -1059,7 +1059,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1307: bool = true;
             while { if !__for_first_1307 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1307 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            append_to_array(&mut result, self.parse_prediction_position(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]));
+            append_to_array(&mut result, self.parse_prediction_position(get_value(&data, &i), &[]));
         }
         }
         return self.filter_by_array(result.clone(), Value::Str("outcome".to_string()), &[outcomes.clone(), Value::Bool(false)]);
@@ -2214,7 +2214,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1312: bool = true;
             while { if !__for_first_1312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1312 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = get_value(&rows, &i);
             let mut action: Option<String> = self.safe_string_lower(row.clone(), Value::Str("action".to_string()), &[]).as_str().map(str::to_owned);
             if is_true(&(action.as_deref() != Some("buy"))) && is_true(&(action.as_deref() != Some("sell"))) {
                 continue;
@@ -3747,7 +3748,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1323: bool = true;
                 while { if !__for_first_1323 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1323 = false; i.as_f64().unwrap_or(f64::NAN) < ((chartsList.len() as i64) as f64) } {
-                let mut chartObj: Value = chartsList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut chartObj: Value = get_value(&chartsList, &i);
+                let mut chartObj: Value = get_value(&chartsList, &i);
                 if (self.safe_string_k(chartObj.clone(), "timeframe", &[]).as_str() == bucketKey.as_str()) {
                     chart = chartObj.clone();
                     break;
@@ -4117,7 +4119,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut __for_first_1330: bool = true;
                     while { if !__for_first_1330 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1330 = false; i.as_f64().unwrap_or(f64::NAN) < requestedTagsLength } {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    let mut tagSlug: Value = requestedTags.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut tagSlug: Value = get_value(&requestedTags, &i);
+                    let mut tagSlug: Value = get_value(&requestedTags, &i);
                     append_to_array(&mut tagQueries, replace_all_str(&tagSlug, &Value::Str("-".to_string()), &Value::Str(" ".to_string())));
                 }
                 }
@@ -4525,7 +4528,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1336: bool = true;
             while { if !__for_first_1336 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1336 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength } {
-            let mut change: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut change: Value = get_value(&changes, &i);
+            let mut change: Value = get_value(&changes, &i);
             let mut outcomeId: Value = self.safe_string_k(change.clone(), "outcome", &[]);
             let mut sym: Value = self.market_outcome_to_symbol(networkId.clone(), marketId.clone(), outcomeId.clone());
             if (sym == Value::Null) {
@@ -4714,7 +4718,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1338: bool = true;
                 while { if !__for_first_1338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1338 = false; i.as_f64().unwrap_or(f64::NAN) < makersLength } {
-                let mut maker: Value = makers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut maker: Value = get_value(&makers, &i);
+                let mut maker: Value = get_value(&makers, &i);
                 let mut makerTrader: Value = self.safe_string_lower(maker.clone(), Value::Str("trader".to_string()), &[]);
                 if (makerTrader.as_str() == myWallet.as_str()) {
                     let mut makerSym: Value = self.market_outcome_to_symbol(networkId.clone(), marketId.clone(), self.safe_string_k(maker.clone(), "outcome", &[]));
@@ -4916,7 +4921,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1342: bool = true;
             while { if !__for_first_1342 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1342 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
-            let mut oc: Value = outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut oc: Value = get_value(&outcomes, &i);
+            let mut oc: Value = get_value(&outcomes, &i);
             let mut outcomeId: Value = self.safe_string_k(oc.clone(), "outcome", &[]);
             let mut sym: Value = self.market_outcome_to_symbol(networkId.clone(), marketId.clone(), outcomeId.clone());
             if (sym == Value::Null) {
