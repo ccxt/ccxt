@@ -118,7 +118,7 @@ func (this *Deepcoin) CreatePublicRequest(market any, requestId any, topicID any
 	_ = unWatch
 	var marketId any = ccxt.GetValue(market, "symbol") // spot markets use symbol with slash
 	if ccxt.IsEqual(ccxt.GetValue(market, "type"), "swap") {
-		marketId = ccxt.Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")) // swap markets use symbol without slash
+		marketId = *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "") // swap markets use symbol without slash
 	}
 	var action string = "1" // subscribe
 	if ccxt.EvalTruthy(unWatch) {

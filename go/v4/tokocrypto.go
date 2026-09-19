@@ -1546,7 +1546,7 @@ func (this *Tokocrypto) GetMarketIdByType(market any) any {
 	if EvalTruthy(this.IsNativeMarket(market)) {
 		return this.SafeString(market, "id")
 	}
-	return Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", ""))
+	return *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
 }
 
 /**
