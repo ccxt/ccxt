@@ -1352,7 +1352,7 @@ impl OnetradingCore {
             let mut orderId: Value = self.safe_string_k(update.clone(), "order_id", &[]);
             let mut datetime: Value = self.safe_string2(update.clone(), Value::Str("time".into()), Value::Str("timestamp".into()), &[]);
             let mut previousOrderArray: Value = self.filter_by_array(self.orders.clone(), Value::Str("id".into()), &[orderId.clone(), Value::Bool(false)]);
-            let mut previousOrder: Value = self.safe_dict(previousOrderArray.clone(), Value::Int(0), &[Value::Map({
+            let mut previousOrder: Value = self.safe_dict(previousOrderArray, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1364,14 +1364,14 @@ impl OnetradingCore {
             }
             let mut orderObject: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), orderId.clone());
+                    m.insert("id".to_string(), orderId);
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("status".to_string(), status.clone());
+                    m.insert("status".to_string(), status);
                     m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
-                    m.insert("datetime".to_string(), datetime.clone());
+                    m.insert("datetime".to_string(), datetime);
                 m
             });
-            orders.append(orderObject.clone());
+            orders.append(orderObject);
         }  else {
             let mut parsed: Value = self.parse_order(update.clone(), &[]);
             symbol = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]);
@@ -1394,7 +1394,7 @@ impl OnetradingCore {
         client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
         // update trades
         if (updateType.as_str() == Some("TRADE_SETTLED")) {
-            let mut parsed: Value = self.parse_trade(update.clone(), &[]);
+            let mut parsed: Value = self.parse_trade(update, &[]);
             symbol = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]);
             let mut myTrades: Value = self.myTrades.clone();
             myTrades.append(parsed);
@@ -1547,7 +1547,7 @@ impl OnetradingCore {
         let __ws_arg_0 = self.deep_extend(request, &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash, &[__ws_arg_0, subscriptionHash, subscription]).await;
         if is_true(&self.newUpdates) {
-            limit = ohlcv.get_limit(symbol.clone(), limit.clone());
+            limit = ohlcv.get_limit(symbol, limit.clone());
         }
         return self.filter_by_since_limit(ohlcv, &[since, limit, Value::Int(0), Value::Bool(true)]);
 

@@ -1915,8 +1915,8 @@ impl CoinexCore {
         let mut isErrorCode: bool = (errorCode != Value::Null) && (errorCode.as_str() != Some("0"));
         if isErrorCode || isErrorMessage {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1958,7 +1958,7 @@ impl CoinexCore {
 }
 
     pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) {
-        let mut id: Value = self.safe_integer_k(message.clone(), "id", &[]);
+        let mut id: Value = self.safe_integer_k(message, "id", &[]);
         let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), id.clone(), &[]);
         if (subscription != Value::Null) {
             let mut futureIndex: Value = self.safe_string_k(subscription, "future", &[]);

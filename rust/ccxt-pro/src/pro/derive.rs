@@ -739,7 +739,7 @@ impl DeriveCore {
                 if Value::Int(topic.as_str().and_then(|__s| __s.find("orderbook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     self.handle_order_book_un_subscription(client.clone(), topic.clone());
                 }  else if Value::Int(topic.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                    self.handle_trades_un_subscription(client.clone(), topic.clone());
+                    self.handle_trades_un_subscription(client.clone(), topic);
                 }
             }
             }
@@ -789,7 +789,7 @@ impl DeriveCore {
                 m.insert("params".to_string(), params);
             m
         });
-        let mut trades: Value = self.watch_public(topic.clone(), request, subscription).await;
+        let mut trades: Value = self.watch_public(topic, request, subscription).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit.clone());
         }
@@ -825,7 +825,7 @@ impl DeriveCore {
         }
         }
         add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
-        client.resolve(&[tradesArray, topic.clone()]);
+        client.resolve(&[tradesArray, topic]);
 }
 
     pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
@@ -934,7 +934,7 @@ impl DeriveCore {
         });
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), topic.clone());
+                m.insert("name".to_string(), topic);
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -1031,7 +1031,7 @@ impl DeriveCore {
             }
         }
         }
-        client.resolve(&[self.orders.clone(), topic.clone()]);
+        client.resolve(&[self.orders.clone(), topic]);
 }
 
 /*
@@ -1078,7 +1078,7 @@ impl DeriveCore {
         });
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), topic.clone());
+                m.insert("name".to_string(), topic);
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -1179,11 +1179,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         event = Value::Str("mytrades".into());
                     }
                 }  else {
-                    event = self.safe_string(parsedChannel.clone(), Value::Int(0), &[]);
+                    event = self.safe_string(parsedChannel, Value::Int(0), &[]);
                 }
             }
         }
-        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods, event.clone(), &[]) });
+        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods, event, &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
@@ -1202,7 +1202,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("public/login")) {
                     self.handle_auth(client.clone(), message.clone());
                 }  else if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("unsubscribe")) {
-                    self.handle_un_subscribe(client.clone(), message.clone());
+                    self.handle_un_subscribe(client, message.clone());
                 }
             }
         }

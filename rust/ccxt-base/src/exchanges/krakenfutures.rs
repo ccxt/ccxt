@@ -1297,7 +1297,7 @@ impl KrakenfuturesCore {
             if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 baseVolume = volume.clone();
             }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                quoteVolume = volume.clone();
+                quoteVolume = volume;
             }
         }
         return self.safe_ticker(Value::Map({
@@ -1319,8 +1319,8 @@ impl KrakenfuturesCore {
         m.insert("change".to_string(), change);
         m.insert("percentage".to_string(), percentage);
         m.insert("average".to_string(), average);
-        m.insert("baseVolume".to_string(), baseVolume.clone());
-        m.insert("quoteVolume".to_string(), quoteVolume.clone());
+        m.insert("baseVolume".to_string(), baseVolume);
+        m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "markPrice", &[]));
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "indexPrice", &[]));
         m.insert("info".to_string(), ticker);
@@ -1415,7 +1415,7 @@ impl KrakenfuturesCore {
                 continue;
             }
             let mut volume: Value = self.safe_string(volumes.clone(), uid, &[Value::Str("0".into())]);
-            add_element_to_object(&mut result, &symbol, self.parse_trading_fee(schedule, &[market, volume.clone()]));
+            add_element_to_object(&mut result, &symbol, self.parse_trading_fee(schedule, &[market, volume]));
         }
         }
         return result;
@@ -1448,7 +1448,7 @@ impl KrakenfuturesCore {
             let mut tierVolume: Value = self.safe_string_k(tier.clone(), "usdVolume", &[]);
             if (volume == Value::Null) || is_true(&crate::precise::Precise::stringGe(&volume, &tierVolume)) {
                 makerFee = self.safe_string_k(tier.clone(), "makerFee", &[]);
-                takerFee = self.safe_string_k(tier.clone(), "takerFee", &[]);
+                takerFee = self.safe_string_k(tier, "takerFee", &[]);
                 if (volume == Value::Null) {
                     break;
                 }
@@ -1869,7 +1869,7 @@ impl KrakenfuturesCore {
         m.insert("order".to_string(), order);
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
-        m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
+        m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), (if (linear.as_bool() == Some(true)) { amount } else { Value::Null }));
         m.insert("cost".to_string(), cost);
@@ -1928,7 +1928,7 @@ impl KrakenfuturesCore {
         let mut triggerSignal: Value = self.safe_string_k(params.clone(), "triggerSignal", &[Value::Str("last".into())]);
         let mut reduceOnly: Value = self.safe_value_k(params.clone(), "reduceOnly", &[]);
         if isStopLossOrTakeProfitTrigger || isTriggerOrder {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerSignal".to_string(), triggerSignal.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerSignal".to_string(), triggerSignal); }
         }
         if isTriggerOrder {
             type_var = Value::Str("stp".into());
@@ -1958,7 +1958,7 @@ impl KrakenfuturesCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limitPrice".to_string(), self.price_to_precision(symbol, price)); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
-        return self.extend(request.clone(), &[params]);
+        return self.extend(request, &[params]);
 
     Value::Null
 }
@@ -2710,11 +2710,11 @@ impl KrakenfuturesCore {
     m
 })]);
                 add_element_to_object(&mut innerOrder, &Value::Str("status".into()), Value::Str("rejected".into())); // status not available in the response
-                append_to_array(&mut canceledAndRejected, innerOrder.clone());
+                append_to_array(&mut canceledAndRejected, innerOrder);
             }
         }
         }
-        return self.parse_orders(canceledAndRejected.clone(), &[market, since, limit]);
+        return self.parse_orders(canceledAndRejected, &[market, since, limit]);
 
     Value::Null
 }
@@ -3299,7 +3299,7 @@ impl KrakenfuturesCore {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(details.clone(), "lastUpdateTimestamp", &[lastUpdateTimestamp]));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), self.parse_order_type(type_var.clone()));
-        m.insert("timeInForce".to_string(), timeInForce.clone());
+        m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), Value::Bool(type_var.as_str() == Some("post")));
         m.insert("reduceOnly".to_string(), self.safe_bool2(details.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
         m.insert("side".to_string(), self.safe_string_lower2(details, Value::Str("side".into()), Value::Str("direction".into()), &[]));
@@ -3307,9 +3307,9 @@ impl KrakenfuturesCore {
         m.insert("triggerPrice".to_string(), triggerPrice.clone());
         m.insert("stopPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost.clone());
+        m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), average);
-        m.insert("filled".to_string(), filled.clone());
+        m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), remaining);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), Value::Null);
@@ -3420,7 +3420,7 @@ impl KrakenfuturesCore {
             params = self.omit(params.clone(), Value::Str("until".into()), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("before".to_string(), until); }
         }
-        let __ws_arg_16 = self.extend(request.clone(), &[params]);
+        let __ws_arg_16 = self.extend(request, &[params]);
         let mut response: Value = self.history_get_account_log(&[__ws_arg_16]).await;
         //
         //    {
@@ -3818,7 +3818,7 @@ impl KrakenfuturesCore {
         let mut account: Value = self.safe_dict(accounts, accountName, &[]);
         if (account == Value::Null) {
             type_var = (if (type_var == Value::Null) { Value::Str("".into()) } else { type_var.clone() });
-            symbol = (if (symbol == Value::Null) { Value::Str("".into()) } else { symbol.clone() });
+            symbol = (if (symbol == Value::Null) { Value::Str("".into()) } else { symbol });
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance has no account for ".into())).into()), type_var)));
         }
         let mut balance: Value = self.parse_balance(account);
@@ -4036,7 +4036,7 @@ impl KrakenfuturesCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("markPrice".to_string(), self.parse_number(markPriceString, &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(ticker, "indexPrice", &[]));
         m.insert("interestRate".to_string(), Value::Null);
@@ -4128,7 +4128,7 @@ impl KrakenfuturesCore {
         }
         }
         let mut sorted: Value = self.sort_by(result, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.clone(), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
 
     Value::Null
 }
@@ -4155,7 +4155,7 @@ impl KrakenfuturesCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = self.private_get_openpositions(&[request.clone()]).await;
+        let mut response: Value = self.private_get_openpositions(&[request]).await;
         //
         //    {
         //        "result": "success",
@@ -4408,7 +4408,7 @@ impl KrakenfuturesCore {
                     m.insert("maxNotional".to_string(), Value::Null);
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintenanceMargin", &[]));
                     m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMargin), &[]));
-                    m.insert("info".to_string(), tier.clone());
+                    m.insert("info".to_string(), tier);
                 m
             }));
         }
@@ -4468,7 +4468,7 @@ impl KrakenfuturesCore {
             if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 return Value::Str(format!("{}{}", Value::Str("fi_".into()), self.safe_string(splitId.clone(), Value::Int(1), &[])).into());
             }  else {
-                return Value::Str(format!("{}{}", Value::Str("fv_".into()), self.safe_string(splitId.clone(), Value::Int(1), &[])).into());
+                return Value::Str(format!("{}{}", Value::Str("fv_".into()), self.safe_string(splitId, Value::Int(1), &[])).into());
             }
         }  else {
             return account;
@@ -4581,7 +4581,7 @@ impl KrakenfuturesCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut marketIdUpper: Value = self.market_id(symbol.clone());
+        let mut marketIdUpper: Value = self.market_id(symbol);
         if (marketIdUpper == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" marketId is required".into()))));
         }
@@ -4655,7 +4655,7 @@ impl KrakenfuturesCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut marketIdUpper: Value = self.market_id(symbol.clone());
+        let mut marketIdUpper: Value = self.market_id(symbol);
         if (marketIdUpper == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" marketId is required".into()))));
         }
@@ -4777,15 +4777,15 @@ impl KrakenfuturesCore {
                 auth = Value::Str(format!("{}{}", auth, add(&api, &Value::Str("/".into()))).into());
             }
             auth = Value::Str(format!("{}{}", auth, endpoint).into()); // 1
-            let mut hash: Value = self.hash(self.encode(auth.clone()), Value::Str("sha256".into()), &[Value::Str("binary".into())]); // 2
+            let mut hash: Value = self.hash(self.encode(auth), Value::Str("sha256".into()), &[Value::Str("binary".into())]); // 2
             let mut secret: Value = self.base64_to_binary(self.secret.clone(), &[]); // 3
-            let mut signature: Value = self.hmac(hash.clone(), secret.clone(), Value::Str("sha512".into()), &[Value::Str("base64".into())]); // 4-5
+            let mut signature: Value = self.hmac(hash, secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]); // 4-5
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Accept".to_string(), Value::Str("application/json".into()));
                     m.insert("APIKey".to_string(), self.apiKey.clone());
-                    m.insert("Authent".to_string(), signature.clone());
+                    m.insert("Authent".to_string(), signature);
                 m
             });
         }
@@ -4794,7 +4794,7 @@ impl KrakenfuturesCore {
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("headers".to_string(), headers);
     m
 });
 

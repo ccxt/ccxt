@@ -441,13 +441,13 @@ impl MudrexCore {
             if Value::Int(stream.as_str().and_then(|__s| __s.find("kline")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(stream.as_str().and_then(|__s| __s.find("markKline")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 self.handle_ohlcv(client.clone(), message.clone());
             }  else if Value::Int(stream.as_str().and_then(|__s| __s.find("ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                self.handle_ticker(client.clone(), message.clone());
+                self.handle_ticker(client, message);
             }
         }
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) {
-        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[Value::Map({
+        let mut error: Value = self.safe_dict_k(message, "error", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -468,7 +468,7 @@ impl MudrexCore {
         let mut parts: Value = split(&stream, &Value::Str("@".into()));
         let mut interval: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut tf: Value = self.find_timeframe(interval, &[]);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -497,7 +497,7 @@ impl MudrexCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_506: bool = true;

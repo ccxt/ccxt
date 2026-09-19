@@ -2178,7 +2178,7 @@ impl BitsoCore {
         if Value::Int(address.as_str().and_then(|__s| __s.find("?dt=")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             let mut parts: Value = split(&address, &Value::Str("?dt=".into()));
             address = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            tag = self.safe_string(parts.clone(), Value::Int(1), &[]);
+            tag = self.safe_string(parts, Value::Int(1), &[]);
         }
         self.check_address(&[address.clone()]);
         return Value::Map({
@@ -2186,8 +2186,8 @@ impl BitsoCore {
         m.insert("info".to_string(), response);
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone());
-        m.insert("tag".to_string(), tag.clone());
+        m.insert("address".to_string(), address);
+        m.insert("tag".to_string(), tag);
     m
 });
 
@@ -2468,7 +2468,7 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), entry);
     m
 }));
                 }
@@ -2492,7 +2492,7 @@ impl BitsoCore {
 })));
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut result, &code), &Value::Str("withdraw".into())), &Value::Str("fee".into()), withdrawFee.clone());
-                add_element_to_object(get_value_mut(get_value_mut(&mut result, &code), &Value::Str("info".into())), &code, withdrawFee.clone());
+                add_element_to_object(get_value_mut(get_value_mut(&mut result, &code), &Value::Str("info".into())), &code, withdrawFee);
             }
         }
         }
@@ -2540,8 +2540,8 @@ impl BitsoCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount);
-                m.insert("address".to_string(), address.clone());
-                m.insert("destination_tag".to_string(), tag.clone());
+                m.insert("address".to_string(), address);
+                m.insert("destination_tag".to_string(), tag);
             m
         });
         let mut classMethod: Value = Value::Str(format!("{}{}", add(&Value::Str("privatePost".into()), &method), Value::Str("Withdrawal".into())).into());
@@ -2637,7 +2637,7 @@ impl BitsoCore {
         m.insert("addressTo".to_string(), withdrawalAddress);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("type".to_string(), (if (withdrawId.is_none()) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) }));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
         m.insert("status".to_string(), self.parse_transaction_status(status));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
@@ -2694,7 +2694,7 @@ impl BitsoCore {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
             endpoint = Value::Str(format!("{}{}", Value::Str("/api".into()), endpoint).into());
-            let mut content: Value = Value::from(vec![nonce.clone(), method.clone(), endpoint.clone()]);
+            let mut content: Value = Value::from(vec![nonce.clone(), method.clone(), endpoint]);
             let mut request: Value = join(&content, &Value::Str("".into()));
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -2745,7 +2745,7 @@ impl BitsoCore {
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));
                 }
                 let mut code: Value = self.safe_string_k(error, "code", &[]);
-                self.throw_exactly_matched_exception(self.exceptions.clone(), code.clone(), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.clone(), code, feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

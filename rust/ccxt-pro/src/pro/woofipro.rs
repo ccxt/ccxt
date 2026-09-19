@@ -710,7 +710,7 @@ impl WoofiproCore {
             if (ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 add_element_to_object(&mut self.tickers, &ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
             }
-            append_to_array(&mut result, ticker.clone());
+            append_to_array(&mut result, ticker);
         }
         }
         client.resolve(&[result, topic]);
@@ -731,7 +731,7 @@ impl WoofiproCore {
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askSize", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
         m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bidSize", &[]));
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("info".to_string(), ticker);
     m
 }), &[market]);
 
@@ -1035,7 +1035,7 @@ impl WoofiproCore {
                 let mut parts: Value = split(&secret, &Value::Str("ed25519:".into()));
                 secret = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
-            let mut signature: Value = eddsa(self.encode(auth), self.base58_to_binary(secret.clone(), &[]), Value::Str("ed25519".into()));
+            let mut signature: Value = eddsa(self.encode(auth), self.base58_to_binary(secret, &[]), Value::Str("ed25519".into()));
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), event);

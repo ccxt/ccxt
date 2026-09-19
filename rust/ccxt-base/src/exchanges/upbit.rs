@@ -1957,7 +1957,7 @@ impl UpbitCore {
             let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_orders_test(&[__ws_arg_9]).await;
         }  else {
-            let __ws_arg_10 = self.extend(request.clone(), &[params]);
+            let __ws_arg_10 = self.extend(request, &[params]);
             response = self.private_post_orders(&[__ws_arg_10]).await;
         }
         return self.parse_order(response, &[]);
@@ -1987,7 +1987,7 @@ impl UpbitCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("uuid".to_string(), id.clone());
+                m.insert("uuid".to_string(), id);
             m
         });
         let __ws_arg_11 = self.extend(request, &[params]);
@@ -2106,7 +2106,7 @@ impl UpbitCore {
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), Value::Str("postOnly".into()), Value::Str("newClientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into())]), &[]);
         // console.log ('check the each request params: ', request);
-        let __ws_arg_12 = self.extend(request.clone(), &[params]);
+        let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_orders_cancel_and_new(&[__ws_arg_12]).await;
         //   {
         //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
@@ -2206,7 +2206,7 @@ impl UpbitCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("uuid".to_string(), id.clone());
+                m.insert("uuid".to_string(), id);
             m
         });
         let mut currency: Value = Value::Null;
@@ -2286,7 +2286,7 @@ impl UpbitCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("uuid".to_string(), id.clone());
+                m.insert("uuid".to_string(), id);
             m
         });
         let mut currency: Value = Value::Null;
@@ -2557,7 +2557,7 @@ impl UpbitCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("clientOrderId".to_string(), identifier);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2744,7 +2744,7 @@ impl UpbitCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("uuid".to_string(), id.clone());
+                m.insert("uuid".to_string(), id);
             m
         });
         let __ws_arg_20 = self.extend(request, &[params]);
@@ -2944,7 +2944,7 @@ impl UpbitCore {
             let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_withdraws_coin(&[__ws_arg_23]).await;
         }  else {
-            let __ws_arg_24 = self.extend(request.clone(), &[params]);
+            let __ws_arg_24 = self.extend(request, &[params]);
             response = self.private_post_withdraws_krw(&[__ws_arg_24]).await;
         }
         return self.parse_transaction(response, &[]);
@@ -3006,7 +3006,7 @@ impl UpbitCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("query_hash".to_string(), hash); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("query_hash_alg".to_string(), Value::Str("SHA512".into())); }
             }
-            let mut token: Value = jwt(request.clone(), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            let mut token: Value = jwt(request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             add_element_to_object(&mut headers, &Value::Str("Authorization".into()), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into()));
         }
         return Value::Map({

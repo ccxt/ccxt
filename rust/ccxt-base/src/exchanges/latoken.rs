@@ -1674,7 +1674,7 @@ impl LatokenCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
@@ -2135,7 +2135,7 @@ impl LatokenCore {
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -2273,10 +2273,10 @@ impl LatokenCore {
             let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_transfer_id(&[__ws_arg_25]).await;
         }  else {
-            let __ws_arg_26 = self.extend(request, &[params.clone()]);
+            let __ws_arg_26 = self.extend(request, &[params]);
             response = self.private_post_auth_transfer_phone(&[__ws_arg_26]).await;
         }
-        return self.parse_transfer(response.clone(), &[]);
+        return self.parse_transfer(response, &[]);
 
     Value::Null
 }
@@ -2318,7 +2318,7 @@ impl LatokenCore {
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "transferringFunds", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "fromAccount", &[]));
         m.insert("toAccount".to_string(), self.safe_string_k(transfer, "toAccount", &[]));
-        m.insert("status".to_string(), self.parse_transfer_status(status.clone()));
+        m.insert("status".to_string(), self.parse_transfer_status(status));
     m
 });
 
@@ -2403,11 +2403,11 @@ impl LatokenCore {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback.clone());
         }
-        let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
+        let mut error: Value = self.safe_value_k(response, "error", &[]);
         let mut errorMessage: Option<String> = self.safe_string_k(error.clone(), "message", &[]).as_str().map(str::to_owned);
         if (error != Value::Null) || (errorMessage.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error, feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

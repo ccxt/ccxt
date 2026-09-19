@@ -992,14 +992,14 @@ impl GrvtCore {
         let mut isSnapshotMessage: bool = sequenceNumber.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64);
         if isSnapshotChannel || isSnapshotMessage {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
-            orderbook.reset(snapshot.clone());
+            orderbook.reset(snapshot);
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("asks".into())), asks, &[Value::Str("price".into()), Value::Str("size".into())]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("bids".into())), bids, &[Value::Str("price".into()), Value::Str("size".into())]);
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null
@@ -1012,7 +1012,7 @@ impl GrvtCore {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), sequenceNumber);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
         add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
-        client.resolve(&[orderbook.clone(), messageHash]);
+        client.resolve(&[orderbook, messageHash]);
 }
 
     pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
@@ -1103,7 +1103,7 @@ impl GrvtCore {
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut trades: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_7, messageHashes.clone(), &[Value::Bool(false)]).await;
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(symbol.clone(), limit.clone());
+            limit = trades.get_limit(symbol, limit.clone());
         }
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -1154,7 +1154,7 @@ impl GrvtCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
-        let mut trade: Value = self.parse_ws_my_trade(data.clone(), &[]);
+        let mut trade: Value = self.parse_ws_my_trade(data, &[]);
         self.myTrades.append(trade.clone());
         client.resolve(&[self.myTrades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades::".into()), trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())]);
         client.resolve(&[self.myTrades.clone(), Value::Str("myTrades".into())]);
@@ -1200,7 +1200,7 @@ impl GrvtCore {
                 let mut __for_first_374: bool = true;
                 while { if !__for_first_374 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut market: Value = self.market(symbol.clone());
+                let mut market: Value = self.market(symbol);
                 append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("positions::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
             }
@@ -1258,7 +1258,7 @@ impl GrvtCore {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut data: Value = self.safe_dict_k(message, "feed", &[]);
-        let mut position: Value = self.parse_ws_position(data.clone(), &[]);
+        let mut position: Value = self.parse_ws_position(data, &[]);
         let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         self.positions.append(position.clone());
         let mut newPositions: Value = Value::from(vec![]);
@@ -1319,7 +1319,7 @@ impl GrvtCore {
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol.clone(), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1394,7 +1394,7 @@ impl GrvtCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
-        let mut order: Value = self.parse_ws_order(data.clone(), &[]);
+        let mut order: Value = self.parse_ws_order(data, &[]);
         self.orders.append(order.clone());
         client.resolve(&[self.orders.clone(), Value::Str("orders".into())]);
         client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("order::".into()), order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())]);

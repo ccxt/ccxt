@@ -493,17 +493,17 @@ impl KrakenCore {
 }));
                 if isPresetStopLoss {
                     add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("order_type".into()), Value::Str("stop-loss".into()));
-                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetStopLoss.clone())));
+                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetStopLoss)));
                 }  else if isPresetTakeProfit {
                     add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("order_type".into()), Value::Str("take-profit".into()));
-                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetTakeProfit.clone())));
+                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetTakeProfit)));
                 }
                 if (presetStopLossLimit != Value::Null) {
                     add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("order_type".into()), Value::Str("stop-loss-limit".into()));
-                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("limit_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetStopLossLimit.clone())));
+                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("limit_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetStopLossLimit)));
                 }  else if (presetTakeProfitLimit != Value::Null) {
                     add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("order_type".into()), Value::Str("take-profit-limit".into()));
-                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("limit_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetTakeProfitLimit.clone())));
+                    add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("conditional".into())), &Value::Str("limit_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), presetTakeProfitLimit)));
                 }
                 params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
             }  else if isStopLossPriceOrder || isTakeProfitPriceOrder {
@@ -548,30 +548,30 @@ impl KrakenCore {
             }
             if isStopLossPriceOrder || isTakeProfitPriceOrder {
                 if isStopLossPriceOrder {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopLossPrice.clone())));
+                    add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopLossPrice)));
                 }  else {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), takeProfitPrice.clone())));
+                    add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice)));
                 }
             }  else if isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder {
                 add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price_type".into()), priceType.clone());
                 if !isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder) {
                     if isTrailingAmountOrder {
-                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingAmountString.clone()));
+                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingAmountString));
                     }  else {
-                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingPercentString.clone()));
+                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingPercentString));
                     }
                 }  else {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("limit_price_type".into()), priceType.clone());
+                    add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("limit_price_type".into()), priceType);
                     if isTrailingLimitAmountOrder {
-                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingLimitAmountString.clone()));
+                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingLimitAmountString));
                     }  else {
-                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingLimitPercentString.clone()));
+                        add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("trigger_price".into()), self.parse_to_numeric(trailingLimitPercentString));
                     }
                 }
             }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("offset".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingLimitAmount".into()), Value::Str("trailingLimitPercent".into())]), &[]);
-        return Value::from(vec![request.clone(), params.clone()]);
+        return Value::from(vec![request, params]);
 
     Value::Null
 }
@@ -616,8 +616,8 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        { let __destr_tmp = self.order_request_ws(Value::Str("createOrderWs".into()), symbol.clone(), type_var, request.clone(), amount, &[price, params.clone()]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_0 = self.extend(request, &[params.clone()]);
+        { let __destr_tmp = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, request.clone(), amount, &[price, params.clone()]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let __ws_arg_0 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
 
     Value::Null
@@ -690,7 +690,7 @@ impl KrakenCore {
                 m.insert("method".to_string(), Value::Str("amend_order".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order_id".to_string(), id.clone());
+        m.insert("order_id".to_string(), id);
         m.insert("order_qty".to_string(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));
         m.insert("token".to_string(), token);
     m
@@ -698,8 +698,8 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        { let __destr_tmp = self.order_request_ws(Value::Str("editOrderWs".into()), symbol.clone(), type_var, request.clone(), amount, &[price, params.clone()]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_1 = self.extend(request, &[params.clone()]);
+        { let __destr_tmp = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, request.clone(), amount, &[price, params.clone()]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let __ws_arg_1 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
 
     Value::Null
@@ -741,7 +741,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
 
     Value::Null
@@ -776,14 +776,14 @@ impl KrakenCore {
                 m.insert("method".to_string(), Value::Str("cancel_order".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order_id".to_string(), Value::from(vec![id.clone()]));
+        m.insert("order_id".to_string(), Value::from(vec![id]));
         m.insert("token".to_string(), token);
     m
 }));
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_3, messageHash.clone()]).await;
 
     Value::Null
@@ -840,7 +840,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
 
     Value::Null
@@ -1053,7 +1053,7 @@ impl KrakenCore {
 }));
         self.load_markets(&[]).await;
         symbol = self.symbol(symbol.clone());
-        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
+        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
         return get_value(&tickers, &symbol);
 
     Value::Null
@@ -1076,7 +1076,7 @@ impl KrakenCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbols.clone(), Value::Null, params.clone()]).await;
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbols.clone(), Value::Null, params]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1108,7 +1108,7 @@ impl KrakenCore {
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("event_trigger".to_string(), Value::Str("bbo".into())); }
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker".into()), &[symbols.clone(), Value::Null, params.clone()]).await;
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker".into()), &[symbols.clone(), Value::Null, params]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1140,7 +1140,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since, limit, params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol]), &[since, limit, params]).await;
 
     Value::Null
 }
@@ -1163,7 +1163,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.watch_multi_helper(Value::Str("trade".into()), Value::Str("trade".into()), &[symbols, Value::Null, params.clone()]).await;
+        let mut trades: Value = self.watch_multi_helper(Value::Str("trade".into()), Value::Str("trade".into()), &[symbols, Value::Null, params]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_list(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
@@ -1190,7 +1190,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit, params.clone()]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol]), &[limit, params]).await;
 
     Value::Null
 }
@@ -1226,7 +1226,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), limit.clone());
     m
-}), self.extend(requiredParams, &[params.clone()])]).await;
+}), self.extend(requiredParams, &[params])]).await;
         return orderbook.limit();
 
     Value::Null
@@ -1272,10 +1272,10 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params.clone()]);
-        let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
+        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
-            limit = ohlcv.get_limit(symbol.clone(), limit.clone());
+            limit = ohlcv.get_limit(symbol, limit.clone());
         }
         return self.filter_by_since_limit(ohlcv, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -1288,7 +1288,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut markets: Value = self.parent.load_markets(&[reload.clone(), params.clone()]).await;
+        let mut markets: Value = self.parent.load_markets(&[reload.clone(), params]).await;
         let mut marketsByWsName: Value = self.safe_dict_k(self.options.clone(), "marketsByWsName", &[]);
         if (marketsByWsName == Value::Null) || is_true(&reload) {
             marketsByWsName = Value::Map({
@@ -1307,12 +1307,12 @@ impl KrakenCore {
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]);
-                    let mut wsName: Value = self.safe_string_k(info.clone(), "wsname", &[]);
-                    add_element_to_object(&mut marketsByWsName, &wsName, market.clone());
+                    let mut wsName: Value = self.safe_string_k(info, "wsname", &[]);
+                    add_element_to_object(&mut marketsByWsName, &wsName, market);
                 }
                 }
             }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("marketsByWsName".to_string(), marketsByWsName.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("marketsByWsName".to_string(), marketsByWsName); }
         }
         return markets;
 
@@ -1588,7 +1588,7 @@ impl KrakenCore {
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-                let mut response: Value = self.parent.private_post_get_web_sockets_token(&[params.clone()]).await;
+                let mut response: Value = self.parent.private_post_get_web_sockets_token(&[params]).await;
                 //
                 //     {
                 //         "error":[],
@@ -1598,28 +1598,28 @@ impl KrakenCore {
                 //         }
                 //     }
                 //
-                subscription = self.safe_dict_k(response.clone(), "result", &[]);
+                subscription = self.safe_dict_k(response, "result", &[]);
                 let mut token: Value = self.safe_string_k(subscription.clone(), "token", &[]);
                 if (token == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
-                add_element_to_object(&mut subscription, &Value::Str("start".into()), now.clone());
+                add_element_to_object(&mut subscription, &Value::Str("start".into()), now);
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &authenticated, subscription.clone());
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
-                client.resolve(&[token.clone(), messageHash.clone()]);
+                client.resolve(&[token, messageHash.clone()]);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // reject the flight - all waiters throw and the next caller
                 // re-leads instead of deadlocking on a dead flight
-                client.reject(&[e.clone(), messageHash.clone()]);
+                client.reject(&[e, messageHash]);
             }
             // rethrows the leader's own failure and attaches the handler that
             // keeps an alone leader's rejection from killing the process
             crate::exchange_stubs::ws_await_flight(&future).await;
-            subscription = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), authenticated.clone(), &[]);
+            subscription = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), authenticated, &[]);
         }
-        return self.safe_string_k(subscription.clone(), "token", &[]);
+        return self.safe_string_k(subscription, "token", &[]);
 
     Value::Null
 }
@@ -1648,20 +1648,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::Str("executions".into()));
-        m.insert("token".to_string(), token.clone());
+        m.insert("token".to_string(), token);
     m
 }));
                 m.insert("req_id".to_string(), requestId);
             m
         });
         if (params != Value::Null) {
-            { let __be_tmp = self.deep_extend(crate::value::get_value_k(&subscribe, "params"), &[params.clone()]); if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), __be_tmp); } }
+            { let __be_tmp = self.deep_extend(crate::value::get_value_k(&subscribe, "params"), &[params]); if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), __be_tmp); } }
         }
-        let mut result: Value = self.watch(url, messageHash.clone(), &[subscribe, subscriptionHash]).await;
+        let mut result: Value = self.watch(url, messageHash, &[subscribe, subscriptionHash]).await;
         if is_true(&self.newUpdates) {
             limit = result.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(result, &[symbol.clone(), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(result, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1686,7 +1686,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("snap_trades".to_string(), Value::Bool(true)); }
-        return self.watch_private(Value::Str("myTrades".into()), &[symbol.clone(), since, limit, params.clone()]).await;
+        return self.watch_private(Value::Str("myTrades".into()), &[symbol, since, limit, params]).await;
 
     Value::Null
 }
@@ -1758,7 +1758,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_434: bool = true;
                 while { if !__for_first_434 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_434 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
-                client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
+                client.resolve(&[self.myTrades.clone(), messageHash]);
             }
             }
         }
@@ -1818,7 +1818,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
         m.insert("datetime".to_string(), datetime);
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "order_type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
@@ -1856,7 +1856,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("snap_orders".to_string(), Value::Bool(true));
     m
 })]);
-        return self.watch_private(Value::Str("orders".into()), &[symbol.clone(), since, limit, __ws_arg_5]).await;
+        return self.watch_private(Value::Str("orders".into()), &[symbol, since, limit, __ws_arg_5]).await;
 
     Value::Null
 }
@@ -1914,7 +1914,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
                 let mut symbol: Value = self.safe_string_k(order, "symbol", &[]);
                 let mut previousOrders: Value = self.safe_dict(stored.hashmap(), symbol.clone(), &[]);
-                let mut previousOrder: Value = self.safe_dict(previousOrders, id.clone(), &[]);
+                let mut previousOrder: Value = self.safe_dict(previousOrders, id, &[]);
                 let mut newOrder: Value = parsed;
                 if (previousOrder != Value::Null) {
                     let mut newRawOrder: Value = self.extend(crate::value::get_value_k(&previousOrder, "info"), &[crate::value::get_value_k(&newOrder, "info")]);
@@ -1945,7 +1945,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_436: bool = true;
                 while { if !__for_first_436 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_436 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
-                client.resolve(&[self.orders.clone(), messageHash.clone()]);
+                client.resolve(&[self.orders.clone(), messageHash]);
             }
             }
         }
@@ -2062,15 +2062,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channelName);
-        m.insert("symbol".to_string(), symbols.clone());
+        m.insert("symbol".to_string(), symbols);
     m
 }));
                 m.insert("req_id".to_string(), self.request_id());
             m
         });
-        { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params.clone()]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".to_string(), __be_tmp); } }
+        { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".to_string(), __be_tmp); } }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
-        return self.watch_multiple(url, messageHashes.clone(), &[request.clone(), messageHashes.clone(), subscriptionArgs]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone(), subscriptionArgs]).await;
 
     Value::Null
 }
@@ -2100,13 +2100,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::Str("balances".into()));
-        m.insert("token".to_string(), token.clone());
+        m.insert("token".to_string(), token);
     m
 }));
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params.clone()]);
-        return self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
+        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -2298,7 +2298,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut method: Value = self.safe_value(methods, event, &[]);
             if (method != Value::Null) {
-                self.dispatch_ws_handler(&method, &[client.clone(), message]);
+                self.dispatch_ws_handler(&method, &[client, message]);
             }
         }
 }

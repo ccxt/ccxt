@@ -1671,7 +1671,7 @@ impl HitbtcCore {
         }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
             return self.trade_request(Value::Str("margin_new_order".into()), &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_new_order".into()), &[request.clone()]).await;
+            return self.trade_request(Value::Str("spot_new_order".into()), &[request]).await;
         }
 
     Value::Null
@@ -1720,7 +1720,7 @@ impl HitbtcCore {
         }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
             return self.trade_request(Value::Str("margin_cancel_order".into()), &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_cancel_order".into()), &[request.clone()]).await;
+            return self.trade_request(Value::Str("spot_cancel_order".into()), &[request]).await;
         }
 
     Value::Null
@@ -1810,7 +1810,7 @@ impl HitbtcCore {
         }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
             return self.trade_request(Value::Str("margin_get_orders".into()), &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_get_orders".into()), &[request.clone()]).await;
+            return self.trade_request(Value::Str("spot_get_orders".into()), &[request]).await;
         }
 
     Value::Null
@@ -1950,7 +1950,7 @@ impl HitbtcCore {
                 })]);
                 let mut arrayLength: f64 = ((result.len() as i64) as f64);
                 if (arrayLength == 0.0) || (matches!(&first, Value::Dict(__d) if __d.contains_key("client_order_id"))) {
-                    self.handle_order_request(client.clone(), message.clone());
+                    self.handle_order_request(client, message);
                 }
             }
         }
@@ -2011,7 +2011,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                     }
                 }  else {
-                    let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+                    let mut id: Value = self.safe_string_k(message, "id", &[]);
                     client.reject(&[e, id.clone()]);
                 }
                 return Value::Bool(true);

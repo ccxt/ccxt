@@ -1916,17 +1916,17 @@ impl AlpacaCore {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support stop orders for ".into())).into()), type_var).into()), Value::Str(" orders, only stop_limit orders are supported".into()))));
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), newType.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), newType); }
         }
         if Value::Int(type_var.as_str().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price)); }
         }
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if (cost != Value::Null) {
             params = self.omit(params.clone(), Value::Str("cost".into()), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("notional".to_string(), self.cost_to_precision(symbol.clone(), cost)); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".to_string(), self.amount_to_precision(symbol, amount)); }
         }
         let mut defaultTIF: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]); defaultTIF = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1938,7 +1938,7 @@ impl AlpacaCore {
         params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), self.generate_client_order_id(params.clone())); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
-        let __ws_arg_11 = self.extend(request.clone(), &[params]);
+        let __ws_arg_11 = self.extend(request, &[params]);
         let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
         return self.parse_order(order, &[market]);
 
@@ -2122,7 +2122,7 @@ impl AlpacaCore {
             m
         });
         let __ws_arg_15 = self.extend(request, &[params]);
-        return self.fetch_orders(&[symbol.clone(), since, limit, __ws_arg_15]).await;
+        return self.fetch_orders(&[symbol, since, limit, __ws_arg_15]).await;
 
     Value::Null
 }
@@ -2154,7 +2154,7 @@ impl AlpacaCore {
             m
         });
         let __ws_arg_16 = self.extend(request, &[params]);
-        return self.fetch_orders(&[symbol.clone(), since, limit, __ws_arg_16]).await;
+        return self.fetch_orders(&[symbol, since, limit, __ws_arg_16]).await;
 
     Value::Null
 }
@@ -2204,7 +2204,7 @@ impl AlpacaCore {
             params = self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]);
         }
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), self.price_to_precision(symbol, price)); }
         }
         let mut timeInForce: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2293,8 +2293,8 @@ impl AlpacaCore {
         m.insert("datetime".to_string(), datetime);
         m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "filled_at", &[])));
         m.insert("status".to_string(), status);
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("type".to_string(), orderType.clone());
+        m.insert("symbol".to_string(), symbol);
+        m.insert("type".to_string(), orderType);
         m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[])));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
@@ -2459,7 +2459,7 @@ impl AlpacaCore {
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("i".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
@@ -2626,7 +2626,7 @@ impl AlpacaCore {
                 }
             }
             }
-            return self.parse_transactions(filtered.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
+            return self.parse_transactions(filtered, &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
         }
         let mut response: Value = self.trader_private_get_v2_wallets_transfers(&[params.clone()]).await;
         //
@@ -2660,7 +2660,7 @@ impl AlpacaCore {
             if is_equal(&direction, &type_var) {
                 append_to_array(&mut results, entry.clone());
             }  else if (type_var.as_str() == Some("BOTH")) {
-                append_to_array(&mut results, entry.clone());
+                append_to_array(&mut results, entry);
             }
         }
         }
@@ -2847,7 +2847,7 @@ impl AlpacaCore {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), amount);
-        m.insert("currency".to_string(), code.clone());
+        m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), comment);
@@ -3024,7 +3024,7 @@ impl AlpacaCore {
             let mut baseId: Value = Value::Null;
             if Value::Int(positionSymbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut parts: Value = split(&positionSymbol, &Value::Str("/".into()));
-                baseId = self.safe_string(parts.clone(), Value::Int(0), &[]);
+                baseId = self.safe_string(parts, Value::Int(0), &[]);
             }  else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 let mut baseLength: Value = (match (&(Value::Int(positionSymbol.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -3035,7 +3035,7 @@ impl AlpacaCore {
             if (baseId == Value::Null) {
                 continue;
             }
-            let mut positionCode: Value = self.safe_currency_code(baseId.clone(), &[]);
+            let mut positionCode: Value = self.safe_currency_code(baseId, &[]);
             if (positionCode != Value::Null) && !(in_op(&result, &positionCode)) {
                 let mut positionAccount: Value = self.account();
                 add_element_to_object(&mut positionAccount, &Value::Str("free".into()), self.safe_string_k(position.clone(), "qty_available", &[]));

@@ -3183,7 +3183,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the delete response carries no order body, so backfill the id and the resulting status
         let mut order: Value = self.parse_prediction_order(response, &[]);
         if (order.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) == Value::Null) {
-            add_element_to_object(&mut order, &Value::Str("id".into()), id.clone());
+            add_element_to_object(&mut order, &Value::Str("id".into()), id);
         }
         if (order.as_map().and_then(|__m| __m.get("status")).cloned().unwrap_or(Value::Null) == Value::Null) {
             add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
@@ -3444,12 +3444,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut buyIndex: Value = Value::Int(strategy.as_str().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1));
                 let mut sellIndex: Value = Value::Int(strategy.as_str().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1));
                 if (buyIndex.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (sellIndex.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
-                    append_to_array(&mut trades, item.clone());
+                    append_to_array(&mut trades, item);
                 }
             }
         }
         }
-        let mut parsedTrades: Value = self.parse_prediction_trades(trades.clone(), &[Value::Null]);
+        let mut parsedTrades: Value = self.parse_prediction_trades(trades, &[Value::Null]);
         return self.filter_by_outcome_since_limit(parsedTrades, &[outcomeSymbol, since, limit]);
 
     Value::Null
@@ -3573,7 +3573,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tradeOutcome: Value = self.safe_string_k(outcome.clone(), "outcome", &[]);
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -3582,9 +3582,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("label".to_string(), self.safe_string_k(outcome.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcome, "market", &[]));
         m.insert("order".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
-        m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
+        m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);

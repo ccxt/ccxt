@@ -468,13 +468,13 @@ impl BitrueCore {
             let mut updateUsed: bool = lockBalanceUpdateTime != Some(0);
             if updateFree || updateUsed {
                 if updateFree {
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), free.clone()); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), free); }
                 }
                 if updateUsed {
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used); }
                 }
                 if (code != Value::Null) {
-                    add_element_to_object(&mut self.balance, &code, account.clone());
+                    add_element_to_object(&mut self.balance, &code, account);
                 }
             }
         }
@@ -652,10 +652,10 @@ impl BitrueCore {
             let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".into()), &[]);
             let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
             channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())).into());
-            cbId = wsId.clone();
+            cbId = wsId;
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
         }  else {
-            let mut marketIdLowercase: Value = self.safe_string_lower(market.clone(), Value::Str("id".into()), &[]);
+            let mut marketIdLowercase: Value = self.safe_string_lower(market, Value::Str("id".into()), &[]);
             channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())).into());
             cbId = marketIdLowercase;
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
@@ -665,14 +665,14 @@ impl BitrueCore {
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cb_id".to_string(), cbId.clone());
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("cb_id".to_string(), cbId);
+        m.insert("channel".to_string(), channel);
     m
 }));
             m
         });
         let mut request: Value = self.deep_extend(message, &[params]);
-        return self.watch(url.clone(), messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -801,7 +801,7 @@ impl BitrueCore {
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             return rawQuantity;
         }
-        let mut contractSize: Value = self.safe_number_k(market.clone(), "contractSize", &[Value::Int(1)]);
+        let mut contractSize: Value = self.safe_number_k(market, "contractSize", &[Value::Int(1)]);
         return multiply(&rawQuantity, &contractSize);
 
     Value::Null
@@ -834,7 +834,7 @@ impl BitrueCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTrades is only supported for swap markets".into()))));
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".into()), &[]);
-        let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".into()), &[]);
+        let mut quoteIdLower: Value = self.safe_string_lower(market, Value::Str("quoteId".into()), &[]);
         let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_trade_ticker".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
@@ -844,14 +844,14 @@ impl BitrueCore {
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cb_id".to_string(), wsId.clone());
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("cb_id".to_string(), wsId);
+        m.insert("channel".to_string(), channel);
     m
 }));
             m
         });
         let mut request: Value = self.deep_extend(message, &[params]);
-        let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[request, messageHash.clone()]).await;
+        let mut trades: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol, limit.clone());
         }
@@ -940,7 +940,7 @@ impl BitrueCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -982,7 +982,7 @@ impl BitrueCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support timeframe ".into())).into()), timeframe)));
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".into()), &[]);
-        let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".into()), &[]);
+        let mut quoteIdLower: Value = self.safe_string_lower(market, Value::Str("quoteId".into()), &[]);
         let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_kline_".into())).into()), interval).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe).into());
@@ -992,14 +992,14 @@ impl BitrueCore {
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cb_id".to_string(), wsId.clone());
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("cb_id".to_string(), wsId);
+        m.insert("channel".to_string(), channel);
     m
 }));
             m
         });
         let mut request: Value = self.deep_extend(message, &[params]);
-        let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[request, messageHash.clone()]).await;
+        let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol, limit.clone());
         }
@@ -1045,7 +1045,7 @@ impl BitrueCore {
         if (tick == Value::Null) {
             return;
         }
-        let mut parsed: Value = self.parse_ws_ohlcv(tick, &[market.clone()]);
+        let mut parsed: Value = self.parse_ws_ohlcv(tick, &[market]);
         if !(in_op(&self.ohlcvs, &symbol)) {
             add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1101,7 +1101,7 @@ impl BitrueCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker is only supported for swap markets".into()))));
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".into()), &[]);
-        let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".into()), &[]);
+        let mut quoteIdLower: Value = self.safe_string_lower(market, Value::Str("quoteId".into()), &[]);
         let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_ticker".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
@@ -1111,14 +1111,14 @@ impl BitrueCore {
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cb_id".to_string(), wsId.clone());
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("cb_id".to_string(), wsId);
+        m.insert("channel".to_string(), channel);
     m
 }));
             m
         });
         let mut request: Value = self.deep_extend(message, &[params]);
-        return self.watch(url.clone(), messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -1153,7 +1153,7 @@ impl BitrueCore {
             return;
         }
         let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
-        let mut parsed: Value = self.parse_ws_ticker(tick, market.clone(), &[timestamp]);
+        let mut parsed: Value = self.parse_ws_ticker(tick, market, &[timestamp]);
         add_element_to_object(&mut self.tickers, &symbol, parsed.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[parsed, messageHash]);
@@ -1192,7 +1192,7 @@ impl BitrueCore {
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1271,7 +1271,7 @@ impl BitrueCore {
             });
             let mut handler: Value = self.safe_value(handlers, event, &[]);
             if (handler != Value::Null) {
-                self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&handler, &[client, message]);
             }
         }
 }

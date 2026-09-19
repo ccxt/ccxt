@@ -2448,8 +2448,8 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 
@@ -2468,7 +2468,7 @@ impl HibachiCore {
             if (status.as_deref() == Some("failed")) {
                 let mut code: Value = self.safe_string_k(response.clone(), "errorCode", &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code, feedback.clone());
                 let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message, feedback.clone());
@@ -2690,7 +2690,7 @@ impl HibachiCore {
         //
         let mut rowsTradingHistory: Value = self.safe_list_k(responseTradingHistory, "tradingHistory", &[Value::from(vec![])]);
         let mut rows: Value = self.array_concat(rowsCapitalHistory, rowsTradingHistory);
-        return self.parse_ledger(rows, &[currency, since, limit, params.clone()]);
+        return self.parse_ledger(rows, &[currency, since, limit, params]);
 
     Value::Null
 }
@@ -2716,7 +2716,7 @@ impl HibachiCore {
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_18 = self.extend(request, &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_capital_deposit_info(&[__ws_arg_18]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2826,7 +2826,7 @@ impl HibachiCore {
         //     ]
         // }
         let mut transactions: Value = self.safe_list_k(response, "transactions", &[Value::from(vec![])]);
-        return self.parse_transactions(transactions, &[currency, since, limit, params.clone()]);
+        return self.parse_transactions(transactions, &[currency, since, limit, params]);
 
     Value::Null
 }
@@ -2850,7 +2850,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_deposits_withdrawals(&[code, since.clone(), Value::Null, params.clone()]).await;
+        let mut transactions: Value = self.fetch_deposits_withdrawals(&[code, since.clone(), Value::Null, params]).await;
         let mut deposits: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("deposit".into()), &[]);
         return self.filter_by_since_limit(deposits, &[since, limit, Value::Str("timestamp".into())]);
 
@@ -2876,7 +2876,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_deposits_withdrawals(&[code, since.clone(), Value::Null, params.clone()]).await;
+        let mut transactions: Value = self.fetch_deposits_withdrawals(&[code, since.clone(), Value::Null, params]).await;
         let mut withdrawals: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
         return self.filter_by_since_limit(withdrawals, &[since, limit, Value::Str("timestamp".into())]);
 
@@ -2969,7 +2969,7 @@ impl HibachiCore {
         if (until != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
-        let __ws_arg_20 = self.extend(request, &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_trade_account_settlements_history(&[__ws_arg_20]).await;
         //
         //     {
@@ -3007,7 +3007,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_exchange_utc_timestamp(&[params.clone()]).await;
+        let mut response: Value = self.public_get_exchange_utc_timestamp(&[params]).await;
         return self.safe_integer_k(response, "timestampMs", &[]);
 
     Value::Null
@@ -3036,7 +3036,7 @@ impl HibachiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_21 = self.extend(request, &[params.clone()]);
+        let __ws_arg_21 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_market_data_open_interest(&[__ws_arg_21]).await;
         //
         //   { "totalQuantity" : "2.3299770166" }
@@ -3079,7 +3079,7 @@ impl HibachiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_22 = self.extend(request, &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_market_data_prices(&[__ws_arg_22]).await;
         //
         // {
@@ -3155,7 +3155,7 @@ impl HibachiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_market_data_funding_rates(&[__ws_arg_23]).await;
         //
         // {

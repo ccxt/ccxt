@@ -3046,7 +3046,7 @@ impl BitvavoCore {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), tag.clone());
         m.insert("tagTo".to_string(), tag);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);

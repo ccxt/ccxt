@@ -1521,13 +1521,13 @@ impl BitfinexCore {
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
                     m.insert("settle".to_string(), settle);
-                    m.insert("baseId".to_string(), baseId.clone());
-                    m.insert("quoteId".to_string(), quoteId.clone());
+                    m.insert("baseId".to_string(), baseId);
+                    m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), settleId);
-                    m.insert("type".to_string(), type_var.clone());
+                    m.insert("type".to_string(), type_var);
                     m.insert("spot".to_string(), spot.clone());
                     m.insert("tradfi".to_string(), self.in_array(id.clone(), securitiesMarketsIds.clone()));
-                    m.insert("margin".to_string(), Value::Bool((spot.as_bool() == Some(true) && is_true(&self.in_array(id.clone(), marginIds.clone())))));
+                    m.insert("margin".to_string(), Value::Bool((spot.as_bool() == Some(true) && is_true(&self.in_array(id, marginIds.clone())))));
                     m.insert("swap".to_string(), swap.clone());
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
@@ -1738,7 +1738,7 @@ impl BitfinexCore {
             if (ends_with(&id, &Value::Str("F0".into()))) {
                 continue;
             }
-            append_to_array(&mut allowedIds, id.clone());
+            append_to_array(&mut allowedIds, id);
         }
         }
         let mut result: Value = Value::Map({
@@ -1824,9 +1824,9 @@ impl BitfinexCore {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), code);
         m.insert("info".to_string(), Value::from(vec![id.clone(), label, pool, feeValues, undl]));
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("name".to_string(), name);
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("deposit".to_string(), Value::Null);
@@ -1850,7 +1850,7 @@ impl BitfinexCore {
     m
 }));
         m.insert("networks".to_string(), networks);
-        m.insert("margin".to_string(), self.in_array(id.clone(), indexed.as_map().and_then(|__m| __m.get("marginables")).cloned().unwrap_or(Value::Null)));
+        m.insert("margin".to_string(), self.in_array(id, indexed.as_map().and_then(|__m| __m.get("marginables")).cloned().unwrap_or(Value::Null)));
     m
 }));
 
@@ -1964,7 +1964,7 @@ impl BitfinexCore {
         let mut currency: Value = self.currency(code.clone());
         let mut fromCurrencyId: Value = self.convert_derivatives_id(currency.clone(), fromAccount);
         let mut toCurrencyId: Value = self.convert_derivatives_id(currency.clone(), toAccount);
-        let mut requestedAmount: Value = self.currency_to_precision(code.clone(), amount, &[]);
+        let mut requestedAmount: Value = self.currency_to_precision(code, amount, &[]);
         // this request is slightly different from v1 fromAccount -> from
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2425,13 +2425,13 @@ impl BitfinexCore {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), orderId);
         m.insert("side".to_string(), side);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), priceString);
         m.insert("amount".to_string(), amountString);
@@ -2586,7 +2586,7 @@ impl BitfinexCore {
             return Value::Null;
         }
         let mut parts: Value = split(&status, &Value::Str(" ".into()));
-        let mut state: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        let mut state: Value = self.safe_string(parts, Value::Int(0), &[]);
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ACTIVE".to_string(), Value::Str("open".into()));
@@ -2677,25 +2677,25 @@ impl BitfinexCore {
         let mut statusString: Value = self.safe_string(orderList.clone(), Value::Int(13), &[]);
         if (statusString != Value::Null) {
             let mut parts: Value = split(&statusString, &Value::Str(" @ ".into()));
-            status = self.parse_order_status(self.safe_string(parts.clone(), Value::Int(0), &[]));
+            status = self.parse_order_status(self.safe_string(parts, Value::Int(0), &[]));
         }
         let mut average: Value = self.safe_string(orderList.clone(), Value::Int(17), &[]);
         let mut clientOrderId: Value = self.safe_string(orderList.clone(), Value::Int(2), &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), orderList.clone());
-        m.insert("id".to_string(), id.clone());
+        m.insert("info".to_string(), orderList);
+        m.insert("id".to_string(), id);
         m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), postOnly.clone());
+        m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price.clone());
-        m.insert("triggerPrice".to_string(), triggerPrice.clone());
+        m.insert("price".to_string(), price);
+        m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), average);
@@ -2783,7 +2783,7 @@ impl BitfinexCore {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not allow market IOC and FOK orders".into()))));
         }
         if (type_var.as_str() != Some("market")) && (triggerPrice == Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol, price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol, price)); }
         }
         if ioc {
             orderType = Value::Str("IOC".into());
@@ -2796,7 +2796,7 @@ impl BitfinexCore {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = Value::Str(format!("{}{}", Value::Str("EXCHANGE ".into()), orderType).into());
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), orderType.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), orderType); }
         // flag values may be summed to combine flags
         let mut flags: Value = Value::Int(0);
         if postOnly {
@@ -2849,7 +2849,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = self.create_order_request(symbol, type_var.clone(), side, amount, &[price.clone(), params]);
+        let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
         let mut response: Value = self.private_post_auth_w_order_submit(&[request]).await;
         //
         //      [
@@ -2948,7 +2948,7 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut orderRequest: Value = self.create_order_request(symbol, type_var.clone(), side, amount, &[price.clone(), orderParams]);
+            let mut orderRequest: Value = self.create_order_request(symbol, type_var, side, amount, &[price, orderParams]);
             append_to_array(&mut ordersRequests, Value::from(vec![Value::Str("on".into()), orderRequest]));
         }
         }
@@ -3617,7 +3617,7 @@ impl BitfinexCore {
             m
         });
         let __ws_arg_19 = self.extend(request, &[params]);
-        return self.fetch_deposit_address(code.clone(), &[__ws_arg_19]).await;
+        return self.fetch_deposit_address(code, &[__ws_arg_19]).await;
 
     Value::Null
 }
@@ -3688,7 +3688,7 @@ impl BitfinexCore {
         self.check_address(&[address.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.clone());
+        m.insert("currency".to_string(), code);
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), tag);
         m.insert("network".to_string(), Value::Null);
@@ -3837,9 +3837,9 @@ impl BitfinexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), network);
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
@@ -3857,7 +3857,7 @@ impl BitfinexCore {
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.clone());
+        m.insert("currency".to_string(), code);
         m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -3993,7 +3993,7 @@ impl BitfinexCore {
                 if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("maker".to_string(), makerFee.clone()); }
                 if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("taker".to_string(), takerFee.clone()); }
             }
-            add_element_to_object(&mut result, &symbol, fee.clone());
+            add_element_to_object(&mut result, &symbol, fee);
         }
         }
         return result;
@@ -4037,7 +4037,7 @@ impl BitfinexCore {
         }
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
             let mut currencyMovements: Value = self.private_post_auth_r_movements_currency_hist(&[__ws_arg_21]).await;
@@ -4443,7 +4443,7 @@ impl BitfinexCore {
         let mut description: Value = self.safe_string(itemList, Value::Int(8), &[]);
         if (description != Value::Null) {
             let mut parts: Value = split(&description, &Value::Str(" @ ".into()));
-            let mut first: Value = self.safe_string_lower(parts.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_string_lower(parts, Value::Int(0), &[]);
             type_var = self.parse_ledger_entry_type(first);
         }
         return self.safe_ledger_entry(Value::Map({
@@ -4452,10 +4452,10 @@ impl BitfinexCore {
         m.insert("id".to_string(), id.clone());
         m.insert("direction".to_string(), Value::Null);
         m.insert("account".to_string(), Value::Null);
-        m.insert("referenceId".to_string(), id.clone());
+        m.insert("referenceId".to_string(), id);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var.clone());
-        m.insert("currency".to_string(), code.clone());
+        m.insert("type".to_string(), type_var);
+        m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), amount);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -4512,7 +4512,7 @@ impl BitfinexCore {
         { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_r_ledgers_currency_hist(&[__ws_arg_24]).await;
@@ -5220,7 +5220,7 @@ impl BitfinexCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(vec![self.parse_to_numeric(id.clone())]));
+                m.insert("id".to_string(), Value::from(vec![self.parse_to_numeric(id)]));
             m
         });
         let mut market: Value = Value::Null;
@@ -5342,7 +5342,7 @@ impl BitfinexCore {
         }
         let mut postOnly: bool = (postOnlyParam.as_bool() == Some(true)) || (timeInForce.as_deref() == Some("PO"));
         if (type_var.as_str() != Some("market")) && (triggerPrice == Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol, price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol, price)); }
         }
         // flag values may be summed to combine flags
         let mut flags: Value = Value::Int(0);

@@ -1827,11 +1827,11 @@ impl WhitebitCore {
 })));
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into())), &entry, feeInfo.clone());
-                let mut networkId: Value = self.safe_string(splitEntry.clone(), Value::Int(1), &[]);
+                let mut networkId: Value = self.safe_string(splitEntry, Value::Int(1), &[]);
                 let mut withdraw: Value = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]);
-                let mut deposit: Value = self.safe_dict_k(feeInfo.clone(), "deposit", &[]);
-                let mut withdrawFee: Value = self.safe_number_k(withdraw.clone(), "fixed", &[]);
-                let mut depositFee: Value = self.safe_number_k(deposit.clone(), "fixed", &[]);
+                let mut deposit: Value = self.safe_dict_k(feeInfo, "deposit", &[]);
+                let mut withdrawFee: Value = self.safe_number_k(withdraw, "fixed", &[]);
+                let mut depositFee: Value = self.safe_number_k(deposit, "fixed", &[]);
                 let mut withdrawResult: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("fee".to_string(), withdrawFee.clone());
@@ -1847,7 +1847,7 @@ impl WhitebitCore {
                 if (networkId != Value::Null) {
                     let mut networkLength: Value = Value::Int(networkId.len() as i64);
                     networkId = slice(&networkId, &Value::Int(1), &(match (&(networkLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-                    let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+                    let mut networkCode: Value = self.network_id_to_code(&[networkId, code.clone()]);
                     if (networkCode != Value::Null) {
                         add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1857,8 +1857,8 @@ impl WhitebitCore {
 }));
                     }
                 }  else {
-                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("withdraw".into()), withdrawResult.clone());
-                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("deposit".into()), depositResult.clone());
+                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("withdraw".into()), withdrawResult);
+                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("deposit".into()), depositResult);
                 }
             }
         }
@@ -2272,8 +2272,8 @@ impl WhitebitCore {
             }
             add_element_to_object(&mut result, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), currency.clone());
-        m.insert("limits".to_string(), limits.clone());
+        m.insert("info".to_string(), currency);
+        m.insert("limits".to_string(), limits);
     m
 }));
         }
@@ -2955,7 +2955,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
-        m.insert("fee".to_string(), fee.clone());
+        m.insert("fee".to_string(), fee);
     m
 }), &[market]);
 
@@ -3587,10 +3587,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (account.as_deref() == Some("main")) || (account.as_deref() == Some("funding")) {
                 response = self.v4_private_post_main_account_balance(&[params.clone()]).await;
             }  else {
-                response = self.v4_private_post_trade_account_balance(&[params.clone()]).await;
+                response = self.v4_private_post_trade_account_balance(&[params]).await;
             }
         }
-        return self.parse_balance(response.clone());
+        return self.parse_balance(response);
 
     Value::Null
 }
@@ -3629,9 +3629,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(100))); }
         }
-        let __ws_arg_20 = self.extend(request, &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_orders(&[__ws_arg_20]).await;
-        return self.parse_orders(response.clone(), &[market, since, limit, Value::Map({
+        return self.parse_orders(response, &[market, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".into()));
     m
@@ -3675,7 +3675,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(100))); }; // default 50 max 100
         }
-        let __ws_arg_21 = self.extend(request, &[params.clone()]);
+        let __ws_arg_21 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_trade_account_order_history(&[__ws_arg_21]).await;
         //
         //     {
@@ -3841,12 +3841,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("price".to_string(), price);
         m.insert("type".to_string(), orderType);
         m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("filled".to_string(), filled.clone());
+        m.insert("amount".to_string(), amount);
+        m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), remaining);
         m.insert("average".to_string(), Value::Null);
         m.insert("cost".to_string(), cost);
-        m.insert("fee".to_string(), fee.clone());
+        m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
 }), &[market]);
@@ -3904,7 +3904,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(100))); }
         }
-        let __ws_arg_22 = self.extend(request, &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_trade_account_order(&[__ws_arg_22]).await;
         //
         //     {
@@ -3925,7 +3925,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "limit": 100
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "records", &[Value::from(vec![])]);
         return self.parse_trades(data, &[market]);
 
     Value::Null
@@ -3960,7 +3960,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
@@ -3974,9 +3974,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("transactionMethod".to_string(), Value::Str("2".into())); }
-        let __ws_arg_23 = self.extend(request, &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_history(&[__ws_arg_23]).await;
-        return self.parse_transactions(self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]), &[currency.clone(), since, limit.clone()]);
+        return self.parse_transactions(self.safe_list_k(response, "records", &[Value::from(vec![])]), &[currency, since, limit]);
 
     Value::Null
 }
@@ -4010,7 +4010,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
@@ -4023,7 +4023,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
-        let __ws_arg_24 = self.extend(request, &[params.clone()]);
+        let __ws_arg_24 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_history(&[__ws_arg_24]).await;
         //
         //     {
@@ -4052,8 +4052,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "offset": 0
         //     }
         //
-        let mut records: Value = self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]);
-        return self.parse_transactions(records, &[currency.clone(), since, limit.clone()]);
+        let mut records: Value = self.safe_list_k(response, "records", &[Value::from(vec![])]);
+        return self.parse_transactions(records, &[currency, since, limit]);
 
     Value::Null
 }
@@ -4093,7 +4093,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires an amount when the ticker is fiat".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), amount.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), amount); }
             let mut uniqueId: Value = self.safe_value_k(params.clone(), "uniqueId", &[]);
             if (uniqueId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires an uniqueId when the ticker is fiat".into()))));
@@ -4101,7 +4101,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
             response = self.v4_private_post_main_account_fiat_deposit_url(&[__ws_arg_25]).await;
         }  else {
-            let __ws_arg_26 = self.extend(request, &[params.clone()]);
+            let __ws_arg_26 = self.extend(request, &[params]);
             response = self.v4_private_post_main_account_address(&[__ws_arg_26]).await;
         }
         //
@@ -4140,8 +4140,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         self.check_address(&[address.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("currency".to_string(), code.clone());
+        m.insert("info".to_string(), response);
+        m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), tag);
@@ -4170,13 +4170,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = self.currency(code);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_27 = self.extend(request, &[params.clone()]);
+        let __ws_arg_27 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_create_new_address(&[__ws_arg_27]).await;
         //
         //     {
@@ -4196,11 +4196,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "account", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "account", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_deposit_address(data, &[currency.clone()]);
+        return self.parse_deposit_address(data, &[currency]);
 
     Value::Null
 }
@@ -4210,7 +4210,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
+        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency]));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(depositAddress.clone(), "address", &[]));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
@@ -4237,7 +4237,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
         }
         let mut accounts: Value = Value::from(vec![]);
-        let mut response: Value = self.v4_private_post_sub_account_list(&[params.clone()]).await;
+        let mut response: Value = self.v4_private_post_sub_account_list(&[params]).await;
         //
         //     {
         //         "offset": 0,
@@ -4256,7 +4256,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ]
         //     }
         //
-        let mut subAccounts: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut subAccounts: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1124: bool = true;
@@ -4313,7 +4313,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let __ws_arg_28 = self.extend(request, &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params]);
         return self.v4_private_post_collateral_account_leverage(&[__ws_arg_28]).await;
 
     Value::Null
@@ -4343,7 +4343,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
         let mut fromAccountId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toAccountId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
-        let mut amountString: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
+        let mut amountString: Value = self.currency_to_precision(code, amount, &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4352,9 +4352,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("to".to_string(), toAccountId);
             m
         });
-        let __ws_arg_29 = self.extend(request, &[params.clone()]);
+        let __ws_arg_29 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_transfer(&[__ws_arg_29]).await;
-        return self.parse_transfer(response.clone(), &[currency.clone()]);
+        return self.parse_transfer(response, &[currency]);
 
     Value::Null
 }
@@ -4367,7 +4367,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
+        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency]));
         m.insert("amount".to_string(), Value::Null);
         m.insert("fromAccount".to_string(), Value::Null);
         m.insert("toAccount".to_string(), Value::Null);
@@ -4403,7 +4403,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
+                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount, &[]));
                 m.insert("address".to_string(), address);
             m
         });
@@ -4415,16 +4415,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (tag != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("memo".to_string(), tag); }
         }
-        if is_true(&self.is_fiat(code.clone())) {
+        if is_true(&self.is_fiat(code)) {
             let mut provider: Value = self.safe_value_k(params.clone(), "provider", &[]);
             if (provider == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a provider when the ticker is fiat".into()))));
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("provider".to_string(), provider); }
         }
-        let __ws_arg_30 = self.extend(request, &[params.clone()]);
+        let __ws_arg_30 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_withdraw(&[__ws_arg_30]).await;
-        let __ws_arg_31 = self.parse_transaction(response.clone(), &[currency.clone()]);
+        let __ws_arg_31 = self.parse_transaction(response, &[currency]);
         return self.extend(__ws_arg_31, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), uniqueId);
@@ -4496,7 +4496,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(transaction.clone(), "fee", &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency.clone()]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
     m
 }));
         m.insert("info".to_string(), transaction);
@@ -4555,16 +4555,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("transactionMethod".to_string(), Value::Int(1));
-                m.insert("uniqueId".to_string(), id.clone());
+                m.insert("uniqueId".to_string(), id);
                 m.insert("limit".to_string(), Value::Int(1));
                 m.insert("offset".to_string(), Value::Int(0));
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        let __ws_arg_32 = self.extend(request, &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_history(&[__ws_arg_32]).await;
         //
         //     {
@@ -4603,12 +4603,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        let mut records: Value = self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]);
+        let mut records: Value = self.safe_list_k(response, "records", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(records, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_transaction(first, &[currency.clone()]);
+        return self.parse_transaction(first, &[currency]);
 
     Value::Null
 }
@@ -4644,13 +4644,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(100))); }
         }
-        let __ws_arg_33 = self.extend(request, &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_history(&[__ws_arg_33]).await;
         //
         //     {
@@ -4689,12 +4689,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        let mut records: Value = self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]);
+        let mut records: Value = self.safe_list_k(response, "records", &[Value::from(vec![])]);
         let mut recordsList: Value = Value::from(vec![]);
         if (records != Value::Null) {
             recordsList = records;
         }
-        return self.parse_transactions(recordsList, &[currency.clone(), since, limit.clone()]);
+        return self.parse_transactions(recordsList, &[currency, since, limit]);
 
     Value::Null
 }
@@ -4732,7 +4732,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             market = self.market(symbol);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        let __ws_arg_34 = self.extend(request, &[params.clone()]);
+        let __ws_arg_34 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_collateral_account_positions_open(&[__ws_arg_34]).await;
         //
         //     [
@@ -4755,8 +4755,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     ]
         //
-        let mut interest: Value = self.parse_borrow_interests(response.clone(), &[market]);
-        return self.filter_by_currency_since_limit(interest, &[code.clone(), since, limit.clone()]);
+        let mut interest: Value = self.parse_borrow_interests(response, &[market]);
+        return self.filter_by_currency_since_limit(interest, &[code, since, limit]);
 
     Value::Null
 }
@@ -4820,8 +4820,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut response: Value = self.fetch_funding_rates(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
-        return self.safe_value(response.clone(), symbol, &[]);
+        let mut response: Value = self.fetch_funding_rates(&[Value::from(vec![symbol.clone()]), params]).await;
+        return self.safe_value(response, symbol, &[]);
 
     Value::Null
 }
@@ -4845,7 +4845,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.v4_public_get_futures(&[params.clone()]).await;
+        let mut response: Value = self.v4_public_get_futures(&[params]).await;
         //
         //    [
         //        {
@@ -4890,7 +4890,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //        }
         //    ]
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         return self.parse_funding_rates(data, &[symbols]);
 
     Value::Null
@@ -5001,7 +5001,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endDate".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_35 = self.extend(request, &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_collateral_account_funding_history(&[__ws_arg_35]).await;
         //
         //     {
@@ -5020,8 +5020,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "offset": 0
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]);
-        return self.parse_funding_histories(data, &[market, since, limit.clone()]);
+        let mut data: Value = self.safe_list_k(response, "records", &[Value::from(vec![])]);
+        return self.parse_funding_histories(data, &[market, since, limit]);
 
     Value::Null
 }
@@ -5071,7 +5071,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut sorted: Value = self.sort_by(result, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit.clone()]);
+        return self.filter_by_since_limit(sorted, &[since, limit]);
 
     Value::Null
 }
@@ -5112,13 +5112,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // default 1000
         }
-        let __ws_arg_36 = self.extend(request, &[params.clone()]);
+        let __ws_arg_36 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_main_account_history(&[__ws_arg_36]).await;
         //
         //    {
@@ -5158,12 +5158,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //    }
         //
-        let mut records: Value = self.safe_list_k(response.clone(), "records", &[]);
+        let mut records: Value = self.safe_list_k(response, "records", &[]);
         let mut recordsList: Value = Value::from(vec![]);
         if (records != Value::Null) {
             recordsList = records;
         }
-        return self.parse_transactions(recordsList, &[currency.clone(), since, limit.clone()]);
+        return self.parse_transactions(recordsList, &[currency, since, limit]);
 
     Value::Null
 }
@@ -5194,13 +5194,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
                 m.insert("from".to_string(), fromCode);
                 m.insert("to".to_string(), toCode);
-                m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                m.insert("amount".to_string(), self.number_to_string(amount));
                 m.insert("direction".to_string(), Value::Str("from".into()));
             m
         });
-        let __ws_arg_37 = self.extend(request, &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_convert_estimate(&[__ws_arg_37]).await;
-        return self.parse_conversion(response.clone(), &[fromCurrency, toCurrency]);
+        return self.parse_conversion(response, &[fromCurrency, toCurrency]);
 
     Value::Null
 }
@@ -5230,12 +5230,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut toCurrency: Value = self.currency(toCode);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("quoteId".to_string(), id.clone());
+                m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_38 = self.extend(request, &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_convert_confirm(&[__ws_arg_38]).await;
-        return self.parse_conversion(response.clone(), &[fromCurrency, toCurrency]);
+        return self.parse_conversion(response, &[fromCurrency, toCurrency]);
 
     Value::Null
 }
@@ -5281,7 +5281,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("to".into()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_39 = self.extend(request, &[params.clone()]);
+        let __ws_arg_39 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_convert_history(&[__ws_arg_39]).await;
         //
         //     {
@@ -5306,8 +5306,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "offset": 0
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "records", &[Value::from(vec![])]);
-        return self.parse_conversions(rows, &[code.clone(), Value::Str("fromCurrency".into()), Value::Str("toCurrency".into()), since, limit.clone()]);
+        let mut rows: Value = self.safe_list_k(response, "records", &[Value::from(vec![])]);
+        return self.parse_conversions(rows, &[code, Value::Str("fromCurrency".into()), Value::Str("toCurrency".into()), since, limit]);
 
     Value::Null
 }
@@ -5417,7 +5417,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endDate".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_40 = self.extend(request, &[params.clone()]);
+        let __ws_arg_40 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_collateral_account_positions_history(&[__ws_arg_40]).await;
         //
         //     [
@@ -5442,8 +5442,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     ]
         //
-        let mut positions: Value = self.parse_positions(response.clone(), &[]);
-        return self.filter_by_symbol_since_limit(positions, &[symbol, since, limit.clone()]);
+        let mut positions: Value = self.parse_positions(response, &[]);
+        return self.filter_by_symbol_since_limit(positions, &[symbol, since, limit]);
 
     Value::Null
 }
@@ -5467,8 +5467,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.v4_private_post_collateral_account_positions_open(&[params.clone()]).await;
-        return self.parse_positions(response.clone(), &[symbols]);
+        let mut response: Value = self.v4_private_post_collateral_account_positions_open(&[params]).await;
+        return self.parse_positions(response, &[symbols]);
 
     Value::Null
 }
@@ -5496,7 +5496,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_41 = self.extend(request, &[params.clone()]);
+        let __ws_arg_41 = self.extend(request, &[params]);
         let mut response: Value = self.v4_private_post_collateral_account_positions_open(&[__ws_arg_41]).await;
         //
         //     [
@@ -5519,7 +5519,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     ]
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut data: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5621,7 +5621,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn is_fiat(&self, mut currency: Value) -> Value {
         let mut fiatCurrencies: Value = self.safe_list_k(self.options.clone(), "fiatCurrencies", &[Value::from(vec![])]);
-        return self.in_array(currency.clone(), fiatCurrencies);
+        return self.in_array(currency, fiatCurrencies);
 
     Value::Null
 }
@@ -5671,9 +5671,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
         }
-        let __ws_arg_42 = self.extend(request, &[params.clone()]);
+        let __ws_arg_42 = self.extend(request, &[params]);
         let mut response: Value = self.v4_public_get_funding_history_market(&[__ws_arg_42]).await;
-        return self.parse_funding_rate_histories(response.clone(), &[market, since, limit.clone()]);
+        return self.parse_funding_rate_histories(response, &[market, since, limit]);
 
     Value::Null
 }
@@ -5733,7 +5733,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut nonce: Value = to_string_val(&self.nonce());
             let mut secret: Value = self.encode(self.secret.clone());
             let mut request: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api".into())).into()), Value::Str("/".into())).into()), &version), pathWithParams).into());
-            let mut nonceWindowrequestParamsVariable = self.handle_option_and_params(params.clone(), Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]);
+            let mut nonceWindowrequestParamsVariable = self.handle_option_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]);
             let mut nonceWindow: Value = nonceWindowrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut requestParams: Value = nonceWindowrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let __ws_arg_43 = self.extend(Value::Map({
@@ -5758,7 +5758,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), body);
         m.insert("headers".to_string(), headers);
     m
@@ -5787,9 +5787,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut hasErrorStatus: bool = (status != Value::Null) && (status.as_str() != Some("200")) && (errors != Value::Null);
             if hasErrorStatus || (codeNew.is_some()) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-                let mut errorInfo: Value = message.clone();
+                let mut errorInfo: Value = message;
                 if hasErrorStatus {
-                    errorInfo = status.clone();
+                    errorInfo = status;
                 }  else {
                     let mut errorObject: Value = self.safe_dict_k(response.clone(), "errors", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5799,7 +5799,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut errorsLength: f64 = ((errorKeys.len() as i64) as f64);
                     if errorsLength > ((0i64) as f64) {
                         let mut errorKey: Value = errorKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                        let mut errorMessageArray: Value = self.safe_list(errorObject.clone(), errorKey.clone(), &[Value::from(vec![])]);
+                        let mut errorMessageArray: Value = self.safe_list(errorObject, errorKey.clone(), &[Value::from(vec![])]);
                         let mut errorMessageLength: f64 = ((errorMessageArray.len() as i64) as f64);
                         errorInfo = (if (errorMessageLength > ((0i64) as f64)) { errorMessageArray.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { body.clone() });
                     }
@@ -5811,7 +5811,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
             if (success.as_bool() != Some(true)) {
-                let mut errMsg: Value = self.safe_dict_k(response.clone(), "message", &[Value::Map({
+                let mut errMsg: Value = self.safe_dict_k(response, "message", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5820,13 +5820,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut errorInfo: Value = body.clone();
                 if errKeysLength > ((0i64) as f64) {
                     let mut errorKey: Value = errKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                    let mut errorMessageArray: Value = self.safe_list(errMsg, errorKey.clone(), &[Value::from(vec![])]);
+                    let mut errorMessageArray: Value = self.safe_list(errMsg, errorKey, &[Value::from(vec![])]);
                     let mut errorMessageLength: f64 = ((errorMessageArray.len() as i64) as f64);
                     errorInfo = (if (errorMessageLength > ((0i64) as f64)) { errorMessageArray.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { body.clone() });
                 }
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorInfo.clone(), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorInfo, feedback.clone());
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

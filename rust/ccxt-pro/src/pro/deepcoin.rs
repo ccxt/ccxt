@@ -1415,13 +1415,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) || (in_op(&get_value(&client, &Value::Str("futures".into())), &symbolMessageHash)) {
             if (self.myTrades.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-                self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
+                self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
             let mut stored: Value = self.myTrades.clone();
-            let mut parsed: Value = self.parse_ws_trade(data.clone(), &[market.clone()]);
-            stored.append(parsed.clone());
+            let mut parsed: Value = self.parse_ws_trade(data, &[market]);
+            stored.append(parsed);
             client.resolve(&[stored.clone(), messageHash.clone()]);
-            client.resolve(&[stored.clone(), symbolMessageHash.clone()]);
+            client.resolve(&[stored, symbolMessageHash.clone()]);
         }
 }
 
@@ -1452,11 +1452,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             symbol = self.symbol(symbol.clone());
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbol).into())).into());
         }
-        let mut orders: Value = self.watch_private(messageHash.clone(), &[params]).await;
+        let mut orders: Value = self.watch_private(messageHash, &[params]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1509,10 +1509,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) || (in_op(&get_value(&client, &Value::Str("futures".into())), &symbolMessageHash)) {
             if (self.orders.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-                self.orders = ArrayCacheBySymbolById::new(limit.clone());
+                self.orders = ArrayCacheBySymbolById::new(limit);
             }
-            let mut parsed: Value = self.parse_ws_order(data.clone(), &[market.clone()]);
-            self.orders.append(parsed.clone());
+            let mut parsed: Value = self.parse_ws_order(data, &[market]);
+            self.orders.append(parsed);
             client.resolve(&[self.orders.clone(), messageHash.clone()]);
             client.resolve(&[self.orders.clone(), symbolMessageHash.clone()]);
         }
@@ -1573,7 +1573,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1624,18 +1624,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_309 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_309 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
-                append_to_array(&mut messageHashes, symbolMessageHash.clone());
+                append_to_array(&mut messageHashes, symbolMessageHash);
             }
             }
         }  else {
-            append_to_array(&mut messageHashes, messageHash.clone());
+            append_to_array(&mut messageHashes, messageHash);
         }
         let mut url: Value = add(&add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".into())), &listenKey);
         let mut positions: Value = self.watch_multiple(url, messageHashes, &[params, Value::from(vec![Value::Str("private".into())])]).await;
         if is_true(&self.newUpdates) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbols, since, limit.clone(), Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbols, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1682,8 +1682,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.positions.clone() == Value::Null) {
                 self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
             }
-            let mut parsed: Value = self.parse_ws_position(data.clone(), &[market.clone()]);
-            self.positions.append(parsed.clone());
+            let mut parsed: Value = self.parse_ws_position(data, &[market]);
+            self.positions.append(parsed);
             client.resolve(&[self.positions.clone(), messageHash.clone()]);
             client.resolve(&[self.positions.clone(), symbolMessageHash.clone()]);
         }
@@ -1711,7 +1711,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginMode: Value = self.safe_string_k(position.clone(), "i", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1799,7 +1799,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else if (action.as_deref() == Some("PushOrder")) {
                 self.handle_order(client.clone(), message.clone());
             }  else if (action.as_deref() == Some("PushPosition")) {
-                self.handle_position(client.clone(), message);
+                self.handle_position(client, message);
             }
         }
 }
@@ -1834,7 +1834,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut action: Option<String> = self.safe_string_k(data.clone(), "A", &[]).as_str().map(str::to_owned); // 1 = subscribe, 0 = unsubscribe
         if (action.as_deref() == Some("0")) {
             let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
-            let mut subId: Value = self.safe_integer_k(data.clone(), "L", &[]);
+            let mut subId: Value = self.safe_integer_k(data, "L", &[]);
             let mut subscription: Value = self.safe_dict(subscriptionsById, subId, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1845,14 +1845,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]); // unWatch subscription
-            self.handle_un_subscription(client.clone(), unsubsciption);
+            self.handle_un_subscription(client, unsubsciption);
         }
 }
 
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut subHash: Value = self.safe_string_k(subscription.clone(), "subHash", &[]);
         let mut unsubHash: Value = self.safe_string_k(subscription.clone(), "unsubHash", &[]);
-        self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
+        self.clean_unsubscription(client, subHash, unsubHash, &[]);
         self.clean_cache(subscription);
 }
 
@@ -1884,7 +1884,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut requestId: Value = self.safe_integer_k(data.clone(), "L", &[]);
+        let mut requestId: Value = self.safe_integer_k(data, "L", &[]);
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
         let mut subscription: Value = self.safe_dict(subscriptionsById, requestId, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1898,7 +1898,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            client.reject(&[e, messageHash.clone()]);
+            client.reject(&[e, messageHash]);
         }
 }
 }

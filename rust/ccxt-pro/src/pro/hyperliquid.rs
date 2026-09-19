@@ -854,7 +854,7 @@ impl HyperliquidCore {
         let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
         if (firstSymbol != Value::Null) {
             let mut market: Value = self.market(firstSymbol);
-            let mut dexName: Value = self.safe_string(self.safe_dict_k(market.clone(), "info", &[Value::Map({
+            let mut dexName: Value = self.safe_string(self.safe_dict_k(market, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), Value::Str("dex".into()), &[]);
@@ -1057,7 +1057,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("price".to_string(), self.safe_number(mids.clone(), name, &[]));
     m
-}), &[market.clone()]);
+}), &[market]);
                 add_element_to_object(&mut self.tickers, &symbol, ticker);
             }
             }
@@ -1108,7 +1108,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ticker: Value = self.parse_ws_ticker(ctx, &[market.clone()]);
+        let mut ticker: Value = self.parse_ws_ticker(ctx, &[market]);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[ticker, messageHash]);
@@ -1119,7 +1119,7 @@ impl HyperliquidCore {
 
     pub fn parse_ws_ticker(&self, mut rawTicker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return self.parse_ticker(rawTicker, &[market.clone()]);
+        return self.parse_ticker(rawTicker, &[market]);
 
     Value::Null
 }
@@ -1402,7 +1402,7 @@ impl HyperliquidCore {
     m
 }));
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2450,7 +2450,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else if (type_var.as_deref() == Some("activeAssetCtx")) || (type_var.as_deref() == Some("activeSpotAssetCtx")) {
                 self.handle_ticker_unsubscription(client.clone(), subscription.clone());
             }  else if (type_var.as_deref() == Some("allMids")) {
-                self.handle_tickers_unsubscription(client.clone(), subscription.clone());
+                self.handle_tickers_unsubscription(client, subscription);
             }
         }
 }

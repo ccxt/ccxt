@@ -1760,13 +1760,13 @@ impl CoinbaseexchangeCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("order".to_string(), orderId);
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
         m.insert("fee".to_string(), fee);
@@ -2099,7 +2099,7 @@ impl CoinbaseexchangeCore {
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("cost".to_string(), cost);
@@ -2337,7 +2337,7 @@ impl CoinbaseexchangeCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
-                m.insert("side".to_string(), side.clone());
+                m.insert("side".to_string(), side);
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -3113,10 +3113,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(400.0)) || (code.as_f64() == Some(404.0)) {
             if (get_value(&body, &Value::Int(0)).as_str() == Some("{")) {
-                let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
+                let mut message: Value = self.safe_string_k(response, "message", &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message).into());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
@@ -3139,7 +3139,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.fetch2(path, &[api, method, params, headers, body.clone(), config]).await;
+        let mut response: Value = self.fetch2(path, &[api, method, params, headers, body, config]).await;
         if !matches!(&response, Value::Str(_)) {
             if (in_op(&response, &Value::Str("message".into()))) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));

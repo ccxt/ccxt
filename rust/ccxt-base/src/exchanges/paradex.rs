@@ -2654,7 +2654,7 @@ impl ParadexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status.clone()));
+        m.insert("status".to_string(), self.parse_order_status(status));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), self.parse_order_type(orderType));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "instruction", &[])));
@@ -3020,7 +3020,7 @@ impl ParadexCore {
         let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
         request = self.omit(request.clone(), Value::from(vec![Value::Str("instruction".into()), Value::Str("client_id".into()), Value::Str("flags".into())]), &[]);
         add_element_to_object(&mut request, &Value::Str("order_id".into()), id.clone());
-        add_element_to_object(&mut request, &Value::Str("id".into()), id.clone());
+        add_element_to_object(&mut request, &Value::Str("id".into()), id);
         request = self.sign_order_request(request.clone(), &[Value::Bool(true)]).await;
         let mut response: Value = self.private_put_orders_order_id(&[request]).await;
         return self.parse_order(response, &[market]);
@@ -3143,7 +3143,7 @@ impl ParadexCore {
             let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_delete_orders_by_client_id_client_id(&[__ws_arg_8]).await;
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), id); }
             let __ws_arg_9 = self.extend(request, &[params]);
             response = self.private_delete_orders_order_id(&[__ws_arg_9]).await;
         }
@@ -3323,7 +3323,7 @@ impl ParadexCore {
             let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_orders_by_client_id_client_id(&[__ws_arg_12]).await;
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), id); }
             let __ws_arg_13 = self.extend(request, &[params]);
             response = self.private_get_orders_order_id(&[__ws_arg_13]).await;
         }
@@ -4190,7 +4190,7 @@ impl ParadexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -4204,7 +4204,7 @@ impl ParadexCore {
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), status);
         m.insert("updated".to_string(), updated);
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
@@ -4892,7 +4892,7 @@ impl ParadexCore {
                     add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
                     body = json_stringify(&query);
                 }  else {
-                    url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query.clone(), &[])).into());
+                    url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query, &[])).into());
                 }
             }
         }
@@ -4900,8 +4900,8 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 
@@ -4922,7 +4922,7 @@ impl ParadexCore {
         let mut errorCode: Value = self.safe_string_k(response, "error", &[]);
         if (errorCode != Value::Null) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }

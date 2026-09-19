@@ -1087,7 +1087,7 @@ impl WhitebitCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), remaining);
-        m.insert("status".to_string(), unifiedStatus.clone());
+        m.insert("status".to_string(), unifiedStatus);
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1284,7 +1284,7 @@ impl WhitebitCore {
         }  else {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("margin".into())).into());
         }
-        client.resolve(&[self.balance.clone(), messageHash.clone()]);
+        client.resolve(&[self.balance.clone(), messageHash]);
 }
 
     pub async fn watch_public(&mut self, mut messageHash: Value, mut method: Value, optional_args: &[Value]) -> Value {
@@ -1379,7 +1379,7 @@ impl WhitebitCore {
                 if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &method)) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &method);
                 }
-                return self.watch(url, messageHash.clone(), &[resubRequest, method, subscription]).await;
+                return self.watch(url, messageHash, &[resubRequest, method, subscription]).await;
             }
         }
 
@@ -1492,7 +1492,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             // reject the flight - the leader and every waiter throw and the
             // next caller re-leads instead of deadlocking on a dead flight
-            client.reject(&[e, messageHash.clone()]);
+            client.reject(&[e, messageHash]);
         }
         // rethrows the failure to the leader and attaches the handler that
         // keeps an alone-leader rejection from crashing the process
@@ -1580,7 +1580,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topic: Value = self.safe_value_k(message.clone(), "method", &[]);
         let mut method: Value = self.safe_value(methods, topic, &[]);
         if (method != Value::Null) {
-            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client, message.clone()]);
         }
 }
 

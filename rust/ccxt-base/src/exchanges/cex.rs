@@ -1547,7 +1547,7 @@ impl CexCore {
             }
         }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -2066,7 +2066,7 @@ impl CexCore {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             append_to_array(&mut orders, Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("clientOrderId".to_string(), id.clone());
+                    m.insert("clientOrderId".to_string(), id);
                 m
             }));
         }
@@ -2625,11 +2625,11 @@ impl CexCore {
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
         if Value::Int(url.as_str().and_then(|__s| __s.find("do_my_new_order")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rejectReason: Value = self.safe_string_k(data.clone(), "rejectReason", &[]);
+            let mut rejectReason: Value = self.safe_string_k(data, "rejectReason", &[]);
             if (rejectReason != Value::Null) {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), rejectReason.clone(), rejectReason.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".into())).into()), rejectReason)));

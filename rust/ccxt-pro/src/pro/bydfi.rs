@@ -628,7 +628,7 @@ impl BydfiCore {
             while { if !__for_first_237 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_237 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (Value::Int(key.as_str().and_then(|__s| __s.find("ticker::")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                append_to_array(&mut messageHashes, key.clone());
+                append_to_array(&mut messageHashes, key);
             }
         }
         }
@@ -747,7 +747,7 @@ impl BydfiCore {
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), interval).into()));
         }
         }
-        let mut symboltimeframecandlesVariable = self.watch_public(messageHashes.clone(), channels, &[params]).await;
+        let mut symboltimeframecandlesVariable = self.watch_public(messageHashes, channels, &[params]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
@@ -805,7 +805,7 @@ impl BydfiCore {
                 m.insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes);
             m
         });
-        return self.watch_public(messageHashes.clone(), channels, &[params, subscription]).await;
+        return self.watch_public(messageHashes, channels, &[params, subscription]).await;
 
     Value::Null
 }
@@ -932,7 +932,7 @@ impl BydfiCore {
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into()));
         }
         }
-        let mut orderbook: Value = self.watch_public(messageHashes.clone(), channels, &[params]).await;
+        let mut orderbook: Value = self.watch_public(messageHashes, channels, &[params]).await;
         return orderbook.limit();
 
     Value::Null
@@ -988,7 +988,7 @@ impl BydfiCore {
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
         })]);
-        return self.watch_public(messageHashes.clone(), channels, &[params, subscription]).await;
+        return self.watch_public(messageHashes, channels, &[params, subscription]).await;
 
     Value::Null
 }
@@ -1080,7 +1080,7 @@ impl BydfiCore {
             }
             }
         }
-        let mut orders: Value = self.watch_private(messageHashes.clone(), &[params]).await;
+        let mut orders: Value = self.watch_private(messageHashes, &[params]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
@@ -1251,7 +1251,7 @@ impl BydfiCore {
             }
             }
         }
-        let mut positions: Value = self.watch_private(messageHashes.clone(), &[params]).await;
+        let mut positions: Value = self.watch_private(messageHashes, &[params]).await;
         if is_true(&self.newUpdates) {
             return positions;
         }
@@ -1545,7 +1545,7 @@ impl BydfiCore {
         //
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
-        let mut subscription: Value = self.safe_dict(subscriptionsById, id.clone(), &[Value::Map({
+        let mut subscription: Value = self.safe_dict(subscriptionsById, id, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

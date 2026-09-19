@@ -1179,7 +1179,7 @@ impl BitstampCore {
             return;
         }
         if Value::Int(channel.as_str().and_then(|__s| __s.find("order_book")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
-            self.handle_order_book_subscription(client.clone(), message.clone());
+            self.handle_order_book_subscription(client, message);
         }
 }
 
@@ -1191,7 +1191,7 @@ impl BitstampCore {
         //         "data": {}
         //     }
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        let mut channel: Value = self.safe_string_k(message, "channel", &[]);
         if (channel == Value::Null) {
             return;
         }
@@ -1218,7 +1218,7 @@ impl BitstampCore {
         }  else {
             self.clean_cache(subscription);
         }
-        self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
+        self.clean_unsubscription(client, subHash, unsubHash, &[]);
 }
 
 /*
@@ -1323,7 +1323,7 @@ impl BitstampCore {
         let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
         if (event.as_deref() == Some("bts:error")) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());
-            let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1377,7 +1377,7 @@ impl BitstampCore {
         }  else if (event.as_deref() == Some("bts:unsubscription_succeeded")) {
             self.handle_unsubscription_status(client.clone(), message.clone());
         }  else {
-            self.handle_subject(client.clone(), message.clone());
+            self.handle_subject(client, message);
         }
 }
 
@@ -1410,7 +1410,7 @@ impl BitstampCore {
             }
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut response: Value = self.parent.private_post_websockets_token(&[params.clone()]).await;
+                let mut response: Value = self.parent.private_post_websockets_token(&[params]).await;
                 //
                 // {
                 //     "valid_sec":60,
@@ -1423,18 +1423,18 @@ impl BitstampCore {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
                 let mut userId: Value = self.safe_string_k(response.clone(), "user_id", &[]);
-                let mut validity: Value = self.safe_integer_product(response.clone(), Value::Str("valid_sec".into()), Value::Int(1000), &[]);
-                { let __be_tmp = self.sum(&[time.clone(), validity.clone()]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".to_string(), __be_tmp); } }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".to_string(), userId.clone()); }
+                let mut validity: Value = self.safe_integer_product(response, Value::Str("valid_sec".into()), Value::Int(1000), &[]);
+                { let __be_tmp = self.sum(&[time, validity]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".to_string(), __be_tmp); } }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".to_string(), userId); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".to_string(), sessionToken.clone()); }
                 // settle the flight: client.resolve deletes the future from
                 // client.futures and wakes every waiter parked on it
-                client.resolve(&[sessionToken.clone(), messageHash.clone()]);
+                client.resolve(&[sessionToken, messageHash.clone()]);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // reject the flight - all waiters throw and the next caller
                 // re-leads instead of deadlocking on a dead flight
-                client.reject(&[e.clone(), messageHash.clone()]);
+                client.reject(&[e, messageHash]);
             }
             // rethrows to the leader and marks the promise handled, so an
             // alone leader's rejection is never unhandled
@@ -1464,7 +1464,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         add_element_to_object(&mut subscription, &Value::Str("messageHash".into()), messageHash.clone());
-        let __ws_arg_1 = self.extend(request, &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), subscription]).await;
 
     Value::Null

@@ -790,7 +790,7 @@ impl HashkeyCore {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "X", &[])));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));
@@ -1312,7 +1312,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else if (topic.as_deref() == Some("outboundContractPositionInfo")) {
             self.handle_position(client.clone(), message.clone());
         }  else if (topic.as_deref() == Some("outboundAccountInfo")) || (topic.as_deref() == Some("outboundContractAccountInfo")) {
-            self.handle_balance(client.clone(), message.clone());
+            self.handle_balance(client, message);
         }
 }
 }

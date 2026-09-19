@@ -1527,7 +1527,7 @@ impl BtseCore {
             let mut rate: Value = rates.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "timestamp", &[]);
             if (timestamp == Value::Null) || (is_less_than_or_equal(&timestamp, &until)) {
-                append_to_array(&mut result, rate.clone());
+                append_to_array(&mut result, rate);
             }
         }
         }
@@ -1694,7 +1694,7 @@ impl BtseCore {
             add_element_to_object(&mut result, &code, account);
         }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -1770,7 +1770,7 @@ impl BtseCore {
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbols == Value::Null) || is_true(&self.in_array(symbol.clone(), symbols.clone())) {
-                let mut levels: Value = self.safe_list_k(entry.clone(), "riskLimits", &[Value::from(vec![])]);
+                let mut levels: Value = self.safe_list_k(entry, "riskLimits", &[Value::from(vec![])]);
                 let mut tiers: Value = Value::from(vec![]);
                 {
                                         let mut j: Value = Value::Int(0);
@@ -1788,12 +1788,12 @@ impl BtseCore {
                             m.insert("maxNotional".to_string(), self.safe_number_k(level.clone(), "value", &[]));
                             m.insert("maintenanceMarginRate".to_string(), Value::Null);
                             m.insert("maxLeverage".to_string(), Value::Null);
-                            m.insert("info".to_string(), level.clone());
+                            m.insert("info".to_string(), level);
                         m
                     }));
                 }
                 }
-                add_element_to_object(&mut result, &symbol, tiers.clone()); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                add_element_to_object(&mut result, &symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         }
@@ -1894,7 +1894,7 @@ impl BtseCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1943,7 +1943,7 @@ impl BtseCore {
     m
 })]);
         }
-        return self.parse_ticker(data, &[market.clone()]);
+        return self.parse_ticker(data, &[market]);
 
     Value::Null
 }
@@ -1986,13 +1986,13 @@ impl BtseCore {
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChange", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume.clone());
+        m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2031,7 +2031,7 @@ impl BtseCore {
     m
 })]);
         }
-        return self.parse_open_interest(interest, &[market.clone()]);
+        return self.parse_open_interest(interest, &[market]);
 
     Value::Null
 }
@@ -2089,7 +2089,7 @@ impl BtseCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2109,7 +2109,7 @@ impl BtseCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() symbol does not support spot markets".into()))));
         }
@@ -2128,7 +2128,7 @@ impl BtseCore {
     m
 })]);
         }
-        return self.parse_funding_rate(data, &[market.clone()]);
+        return self.parse_funding_rate(data, &[market]);
 
     Value::Null
 }
@@ -2257,7 +2257,7 @@ impl BtseCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2290,7 +2290,7 @@ impl BtseCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut trades: Value = self.parse_trades(data, &[market.clone(), since, limit]);
+        let mut trades: Value = self.parse_trades(data, &[market, since, limit]);
         if (until == Value::Null) {
             return trades;
         }
@@ -2302,7 +2302,7 @@ impl BtseCore {
             let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
             if (timestamp == Value::Null) || (is_less_than_or_equal(&timestamp, &until)) {
-                append_to_array(&mut result, trade.clone());
+                append_to_array(&mut result, trade);
             }
         }
         }
@@ -2441,7 +2441,7 @@ impl BtseCore {
         if (rows == Value::Null) {
             rows = response;
         }
-        return self.parse_trades(rows, &[market.clone(), since, limit]);
+        return self.parse_trades(rows, &[market, since, limit]);
 
     Value::Null
 }
@@ -2477,7 +2477,7 @@ impl BtseCore {
             }  else {
                 params = self.extend(params.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("orderID".to_string(), id.clone());
+                        m.insert("orderID".to_string(), id);
                     m
                 })]);
             }
@@ -2488,7 +2488,7 @@ impl BtseCore {
                 m
             })]);
         }
-        return self.fetch_my_trades(&[symbol.clone(), since, limit, params]).await;
+        return self.fetch_my_trades(&[symbol, since, limit, params]).await;
 
     Value::Null
 }
@@ -2590,11 +2590,11 @@ impl BtseCore {
         m.insert("side".to_string(), self.safe_string_lower2(trade.clone(), Value::Str("side".into()), Value::Str("orderSide".into()), &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("filledPrice".into()), Value::Str("avgFilledPrice".into()), Value::Str("price".into())]), &[]));
-        m.insert("amount".to_string(), self.safe_string2(trade.clone(), Value::Str("filledSize".into()), Value::Str("size".into()), &[]));
+        m.insert("amount".to_string(), self.safe_string2(trade, Value::Str("filledSize".into()), Value::Str("size".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2645,7 +2645,7 @@ impl BtseCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             return self.create_spot_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
-            return self.create_contract_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+            return self.create_contract_order(symbol, type_var, side, amount, &[price, params]).await;
         }
 
     Value::Null
@@ -2748,7 +2748,7 @@ impl BtseCore {
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteOrderSize".to_string(), quoteAmount); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderSize".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderSize".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
         }
         let mut response: Value = Value::Null;
         if !isAlgoOrder {
@@ -2830,12 +2830,12 @@ impl BtseCore {
                     params = self.omit(params.clone(), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("triggerPriceType".into())]), &[]);
                 }  else if (type_var.as_str() == Some("PEG")) {
                     // the required stealth and optional deviation params pass through
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol.clone(), price)); }
                 }  else if (type_var.as_str() == Some("TRAILING")) {
                     let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
                     let mut trailingPercent: Value = self.safe_string_k(params.clone(), "trailingPercent", &[]);
                     if (trailingAmount != Value::Null) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValue".to_string(), self.price_to_precision(symbol.clone(), trailingAmount)); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValue".to_string(), self.price_to_precision(symbol, trailingAmount)); }
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValueType".to_string(), Value::Str("DISTANCE".into())); }
                     }  else if (trailingPercent != Value::Null) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValue".to_string(), trailingPercent); }
@@ -2846,14 +2846,14 @@ impl BtseCore {
                     params = self.omit(params.clone(), Value::from(vec![Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("triggerPriceType".into())]), &[]);
                 }
             }
-            let __ws_arg_12 = self.extend(request, &[params.clone()]);
+            let __ws_arg_12 = self.extend(request, &[params]);
             response = self.private_post_spot_api_v4_trade_orders_algo(&[__ws_arg_12]).await;
         }
         let mut order: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(order, &[market.clone()]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }
@@ -2907,7 +2907,7 @@ impl BtseCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
                 m.insert("orderSide".to_string(), to_upper(&side));
-                m.insert("orderSize".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                m.insert("orderSize".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
@@ -2963,17 +2963,17 @@ impl BtseCore {
             let mut takeProfitTriggerPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
             let mut stopLossTriggerPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]);
             if (takeProfitTriggerPrice != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("takeProfitTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone())); }
-                let mut takeProfitTriggerPriceType: Value = self.safe_string_k(takeProfit.clone(), "priceType", &[]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("takeProfitTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice)); }
+                let mut takeProfitTriggerPriceType: Value = self.safe_string_k(takeProfit, "priceType", &[]);
                 if (takeProfitTriggerPriceType != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("takeProfitTriggerType".to_string(), self.encode_trigger_price_type(takeProfitTriggerPriceType.clone())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("takeProfitTriggerType".to_string(), self.encode_trigger_price_type(takeProfitTriggerPriceType)); }
                 }
             }
             if (stopLossTriggerPrice != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone())); }
-                let mut stopLossTriggerPriceType: Value = self.safe_string_k(stopLoss.clone(), "priceType", &[]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossTriggerPrice)); }
+                let mut stopLossTriggerPriceType: Value = self.safe_string_k(stopLoss, "priceType", &[]);
                 if (stopLossTriggerPriceType != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerType".to_string(), self.encode_trigger_price_type(stopLossTriggerPriceType.clone())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerType".to_string(), self.encode_trigger_price_type(stopLossTriggerPriceType)); }
                 }
             }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]);
@@ -3050,13 +3050,13 @@ impl BtseCore {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
                     if (price != Value::Null) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol.clone(), price)); }
                     }
                 }  else if (type_var.as_str() == Some("TRAILING")) {
                     let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
                     let mut trailingPercent: Value = self.safe_string_k(params.clone(), "trailingPercent", &[]);
                     if (trailingAmount != Value::Null) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValue".to_string(), self.price_to_precision(symbol.clone(), trailingAmount)); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValue".to_string(), self.price_to_precision(symbol, trailingAmount)); }
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValueType".to_string(), Value::Str("DISTANCE".into())); }
                     }  else if (trailingPercent != Value::Null) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trailValue".to_string(), trailingPercent); }
@@ -3067,7 +3067,7 @@ impl BtseCore {
                     params = self.omit(params.clone(), Value::from(vec![Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("triggerPriceType".into())]), &[]);
                 }
             }
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params]);
             response = self.private_post_futures_api_v3_trade_orders_algo(&[__ws_arg_14]).await;
         }
         // the normal futures endpoint responds with a single order dict, keep a
@@ -3079,7 +3079,7 @@ impl BtseCore {
     m
 })]);
         }
-        return self.parse_order(order, &[market.clone()]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }
@@ -3132,7 +3132,7 @@ impl BtseCore {
         }  else if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() requires an id argument or a clientOrderId parameter".into()))));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id); }
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -3147,7 +3147,7 @@ impl BtseCore {
         }  else {
             // the futures endpoint doubles as the single order lookup when an
             // order id is sent and responds with a bare array
-            let __ws_arg_16 = self.extend(request, &[params.clone()]);
+            let __ws_arg_16 = self.extend(request, &[params]);
             response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_16]).await;
         }
         // accept a bare order dict, a data envelope and a one element array
@@ -3158,7 +3158,7 @@ impl BtseCore {
     m
 })]);
         }
-        return self.parse_order(order, &[market.clone()]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }
@@ -3213,7 +3213,7 @@ impl BtseCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderSize".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol, price.clone())); }
         }
         let mut isSlide: Value = self.safe_bool_k(params.clone(), "slide", &[Value::Bool(false)]);
         if (amount == Value::Null) && (price == Value::Null) && (triggerPrice == Value::Null) && (isSlide.as_bool() != Some(true)) {
@@ -3240,14 +3240,14 @@ impl BtseCore {
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amendType".to_string(), Value::Str("PRICE".into())); }
             }
-            let __ws_arg_18 = self.extend(request, &[params.clone()]);
+            let __ws_arg_18 = self.extend(request, &[params]);
             response = self.private_put_futures_api_v3_trade_orders(&[__ws_arg_18]).await;
         }
-        let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut order: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(order, &[market.clone()]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }
@@ -3274,7 +3274,7 @@ impl BtseCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3286,7 +3286,7 @@ impl BtseCore {
         }  else if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an id argument or a clientOrderId parameter".into()))));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id); }
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -3311,14 +3311,14 @@ impl BtseCore {
             //     ]
             //
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), self.futures_request_id(market.clone())); }
-            let __ws_arg_20 = self.extend(request, &[params.clone()]);
+            let __ws_arg_20 = self.extend(request, &[params]);
             response = self.private_delete_futures_api_v3_trade_orders(&[__ws_arg_20]).await;
         }
-        let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut order: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(order, &[market.clone()]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }
@@ -3343,7 +3343,7 @@ impl BtseCore {
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Str("spot".into());
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), params.clone(), marketType.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -3365,10 +3365,10 @@ impl BtseCore {
             // endpoint cancels every order for the symbol when no order id is
             // sent, and it identifies contracts by the short symbol form
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), self.futures_request_id(market.clone())); }
-            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_22 = self.extend(request, &[params]);
             response = self.private_delete_futures_api_v23_order(&[__ws_arg_22]).await;
         }
-        return self.parse_orders(response.clone(), &[market.clone()]);
+        return self.parse_orders(response, &[market]);
 
     Value::Null
 }
@@ -3404,7 +3404,7 @@ impl BtseCore {
         }  else {
             // the futures param is named timeoutMs and is required, zero disarms
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeoutMs".to_string(), timeout); }
-            let __ws_arg_24 = self.extend(request, &[params.clone()]);
+            let __ws_arg_24 = self.extend(request, &[params]);
             response = self.private_post_futures_api_v3_trade_orders_cancel_all_after(&[__ws_arg_24]).await;
         }
         return response;
@@ -3440,7 +3440,7 @@ impl BtseCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Str("spot".into());
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), params.clone(), marketType.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -3455,13 +3455,13 @@ impl BtseCore {
             if (market != Value::Null) {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), self.futures_request_id(market.clone())); }
             }
-            let __ws_arg_26 = self.extend(request, &[params.clone()]);
+            let __ws_arg_26 = self.extend(request, &[params]);
             response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_26]).await;
         }
         // the endpoints have no server side time filters, accept a bare array
         // and a data envelope and filter client-side
         let mut rows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
-        return self.parse_orders(rows, &[market.clone(), since, limit]);
+        return self.parse_orders(rows, &[market, since, limit]);
 
     Value::Null
 }
@@ -3574,7 +3574,7 @@ impl BtseCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("average".to_string(), self.omit_zero(self.safe_string2(order, Value::Str("avgFilledPrice".into()), Value::Str("averageFillPrice".into()), &[])));
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -3666,7 +3666,7 @@ impl BtseCore {
         }  else {
             // the futures fees stay on the legacy endpoint, the unified futures
             // api has no fees route
-            response = self.private_get_futures_api_v23_user_fees(&[params.clone()]).await;
+            response = self.private_get_futures_api_v23_user_fees(&[params]).await;
         }
         //
         //     [
@@ -3755,7 +3755,7 @@ impl BtseCore {
         if (until != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
         }
-        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_27 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_public_api_wallet_v1_user_wallet_history(&[__ws_arg_27]).await;
         //
         //     {
@@ -3808,7 +3808,7 @@ impl BtseCore {
             let mut entry: Value = rawRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut type_var: Value = self.safe_string_k(entry.clone(), "type", &[Value::Str("".into())]);
             if (in_op(&allowed, &type_var)) {
-                append_to_array(&mut rows, entry.clone());
+                append_to_array(&mut rows, entry);
             }
         }
         }
@@ -3838,7 +3838,7 @@ impl BtseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rowscurrencyVariable = self.request_wallet_history_rows(Value::Str("fetchDepositsWithdrawals".into()), Value::from(vec![Value::Str("DEPOSIT".into()), Value::Str("WITHDRAW".into())]), &[code, since.clone(), limit.clone(), params.clone()]).await;
+        let mut rowscurrencyVariable = self.request_wallet_history_rows(Value::Str("fetchDepositsWithdrawals".into()), Value::from(vec![Value::Str("DEPOSIT".into()), Value::Str("WITHDRAW".into())]), &[code, since.clone(), limit.clone(), params]).await;
         let mut rows: Value = get_value(&rowscurrencyVariable, &Value::Int(0));
         let mut currency: Value = get_value(&rowscurrencyVariable, &Value::Int(1));
         return self.parse_transactions(rows, &[currency, since, limit]);
@@ -3867,7 +3867,7 @@ impl BtseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rowscurrencyVariable = self.request_wallet_history_rows(Value::Str("fetchDeposits".into()), Value::from(vec![Value::Str("DEPOSIT".into())]), &[code, since.clone(), limit.clone(), params.clone()]).await;
+        let mut rowscurrencyVariable = self.request_wallet_history_rows(Value::Str("fetchDeposits".into()), Value::from(vec![Value::Str("DEPOSIT".into())]), &[code, since.clone(), limit.clone(), params]).await;
         let mut rows: Value = get_value(&rowscurrencyVariable, &Value::Int(0));
         let mut currency: Value = get_value(&rowscurrencyVariable, &Value::Int(1));
         return self.parse_transactions(rows, &[currency, since, limit]);
@@ -3896,7 +3896,7 @@ impl BtseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rowscurrencyVariable = self.request_wallet_history_rows(Value::Str("fetchWithdrawals".into()), Value::from(vec![Value::Str("WITHDRAW".into())]), &[code, since.clone(), limit.clone(), params.clone()]).await;
+        let mut rowscurrencyVariable = self.request_wallet_history_rows(Value::Str("fetchWithdrawals".into()), Value::from(vec![Value::Str("WITHDRAW".into())]), &[code, since.clone(), limit.clone(), params]).await;
         let mut rows: Value = get_value(&rowscurrencyVariable, &Value::Int(0));
         let mut currency: Value = get_value(&rowscurrencyVariable, &Value::Int(1));
         return self.parse_transactions(rows, &[currency, since, limit]);
@@ -4043,7 +4043,7 @@ impl BtseCore {
         if (until != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
         }
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_public_api_wallet_v1_user_wallet_history(&[__ws_arg_28]).await;
         //
         //     [
@@ -4087,7 +4087,7 @@ impl BtseCore {
         m.insert("account".to_string(), self.safe_string2(item.clone(), Value::Str("wallet".into()), Value::Str("walletName".into()), &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "txId", &[]));
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone()));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(type_var));
         m.insert("currency".to_string(), code.clone());
         m.insert("amount".to_string(), self.safe_number_k(item.clone(), "amount", &[]));
         m.insert("before".to_string(), Value::Null);
@@ -4173,7 +4173,7 @@ impl BtseCore {
                 m.insert("REDEEM".to_string(), Value::Str("in".into()));
             m
         });
-        return self.safe_string(directions, type_var.clone(), &[]);
+        return self.safe_string(directions, type_var, &[]);
 
     Value::Null
 }
@@ -4207,7 +4207,7 @@ impl BtseCore {
         }  else {
             // the futures fees stay on the legacy endpoint, the unified futures
             // api has no fees route
-            let __ws_arg_30 = self.extend(request, &[params.clone()]);
+            let __ws_arg_30 = self.extend(request, &[params]);
             response = self.private_get_futures_api_v23_user_fees(&[__ws_arg_30]).await;
         }
         let mut rows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
@@ -4220,7 +4220,7 @@ impl BtseCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), feeInfo);
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("maker".to_string(), makerFee);
         m.insert("taker".to_string(), takerFee);
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -4248,13 +4248,13 @@ impl BtseCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.private_get_futures_api_v3_trade_positions(&[params.clone()]).await;
+        let mut response: Value = self.private_get_futures_api_v3_trade_positions(&[params]).await;
         //
         // the response is a bare array of position rows
         //
         let mut rows: Value = self.safe_list_k(response.clone(), "data", &[]);
         if (rows == Value::Null) {
-            rows = response.clone();
+            rows = response;
         }
         return self.parse_positions(rows, &[symbols]);
 
@@ -4278,13 +4278,13 @@ impl BtseCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let __ws_arg_31 = self.futures_request_id(market.clone());
+        let __ws_arg_31 = self.futures_request_id(market);
         params = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), __ws_arg_31);
             m
         }), &[params.clone()]);
-        return self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
+        return self.fetch_positions(&[Value::from(vec![symbol]), params]).await;
 
     Value::Null
 }
@@ -4368,7 +4368,7 @@ impl BtseCore {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.parse_number(self.safe_string_k(position.clone(), "unrealizedProfitLoss", &[]), &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
-        m.insert("side".to_string(), self.parse_position_side(side.clone()));
+        m.insert("side".to_string(), self.parse_position_side(side));
         m.insert("contracts".to_string(), self.parse_number(self.safe_string_k(position.clone(), "size", &[]), &[]));
         m.insert("contractSize".to_string(), self.parse_number(self.safe_string_k(position.clone(), "contractSize", &[]), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -4435,13 +4435,13 @@ impl BtseCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionMode() requires a symbol argument".into()))));
         }
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
+                m.insert("symbol".to_string(), self.futures_request_id(market));
             m
         });
-        let __ws_arg_32 = self.extend(request, &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_futures_api_v3_trade_position_mode(&[__ws_arg_32]).await;
         //
         //     [
@@ -4451,7 +4451,7 @@ impl BtseCore {
         //         }
         //     ]
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut data: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4492,15 +4492,15 @@ impl BtseCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setPositionMode() requires a symbol argument".into()))));
         }
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut positionMode: Value = (if is_true(&hedged) { Value::Str("HEDGE".into()) } else { Value::Str("ONE_WAY".into()) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
+                m.insert("symbol".to_string(), self.futures_request_id(market));
                 m.insert("positionMode".to_string(), positionMode);
             m
         });
-        let __ws_arg_33 = self.extend(request, &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params]);
         return self.private_post_futures_api_v3_trade_position_mode(&[__ws_arg_33]).await;
 
     Value::Null
@@ -4521,19 +4521,19 @@ impl BtseCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
             m
         });
-        let __ws_arg_34 = self.extend(request, &[params.clone()]);
+        let __ws_arg_34 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_futures_api_v3_trade_leverage(&[__ws_arg_34]).await;
-        let mut data: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut data: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_margin_mode(data, &[market.clone()]);
+        return self.parse_margin_mode(data, &[market]);
 
     Value::Null
 }
@@ -4593,7 +4593,7 @@ impl BtseCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         marginMode = to_lower(&marginMode);
         let mut positionMode: Value = Value::Str("ONE_WAY".into());
         if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
@@ -4614,11 +4614,11 @@ impl BtseCore {
         params = self.omit(params.clone(), Value::Str("hedged".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
+                m.insert("symbol".to_string(), self.futures_request_id(market));
                 m.insert("positionMode".to_string(), positionMode);
             m
         });
-        let __ws_arg_35 = self.extend(request, &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params]);
         return self.private_post_futures_api_v3_trade_position_mode(&[__ws_arg_35]).await;
 
     Value::Null
@@ -4664,16 +4664,16 @@ impl BtseCore {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" closePosition() requires a price parameter for limit orders".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".to_string(), self.price_to_precision(symbol, price)); }
             params = self.omit(params.clone(), Value::Str("price".into()), &[]);
         }
-        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_36 = self.extend(request, &[params]);
         let mut response: Value = self.private_delete_futures_api_v3_trade_positions(&[__ws_arg_36]).await;
         let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
         if (order == Value::Null) {
-            order = response.clone();
+            order = response;
         }
-        return self.parse_order(order, &[market.clone()]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }
@@ -4696,10 +4696,10 @@ impl BtseCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
+                m.insert("symbol".to_string(), self.futures_request_id(market));
             m
         });
-        let __ws_arg_37 = self.extend(request, &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_futures_api_v3_trade_leverage(&[__ws_arg_37]).await;
         //
         //     [
@@ -4723,8 +4723,8 @@ impl BtseCore {
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response.clone());
-                m.insert("symbol".to_string(), symbol.clone());
+                m.insert("info".to_string(), response);
+                m.insert("symbol".to_string(), symbol);
             m
         });
         let mut longLeverage: Value = Value::Null;
@@ -4779,10 +4779,10 @@ impl BtseCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
         }
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
+                m.insert("symbol".to_string(), self.futures_request_id(market));
                 m.insert("leverage".to_string(), leverage);
             m
         });
@@ -4794,7 +4794,7 @@ impl BtseCore {
         if (marginMode != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".to_string(), to_upper(&marginMode)); }
         }
-        let __ws_arg_38 = self.extend(request, &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_futures_api_v3_trade_leverage(&[__ws_arg_38]).await;
         return response;
 
@@ -4858,7 +4858,7 @@ impl BtseCore {
         if (matches!(&response, Value::Arr(_))) {
             rows = response.clone();
         }  else {
-            rows = Value::from(vec![response.clone()]);
+            rows = Value::from(vec![response]);
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -4894,7 +4894,7 @@ impl BtseCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut baseUrl: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
         let mut url: Value = Value::Str(format!("{}{}", add(&baseUrl, &Value::Str("/".into())), self.implode_params(path.clone(), params.clone())).into());
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
@@ -4940,7 +4940,7 @@ impl BtseCore {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), body);
         m.insert("headers".to_string(), headers);

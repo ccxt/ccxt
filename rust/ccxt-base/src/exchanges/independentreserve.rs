@@ -1036,10 +1036,10 @@ impl IndependentreserveCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), orderType.clone());
+        m.insert("type".to_string(), orderType);
         m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "TimeInForce", &[])));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "Price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "Value", &[]));
@@ -1292,7 +1292,7 @@ impl IndependentreserveCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), orderId);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
@@ -1448,7 +1448,7 @@ impl IndependentreserveCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
-                m.insert("orderType".to_string(), orderType.clone());
+                m.insert("orderType".to_string(), orderType);
             m
         });
         let mut response: Value = Value::Null;

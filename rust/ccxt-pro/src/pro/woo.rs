@@ -2161,7 +2161,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
-                client.reject(&[Value::from(error.clone())]);
+                client.reject(&[Value::from(error)]);
             }
             return Value::Bool(true);
          } }
@@ -2335,7 +2335,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             future.resolve(&[Value::Bool(true)]);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
-            client.reject(&[Value::from(error.clone()), messageHash.clone()]);
+            client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
             if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("authenticated".into()));

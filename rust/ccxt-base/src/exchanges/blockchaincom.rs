@@ -1007,7 +1007,7 @@ impl BlockchaincomCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price)); }
         }
         if stopPriceRequired {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPx".to_string(), self.price_to_precision(symbol, triggerPrice.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPx".to_string(), self.price_to_precision(symbol, triggerPrice)); }
         }
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_3]).await;
@@ -1041,7 +1041,7 @@ impl BlockchaincomCore {
         let mut response: Value = self.private_delete_orders_order_id(&[__ws_arg_4]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("info".to_string(), response);
     m
 }), &[]);
@@ -1459,7 +1459,7 @@ impl BlockchaincomCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1582,7 +1582,7 @@ impl BlockchaincomCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("withdrawalId".to_string(), id.clone());
+                m.insert("withdrawalId".to_string(), id);
             m
         });
         let __ws_arg_11 = self.extend(request, &[params]);
@@ -1651,7 +1651,7 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut depositId: Value = self.safe_string_k(params.clone(), "depositId", &[id.clone()]);
+        let mut depositId: Value = self.safe_string_k(params.clone(), "depositId", &[id]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("depositId".to_string(), depositId);
@@ -1754,7 +1754,7 @@ impl BlockchaincomCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), id.clone());
+                m.insert("orderId".to_string(), id);
             m
         });
         let __ws_arg_15 = self.extend(request, &[params]);

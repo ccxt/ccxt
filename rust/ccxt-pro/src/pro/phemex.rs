@@ -317,7 +317,7 @@ impl PhemexCore {
         if (ep == Value::Null) || (market == Value::Null) {
             return ep;
         }
-        return self.from_en(ep.clone(), self.safe_integer_k(market, "priceScale", &[]));
+        return self.from_en(ep, self.safe_integer_k(market, "priceScale", &[]));
 
     Value::Null
 }
@@ -327,7 +327,7 @@ impl PhemexCore {
         if (ev == Value::Null) || (market == Value::Null) {
             return ev;
         }
-        return self.from_en(ev.clone(), self.safe_integer_k(market, "valueScale", &[]));
+        return self.from_en(ev, self.safe_integer_k(market, "valueScale", &[]));
 
     Value::Null
 }
@@ -337,7 +337,7 @@ impl PhemexCore {
         if (er == Value::Null) || (market == Value::Null) {
             return er;
         }
-        return self.from_en(er.clone(), self.safe_integer_k(market, "ratioScale", &[]));
+        return self.from_en(er, self.safe_integer_k(market, "ratioScale", &[]));
 
     Value::Null
 }
@@ -1212,7 +1212,7 @@ impl PhemexCore {
             let mut settle: Option<String> = self.safe_string_k(params.clone(), "settle", &[]).as_str().map(str::to_owned);
             messageHash = (if (settle.as_deref() == Some("USDT")) { (Value::Str(format!("{}{}", messageHash, Value::Str("perpetual".into())).into())) } else { (Value::Str(format!("{}{}", messageHash, type_var).into())) });
         }
-        let mut trades: Value = self.subscribe_private(type_var, messageHash, &[params.clone()]).await;
+        let mut trades: Value = self.subscribe_private(type_var, messageHash, &[params]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
@@ -1396,12 +1396,12 @@ impl PhemexCore {
                 add_element_to_object(&mut params, &Value::Str("settle".into()), Value::Str("USDT".into()));
             }
         }
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isUSDTSettled: bool = self.safe_string_k(params.clone(), "settle", &[]).as_str() == Some("USDT");
         if (symbol == Value::Null) {
             messageHash = (if (isUSDTSettled) { (Value::Str(format!("{}{}", messageHash, Value::Str("perpetual".into())).into())) } else { (Value::Str(format!("{}{}", messageHash, type_var).into())) });
         }
-        let mut orders: Value = self.subscribe_private(type_var, messageHash, &[params.clone()]).await;
+        let mut orders: Value = self.subscribe_private(type_var, messageHash, &[params]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
@@ -1574,7 +1574,7 @@ impl PhemexCore {
         if (in_op(&message, &Value::Str("closed".into()))) || (in_op(&message, &Value::Str("fills".into()))) || (in_op(&message, &Value::Str("open".into()))) {
             let mut closed: Value = self.safe_list_k(message.clone(), "closed", &[Value::from(vec![])]);
             let mut open: Value = self.safe_list_k(message.clone(), "open", &[Value::from(vec![])]);
-            let mut orders: Value = self.array_concat(open.clone(), closed.clone());
+            let mut orders: Value = self.array_concat(open, closed);
             let mut ordersLength: f64 = ((orders.len() as i64) as f64);
             if (ordersLength == 0.0) {
                 return;
@@ -1585,7 +1585,7 @@ impl PhemexCore {
                 let mut __for_first_596: bool = true;
                 while { if !__for_first_596 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_596 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
                 let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut parsedOrder: Value = self.parse_order(rawOrder.clone(), &[]);
+                let mut parsedOrder: Value = self.parse_order(rawOrder, &[]);
                 append_to_array(&mut parsedOrders, parsedOrder.clone());
             }
             }
@@ -1606,11 +1606,11 @@ impl PhemexCore {
                     append_to_array(&mut trades, update.clone());
                 }
                 let mut parsedOrder: Value = self.parse_ws_swap_order(update, &[]);
-                append_to_array(&mut parsedOrders, parsedOrder.clone());
+                append_to_array(&mut parsedOrders, parsedOrder);
             }
             }
         }
-        self.handle_my_trades(client.clone(), trades.clone());
+        self.handle_my_trades(client.clone(), trades);
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
         let mut marketIds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1824,7 +1824,7 @@ impl PhemexCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1953,7 +1953,7 @@ impl PhemexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            self.handle_orders(client.clone(), orders.clone());
+            self.handle_orders(client.clone(), orders);
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
             let mut type_var: Value = (if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
@@ -1961,7 +1961,7 @@ impl PhemexCore {
                 type_var = Value::Str("perpetual".into());
             }
             let mut accounts: Value = self.safe_list_n(message.clone(), Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]);
-            self.handle_balance(type_var.clone(), client.clone(), accounts.clone());
+            self.handle_balance(type_var, client, accounts);
         }
 }
 
@@ -2016,7 +2016,7 @@ impl PhemexCore {
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
-        request = self.extend(request.clone(), &[params.clone()]);
+        request = self.extend(request.clone(), &[params]);
         return self.watch(url, messageHash, &[request, channel]).await;
 
     Value::Null
@@ -2047,11 +2047,11 @@ impl PhemexCore {
                 m
             });
             let mut subscriptionHash: Value = to_string_val(&requestId);
-            let mut message: Value = self.extend(request, &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params]);
             if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash, Value::Str("handle_authenticate".into()).clone());
             }
-            future = self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
+            future = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash, future.clone());
         }
         return future;

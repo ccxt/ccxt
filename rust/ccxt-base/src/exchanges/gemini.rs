@@ -1987,7 +1987,7 @@ impl GeminiCore {
         //
         let mut result: Value = self.parse_tickers(response, &[symbols]);
         let mut brokenPairs: Value = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]);
-        return self.remove_keys_from_dict(result.clone(), brokenPairs);
+        return self.remove_keys_from_dict(result, brokenPairs);
 
     Value::Null
 }
@@ -2125,7 +2125,7 @@ impl GeminiCore {
             }
         }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -2379,9 +2379,9 @@ impl GeminiCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side);
@@ -2565,7 +2565,7 @@ impl GeminiCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".to_string(), Value::from(vec![options])); }
             }
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params]);
+        let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_v1_order_new(&[__ws_arg_7]).await;
         return self.parse_order(response, &[]);
 
@@ -2812,7 +2812,7 @@ impl GeminiCore {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), self.parse_transaction_status(statusRaw));
@@ -2981,7 +2981,7 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body.clone());
+        m.insert("body".to_string(), body);
         m.insert("headers".to_string(), headers);
     m
 });

@@ -435,7 +435,7 @@ impl ExtendedCore {
 }));
                 m
             });
-            self.extend_exchange_options(&[defaultOptions.clone()]);
+            self.extend_exchange_options(&[defaultOptions]);
             let mut originalOptions: Value = crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options");
             let mut originalHeaders: Value = self.safe_dict_k(originalOptions.clone(), "headers", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -449,7 +449,7 @@ impl ExtendedCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("User-Agent".to_string(), crate::value::get_value_k(&self.userAgents, "chrome"));
     m
-}), &[originalHeaders.clone()]), &[Value::Map({
+}), &[originalHeaders]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("X-Api-Key".to_string(), self.apiKey.clone());
     m
@@ -460,9 +460,9 @@ impl ExtendedCore {
     m
 })]); add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into()), __be_tmp); };
             self.client(&[url.clone()]);
-            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into()), originalOptions.clone());
+            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into()), originalOptions);
         }
-        return self.watch(url.clone(), messageHash.clone(), &[Value::Null, messageHash.clone(), subscription]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), subscription]).await;
 
     Value::Null
 }
@@ -716,7 +716,7 @@ impl ExtendedCore {
             while { if !__for_first_329 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_329 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptions.len() as i64) as f64) } {
             let mut messageHash: Value = subscriptions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("myTrades:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                client.resolve(&[stored.clone(), messageHash.clone()]);
+                client.resolve(&[stored.clone(), messageHash]);
             }
         }
         }
@@ -749,7 +749,7 @@ impl ExtendedCore {
         if (symbols != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into())).into());
         }
-        let mut positions: Value = self.watch_private(messageHash.clone(), &[Value::Map({
+        let mut positions: Value = self.watch_private(messageHash, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbols".to_string(), symbols.clone());
         m.insert("limit".to_string(), limit.clone());
@@ -826,7 +826,7 @@ impl ExtendedCore {
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
             let mut filtered: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !is_true(&self.is_empty(filtered.clone())) {
-                client.resolve(&[filtered, messageHash.clone()]);
+                client.resolve(&[filtered, messageHash]);
             }
         }
         }
@@ -909,7 +909,7 @@ impl ExtendedCore {
             while { if !__for_first_334 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_334 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptions.len() as i64) as f64) } {
             let mut messageHash: Value = subscriptions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orders:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                client.resolve(&[orders.clone(), messageHash.clone()]);
+                client.resolve(&[orders.clone(), messageHash]);
             }
         }
         }
@@ -940,10 +940,10 @@ impl ExtendedCore {
         if ((query.len() as i64) as f64) > ((0i64) as f64) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
         }
-        return self.watch(url.clone(), messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
+        return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("messageHash".to_string(), messageHash.clone());
+        m.insert("messageHash".to_string(), messageHash);
     m
 })]).await;
 
@@ -970,7 +970,7 @@ impl ExtendedCore {
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[]);
         add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into());
-        client.resolve(&[fundingRate, messageHash.clone()]);
+        client.resolve(&[fundingRate, messageHash]);
 }
 
     pub fn parse_ws_funding_rate(&self, mut fundingRate: Value, optional_args: &[Value]) -> Value {
@@ -1031,11 +1031,11 @@ impl ExtendedCore {
         if ((query.len() as i64) as f64) > ((0i64) as f64) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
         }
-        return self.watch(url.clone(), messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
+        return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("markPrice".into()));
         m.insert("symbol".to_string(), symbol);
-        m.insert("messageHash".to_string(), messageHash.clone());
+        m.insert("messageHash".to_string(), messageHash);
     m
 })]).await;
 
@@ -1070,14 +1070,14 @@ impl ExtendedCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("markPrice".to_string(), self.safe_string_k(data, "p", &[]));
-                m.insert("info".to_string(), message.clone());
+                m.insert("info".to_string(), message);
             m
         }), &[market]);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("markPrice:".into()), symbol).into());
-        client.resolve(&[ticker, messageHash.clone()]);
+        client.resolve(&[ticker, messageHash]);
 }
 
 /*
@@ -1109,7 +1109,7 @@ impl ExtendedCore {
         if ((query.len() as i64) as f64) > ((0i64) as f64) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
         }
-        let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
+        let mut trades: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("limit".to_string(), limit.clone());
@@ -1162,7 +1162,7 @@ impl ExtendedCore {
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut previousNonce: Value = self.safe_integer_k(subscription.clone(), "nonce", &[]);
-        let mut nonce: Value = self.safe_integer_k(message.clone(), "seq", &[]);
+        let mut nonce: Value = self.safe_integer_k(message, "seq", &[]);
         if (previousNonce != Value::Null) && (nonce != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) <= previousNonce.as_f64().unwrap_or(f64::NAN)) {
             return;
         }
@@ -1175,7 +1175,7 @@ impl ExtendedCore {
             stored.append(trade);
         }
         }
-        client.resolve(&[stored.clone(), messageHash.clone()]);
+        client.resolve(&[stored, messageHash]);
 }
 
 /*
@@ -1226,14 +1226,14 @@ impl ExtendedCore {
         }), &[params]);
         let mut query: Value = self.urlencode(__ws_arg_2, &[]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/candles/".into())), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), candleType).into()), Value::Str("?".into())).into()), query).into());
-        let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
+        let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("ohlcv".into()));
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timeframe".to_string(), timeframe);
                 m.insert("candleType".to_string(), candleType);
                 m.insert("limit".to_string(), limit.clone());
-                m.insert("messageHash".to_string(), messageHash.clone());
+                m.insert("messageHash".to_string(), messageHash);
             m
         })]).await;
         if is_true(&self.newUpdates) {
@@ -1287,7 +1287,7 @@ impl ExtendedCore {
             return;
         }
         add_element_to_object(&mut subscription, &Value::Str("nonce".into()), nonce);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_336: bool = true;
@@ -1296,7 +1296,7 @@ impl ExtendedCore {
             stored.append(parsed);
         }
         }
-        client.resolve(&[stored.clone(), messageHash.clone()]);
+        client.resolve(&[stored, messageHash]);
 }
 
     pub fn find_subscription(&self, mut client: Value, mut name: Value) -> Value {
@@ -1378,7 +1378,7 @@ impl ExtendedCore {
             }  else if (in_op(&data, &Value::Str("f".into()))) {
                 self.handle_funding_rate(client.clone(), message.clone());
             }  else if !isAccountUpdate {
-                self.handle_order_book(client.clone(), message.clone());
+                self.handle_order_book(client, message);
             }
         }
 }

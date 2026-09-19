@@ -1273,7 +1273,7 @@ impl GeminiCore {
         if (type_var.as_str() == Some("update")) {
             let mut ts: Value = self.safe_integer_k(message.clone(), "timestampms", &[self.milliseconds()]);
             let mut eventId: Value = self.safe_integer_k(message.clone(), "eventId", &[]);
-            let mut events: Value = self.safe_list_k(message.clone(), "events", &[]);
+            let mut events: Value = self.safe_list_k(message, "events", &[]);
             if (events == Value::Null) {
                 return;
             }
@@ -1309,7 +1309,7 @@ impl GeminiCore {
             }
             let mut lengthTrades: f64 = ((collectedEventsOfTrades.len() as i64) as f64);
             if lengthTrades > ((0i64) as f64) {
-                self.handle_trades_for_multidata(client.clone(), collectedEventsOfTrades, ts);
+                self.handle_trades_for_multidata(client, collectedEventsOfTrades, ts);
             }
         }
 }

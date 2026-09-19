@@ -2506,7 +2506,7 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
-        m.insert("direction".to_string(), direction.clone());
+        m.insert("direction".to_string(), direction);
         m.insert("account".to_string(), self.safe_string_k(sender, "address", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(recipient, "address", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(item, "transactionHash", &[]));
@@ -2627,7 +2627,7 @@ impl DydxCore {
         }
         let mut feeObj: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), feeAmount.clone());
+                m.insert("amount".to_string(), feeAmount);
                 m.insert("denom".to_string(), denom);
             m
         });
@@ -2783,7 +2783,7 @@ impl DydxCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer);
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), code);
@@ -2873,7 +2873,7 @@ impl DydxCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -3411,7 +3411,7 @@ impl DydxCore {
             let mut errorCodeNum: Value = self.parse_to_numeric(errorCode.clone());
             if errorCodeNum.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }

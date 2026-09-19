@@ -1542,10 +1542,10 @@ impl MercadoCore {
             let mut nonce: Value = self.nonce();
             let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tapi_method".to_string(), path.clone());
+                    m.insert("tapi_method".to_string(), path);
                     m.insert("tapi_nonce".to_string(), nonce);
                 m
-            }), &[params.clone()]);
+            }), &[params]);
             body = self.urlencode(__ws_arg_16, &[]);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), body).into());
             headers = Value::Map({
@@ -1558,7 +1558,7 @@ impl MercadoCore {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), body);
         m.insert("headers".to_string(), headers);

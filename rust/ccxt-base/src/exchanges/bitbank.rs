@@ -1591,7 +1591,7 @@ impl BitbankCore {
             }  else {
                 auth = nonce.clone();
             }
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()), self.implode_params(path.clone(), params)).into())).into());
             if (method.as_str() == Some("POST")) {
                 body = json_stringify(&query);
                 auth = add(&auth, &body);
@@ -1619,7 +1619,7 @@ impl BitbankCore {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), body);
         m.insert("headers".to_string(), headers);
@@ -1700,9 +1700,9 @@ impl BitbankCore {
                     m.insert("70010".to_string(), Value::Str("We are temporarily raising the minimum order quantity as the system load is now rising.".into()));
                 m
             });
-            let mut code: Value = self.safe_string_k(data.clone(), "code", &[]);
-            let mut message: Value = self.safe_string(errorMessages.clone(), code.clone(), &[Value::Str("Error".into())]);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), message.clone());
+            let mut code: Value = self.safe_string_k(data, "code", &[]);
+            let mut message: Value = self.safe_string(errorMessages, code.clone(), &[Value::Str("Error".into())]);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code, message);
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
         }
         return Value::Null;

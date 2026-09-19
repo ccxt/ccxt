@@ -1877,7 +1877,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
@@ -1887,7 +1887,7 @@ impl WooCore {
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("type".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), trade);
     m
 }), &[market]);
 
@@ -2501,19 +2501,19 @@ impl WooCore {
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (isPriceProvided || (cost != Value::Null)) {
                 let mut quoteAmount: Value = Value::Null;
                 if (cost != Value::Null) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), cost.clone());
+                    quoteAmount = self.cost_to_precision(symbol.clone(), cost);
                 }  else {
                     let mut amountString: Value = self.number_to_string(amount.clone());
-                    let mut priceString: Value = self.number_to_string(price.clone());
+                    let mut priceString: Value = self.number_to_string(price);
                     let mut costRequest: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.clone());
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest);
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), quoteAmount.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), quoteAmount); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
         }
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId != Value::Null) {
@@ -2554,27 +2554,27 @@ impl WooCore {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), closeSide.clone());
                         m.insert("algoType".to_string(), Value::Str("STOP_LOSS".into()));
-                        m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
+                        m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
                 });
-                append_to_array(&mut childOrders, stopLossOrder.clone());
+                append_to_array(&mut childOrders, stopLossOrder);
             }
             if hasTakeProfit {
                 let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[takeProfit.clone()]);
                 let mut takeProfitOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), closeSide.clone());
+                        m.insert("side".to_string(), closeSide);
                         m.insert("algoType".to_string(), Value::Str("TAKE_PROFIT".into()));
-                        m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
+                        m.insert("triggerPrice".to_string(), self.price_to_precision(symbol, takeProfitPrice));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
                 });
-                append_to_array(&mut childOrders, takeProfitOrder.clone());
+                append_to_array(&mut childOrders, takeProfitOrder);
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("childOrders".to_string(), Value::from(vec![outterOrder.clone()])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("childOrders".to_string(), Value::from(vec![outterOrder])); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]);
         let mut response: Value = Value::Null;
@@ -2582,7 +2582,7 @@ impl WooCore {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.v3_private_post_trade_algo_order(&[__ws_arg_2]).await;
         }  else {
-            let __ws_arg_3 = self.extend(request.clone(), &[params]);
+            let __ws_arg_3 = self.extend(request, &[params]);
             response = self.v3_private_post_trade_order(&[__ws_arg_3]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -2591,7 +2591,7 @@ impl WooCore {
 })]);
         data = self.safe_dict(self.safe_list_k(data.clone(), "rows", &[]), Value::Int(0), &[data.clone()]);
         add_element_to_object(&mut data, &Value::Str("timestamp".into()), self.safe_string_k(response, "timestamp", &[]));
-        return self.parse_order(data, &[market.clone()]);
+        return self.parse_order(data, &[market]);
 
     Value::Null
 }
@@ -2650,7 +2650,7 @@ impl WooCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if (amount != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
         }
         let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified]);
@@ -2659,7 +2659,7 @@ impl WooCore {
         if (triggerPrice != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
-        let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price.clone())]);
+        let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price)]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
         let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
@@ -2667,7 +2667,7 @@ impl WooCore {
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         if isTrailing {
             if (trailingTriggerPrice != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("activatedPrice".to_string(), self.price_to_precision(symbol.clone(), trailingTriggerPrice)); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("activatedPrice".to_string(), self.price_to_precision(symbol, trailingTriggerPrice)); }
             }
             if isTrailingAmountOrder {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("callbackValue".to_string(), trailingAmount); }
@@ -2714,9 +2714,9 @@ impl WooCore {
         if isByClientOrder {
             add_element_to_object(&mut order, &Value::Str("clientOrderId".into()), clientOrderIdExchangeSpecific);
         }  else {
-            add_element_to_object(&mut order, &Value::Str("orderId".into()), id.clone());
+            add_element_to_object(&mut order, &Value::Str("orderId".into()), id);
         }
-        return self.parse_order(order, &[market.clone()]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }
@@ -2749,7 +2749,7 @@ impl WooCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2795,9 +2795,9 @@ impl WooCore {
         if isByClientOrder {
             add_element_to_object(&mut data, &Value::Str("clientOrderId".into()), clientOrderIdExchangeSpecific);
         }  else {
-            add_element_to_object(&mut data, &Value::Str("orderId".into()), id.clone());
+            add_element_to_object(&mut data, &Value::Str("orderId".into()), id);
         }
-        return self.parse_order(data, &[market.clone()]);
+        return self.parse_order(data, &[market]);
 
     Value::Null
 }
@@ -2829,7 +2829,7 @@ impl WooCore {
             m
         });
         if (symbol != Value::Null) {
-            let mut market: Value = self.market(symbol.clone());
+            let mut market: Value = self.market(symbol);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let mut response: Value = Value::Null;
@@ -2936,7 +2936,7 @@ impl WooCore {
             if (clientOrderId != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOrderId".to_string(), clientOrderId); }
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id); }
             }
             let __ws_arg_11 = self.extend(request, &[params]);
             response = self.v3_private_get_trade_order(&[__ws_arg_11]).await;
@@ -2945,7 +2945,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[market.clone()]);
+        return self.parse_order(data, &[market]);
 
     Value::Null
 }
@@ -2990,7 +2990,7 @@ impl WooCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
@@ -3017,7 +3017,7 @@ impl WooCore {
     m
 })]);
         let mut orders: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market.clone(), since, limit]);
+        return self.parse_orders(orders, &[market, since, limit]);
 
     Value::Null
 }
@@ -3055,7 +3055,7 @@ impl WooCore {
                 m.insert("status".to_string(), Value::Str("INCOMPLETE".into()));
             m
         })]);
-        return self.fetch_orders(&[symbol.clone(), since, limit, extendedParams]).await;
+        return self.fetch_orders(&[symbol, since, limit, extendedParams]).await;
 
     Value::Null
 }
@@ -3093,7 +3093,7 @@ impl WooCore {
                 m.insert("status".to_string(), Value::Str("COMPLETED".into()));
             m
         })]);
-        return self.fetch_orders(&[symbol.clone(), since, limit, extendedParams]).await;
+        return self.fetch_orders(&[symbol, since, limit, extendedParams]).await;
 
     Value::Null
 }
@@ -3241,25 +3241,25 @@ impl WooCore {
         m.insert("id".to_string(), orderId);
         m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp.clone());
+        m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
         m.insert("status".to_string(), self.parse_order_status(status));
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), orderType.clone());
         m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price.clone());
+        m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("average".to_string(), average);
-        m.insert("amount".to_string(), amount.clone());
+        m.insert("amount".to_string(), amount);
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("cost".to_string(), cost.clone());
+        m.insert("cost".to_string(), cost);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3267,9 +3267,9 @@ impl WooCore {
         m.insert("currency".to_string(), feeCurrency);
     m
 }));
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), order);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -3353,7 +3353,7 @@ impl WooCore {
     m
 })]);
         let mut timestamp: Value = self.safe_integer_k(response, "timestamp", &[]);
-        return self.parse_order_book(data, symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        return self.parse_order_book(data, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
 
     Value::Null
 }
@@ -3384,7 +3384,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "24hHigh", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "24hLow", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -3405,7 +3405,7 @@ impl WooCore {
         m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "markPrice", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -3478,7 +3478,7 @@ impl WooCore {
                 m.insert("timestamp".to_string(), __ws_arg_16);
             m
         }), &[first]);
-        return self.parse_ticker(ticker, &[market.clone()]);
+        return self.parse_ticker(ticker, &[market]);
 
     Value::Null
 }
@@ -3583,7 +3583,7 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3630,7 +3630,7 @@ impl WooCore {
     m
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(rows, &[market.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(rows, &[market, timeframe, since, limit]);
 
     Value::Null
 }
@@ -3667,11 +3667,11 @@ impl WooCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("oid".to_string(), id.clone());
+                m.insert("oid".to_string(), id);
             m
         });
         let __ws_arg_18 = self.extend(request, &[params.clone()]);
@@ -3695,7 +3695,7 @@ impl WooCore {
         //     ]
         // }
         let mut trades: Value = self.safe_list_k(response, "rows", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market.clone(), since, limit, params]);
+        return self.parse_trades(trades, &[market, since, limit, params]);
 
     Value::Null
 }
@@ -3734,7 +3734,7 @@ impl WooCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
@@ -3784,7 +3784,7 @@ impl WooCore {
     m
 })]);
         let mut trades: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market.clone(), since, limit, params]);
+        return self.parse_trades(trades, &[market, since, limit, params]);
 
     Value::Null
 }
@@ -3999,7 +3999,7 @@ impl WooCore {
 })]);
         let __ws_arg_21 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), self.safe_string_k(request.clone(), "network", &[]));
+        m.insert("network".to_string(), self.safe_string_k(request, "network", &[]));
     m
 })]);
         return self.parse_deposit_address(__ws_arg_21, &[currency]);
@@ -4190,12 +4190,12 @@ impl WooCore {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "txId", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])));
-        m.insert("amount".to_string(), amount.clone());
+        m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("direction".to_string(), direction);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "type", &[])));
         m.insert("fee".to_string(), fee);
     m
@@ -4368,7 +4368,7 @@ impl WooCore {
         m.insert("id".to_string(), self.safe_string_n(transaction.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("withdraw_id".into()), Value::Str("withdrawId".into())]), &[]));
         m.insert("txid".to_string(), self.safe_string2(transaction.clone(), Value::Str("tx_id".into()), Value::Str("txId".into()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), addressFrom);
         m.insert("addressTo".to_string(), addressTo);
@@ -4464,7 +4464,7 @@ impl WooCore {
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
-            add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount.clone());
+            add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount);
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
             add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
         }
@@ -4613,7 +4613,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(fromAccount, "applicationId", &[]));
@@ -4666,7 +4666,7 @@ impl WooCore {
         params = self.omit(params.clone(), Value::Str("network".into()), &[]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("token".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".to_string(), self.network_code_to_id(network.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }
-        let __ws_arg_28 = self.extend(request.clone(), &[params]);
+        let __ws_arg_28 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_28]).await;
         //
         //     {
@@ -4685,7 +4685,7 @@ impl WooCore {
                 m.insert("id".to_string(), __ws_arg_29);
                 m.insert("timestamp".to_string(), __ws_arg_30);
                 m.insert("currency".to_string(), code);
-                m.insert("amount".to_string(), amount.clone());
+                m.insert("amount".to_string(), amount);
                 m.insert("addressTo".to_string(), address);
                 m.insert("tag".to_string(), tag);
                 m.insert("network".to_string(), network);
@@ -4740,8 +4740,8 @@ impl WooCore {
         let mut transaction: Value = self.parse_margin_loan(response, &[currency]);
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("amount".to_string(), amount);
+        m.insert("symbol".to_string(), symbol);
     m
 })]);
 
@@ -4803,12 +4803,12 @@ impl WooCore {
                 let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
                 if (isSandboxMode.as_bool() != Some(true)) {
                     let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".into());
-                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId.clone()]);
+                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId]);
                     let mut isTrigger: bool = get_index_of(&path, &Value::Str("algo".into())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
                     if isTrigger {
                         add_element_to_object(&mut params, &Value::Str("brokerId".into()), brokerId.clone());
                     }  else {
-                        add_element_to_object(&mut params, &Value::Str("broker_id".into()), brokerId.clone());
+                        add_element_to_object(&mut params, &Value::Str("broker_id".into()), brokerId);
                     }
                 }
                 params = self.keysort(params.clone(), &[]);
@@ -4847,14 +4847,14 @@ impl WooCore {
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("|".into()), ts).into())).into());
                 add_element_to_object(&mut headers, &Value::Str("content-type".into()), Value::Str("application/x-www-form-urlencoded".into()));
             }
-            add_element_to_object(&mut headers, &Value::Str("x-api-signature".into()), self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            add_element_to_object(&mut headers, &Value::Str("x-api-signature".into()), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 
@@ -4873,7 +4873,7 @@ impl WooCore {
         let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
         if (success.as_bool() != Some(true)) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback);
         }
         return Value::Null;
@@ -4898,7 +4898,7 @@ impl WooCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(income.clone(), "symbol", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         let mut amount: Value = self.safe_string_k(income.clone(), "fundingFee", &[]);
         let mut code: Value = self.safe_currency_code(Value::Str("USD".into()), &[]);
         let mut id: Value = self.safe_string_k(income.clone(), "id", &[]);
@@ -4909,11 +4909,11 @@ impl WooCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income);
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("code".to_string(), code);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("id".to_string(), id.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("id".to_string(), id);
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("rate".to_string(), rate);
     m
@@ -4956,7 +4956,7 @@ impl WooCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
@@ -4970,7 +4970,7 @@ impl WooCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
-        let __ws_arg_32 = self.extend(request, &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_32]).await;
         //
         //     {
@@ -5004,7 +5004,7 @@ impl WooCore {
     m
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_incomes(rows, &[market.clone(), since, limit]);
+        return self.parse_incomes(rows, &[market, since, limit]);
 
     Value::Null
 }
@@ -5032,7 +5032,7 @@ impl WooCore {
         //     }
         //
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[]);
-        market = self.market(symbol.clone());
+        market = self.market(symbol);
         let mut nextFundingTimestamp: Value = self.safe_integer2(fundingRate.clone(), Value::Str("nextFundingTime".into()), Value::Str("fundingTs".into()), &[]);
         let mut estFundingRateTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "estFundingRateTimestamp", &[]);
         let mut lastFundingRateTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "lastFundingRateTimestamp", &[]);
@@ -5081,7 +5081,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_funding_rate(symbol.clone(), &[params.clone()]).await;
+        return self.fetch_funding_rate(symbol, &[params]).await;
 
     Value::Null
 }
@@ -5103,13 +5103,13 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_33 = self.extend(request, &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params]);
         let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_33]).await;
         //
         //     {
@@ -5140,7 +5140,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_funding_rate(first, &[market.clone()]);
+        return self.parse_funding_rate(first, &[market]);
 
     Value::Null
 }
@@ -5164,7 +5164,7 @@ impl WooCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.v3_public_get_funding_rate(&[params.clone()]).await;
+        let mut response: Value = self.v3_public_get_funding_rate(&[params]).await;
         //
         //     {
         //         "success": true,
@@ -5238,7 +5238,7 @@ impl WooCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_34 = self.extend(request, &[params.clone()]);
+        let __ws_arg_34 = self.extend(request, &[params]);
         let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_34]).await;
         //
         //     {
@@ -5281,13 +5281,13 @@ impl WooCore {
                     m.insert("symbol".to_string(), self.safe_symbol(marketId, &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
-                    m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.clone(), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
 
     Value::Null
 }
@@ -5319,7 +5319,7 @@ impl WooCore {
                 m.insert("positionMode".to_string(), hedgeMode);
             m
         });
-        let __ws_arg_35 = self.extend(request, &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_35]).await;
         return response;
 
@@ -5346,7 +5346,7 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             response = self.v3_private_get_account_info(&[params.clone()]).await;
@@ -5358,17 +5358,17 @@ impl WooCore {
             });
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params.clone(), Value::Str("cross".into())]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".to_string(), self.encode_margin_mode(marginMode.clone())); }
-            let __ws_arg_36 = self.extend(request, &[params.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".to_string(), self.encode_margin_mode(marginMode)); }
+            let __ws_arg_36 = self.extend(request, &[params]);
             response = self.v3_private_get_futures_leverage(&[__ws_arg_36]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_leverage(data, &[market.clone()]);
+        return self.parse_leverage(data, &[market]);
 
     Value::Null
 }
@@ -5409,7 +5409,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("marginMode".to_string(), marginMode.clone());
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("longLeverage".to_string(), longLeverage);
         m.insert("shortLeverage".to_string(), shortLeverage);
     m
@@ -5456,11 +5456,11 @@ impl WooCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[])); }
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params.clone(), Value::Str("cross".into())]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".to_string(), self.encode_margin_mode(marginMode.clone())); }
-            let __ws_arg_38 = self.extend(request, &[params.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".to_string(), self.encode_margin_mode(marginMode)); }
+            let __ws_arg_38 = self.extend(request, &[params]);
             return self.v3_private_put_futures_leverage(&[__ws_arg_38]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), self.safe_string_k(market.clone(), "type", &[])).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), self.safe_string_k(market, "type", &[])).into()), Value::Str(" markets".into()))));
         }
 
     Value::Null
@@ -5482,7 +5482,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("ADD".into()), &[params.clone()]).await;
+        return self.modify_margin_helper(symbol, amount, Value::Str("ADD".into()), &[params]).await;
 
     Value::Null
 }
@@ -5503,7 +5503,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("REDUCE".into()), &[params.clone()]).await;
+        return self.modify_margin_helper(symbol, amount, Value::Str("REDUCE".into()), &[params]).await;
 
     Value::Null
 }
@@ -5516,16 +5516,16 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("adjust_token".to_string(), Value::Str("USDT".into()));
-                m.insert("adjust_amount".to_string(), amount.clone());
+                m.insert("adjust_amount".to_string(), amount);
                 m.insert("action".to_string(), type_var);
             m
         });
-        let __ws_arg_39 = self.extend(request, &[params.clone()]);
+        let __ws_arg_39 = self.extend(request, &[params]);
         return self.v1_private_post_client_isolated_margin(&[__ws_arg_39]).await;
 
     Value::Null
@@ -5548,13 +5548,13 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_40 = self.extend(request, &[params.clone()]);
+        let __ws_arg_40 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_40]).await;
         //
         //     {
@@ -5587,7 +5587,7 @@ impl WooCore {
         //         "timestamp": 1752500579848
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5596,7 +5596,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_position(first, &[market.clone()]);
+        return self.parse_position(first, &[market]);
 
     Value::Null
 }
@@ -5631,7 +5631,7 @@ impl WooCore {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        let __ws_arg_41 = self.extend(request, &[params.clone()]);
+        let __ws_arg_41 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_41]).await;
         //
         //     {
@@ -5664,7 +5664,7 @@ impl WooCore {
         //         "timestamp": 1752500579848
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5754,9 +5754,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -5773,7 +5773,7 @@ impl WooCore {
         m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), self.safe_string_lower2(position.clone(), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower2(position, Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]));
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Bool(positionSide.as_deref() != Some("BOTH")));
@@ -5809,10 +5809,10 @@ impl WooCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("sellToken".to_string(), to_upper(&fromCode));
                 m.insert("buyToken".to_string(), to_upper(&toCode));
-                m.insert("sellQuantity".to_string(), self.number_to_string(amount.clone()));
+                m.insert("sellQuantity".to_string(), self.number_to_string(amount));
             m
         });
-        let __ws_arg_42 = self.extend(request, &[params.clone()]);
+        let __ws_arg_42 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_42]).await;
         //
         //     {
@@ -5830,7 +5830,7 @@ impl WooCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5866,10 +5866,10 @@ impl WooCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("quoteId".to_string(), id.clone());
+                m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_43 = self.extend(request, &[params.clone()]);
+        let __ws_arg_43 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_43]).await;
         //
         //     {
@@ -5881,7 +5881,7 @@ impl WooCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5911,10 +5911,10 @@ impl WooCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("quoteId".to_string(), id.clone());
+                m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_44 = self.extend(request, &[params.clone()]);
+        let __ws_arg_44 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_44]).await;
         //
         //     {
@@ -5930,7 +5930,7 @@ impl WooCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5983,7 +5983,7 @@ impl WooCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".to_string(), limit.clone()); }
         }
-        let __ws_arg_45 = self.extend(request, &[params.clone()]);
+        let __ws_arg_45 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_45]).await;
         //
         //     {
@@ -6005,7 +6005,7 @@ impl WooCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6062,7 +6062,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(conversion.clone(), "quoteId", &[]));
         m.insert("fromCurrency".to_string(), fromCode);
         m.insert("fromAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("sellQuantity".into()), Value::Str("sellAmount".into()), &[]));
@@ -6092,7 +6092,7 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.v3_private_get_convert_asset_info(&[params.clone()]).await;
+        let mut response: Value = self.v3_private_get_convert_asset_info(&[params]).await;
         //
         //     {
         //         "success": true,
@@ -6110,7 +6110,7 @@ impl WooCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_list_k(response.clone(), "rows", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "rows", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1133: bool = true;
@@ -6122,7 +6122,7 @@ impl WooCore {
                 add_element_to_object(&mut result, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("code".to_string(), code.clone());
         m.insert("networks".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
@@ -6195,7 +6195,7 @@ impl WooCore {
                 if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        let __ws_arg_46 = self.extend(request, &[params.clone()]);
+        let __ws_arg_46 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_46]).await;
         //
         //     {
@@ -6228,7 +6228,7 @@ impl WooCore {
         //         "timestamp": 1768049428472
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6270,12 +6270,12 @@ impl WooCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone(), Value::Null, Value::Str("contract".into())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market, Value::Null, Value::Str("contract".into())]));
         m.insert("rank".to_string(), self.safe_number_k(info, "adlQuantile", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
