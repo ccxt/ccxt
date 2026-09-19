@@ -1310,7 +1310,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, String type, String side, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, Object type, Object side, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {

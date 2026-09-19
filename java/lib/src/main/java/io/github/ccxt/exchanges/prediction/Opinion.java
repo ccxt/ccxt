@@ -1491,7 +1491,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(String id, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
