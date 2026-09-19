@@ -1021,7 +1021,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 			marketIds = append(marketIds, GetValue(allMarketIds, i))
 		}
 	}
-	if EvalTruthy(this.SafeBool(options, "fetchDetailsForAllSymbols", false)) {
+	if this.SafeBool(options, "fetchDetailsForAllSymbols", false) != nil && *this.SafeBool(options, "fetchDetailsForAllSymbols", false) {
 		var promises []any = []any{}
 		for i := 0; i < len(marketIds); i++ {
 			var marketId any = GetValue(marketIds, i)

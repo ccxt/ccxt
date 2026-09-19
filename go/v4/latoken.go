@@ -542,7 +542,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	if EvalTruthy(this.SafeBool(this.Options, "adjustForTimeDifference", false)) {
+	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		retRes41112 := (<-this.LoadTimeDifferenceAsync())
 		PanicOnError(retRes41112)

@@ -2908,7 +2908,7 @@ func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var url any = this.SafeValue(api, typeVar)
 	if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
 		return func() any {
-			if ccxt.EvalTruthy(isInverse) {
+			if isInverse == true {
 				return ccxt.GetValue(url, "btc")
 			}
 			return ccxt.GetValue(url, "usdt")
@@ -3124,7 +3124,7 @@ func (this *Gate) subscribePrivateBody(ch chan any, url any, messageHash any, pa
 	_ = requiresUid
 	this.CheckRequiredCredentials()
 	// uid is required for some subscriptions only so it's not a part of required credentials
-	if ccxt.EvalTruthy(requiresUid) {
+	if requiresUid == true {
 		if ccxt.IsEqual(this.Uid, nil) || (ccxt.GetLength(this.Uid) == 0) {
 			panic(ccxt.ArgumentsRequired(this.Id + " requires uid to subscribe"))
 		}

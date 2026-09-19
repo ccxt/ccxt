@@ -3010,7 +3010,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
-			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+			if createMarketBuyOrderRequiresPrice == true {
 				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
@@ -3220,7 +3220,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		} else if isStopLossOrTakeProfitTrigger {
 			panic(NotSupported(this.Id + " createOrders() does not support stopLossPrice or takeProfitPrice orders"))
 		} else {
-			if EvalTruthy(reduceOnly) {
+			if reduceOnly == true {
 				panic(NotSupported(this.Id + " createOrders() does not support reduceOnly orders"))
 			} else {
 
@@ -5346,7 +5346,7 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes506519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
 		PanicOnError(retRes506519)

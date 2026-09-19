@@ -917,7 +917,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var rpiparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "rpi", false)
 	rpi = ccxt.GetValue(rpiparamsVariable, 0)
 	params = ccxt.GetValue(rpiparamsVariable, 1)
-	if ccxt.EvalTruthy(rpi) && (ccxt.IsEqual(typeVar, "future")) {
+	if (rpi == true) && (ccxt.IsEqual(typeVar, "future")) {
 		name = "rpiDepth"
 		watchOrderBookRate = "500"
 	}
@@ -1300,7 +1300,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 	// unique, so the swap hint resolves those correctly too)
 	var isSpot any = this.IsSpotUrl(client)
 	var marketType string = func() string {
-		if ccxt.EvalTruthy(isSpot) {
+		if isSpot == true {
 			return "spot"
 		}
 		return "swap"
@@ -1369,7 +1369,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 							// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
 							conditional = (ccxt.IsEqual((ccxt.Subtract(U, 1)), nonce))
 						}
-						if ccxt.EvalTruthy(conditional) {
+						if conditional == true {
 							this.HandleOrderBookMessage(client, message, orderbook)
 							if ccxt.IsLessThan(nonce, this.SafeInteger(orderbook, "nonce", 0)) {
 								client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -1948,7 +1948,7 @@ func (this *Binance) HandleTrade(client any, message any) {
 	// BTCUSDT maps to both the spot and the linear swap market
 	var isSpot any = this.IsSpotUrl(client)
 	var marketType string = func() string {
-		if ccxt.EvalTruthy(isSpot) {
+		if isSpot == true {
 			return "spot"
 		}
 		return "contract"
@@ -2065,7 +2065,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "watchOHLCVForSymbols", "stock", false)
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
-	if ccxt.EvalTruthy(stock) {
+	if stock == true {
 		var stockStreams []any = []any{}
 		var stockMessageHashes []any = []any{}
 		for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
@@ -2376,7 +2376,7 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	// BTCUSDT maps to both the spot and the linear swap market
 	var isSpot any = this.IsSpotUrl(client)
 	var marketType string = func() string {
-		if ccxt.EvalTruthy(isSpot) {
+		if isSpot == true {
 			return "spot"
 		}
 		return "contract"
@@ -2730,7 +2730,7 @@ func (this *Binance) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "stock", false)
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
-	if ccxt.EvalTruthy(stock) {
+	if stock == true {
 		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() with stock stream requires symbols"))
 		}
@@ -2964,7 +2964,7 @@ func (this *Binance) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "watchBidsAsks", "stock", false)
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
-	if ccxt.EvalTruthy(stock) {
+	if stock == true {
 		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks() with stock stream requires symbols"))
 		}
@@ -3097,7 +3097,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 			var symbol any = ccxt.GetValue(symbols, i)
 			var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(unifiedPrefix, ":"), channelName), "@"), symbol))
-			if ccxt.EvalTruthy(isUnsubscribe) {
+			if isUnsubscribe == true {
 				unsubscribeMessageHashes = append(unsubscribeMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::", unifiedPrefix), ":"), channelName), "@"), symbol))
 			}
 			if isOptionMarkPrice {
@@ -3172,7 +3172,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	var requestId any = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": func() string {
-			if ccxt.EvalTruthy(isUnsubscribe) {
+			if isUnsubscribe == true {
 				return "UNSUBSCRIBE"
 			}
 			return "SUBSCRIBE"
@@ -3184,7 +3184,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	var subscription map[string]any = map[string]any{
 		"id": requestId,
 	}
-	if ccxt.EvalTruthy(isUnsubscribe) {
+	if isUnsubscribe == true {
 		subscription = map[string]any{
 			"unsubscribe":      true,
 			"id":               ccxt.ToString(requestId),
@@ -3198,13 +3198,13 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	// for option mark prices, the underlying stream delivers all contracts in one array message
 	// wait on the batch hash so the resolved value is the full dict of new tickers
 	var waitHashes []any = hashes
-	if isOptionMarkPrice && !ccxt.EvalTruthy(isUnsubscribe) {
+	if isOptionMarkPrice && !(isUnsubscribe == true) {
 		waitHashes = []any{ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName)}
 	}
 
 	result := (<-this.WatchMultiple(url, waitHashes, this.DeepExtend(request, params), hashes, subscription))
 	ccxt.PanicOnError(result)
-	if ccxt.EvalTruthy(isUnsubscribe) {
+	if isUnsubscribe == true {
 
 		ch <- result
 		return nil
@@ -3491,7 +3491,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 		}()
 		var isSpot any = this.IsSpotUrl(client)
 		var tickerFallbackType string = func() string {
-			if ccxt.EvalTruthy(isSpot) {
+			if isSpot == true {
 				return "spot"
 			}
 			return "contract"
@@ -3932,7 +3932,7 @@ func (this *Binance) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 					response = (<-this.SapiPostEquityListenKey(requestParams))
 					ccxt.PanicOnError(response)
-				} else if ccxt.EvalTruthy(isPortfolioMargin) {
+				} else if isPortfolioMargin == true {
 
 					response = (<-this.PapiPostListenKey(params))
 					ccxt.PanicOnError(response)
@@ -4052,7 +4052,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 							url = this.GetStockWsUrl("user")
 						} else {
 							var urlType any = typeVar
-							if ccxt.EvalTruthy(isPortfolioMargin) {
+							if isPortfolioMargin == true {
 								urlType = "papi"
 							}
 							if ccxt.IsEqual(typeVar, "option") {
@@ -4085,7 +4085,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 
 				retRes314316 := (<-this.SapiPostEquityListenKey(requestParams))
 				ccxt.PanicOnError(retRes314316)
-			} else if ccxt.EvalTruthy(isPortfolioMargin) {
+			} else if isPortfolioMargin == true {
 
 				retRes314516 := (<-this.PapiPutListenKey(this.Extend(request, params)))
 				ccxt.PanicOnError(retRes314516)
@@ -4528,7 +4528,7 @@ func (this *Binance) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		// route to WebSocket API connection where the user data stream is subscribed
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
 	} else {
-		if ccxt.EvalTruthy(isPortfolioMargin) {
+		if isPortfolioMargin == true {
 			urlType = "papi"
 		} else if ccxt.IsEqual(typeVar, "option") {
 			var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
@@ -5544,7 +5544,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "stock", false)
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
-	if ccxt.EvalTruthy(stock) {
+	if stock == true {
 		// literal on top: a stray type in the caller params must not override
 		// the forced stock, the removed authenticateStock ignored it entirely
 
@@ -5621,7 +5621,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		// route orders to ws-api user data stream
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
 	} else {
-		if ccxt.EvalTruthy(isPortfolioMargin) {
+		if isPortfolioMargin == true {
 			urlType = "papi"
 		} else if ccxt.IsEqual(typeVar, "option") {
 			var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
@@ -6278,7 +6278,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
 	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
 	var urlType any = typeVar
-	if ccxt.EvalTruthy(isPortfolioMargin) {
+	if isPortfolioMargin == true {
 		urlType = "papi"
 	} else if ccxt.IsEqual(typeVar, "option") {
 		var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
@@ -6818,7 +6818,7 @@ func (this *Binance) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if (ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin")) {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
 	} else {
-		if ccxt.EvalTruthy(isPortfolioMargin) {
+		if isPortfolioMargin == true {
 			urlType = "papi"
 		} else if ccxt.IsEqual(typeVar, "option") {
 			var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)

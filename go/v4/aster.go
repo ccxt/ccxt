@@ -4929,7 +4929,7 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 		var maintenanceMargin *string = this.SafeString(position, "maintMargin")
 		// check for maintenance margin so empty positions are not returned
 		var isPositionOpen bool = (maintenanceMargin == nil || *maintenanceMargin != "0") && (maintenanceMargin == nil || *maintenanceMargin != "0.00000000")
-		if !EvalTruthy(filterClosed) || isPositionOpen {
+		if !(filterClosed == true) || isPositionOpen {
 			// sometimes not all the codes are correctly returned...
 			if InOp(balances, code) {
 				var parsed any = this.ParseAccountPosition(this.Extend(position, map[string]any{
@@ -5192,7 +5192,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
-	if (IsEqual(leverageBrackets, nil)) || EvalTruthy((reload)) {
+	if (IsEqual(leverageBrackets, nil)) || (reload == true) {
 
 		response := (<-this.FapiPrivateGetV3LeverageBracket(params))
 		PanicOnError(response)

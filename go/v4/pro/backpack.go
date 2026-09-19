@@ -84,7 +84,7 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var method string = func() string {
-		if ccxt.EvalTruthy(unwatch) {
+		if unwatch == true {
 			return "UNSUBSCRIBE"
 		}
 		return "SUBSCRIBE"
@@ -94,7 +94,7 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 		"params": topics,
 	}
 	var message map[string]any = this.DeepExtend(request, params)
-	if ccxt.EvalTruthy(unwatch) {
+	if unwatch == true {
 		this.HandleUnsubscriptions(url, messageHashes, message)
 
 		return nil
@@ -122,7 +122,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	var instruction string = "subscribe"
 	var ts string = ccxt.ToString(this.Nonce())
 	var method string = func() string {
-		if ccxt.EvalTruthy(unwatch) {
+		if unwatch == true {
 			return "UNSUBSCRIBE"
 		}
 		return "SUBSCRIBE"
@@ -138,7 +138,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 		"signature": []any{this.ApiKey, signature, ts, recvWindow},
 	}
 	var message map[string]any = this.DeepExtend(request, params)
-	if ccxt.EvalTruthy(unwatch) {
+	if unwatch == true {
 		this.HandleUnsubscriptions(url, messageHashes, message)
 
 		return nil

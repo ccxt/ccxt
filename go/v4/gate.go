@@ -2836,7 +2836,7 @@ func (this *Gate) SpotOrderPrepareRequest(optionalArgs ...any) any {
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
-	if !EvalTruthy(trigger) {
+	if !(trigger == true) {
 		if market == nil {
 			panic(ArgumentsRequired(this.Id + " spotOrderPrepareRequest() requires a market argument for non-trigger orders"))
 		}
@@ -2869,7 +2869,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) any {
 		"account": marginMode,
 	}
 	if market != nil {
-		if EvalTruthy(trigger) {
+		if trigger == true {
 			// gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
 			request["market"] = GetValue(market, "id")
 		} else {
@@ -2911,7 +2911,7 @@ func (this *Gate) GetMarginMode(trigger any, params any) any {
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "getMarginMode", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
 	params = GetValue(isUnifiedAccountparamsVariable, 1)
-	if EvalTruthy(isUnifiedAccount) {
+	if isUnifiedAccount == true {
 		marginMode = "unified"
 	}
 	return []any{marginMode, params}
@@ -4428,7 +4428,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "currency_pair", market["id"])
 	}
 	var response any = nil
-	if EvalTruthy(isUnifiedAccount) {
+	if isUnifiedAccount == true {
 
 		response = (<-this.PrivateUnifiedGetAccounts(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4745,7 +4745,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes348219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
 		PanicOnError(retRes348219)
@@ -4903,7 +4903,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes357119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
 		PanicOnError(retRes357119)
@@ -5029,7 +5029,7 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes368319 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
 		PanicOnError(retRes368319)
@@ -5258,7 +5258,7 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes385219 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
 		PanicOnError(retRes385219)
@@ -5610,7 +5610,7 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes414919 := (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
 		PanicOnError(retRes414919)
@@ -5680,7 +5680,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes419019 := (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
 		PanicOnError(retRes419019)
@@ -6296,7 +6296,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				params = this.Omit(params, "cost")
 				if cost != nil {
 					quoteAmount = this.CostToPrecision(symbol, cost)
-				} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+				} else if createMarketBuyOrderRequiresPrice == true {
 					if price == nil {
 						panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 					} else {
@@ -6522,7 +6522,7 @@ func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, op
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "unifiedAccount")
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
 	params = GetValue(isUnifiedAccountparamsVariable, 1)
-	if EvalTruthy(isUnifiedAccount) {
+	if isUnifiedAccount == true {
 		account = "unified"
 	}
 	var isLimitOrder bool = (IsEqual(typeVar, "limit"))
@@ -7268,7 +7268,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes549019 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
 		PanicOnError(retRes549019)
@@ -7288,7 +7288,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var useHistoricalparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "historical", false)
 	useHistorical = GetValue(useHistoricalparamsVariable, 0)
 	params = GetValue(useHistoricalparamsVariable, 1)
-	if !EvalTruthy(useHistorical) && (((since == nil) && (until == nil)) || (typeVar == nil || *typeVar != "swap")) {
+	if !(useHistorical == true) && (((since == nil) && (until == nil)) || (typeVar == nil || *typeVar != "swap")) {
 
 		retRes550319 := (<-this.FetchOrdersByStatusAsync("finished", symbol, since, limit, params))
 		PanicOnError(retRes550319)
@@ -9033,7 +9033,7 @@ func (this *Gate) repayCrossMarginBody(ch chan any, code any, amount any, option
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
 	params = GetValue(isUnifiedAccountparamsVariable, 1)
 	var response any = nil
-	if EvalTruthy(isUnifiedAccount) {
+	if isUnifiedAccount == true {
 		request["type"] = "repay"
 
 		response = (<-this.PrivateUnifiedPostLoans(this.Extend(request, params)))
@@ -9152,7 +9152,7 @@ func (this *Gate) borrowCrossMarginBody(ch chan any, code any, amount any, optio
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
 	params = GetValue(isUnifiedAccountparamsVariable, 1)
 	var response any = nil
-	if EvalTruthy(isUnifiedAccount) {
+	if isUnifiedAccount == true {
 		request["type"] = "borrow"
 
 		response = (<-this.PrivateUnifiedPostLoans(this.Extend(request, params)))
@@ -9293,7 +9293,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if EvalTruthy(isUnifiedAccount) {
+	if isUnifiedAccount == true {
 
 		response = (<-this.PrivateUnifiedGetInterestRecords(this.Extend(request, params)))
 		PanicOnError(response)
@@ -9647,7 +9647,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes734619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
 		PanicOnError(retRes734619)
@@ -10053,7 +10053,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes767219 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))
 		PanicOnError(retRes767219)

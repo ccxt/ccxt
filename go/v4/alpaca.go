@@ -1126,7 +1126,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		//
 		var bars any = this.SafeDict(response, "bars", map[string]any{})
 		ohlcvs = this.SafeList(bars, marketId, []any{})
-		if EvalTruthy(paginate) {
+		if paginate == true {
 			// the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
 			var pageToken *string = this.SafeString(response, "next_page_token")
 			for i := 1; IsLessThan(i, paginationCalls); i++ {
@@ -2394,7 +2394,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 	}
-	var sandboxMode bool = this.IsSandboxModeEnabled || EvalTruthy(this.SafeBool(this.Options, "sandboxMode", false))
+	var sandboxMode bool = this.IsSandboxModeEnabled || (this.SafeBool(this.Options, "sandboxMode", false) != nil && *this.SafeBool(this.Options, "sandboxMode", false))
 	if sandboxMode == true {
 		// paper-trading hosts do not serve the crypto wallets api at all, so route
 		// through the account activities ledger instead, filtered to transfer-like

@@ -71,11 +71,11 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var future any = GetValue(market, "future")
 	var option any = GetValue(market, "option")
 	var index any = ccxt.DerefScalar(exchange.SafeBool(market, "index")) // todo: unify
-	var isIndex bool = (index != nil) && EvalTruthy(index)
+	var isIndex bool = (index != nil) && (index == true)
 	var linear any = GetValue(market, "linear")
 	var inverse any = GetValue(market, "inverse")
 	var quanto any = ccxt.DerefScalar(exchange.SafeBool(market, "quanto")) // todo: unify
-	var isQuanto bool = (quanto != nil) && EvalTruthy(quanto)
+	var isQuanto bool = (quanto != nil) && (quanto == true)
 	var isInactiveMarket bool = (GetValue(market, "active") == false)
 	//
 	var emptyAllowedFor []any = []any{"margin"}

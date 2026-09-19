@@ -635,7 +635,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 		"code":      code,
 		"id":        currencyId,
 		"name":      name,
-		"active":    EvalTruthy(deposit) && EvalTruthy(withdraw),
+		"active":    (deposit == true) && (withdraw == true),
 		"deposit":   deposit,
 		"withdraw":  withdraw,
 		"fee":       this.ParseNumber(minWithdrawFeeString),

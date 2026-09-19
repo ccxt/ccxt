@@ -1464,7 +1464,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 			}
 		}
 	}
-	if EvalTruthy(hip3) {
+	if hip3 == true {
 		params = this.Omit(params, "hip3")
 
 		response = (<-this.FetchHip3MarketsAsync(params))
@@ -1933,7 +1933,7 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) an
 	isTestnet := GetArg(optionalArgs, 0, true)
 	_ = isTestnet
 	var source string = func() string {
-		if EvalTruthy((isTestnet)) {
+		if isTestnet == true {
 			return "b"
 		}
 		return "a"
@@ -2144,7 +2144,7 @@ func (this *Hyperliquid) setRefBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	if EvalTruthy(this.SafeBool(this.Options, "refSet", false)) {
+	if this.SafeBool(this.Options, "refSet", false) != nil && *this.SafeBool(this.Options, "refSet", false) {
 
 		ch <- true
 		return nil
@@ -2377,7 +2377,7 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method any, optionalA
 	var enableUnifiedMarginparamsVariable []any = this.HandleOptionAndParams(params, method, "enableUnifiedMargin")
 	enableUnifiedMargin = GetValue(enableUnifiedMarginparamsVariable, 0)
 	params = GetValue(enableUnifiedMarginparamsVariable, 1)
-	if (enableUnifiedMargin == nil) || EvalTruthy(shouldRefresh) {
+	if (enableUnifiedMargin == nil) || (shouldRefresh == true) {
 		var request map[string]any = map[string]any{
 			"type": "userAbstraction",
 			"user": userAddress,
@@ -3020,11 +3020,11 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		"orders":   orderReq,
 		"grouping": grouping,
 	}
-	if EvalTruthy(this.SafeBool(this.Options, "approvedBuilderFee", false)) {
+	if this.SafeBool(this.Options, "approvedBuilderFee", false) != nil && *this.SafeBool(this.Options, "approvedBuilderFee", false) {
 		var wallet *string = this.SafeStringLower(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 		// when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
 		var feeInt any = DerefScalar(this.SafeInteger(this.Options, "feeInt", 10))
-		if !EvalTruthy(this.SafeBool(this.Options, "builderFee", true)) {
+		if !(this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
 			feeInt = 0
 		}
 		orderAction["builder"] = map[string]any{
@@ -3072,7 +3072,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if EvalTruthy(this.SafeBool(params, "twap", false)) {
+	if this.SafeBool(params, "twap", false) != nil && *this.SafeBool(params, "twap", false) {
 		params = this.Omit(params, "twap")
 
 		retRes248219 := (<-this.CancelTwapOrderAsync(id, symbol, params))

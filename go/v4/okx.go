@@ -3231,7 +3231,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		return limit
 	}()
-	if EvalTruthy(rpi) && (IsGreaterThan(limit, 400)) {
+	if (rpi == true) && (IsGreaterThan(limit, 400)) {
 		// the rpi book hard-errors with 51000 "Parameter sz error." above 400,
 		// including the 5000 that publicGetMarketBooksFull defaults to
 		limit = 400
@@ -3240,7 +3240,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		request["sz"] = limit // max 400
 	}
 	var response any = nil
-	if EvalTruthy(rpi) {
+	if rpi == true {
 
 		response = (<-this.PublicGetMarketBooksRpi(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3750,7 +3750,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes260419 := (<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
 		PanicOnError(retRes260419)
@@ -3898,7 +3898,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes272019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
 		PanicOnError(retRes272019)
@@ -4055,7 +4055,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes283019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
 		PanicOnError(retRes283019)
@@ -4630,7 +4630,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 				params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 				var notional any = DerefScalar(this.SafeNumber2(params, "cost", "sz"))
 				params = this.Omit(params, []any{"cost", "sz"})
-				if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+				if createMarketBuyOrderRequiresPrice == true {
 					if price != nil {
 						if IsEqual(notional, nil) {
 							var amountString *string = this.NumberToString(amount)
@@ -4660,7 +4660,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "px", this.PriceToPrecision(symbol, price))
 		}
 	}
-	if EvalTruthy(postOnly) {
+	if postOnly == true {
 		AddElementToObject(request, "ordType", "post_only")
 	} else if ioc && !marketIOC {
 		AddElementToObject(request, "ordType", "ioc")
@@ -4994,13 +4994,13 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
 	}
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	if clientOrderId != nil {
-		if EvalTruthy(isAlgoOrder) {
+		if isAlgoOrder == true {
 			request["algoClOrdId"] = clientOrderId
 		} else {
 			request["clOrdId"] = clientOrderId
 		}
 	} else {
-		if EvalTruthy(isAlgoOrder) {
+		if isAlgoOrder == true {
 			request["algoId"] = id
 		} else {
 			request["ordId"] = id
@@ -5016,7 +5016,7 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
 	var takeProfit any = this.SafeDict(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
-	if EvalTruthy(isAlgoOrder) {
+	if isAlgoOrder == true {
 		if (stopLossTriggerPrice == nil) && (takeProfitTriggerPrice == nil) {
 			panic(BadRequest(this.Id + " editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order"))
 		}
@@ -5103,7 +5103,7 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
 	if amount != nil {
 		request["newSz"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !EvalTruthy(isAlgoOrder) {
+	if !(isAlgoOrder == true) {
 		if price != nil {
 			request["newPx"] = this.PriceToPrecision(symbol, price)
 		}
@@ -5169,7 +5169,7 @@ func (this *Okx) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 		isAlgoOrder = true
 	}
 	var response any = nil
-	if EvalTruthy(isAlgoOrder) {
+	if isAlgoOrder == true {
 
 		response = (<-this.PrivatePostTradeAmendAlgos(this.Extend(request, params)))
 		PanicOnError(response)
@@ -6092,7 +6092,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes457319 := (<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, maxLimit))
 		PanicOnError(retRes457319)
@@ -6497,7 +6497,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes493119 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params, maxLimit))
 		PanicOnError(retRes493119)
@@ -6707,7 +6707,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes511219 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
 		PanicOnError(retRes511219)
@@ -6846,7 +6846,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes521319 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))
 		PanicOnError(retRes521319)
@@ -7393,7 +7393,7 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes566919 := (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
 		PanicOnError(retRes566919)
@@ -7545,7 +7545,7 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes578119 := (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
 		PanicOnError(retRes578119)

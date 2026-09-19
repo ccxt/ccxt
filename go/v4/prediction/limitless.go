@@ -622,12 +622,12 @@ func (this *Limitless) ParseMarket(raw any) any {
 		if marketResolved {
 			winnerRaw = (ccxt.IsEqual(legIndex, winningOutcomeIndex))
 			settleFractionRaw = func() int {
-				if ccxt.EvalTruthy(winnerRaw) {
+				if winnerRaw == true {
 					return 1
 				}
 				return 0
 			}()
-			if ccxt.EvalTruthy(winnerRaw) {
+			if winnerRaw == true {
 				resolvedOutcome = outcomeHandle
 			}
 		}
@@ -2488,7 +2488,7 @@ func (this *Limitless) ApplyScale(amount any, optionalArgs ...any) any {
 	_ = multiply
 	var decimals *int64 = this.SafeInteger(this.Options, "usdcDecimals", 6)
 	var scale *string = this.NumberToString(ccxt.MathPow(10, decimals))
-	if ccxt.EvalTruthy(multiply) {
+	if multiply == true {
 		return ccxt.Precise.StringMul(amount, scale)
 	} else {
 		return ccxt.Precise.StringDiv(amount, scale)
@@ -2730,7 +2730,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
-		if ccxt.EvalTruthy(createMarketBuyOrderRequiresPrice) {
+		if createMarketBuyOrderRequiresPrice == true {
 			if (price == nil) && (cost == nil) {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
@@ -2779,7 +2779,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		"marketSlug": slug,
 		"orderType":  timeInForce,
 	}
-	if ccxt.EvalTruthy(postOnly) {
+	if postOnly == true {
 		request["postOnly"] = postOnly
 	}
 
@@ -3119,7 +3119,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 		var warnparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
 		warn = ccxt.GetValue(warnparamsVariable, 0)
 		params = ccxt.GetValue(warnparamsVariable, 1)
-		if ccxt.EvalTruthy(warn) {
+		if warn == true {
 			panic(ccxt.BadRequest(this.Id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message."))
 		}
 	}
@@ -3188,7 +3188,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", paginate)
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
-	if ccxt.EvalTruthy(paginate) {
+	if paginate == true {
 		params = this.Omit(params, "paginate")
 
 		retRes246519 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))

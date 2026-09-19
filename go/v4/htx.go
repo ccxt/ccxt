@@ -2714,7 +2714,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			future = (delivery_date != nil)
 			swap = !future
 			linear = (business_type != nil)
-			inverse = !EvalTruthy(linear)
+			inverse = !(linear == true)
 			if swap {
 				typeVar = "swap"
 				if IsEqual(id, nil) {
@@ -2724,7 +2724,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 				baseId = this.SafeStringLower(market, "symbol")
 				quoteId = this.SafeStringLower(parts, 1)
 				settleId = func() any {
-					if EvalTruthy(inverse) {
+					if inverse == true {
 						return baseId
 					}
 					return quoteId
@@ -2732,7 +2732,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			} else if future {
 				typeVar = "future"
 				baseId = this.SafeStringLower(market, "symbol")
-				if EvalTruthy(inverse) {
+				if inverse == true {
 					quoteId = "USD"
 					settleId = baseId
 				} else {
@@ -3781,7 +3781,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes269219 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
 		PanicOnError(retRes269219)
@@ -4137,7 +4137,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes300019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
 		PanicOnError(retRes300019)
@@ -4264,7 +4264,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		var useHistoricalparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
 		useHistorical = GetValue(useHistoricalparamsVariable, 0)
 		params = GetValue(useHistoricalparamsVariable, 1)
-		if !EvalTruthy(useHistorical) {
+		if !(useHistorical == true) {
 			if limit != nil {
 				request["size"] = mathMin(limit, 2000) // max 2000
 			}
@@ -4656,7 +4656,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
 	params = GetValue(isUnifiedAccountparamsVariable, 1)
-	if EvalTruthy(isUnifiedAccount) {
+	if isUnifiedAccount == true {
 		panic(NotSupported(this.Id + " fetchBalance() unified account has been deprecated on htx"))
 	}
 	var typeVar any = nil
@@ -4688,7 +4688,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var cross bool = (IsEqual(marginMode, "cross"))
 	var margin bool = (IsEqual(typeVar, "margin")) || (spot && (cross || isolated))
 	var response any = nil
-	if EvalTruthy(isMultiAssetMode) || (linear && (swap || future)) {
+	if (isMultiAssetMode == true) || (linear && (swap || future)) {
 
 		response = (<-this.ContractPrivateGetV5AccountBalance(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4872,7 +4872,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"info": finalResponse,
 	}
 	var data any = this.SafeValue(response, "data")
-	if EvalTruthy(isMultiAssetMode) || (linear && (swap || future)) {
+	if (isMultiAssetMode == true) || (linear && (swap || future)) {
 		var details []any = SafeListTyped(data, "details")
 		for i := 0; i < len(details); i++ {
 			var balance any = func() any {
@@ -5626,7 +5626,7 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes423019 := (<-this.FetchPaginatedCallDynamicAsync("fetchCanceledOrders", symbol, since, limit, params, 100))
 		PanicOnError(retRes423019)
@@ -5718,7 +5718,7 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes428919 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params, 100))
 		PanicOnError(retRes428919)
@@ -6722,7 +6722,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		params = this.Omit(params, "cost")
 		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
-		} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
+		} else if createMarketBuyOrderRequiresPrice == true {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
@@ -8617,7 +8617,7 @@ func (this *Htx) withdrawBody(ch chan any, code any, amount any, address any, op
 	}
 	amount = ParseFloat(amountPrecision)
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
-	if EvalTruthy(this.SafeBool(withdrawOptions, "includeFee", false)) {
+	if this.SafeBool(withdrawOptions, "includeFee", false) != nil && *this.SafeBool(withdrawOptions, "includeFee", false) {
 		var fee *float64 = this.SafeNumber(params, "fee")
 		if fee == nil {
 
@@ -9084,7 +9084,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes715319 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
 		PanicOnError(retRes715319)
@@ -10420,7 +10420,7 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes852719 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 500))
 		PanicOnError(retRes852719)

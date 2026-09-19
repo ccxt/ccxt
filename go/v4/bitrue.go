@@ -2336,7 +2336,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-		if isMarket && (IsEqual(side, "buy")) && EvalTruthy(createMarketBuyOrderRequiresPrice) {
+		if isMarket && (IsEqual(side, "buy")) && (createMarketBuyOrderRequiresPrice == true) {
 			var cost *string = this.SafeString(params, "cost")
 			params = this.Omit(params, "cost")
 			if (price == nil) && (cost == nil) {

@@ -129,7 +129,7 @@ func (this *Bitget) GetInstType(methodName any, market any, optionalArgs ...any)
 	instypeAux = ccxt.GetValue(instypeAuxparamsVariable, 0)
 	params = ccxt.GetValue(instypeAuxparamsVariable, 1)
 	instType = instypeAux
-	if ccxt.EvalTruthy(uta) && (instType != nil) {
+	if (uta == true) && (instType != nil) {
 		instType = ccxt.ToLower(instType)
 	}
 	return []any{instType, params}
@@ -177,13 +177,13 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"instType": instType,
 	}
 	var topicOrChannel string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "topic"
 		}
 		return "channel"
 	}()
 	var symbolOrInstId string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "symbol"
 		}
 		return "instId"
@@ -275,13 +275,13 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			"instType": instType,
 		}
 		var topicOrChannel string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "topic"
 			}
 			return "channel"
 		}()
 		var symbolOrInstId string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "symbol"
 			}
 			return "instId"
@@ -559,13 +559,13 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			"instType": instType,
 		}
 		var topicOrChannel string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "topic"
 			}
 			return "channel"
 		}()
 		var symbolOrInstId string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "symbol"
 			}
 			return "instId"
@@ -680,7 +680,7 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		args["topic"] = "kline"
 		args["symbol"] = market["id"]
 		args["interval"] = interval
@@ -748,7 +748,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		channel = "kline"
 		args["topic"] = channel
 		args["symbol"] = market["id"]
@@ -871,7 +871,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = nil
-	if ccxt.EvalTruthy(isUta) {
+	if isUta == true {
 		messageHash = ccxt.Add("kline:", symbol)
 	} else {
 		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
@@ -1012,7 +1012,7 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		args["topic"] = channel
 		args["symbol"] = market["id"]
 		args["interval"] = this.SafeString(params, "interval", "1m")
@@ -1085,13 +1085,13 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 			"instType": instType,
 		}
 		var topicOrChannel string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "topic"
 			}
 			return "channel"
 		}()
 		var symbolOrInstId string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "symbol"
 			}
 			return "instId"
@@ -1101,7 +1101,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		topics = append(topics, args)
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", symbol))
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		ccxt.AddElementToObject(params, "uta", true)
 	}
 
@@ -1363,19 +1363,19 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 			"instType": instType,
 		}
 		var topicOrChannel string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "topic"
 			}
 			return "channel"
 		}()
 		var symbolOrInstId string = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "symbol"
 			}
 			return "instId"
 		}()
 		args[topicOrChannel] = func() string {
-			if ccxt.EvalTruthy(uta) {
+			if uta == true {
 				return "publicTrade"
 			}
 			return "trade"
@@ -1384,7 +1384,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		topics = append(topics, args)
 		messageHashes = append(messageHashes, ccxt.Add("trade:", symbol))
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		params = this.Extend(params, map[string]any{
 			"uta": true,
 		})
@@ -1435,7 +1435,7 @@ func (this *Bitget) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var values []any = this.HandleOptionAndParams(params, "watchTrades", "uta", false)
 	var uta any = ccxt.GetValue(values, 0)
 	var channelTopic string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "publicTrade"
 		}
 		return "trade"
@@ -1708,7 +1708,7 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
 		params = ccxt.GetValue(instTypeparamsVariable, 1)
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		instType = "UTA"
 	}
 	messageHash = ccxt.Add(ccxt.Add(instType, ":positions"), messageHash)
@@ -1716,19 +1716,19 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"instType": instType,
 	}
 	var topicOrChannel string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "topic"
 		}
 		return "channel"
 	}()
 	var channel string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "position"
 		}
 		return "positions"
 	}()
 	args[topicOrChannel] = channel
-	if !ccxt.EvalTruthy(uta) {
+	if !(uta == true) {
 		args["instId"] = "default"
 	} else {
 		params = this.Extend(params, map[string]any{
@@ -2092,7 +2092,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			channel = "orders-crossed"
 		}
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		instType = "UTA"
 		channel = "order"
 	}
@@ -2101,13 +2101,13 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"instType": instType,
 	}
 	var topicOrChannel string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "topic"
 		}
 		return "channel"
 	}()
 	args[topicOrChannel] = channel
-	if !ccxt.EvalTruthy(uta) {
+	if !(uta == true) {
 		args["instId"] = instId
 	} else {
 		params = this.Extend(params, map[string]any{
@@ -2619,7 +2619,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
 		params = ccxt.GetValue(instTypeparamsVariable, 1)
 	}
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		instType = "UTA"
 	}
 	var subscriptionHash any = ccxt.Add("fill:", instType)
@@ -2627,13 +2627,13 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"instType": instType,
 	}
 	var topicOrChannel string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "topic"
 		}
 		return "channel"
 	}()
 	args[topicOrChannel] = "fill"
-	if !ccxt.EvalTruthy(uta) {
+	if !(uta == true) {
 		args["instId"] = "default"
 	} else {
 		params = this.Extend(params, map[string]any{
@@ -2843,33 +2843,33 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		instType = "USDT-FUTURES"
 	} else if marginMode != nil {
 		instType = "MARGIN"
-		if !ccxt.EvalTruthy(uta) {
+		if !(uta == true) {
 			if ccxt.IsEqual(marginMode, "isolated") {
 				channel = "account-isolated"
 			} else {
 				channel = "account-crossed"
 			}
 		}
-	} else if !ccxt.EvalTruthy(uta) {
+	} else if !(uta == true) {
 		instType = "SPOT"
 	}
 	var instTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "instType", instType)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
 	params = ccxt.GetValue(instTypeparamsVariable, 1)
-	if ccxt.EvalTruthy(uta) {
+	if uta == true {
 		instType = "UTA"
 	}
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
 	var topicOrChannel string = func() string {
-		if ccxt.EvalTruthy(uta) {
+		if uta == true {
 			return "topic"
 		}
 		return "channel"
 	}()
 	args[topicOrChannel] = channel
-	if !ccxt.EvalTruthy(uta) {
+	if !(uta == true) {
 		args["coin"] = "default"
 	} else {
 		params = this.Extend(params, map[string]any{
@@ -3597,7 +3597,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	var symbol any = market["symbol"]
 	var messageHash any = nil
 	var subMessageHash any = nil
-	if ccxt.EvalTruthy(isUta) {
+	if isUta == true {
 		messageHash = ccxt.Add("unsubscribe:kline:", symbol)
 		subMessageHash = ccxt.Add("kline:", symbol)
 	} else {

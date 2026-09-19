@@ -202,7 +202,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var accessibility string = func() string {
-		if ccxt.EvalTruthy(isPrivate) {
+		if isPrivate == true {
 			return "private"
 		}
 		return "public"
@@ -228,19 +228,19 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 		isUsdcSettled = (defaultSettle != nil && *defaultSettle == "USDC")
 	}
 	isSpot = (ccxt.IsEqual(typeVar, "spot"))
-	if ccxt.EvalTruthy(isPrivate) {
+	if isPrivate == true {
 
 		unified := (<-this.IsUnifiedEnabledAsync())
 		ccxt.PanicOnError(unified)
 		var isUnifiedMargin *bool = this.SafeBool(unified, 0, false)
 		var isUnifiedAccount *bool = this.SafeBool(unified, 1, false)
-		if ccxt.EvalTruthy(isUsdcSettled) && (isUnifiedMargin == nil || *isUnifiedMargin != true) && (isUnifiedAccount == nil || *isUnifiedAccount != true) {
+		if (isUsdcSettled == true) && (isUnifiedMargin == nil || *isUnifiedMargin != true) && (isUnifiedAccount == nil || *isUnifiedAccount != true) {
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "usdc")
 		} else {
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "contract")
 		}
 	} else {
-		if ccxt.EvalTruthy(isSpot) {
+		if isSpot == true {
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "spot")
 		} else if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
 			var subType any = nil
@@ -1769,7 +1769,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValue(executionFastparamsVariable, 0)
 	params = ccxt.GetValue(executionFastparamsVariable, 1)
-	if ccxt.EvalTruthy(executionFast) {
+	if executionFast == true {
 		topic = "execution.fast"
 	}
 
@@ -1834,7 +1834,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValue(executionFastparamsVariable, 0)
 	params = ccxt.GetValue(executionFastparamsVariable, 1)
-	if ccxt.EvalTruthy(executionFast) {
+	if executionFast == true {
 		topic = "execution.fast"
 	}
 

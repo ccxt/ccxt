@@ -1570,12 +1570,12 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 		"orders":   []any{orderObj},
 		"grouping": "na",
 	}
-	if ccxt.EvalTruthy(this.SafeBool(this.Options, "approvedBuilderFee", false)) {
+	if this.SafeBool(this.Options, "approvedBuilderFee", false) != nil && *this.SafeBool(this.Options, "approvedBuilderFee", false) {
 		var wallet *string = this.SafeStringLower(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 		// feeInt defaults to 0: the builder is attached for statistics purposes only and the
 		// user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
 		var feeInt any = ccxt.DerefScalar(this.SafeInteger(this.Options, "feeInt", 0))
-		if !ccxt.EvalTruthy(this.SafeBool(this.Options, "builderFee", true)) {
+		if !(this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
 			feeInt = 0
 		}
 		orderAction["builder"] = map[string]any{
@@ -2440,7 +2440,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var lowerQueriesLength int = len(lowerQueries)
 	for i := 0; i < len(marketValues); i++ {
 		var mkt any = ccxt.GetValue(marketValues, i)
-		if !ccxt.EvalTruthy(this.SafeBool(mkt, "prediction", false)) {
+		if !(this.SafeBool(mkt, "prediction", false) != nil && *this.SafeBool(mkt, "prediction", false)) {
 			continue
 		}
 		var info map[string]any = ccxt.SafeMapTyped(mkt, "info")
@@ -2653,7 +2653,7 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) an
 	isTestnet := ccxt.GetArg(optionalArgs, 0, true)
 	_ = isTestnet
 	var source string = func() string {
-		if ccxt.EvalTruthy(isTestnet) {
+		if isTestnet == true {
 			return "b"
 		}
 		return "a"
@@ -2804,7 +2804,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan any) any {
 
 		return nil
 	}
-	if ccxt.EvalTruthy(this.SafeBool(this.Options, "approvedBuilderFee", false)) {
+	if this.SafeBool(this.Options, "approvedBuilderFee", false) != nil && *this.SafeBool(this.Options, "approvedBuilderFee", false) {
 
 		ch <- nil // already approved
 		return nil

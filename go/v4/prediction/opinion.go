@@ -351,12 +351,12 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 		if hasResult {
 			winner = (ccxt.IsEqual(tokenId, resultTokenId))
 			settleFraction = func() int {
-				if ccxt.EvalTruthy(winner) {
+				if winner == true {
 					return 1
 				}
 				return 0
 			}()
-			if ccxt.EvalTruthy(winner) {
+			if winner == true {
 				resolvedOutcome = outcomeHandle
 			}
 		}

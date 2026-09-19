@@ -661,7 +661,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan any, optionalArgs ...any) any
 	params = ccxt.GetValue(verboseparamsVariable, 1)
 	var name any = "open_orders"
 	var messageHash any = "orders"
-	if ccxt.EvalTruthy(verbose) {
+	if verbose == true {
 		name = "open_orders_verbose"
 		messageHash = "orders:verbose"
 	}

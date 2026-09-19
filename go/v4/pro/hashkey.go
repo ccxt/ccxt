@@ -944,7 +944,7 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
-	if ccxt.EvalTruthy(fetchBalanceSnapshot) && ccxt.EvalTruthy(awaitBalanceSnapshot) {
+	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
 		retRes75012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
 		ccxt.PanicOnError(retRes75012)

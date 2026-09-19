@@ -1192,7 +1192,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var fetchAllMarketsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
 	fetchAllMarkets = GetValue(fetchAllMarketsparamsVariable, 0)
 	params = GetValue(fetchAllMarketsparamsVariable, 1)
-	if EvalTruthy(fetchAllMarkets) {
+	if fetchAllMarkets == true {
 
 		instrumentsResponse := (<-this.PublicGetGetInstruments(params))
 		PanicOnError(instrumentsResponse)
@@ -1994,7 +1994,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes150219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
 		PanicOnError(retRes150219)
@@ -4282,7 +4282,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	params = GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
 	var eachItemDuration string = "1h"
-	if EvalTruthy(paginate) {
+	if paginate == true {
 		// fix for: https://github.com/ccxt/ccxt/issues/25040
 		var paginationParams map[string]any = this.Extend(params, map[string]any{
 			"isDeribitPaginationCall": true,
@@ -4435,7 +4435,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if EvalTruthy(paginate) {
+	if paginate == true {
 
 		retRes344619 := (<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))
 		PanicOnError(retRes344619)
