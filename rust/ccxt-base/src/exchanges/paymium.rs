@@ -422,9 +422,9 @@ impl PaymiumCore {
             if (in_op(&response, &free)) {
                 let mut account: Value = self.account();
                 let mut used: Value = Value::Str(format!("{}{}", Value::Str("locked_".into()), currencyId).into());
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), free.clone(), &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(response.clone(), used, &[])); }
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(response.clone(), free.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(response.clone(), used, &[])); }
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -768,7 +768,7 @@ impl PaymiumCore {
             m
         });
         if (type_var.as_str() != Some("market")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), price); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), price); }
         }
         let __ws_arg_4 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_user_orders(&[__ws_arg_4]).await;
@@ -953,7 +953,7 @@ impl PaymiumCore {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     body = json_stringify(&query);
                     auth = Value::Str(format!("{}{}", auth, body).into());
-                    add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                    if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 }
             }  else {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -962,7 +962,7 @@ impl PaymiumCore {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
                 }
             }
-            add_element_to_object(&mut headers, &Value::Str("Api-Signature".into()), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Api-Signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

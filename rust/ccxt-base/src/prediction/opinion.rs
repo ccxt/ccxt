@@ -409,7 +409,7 @@ impl OpinionCore {
                     }
                     let mut eventKey: Value = self.safe_string_k(event.clone(), "event", &[]);
                     if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) && !(in_op(&seenEvents, &eventKey)) {
-                        add_element_to_object(&mut seenEvents, &eventKey, Value::Bool(true));
+                        if let Value::Dict(__d) = &mut seenEvents { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Bool(true)); }
                         append_to_array(&mut eventsList, event);
                     }
                 }  else {
@@ -1139,7 +1139,7 @@ impl OpinionCore {
             let mut ticker: Value = self.parse_prediction_ticker(response, &[outcomeObj]);
             let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[]);
             if (symbolKey != Value::Null) {
-                add_element_to_object(&mut result, &symbolKey, ticker);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolKey), ticker); }
             }
         }
         }
@@ -1331,11 +1331,11 @@ impl OpinionCore {
             let mut entry: Value = list.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut address: Value = self.safe_string_lower_k(entry.clone(), "quoteTokenAddress", &[]);
             if (address != Value::Null) {
-                add_element_to_object(&mut quoteTokens, &address, entry);
+                if let Value::Dict(__d) = &mut quoteTokens { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&address), entry); }
             }
         }
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("quoteTokens".to_string(), quoteTokens.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("quoteTokens".into(), quoteTokens.clone()); }
         let mut quoteToken: Value = self.safe_dict(quoteTokens, cacheKey, &[]);
         if (quoteToken == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadQuoteToken() could not find quote token ".into())).into()), quoteTokenAddress)));
@@ -1370,7 +1370,7 @@ impl OpinionCore {
     m
 })]);
         let mut multiSignAddress: Value = self.safe_string_k(walletUsers, "56", &[self.walletAddress.clone()]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("multiSignAddress".to_string(), multiSignAddress.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("multiSignAddress".into(), multiSignAddress.clone()); }
         return multiSignAddress;
 
     Value::Null
@@ -1796,7 +1796,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".to_string(), self.safe_integer_k(info, "marketId", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".into(), self.safe_integer_k(info, "marketId", &[])); }
         }
         let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_order(&[__ws_arg_20]).await;
@@ -1947,7 +1947,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".to_string(), self.safe_integer_k(info.clone(), "marketId", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".into(), self.safe_integer_k(info.clone(), "marketId", &[])); }
         }
         let __ws_arg_24 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_trade_user_wallet_address(&[__ws_arg_24]).await;
@@ -2023,10 +2023,10 @@ impl OpinionCore {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
         let mut marketHandle: Value = self.safe_string_k(market.clone(), "market", &[Value::Str("".into())]);
-        add_element_to_object(&mut self.markets, &marketHandle, market.clone());
+        if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHandle), market.clone()); }
         self.index_market_outcomes(market.clone());
-        add_element_to_object(&mut cached, &idStr, market.clone());
-        add_element_to_object(&mut self.options, &cacheKey, cached);
+        if let Value::Dict(__d) = &mut cached { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&idStr), market.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&cacheKey), cached); }
         return market;
 
     Value::Null
@@ -2139,13 +2139,13 @@ impl OpinionCore {
             while { if !__for_first_1358 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1358 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
             let mut balance: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_string_k(balance.clone(), "symbol", &[Value::Str("USDT".into())]);
-            add_element_to_object(&mut result, &code, Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), self.safe_number_k(balance.clone(), "availableBalance", &[]));
         m.insert("used".to_string(), self.safe_number_k(balance.clone(), "frozenBalance", &[]));
         m.insert("total".to_string(), self.safe_number_k(balance, "totalBalance", &[]));
     m
-}));
+})); }
         }
         }
         return self.safe_balance(result);
@@ -2206,7 +2206,7 @@ impl OpinionCore {
             let mut outcomeObj: Value = self.outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut tokenId: Value = self.safe_string_k(outcomeObj, "outcomeId", &[]);
             if (tokenId != Value::Null) {
-                add_element_to_object(&mut wantedTokenIds, &tokenId, Value::Bool(true));
+                if let Value::Dict(__d) = &mut wantedTokenIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tokenId), Value::Bool(true)); }
             }
         }
         }
@@ -2397,7 +2397,7 @@ impl OpinionCore {
     m
 }));
         let mut response: Value = self.opinion_private_delete_auth_api_key(&[params.clone()]).await;
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), Value::Null); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".into(), Value::Null); }
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.
         // an empty string, not undefined: the strict base types the credential as string, and
@@ -2453,7 +2453,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("walletAddress".to_string(), self.safe_string_k(response, "walletAddress", &[]));
             m
         });
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKey".into(), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         self.apiKey = match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null };
@@ -2633,7 +2633,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         orderbook.reset(snapshot);
-        add_element_to_object(&mut self.orderbooks, &sym, orderbook);
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), orderbook); }
 
     Value::Null
 }
@@ -2729,7 +2729,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("info".to_string(), message);
     m
 }), &[outcomeObj]);
-        add_element_to_object(&mut self.tickers.clone(), &sym, ticker.clone());
+        if let Value::Dict(__d) = &mut self.tickers.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ticker.clone()); }
         client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into())]);
 }
 
@@ -2810,7 +2810,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (self.safe_value(self.trades.clone(), sym.clone(), &[]) == Value::Null) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades.clone(), &sym, ArrayCache::new(tradesLimit));
+            if let Value::Dict(__d) = &mut self.trades.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
         }
         let mut stored: Value = get_value(&self.trades, &sym);
         stored.append(trade);

@@ -533,7 +533,7 @@ impl GateCore {
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: Value = Value::Str(format!("{}{}", messageType, Value::Str(".order_place".into())).into());
         let mut url: Value = self.get_url_by_market(market.clone());
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("textIsRequired".to_string(), Value::Bool(true)); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("textIsRequired".into(), Value::Bool(true)); }
         let mut request: Value = self.parent.create_order_request(symbol, type_var, side, amount, &[price, params]);
         self.authenticate(url.clone(), messageType).await;
         let mut rawOrder: Value = self.request_private(url, request, channel, &[]).await;
@@ -648,7 +648,7 @@ impl GateCore {
         let mut type_varqueryVariable = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone(), params]);
         let mut type_var: Value = type_varqueryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut query: Value = type_varqueryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut requestrequestParamsVariable = (if ((type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin"))) { self.parent.spot_order_prepare_request(&[market.clone(), trigger, query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var, query]) });
+        let mut requestrequestParamsVariable = (if ((type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin"))) { self.parent.spot_order_prepare_request(&[market.clone(), trigger.clone(), query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var.clone(), query.clone()]) });
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut messageType: Value = self.get_type_by_market(market.clone());
@@ -658,7 +658,7 @@ impl GateCore {
         add_element_to_object(&mut request, &Value::Str("order_id".into()), to_string_val(&id));
         let __ws_arg_1 = self.extend(request, &[requestParams]);
         let mut res: Value = self.request_private(url, __ws_arg_1, channel, &[]).await;
-        return self.parse_order(res, &[market]);
+        return self.parse_order(res, &[market.clone()]);
 
     Value::Null
 }
@@ -689,13 +689,13 @@ impl GateCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut extendedRequest: Value = self.parent.edit_order_request(id, symbol, type_var, side, &[amount, price, params]);
+        let mut extendedRequest: Value = self.parent.edit_order_request(id.clone(), symbol, type_var.clone(), side, &[amount, price, params]);
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: Value = Value::Str(format!("{}{}", messageType, Value::Str(".order_amend".into())).into());
         let mut url: Value = self.get_url_by_market(market.clone());
         self.authenticate(url.clone(), messageType).await;
         let mut rawOrder: Value = self.request_private(url, extendedRequest, channel, &[]).await;
-        return self.parse_order(rawOrder, &[market]);
+        return self.parse_order(rawOrder, &[market.clone()]);
 
     Value::Null
 }
@@ -725,7 +725,7 @@ impl GateCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = (if (symbol == Value::Null) { Value::Null } else { self.market(symbol.clone()) });
-        let mut requestrequestParamsVariable = self.parent.fetch_order_request(id, &[symbol, params]);
+        let mut requestrequestParamsVariable = self.parent.fetch_order_request(id.clone(), &[symbol, params]);
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut messageType: Value = self.get_type_by_market(market.clone());
@@ -734,7 +734,7 @@ impl GateCore {
         self.authenticate(url.clone(), messageType).await;
         let __ws_arg_2 = self.extend(request, &[requestParams]);
         let mut rawOrder: Value = self.request_private(url, __ws_arg_2, channel, &[]).await;
-        return self.parse_order(rawOrder, &[market]);
+        return self.parse_order(rawOrder, &[market.clone()]);
 
     Value::Null
 }
@@ -830,7 +830,7 @@ impl GateCore {
         self.authenticate(url.clone(), messageType).await;
         let __ws_arg_3 = self.extend(newRequest, &[requestParams]);
         let mut rawOrders: Value = self.request_private(url, __ws_arg_3, channel, &[]).await;
-        let mut orders: Value = self.parse_orders(rawOrders, &[market]);
+        let mut orders: Value = self.parse_orders(rawOrders, &[market.clone()]);
         return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
 
     Value::Null
@@ -892,7 +892,7 @@ impl GateCore {
             payload = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ob.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), finalInterval).into())]);
         }  else {
             channel = Value::Str(format!("{}{}", messageType, Value::Str(".order_book_update".into())).into());
-            payload = Value::from(vec![marketId, interval]);
+            payload = Value::from(vec![marketId, interval.clone()]);
             let mut stringLimit: Value = to_string_val(&limit);
             append_to_array(&mut payload, stringLimit);
         }
@@ -902,7 +902,7 @@ impl GateCore {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let mut orderbook: Value = self.subscribe_public(url, messageHash, payload, channel, &[query, subscription]).await;
+        let mut orderbook: Value = self.subscribe_public(url, messageHash, payload.clone(), channel.clone(), &[query.clone(), subscription]).await;
         return orderbook.limit();
 
     Value::Null
@@ -955,13 +955,13 @@ impl GateCore {
             payload = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ob.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), finalInterval).into())]);
         }  else {
             channel = Value::Str(format!("{}{}", messageType, Value::Str(".order_book_update".into())).into());
-            payload = Value::from(vec![marketId, interval]);
+            payload = Value::from(vec![marketId, interval.clone()]);
             let mut stringLimit: Value = to_string_val(&limit);
             append_to_array(&mut payload, stringLimit);
         }
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook".into()), Value::Str(":".into())).into()), symbol).into());
-        return self.un_subscribe_public_multiple(url, Value::Str("orderbook".into()), Value::from(vec![symbol]), Value::from(vec![messageHash]), Value::from(vec![subMessageHash]), payload, channel, &[params]).await;
+        return self.un_subscribe_public_multiple(url, Value::Str("orderbook".into()), Value::from(vec![symbol]), Value::from(vec![messageHash]), Value::from(vec![subMessageHash]), payload.clone(), channel.clone(), &[params]).await;
 
     Value::Null
 }
@@ -974,13 +974,11 @@ impl GateCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
 }
 
     pub fn handle_new_spot_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //   {
         //      "channel":"spot.obu",
@@ -1005,10 +1003,10 @@ impl GateCore {
         //      "time_ms":1777275365214,
         //      "event":"update"
         //   }
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut result: Value = self.safe_dict_k(message, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut full: Value = self.safe_bool_k(result.clone(), "full", &[Value::Bool(false)]);
         let mut marketIdWithPrefix: Value = self.safe_string_k(result.clone(), "s", &[]);
         if (marketIdWithPrefix == Value::Null) {
@@ -1022,7 +1020,7 @@ impl GateCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Int(1000)]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), Value::Int(1000)]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if (full.as_bool() == Some(true)) {
@@ -1042,8 +1040,6 @@ impl GateCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // spot
         //
@@ -1097,16 +1093,16 @@ impl GateCore {
         //         }
         //     }
         //
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         if (channel.as_str() == Some("spot.obu")) {
-            self.handle_new_spot_order_book(client.clone(), message);
+            self.handle_new_spot_order_book(client.clone(), message.clone());
             return;
         }
         let mut channelParts: Value = split(&channel, &Value::Str(".".into()));
         let mut rawMarketType: Option<String> = self.safe_string(channelParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = rawMarketType.as_deref() == Some("spot");
         let mut marketType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
-        let mut delta: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut delta: Value = self.safe_dict_k(message, "result", &[]);
         let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
         let mut deltaEnd: Value = self.safe_integer_k(delta.clone(), "u", &[]);
         let mut marketId: Value = self.safe_string_k(delta.clone(), "s", &[]);
@@ -1128,7 +1124,7 @@ impl GateCore {
                 // max limit is 100
                 let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
-                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol.clone(), limit, Value::Map({
+                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol.clone(), limit.clone(), Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]); // needed for c#, number of args needs to match
@@ -1227,7 +1223,7 @@ impl GateCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchTicker".into())); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchTicker".into())); }
         let mut result: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
         return self.safe_value(result, symbol, &[]);
 
@@ -1348,7 +1344,7 @@ impl GateCore {
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut channelName: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName.clone(), Value::Str("method".into()), &[]); channelName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut url: Value = self.get_url_by_market(market);
+        let mut url: Value = self.get_url_by_market(market.clone());
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageType, Value::Str(".".into())).into()), channelName).into());
         if (callerMethodName == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a callerMethodName argument".into()))));
@@ -1364,7 +1360,7 @@ impl GateCore {
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(":".into())).into()), symbol).into()));
         }
         }
-        let mut tickerOrBidAsk: Value = self.subscribe_public_multiple(url, messageHashes, marketIds, channel, &[params]).await;
+        let mut tickerOrBidAsk: Value = self.subscribe_public_multiple(url, messageHashes, marketIds, channel.clone(), &[params]).await;
         if is_true(&self.newUpdates) {
             let mut items: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1403,15 +1399,15 @@ impl GateCore {
             let mut rawTicker: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(rawTicker.clone(), "s", &[]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Str("_".into()), marketType.clone()]);
-            let mut parsedItem: Value = self.parse_ticker(rawTicker, &[market]);
+            let mut parsedItem: Value = self.parse_ticker(rawTicker, &[market.clone()]);
             let mut symbol: Value = parsedItem.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if isTicker {
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut self.tickers, &symbol, parsedItem.clone());
+                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedItem.clone()); }
                 }
             }  else {
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut self.bidsasks, &symbol, parsedItem.clone());
+                    if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedItem.clone()); }
                 }
             }
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", objectName, Value::Str(":".into())).into()), symbol).into());
@@ -1441,7 +1437,7 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_trades_for_symbols(Value::from(vec![symbol]), &[since, limit, params]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol]), &[since, limit.clone(), params]).await;
 
     Value::Null
 }
@@ -1484,14 +1480,14 @@ impl GateCore {
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into()));
         }
         }
-        let mut url: Value = self.get_url_by_market(market);
-        let mut trades: Value = self.subscribe_public_multiple(url, messageHashes, marketIds, channel, &[params]).await;
+        let mut url: Value = self.get_url_by_market(market.clone());
+        let mut trades: Value = self.subscribe_public_multiple(url, messageHashes, marketIds, channel.clone(), &[params]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
             limit = trades.get_limit(tradeSymbol, limit.clone());
         }
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -1528,8 +1524,8 @@ impl GateCore {
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:trades:".into()), symbol).into()));
         }
         }
-        let mut url: Value = self.get_url_by_market(market);
-        return self.un_subscribe_public_multiple(url, Value::Str("trades".into()), symbols, messageHashes, subMessageHashes, marketIds, channel, &[params]).await;
+        let mut url: Value = self.get_url_by_market(market.clone());
+        return self.un_subscribe_public_multiple(url, Value::Str("trades".into()), symbols, messageHashes, subMessageHashes, marketIds, channel.clone(), &[params]).await;
 
     Value::Null
 }
@@ -1553,8 +1549,6 @@ impl GateCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // {
         //     "time": 1648725035,
@@ -1571,7 +1565,7 @@ impl GateCore {
         //     }]
         // }
         //
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let mut result: Value = self.safe_value_k(message, "result", &[]);
         if !(matches!(&result, Value::Arr(_))) {
             result = Value::from(vec![result.clone()]);
         }
@@ -1585,9 +1579,9 @@ impl GateCore {
             let mut cachedTrades: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (cachedTrades == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-                cachedTrades = ArrayCache::new(limit);
+                cachedTrades = ArrayCache::new(limit.clone());
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut self.trades, &symbol, cachedTrades.clone());
+                    if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), cachedTrades.clone()); }
                 }
             }
             cachedTrades.append(trade);
@@ -1630,20 +1624,18 @@ impl GateCore {
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: Value = Value::Str(format!("{}{}", messageType, Value::Str(".candlesticks".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into()), Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        let mut url: Value = self.get_url_by_market(market);
-        let mut payload: Value = Value::from(vec![interval, marketId]);
-        let mut ohlcv: Value = self.subscribe_public(url, messageHash, payload, channel, &[params]).await;
+        let mut url: Value = self.get_url_by_market(market.clone());
+        let mut payload: Value = Value::from(vec![interval.clone(), marketId]);
+        let mut ohlcv: Value = self.subscribe_public(url, messageHash, payload.clone(), channel.clone(), &[params]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol, limit.clone());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limit, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, limit.clone(), Value::Int(0), Value::Bool(true)]);
 
     Value::Null
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // {
         //     "time": 1606292600,
@@ -1660,11 +1652,11 @@ impl GateCore {
         //     }
         //   }
         //
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut channelParts: Value = split(&channel, &Value::Str(".".into()));
         let mut rawMarketType: Option<String> = self.safe_string(channelParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketType: Value = (if (rawMarketType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let mut result: Value = self.safe_value_k(message, "result", &[]);
         if !(matches!(&result, Value::Arr(_))) {
             result = Value::from(vec![result.clone()]);
         }
@@ -1689,17 +1681,17 @@ impl GateCore {
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-                stored = ArrayCacheByTimestamp::new(limit);
+                stored = ArrayCacheByTimestamp::new(limit.clone());
                 if (symbol != Value::Null) && (timeframe != Value::Null) {
                     add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
                 }
             }
             stored.append(parsed);
-            add_element_to_object(&mut marketIds, &symbol, timeframe.clone());
+            if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), timeframe.clone()); }
         }
         }
         let mut keys: Value = object_keys(&marketIds);
@@ -1712,7 +1704,7 @@ impl GateCore {
             let mut timeframe: Value = get_value(&marketIds, &symbol);
             let mut interval: Value = self.find_timeframe(timeframe, &[]);
             let mut hash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles".into()), Value::Str(":".into())).into()), interval).into()), Value::Str(":".into())).into()), symbol).into());
-            let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), interval, &[]);
+            let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), interval.clone(), &[]);
             client.resolve(&[stored, hash]);
         }
         }
@@ -1752,7 +1744,7 @@ impl GateCore {
             marketId = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchMyTrades".into()), &[market, params.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), params.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut messageType: Value = self.get_supported_mapping(type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("spot".into()));
@@ -1772,18 +1764,16 @@ impl GateCore {
         let mut payload: Value = Value::from(vec![marketId]);
         // uid required for non spot markets
         let mut requiresUid: Value = (Value::Bool(type_var.as_str() != Some("spot")));
-        let mut trades: Value = self.subscribe_private(url, messageHash, payload, channel, params, &[requiresUid]).await;
+        let mut trades: Value = self.subscribe_private(url, messageHash, payload.clone(), channel.clone(), params, &[requiresUid]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit.clone(), Value::Bool(true)]);
 
     Value::Null
 }
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // {
         //     "time": 1543205083,
@@ -1804,7 +1794,7 @@ impl GateCore {
         //     ]
         // }
         //
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut result: Value = self.safe_list_k(message, "result", &[Value::from(vec![])]);
         let mut tradesLength: f64 = ((result.len() as i64) as f64);
         if (tradesLength == 0.0) {
             return;
@@ -1812,7 +1802,7 @@ impl GateCore {
         let mut cachedTrades: Value = self.myTrades.clone();
         if (cachedTrades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            cachedTrades = ArrayCacheBySymbolById::new(limit);
+            cachedTrades = ArrayCacheBySymbolById::new(limit.clone());
             self.myTrades = cachedTrades.clone();
         }
         let mut parsed: Value = self.parse_trades(result, &[]);
@@ -1828,7 +1818,7 @@ impl GateCore {
             cachedTrades.append(trade.clone());
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut marketIds, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
         }
         }
@@ -1883,14 +1873,12 @@ impl GateCore {
         // todo: add correct margin support
         let mut channel: Value = add(&channelType, &Value::Str(".balances".into()));
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(".balance".into())).into());
-        return self.subscribe_private(url, messageHash, Value::Null, channel, params, &[requiresUid]).await;
+        return self.subscribe_private(url, messageHash, Value::Null, channel.clone(), params, &[requiresUid]).await;
 
     Value::Null
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // spot order fill
         //     {
@@ -1955,8 +1943,8 @@ impl GateCore {
         //       ]
         //   }
         //
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), result.clone()); }
+        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), result.clone()); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_349: bool = true;
@@ -1966,17 +1954,17 @@ impl GateCore {
             let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "currency", &[Value::Str("USDT".into())]); // when not present it is USDT
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut timestamp: Value = self.safe_integer2(rawBalance.clone(), Value::Str("time_ms".into()), Value::Str("timestamp_ms".into()), &[]);
-            add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), timestamp.clone());
-            { let __be_tmp = self.iso8601(timestamp); add_element_to_object(&mut self.balance, &Value::Str("datetime".into()), __be_tmp); };
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(rawBalance.clone(), "freeze", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(rawBalance.clone(), "available", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(rawBalance, Value::Str("total".into()), Value::Str("balance".into()), &[])); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+            { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(rawBalance.clone(), "freeze", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(rawBalance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string2(rawBalance, Value::Str("total".into()), Value::Str("balance".into()), &[])); }
             if (code != Value::Null) {
-                add_element_to_object(&mut self.balance, &code, account);
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut channel: Value = self.safe_string_k(message, "channel", &[]);
         let mut parts: Value = split(&channel, &Value::Str(".".into()));
         let mut rawType: Value = self.safe_string(parts, Value::Int(0), &[]);
         let mut channelType: Value = self.get_supported_mapping(rawType, &[Value::Map({
@@ -2043,7 +2031,7 @@ impl GateCore {
         }
         let mut channel: Value = add(&typeId, &Value::Str(".positions".into()));
         let mut subType: Value = Value::Null;
-        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), &[market, query.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), &[market.clone(), query.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isInverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse]);
         let mut client: Value = self.client(&[url.clone()]);
@@ -2054,11 +2042,11 @@ impl GateCore {
         if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && (cache == Value::Null) {
             return crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into())])).await;
         }
-        let mut positions: Value = self.subscribe_private(url, messageHash, payload, channel, query, &[Value::Bool(true)]).await;
+        let mut positions: Value = self.subscribe_private(url, messageHash, payload.clone(), channel.clone(), query.clone(), &[Value::Bool(true)]).await;
         if is_true(&self.newUpdates) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), type_var, &[]), &[symbols, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), type_var.clone(), &[]), &[symbols, since, limit.clone(), Value::Bool(true)]);
 
     Value::Null
 }
@@ -2116,8 +2104,6 @@ impl GateCore {
 }
 
     pub fn handle_positions(&self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        time: 1693158497,
@@ -2149,7 +2135,7 @@ impl GateCore {
         //    }
         //
         let mut type_var: Value = self.get_market_type_by_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null));
-        let mut data: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Value = self.safe_list_k(message, "result", &[Value::from(vec![])]);
         let mut cache: Value = get_value(&self.positions, &type_var);
         let mut newPositions: Value = Value::from(vec![]);
         {
@@ -2273,23 +2259,21 @@ impl GateCore {
             }
         }
         let mut subType: Value = Value::Null;
-        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market, query.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market.clone(), query.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isInverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse]);
         // uid required for non spot markets
         let mut requiresUid: Value = (Value::Bool(type_var.as_str() != Some("spot")));
-        let mut orders: Value = self.subscribe_private(url, messageHash, payload, channel, query, &[requiresUid]).await;
+        let mut orders: Value = self.subscribe_private(url, messageHash, payload.clone(), channel.clone(), query.clone(), &[requiresUid]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol, limit.clone());
         }
-        return self.filter_by_since_limit(orders, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, &[since, limit.clone(), Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "time": 1774613210,
@@ -2332,14 +2316,14 @@ impl GateCore {
         //         ]
         //     }
         //
-        let mut orders: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut orders: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
+        let mut channel: Value = self.safe_string_k(message, "channel", &[Value::Str("".into())]);
         let mut isTrigger: bool = (Value::Int(channel.as_str().and_then(|__s| __s.find("autoorders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(channel.as_str().and_then(|__s| __s.find("priceorders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64));
         let mut hashPrefix: Value = (if isTrigger { Value::Str("triggerOrders".into()) } else { Value::Str("orders".into()) });
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
         if (self.orders.clone() == Value::Null) {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
-            self.triggerOrders = ArrayCacheBySymbolById::new(limit);
+            self.triggerOrders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut stored: Value = (if isTrigger { self.triggerOrders.clone() } else { self.orders.clone() });
         let mut marketIds: Value = Value::Map({
@@ -2404,7 +2388,7 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_my_liquidations_for_symbols(Value::from(vec![symbol]), &[since, limit, params]).await;
+        return self.watch_my_liquidations_for_symbols(Value::from(vec![symbol]), &[since, limit.clone(), params]).await;
 
     Value::Null
 }
@@ -2447,7 +2431,7 @@ impl GateCore {
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchMyLiquidationsForSymbols".into()), &[market.clone(), query.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isInverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
-        let mut url: Value = self.get_url_by_market_type(type_var, &[isInverse.clone()]);
+        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse.clone()]);
         let mut payload: Value = Value::from(vec![]);
         let mut messageHash: Value = Value::Str("".into());
         if is_true(&self.is_empty(symbols.clone())) {
@@ -2465,18 +2449,16 @@ impl GateCore {
             append_to_array(&mut payload, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut channel: Value = add(&typeId, &Value::Str(".liquidates".into()));
-        let mut newLiquidations: Value = self.subscribe_private(url, messageHash, payload, channel, query, &[Value::Bool(true)]).await;
+        let mut newLiquidations: Value = self.subscribe_private(url, messageHash, payload.clone(), channel.clone(), query.clone(), &[Value::Bool(true)]).await;
         if is_true(&self.newUpdates) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[symbols, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[symbols, since, limit.clone(), Value::Bool(true)]);
 
     Value::Null
 }
 
     pub fn handle_liquidation(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // future / delivery
         //     {
@@ -2520,11 +2502,11 @@ impl GateCore {
         //        ]
         //    }
         //
-        let mut rawLiquidations: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut rawLiquidations: Value = self.safe_list_k(message, "result", &[Value::from(vec![])]);
         let mut newLiquidations: Value = Value::from(vec![]);
         if (self.liquidations.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
-            self.liquidations = ArrayCache::new(limit);
+            self.liquidations = ArrayCache::new(limit.clone());
         }
         let mut cache: Value = self.liquidations.clone();
         {
@@ -2583,7 +2565,7 @@ impl GateCore {
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
         m.insert("contracts".to_string(), self.parse_number(amount, &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(market, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(liquidation, "fill_price", &[]));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
@@ -2596,8 +2578,6 @@ impl GateCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "time": 1647274664,
@@ -2649,7 +2629,7 @@ impl GateCore {
         //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
         let mut errs: Value = self.safe_dict_k(data, "errs", &[]);
         let mut error: Value = self.safe_dict_k(message.clone(), "error", &[errs.clone()]);
         let mut code: Value = self.safe_string2(error.clone(), Value::Str("code".into()), Value::Str("label".into()), &[]);
@@ -2669,16 +2649,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
                 // remove subscriptions for watchSymbols
-                let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+                let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
                 if (channel != Value::Null) && (Value::Int(channel.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                     let mut parsedChannel: Value = split(&channel, &Value::Str(".".into()));
-                    let mut payload: Value = (match __pro_message.get("payload").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+                    let mut payload: Value = self.safe_list_k(message.clone(), "payload", &[Value::from(vec![])]);
                     {
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_356: bool = true;
                         while { if !__for_first_356 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_356 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
                         let mut marketType: Value = (if (parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_str() == Some("futures")) { Value::Str("swap".into()) } else { parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) });
-                        let mut symbol: Value = self.safe_symbol(payload.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), marketType]);
+                        let mut symbol: Value = self.safe_symbol(payload.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), marketType.clone()]);
                         let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
                         if (messageHashSymbol != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol)) {
                             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol);
@@ -2706,9 +2686,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("balance".to_string(), Value::Str("handle_balance_subscription".into()).clone());
@@ -2717,14 +2695,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("options.order_book_update".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
             m
         });
-        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         if (id == Value::Null) {
             return;
         }
         if (in_op(&methods, &channel)) {
             let mut subscriptionHash: Value = self.safe_string(get_value(&client, &Value::Str("subscriptions".into())), id.clone(), &[]);
             let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash, &[]);
-            let mut method: Value = methods.as_map().and_then(|__m| channel.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut method: Value = get_value(&methods, &channel);
+            let mut method: Value = get_value(&methods, &channel);
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
         }
         if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
@@ -2735,8 +2714,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_un_subscribe(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // {
         //     "time":1725534679,
@@ -2755,7 +2732,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     "requestId":"efe1d282b630b4aa266b84bee177791a"
         // }
         //
-        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
         {
                         let mut i: Value = Value::Int(0);
@@ -2987,7 +2964,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_359: bool = true;
             while { if !__for_first_359 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_359 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut value: Value = findBy.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut value: Value = get_value(&findBy, &key);
+            let mut value: Value = get_value(&findBy, &key);
             if get_index_of(&url, &key).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 return value;
             }
@@ -3002,7 +2980,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // their support said that reqid must be an int32, not documented
         self.lock_id(&[]);
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "reqid", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("reqid".to_string(), reqid.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("reqid".into(), reqid.clone()); }
         self.unlock_id(&[]);
         return reqid;
 
@@ -3021,9 +2999,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), time);
-                m.insert("channel".to_string(), channel);
+                m.insert("channel".to_string(), channel.clone());
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("payload".to_string(), payload);
+                m.insert("payload".to_string(), payload.clone());
             m
         });
         if (subscription != Value::Null) {
@@ -3034,7 +3012,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut message: Value = self.extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), subscription]).await;
+        return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), subscription]).await;
 
     Value::Null
 }
@@ -3050,13 +3028,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("time".to_string(), time);
-                m.insert("channel".to_string(), channel);
+                m.insert("channel".to_string(), channel.clone());
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("payload".to_string(), payload);
+                m.insert("payload".to_string(), payload.clone());
             m
         });
         let mut message: Value = self.extend(request, &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
+        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
 
     Value::Null
 }
@@ -3072,9 +3050,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), time);
-                m.insert("channel".to_string(), channel);
+                m.insert("channel".to_string(), channel.clone());
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("payload".to_string(), payload);
+                m.insert("payload".to_string(), payload.clone());
             m
         });
         let mut sub: Value = Value::Map({
@@ -3088,7 +3066,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut message: Value = self.extend(request, &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[message.clone(), messageHashes.clone(), sub]).await;
+        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), sub]).await;
 
     Value::Null
 }
@@ -3100,10 +3078,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut future: Value = client.reusable_future(messageHash.clone());
         let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
-            return self.request_private(url, Value::Map({
+            return self.request_private(url.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), channel, &[messageHash]).await;
+}), channel.clone(), &[messageHash]).await;
         }
         return future;
 
@@ -3140,7 +3118,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (channel.as_str() == Some("spot.order_place")) || (channel.as_str() == Some("futures.order_place")) {
-            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("req_header".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut payload { std::sync::Arc::make_mut(__d).insert("req_header".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("X-Gate-Channel-Id".to_string(), Value::Str("ccxt".into()));
     m
@@ -3150,12 +3128,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), time);
-                m.insert("channel".to_string(), channel);
+                m.insert("channel".to_string(), channel.clone());
                 m.insert("event".to_string(), event);
-                m.insert("payload".to_string(), payload);
+                m.insert("payload".to_string(), payload.clone());
             m
         });
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), requestId]).await;
+        return self.watch(url.clone(), messageHash.clone(), &[request, messageHash.clone(), requestId]).await;
 
     Value::Null
 }
@@ -3191,13 +3169,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), time);
-                m.insert("channel".to_string(), channel);
+                m.insert("channel".to_string(), channel.clone());
                 m.insert("event".to_string(), event);
                 m.insert("auth".to_string(), auth);
             m
         });
         if (payload != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payload".to_string(), payload); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payload".into(), payload.clone()); }
         }
         let mut client: Value = self.client(&[url.clone()]);
         if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
@@ -3206,7 +3184,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &tempSubscriptionHash, messageHash.clone());
         }
         let mut message: Value = self.extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), messageHash.clone()]).await;
+        return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), messageHash.clone()]).await;
 
     Value::Null
 }

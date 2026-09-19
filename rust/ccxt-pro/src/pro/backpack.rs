@@ -431,7 +431,7 @@ impl BackpackCore {
             }  else if Value::Int(messageHash.as_str().and_then(|__s| __s.find("candles")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut splitHashes: Value = split(&messageHash, &Value::Str(":".into()));
                 let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
-                let mut timeframe: Value = self.safe_string(splitHashes, Value::Int(3), &[]);
+                let mut timeframe: Value = self.safe_string(splitHashes.clone(), Value::Int(3), &[]);
                 if (symbol != Value::Null) && (timeframe != Value::Null) && (in_op(&self.ohlcvs, &symbol)) {
                     if (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
@@ -512,7 +512,7 @@ impl BackpackCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str(".".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str(":".into())).into()), symbol).into());
-        return self.watch_public(Value::from(vec![topic]), Value::from(vec![messageHash]), &[params]).await;
+        return self.watch_public(Value::from(vec![topic]), Value::from(vec![messageHash.clone()]), &[params]).await;
 
     Value::Null
 }
@@ -531,7 +531,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_tickers(&[Value::from(vec![symbol]), params]).await;
+        return self.un_watch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
 
     Value::Null
 }
@@ -636,8 +636,8 @@ impl BackpackCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut parsedTicker: Value = self.parse_ws_ticker(ticker, &[market]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str(":".into())).into()), symbol).into());
-        add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
-        client.resolve(&[parsedTicker, messageHash]);
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
+        client.resolve(&[parsedTicker, messageHash.clone()]);
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -665,7 +665,7 @@ impl BackpackCore {
         let mut open: Value = self.safe_string_k(ticker.clone(), "o", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "h", &[]));
@@ -788,8 +788,8 @@ impl BackpackCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut parsedBidAsk: Value = self.parse_ws_bid_ask(data, &[market]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bidask".into()), Value::Str(":".into())).into()), symbol).into());
-        add_element_to_object(&mut self.bidsasks, &symbol, parsedBidAsk.clone());
-        client.resolve(&[parsedBidAsk, messageHash]);
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedBidAsk.clone()); }
+        client.resolve(&[parsedBidAsk, messageHash.clone()]);
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -818,7 +818,7 @@ impl BackpackCore {
         let mut bidVolume: Value = self.safe_string_k(ticker.clone(), "B", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), ask);
@@ -874,7 +874,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol, timeframe])]), &[params]).await;
+        return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[params]).await;
 
     Value::Null
 }
@@ -927,7 +927,7 @@ impl BackpackCore {
             limit = candles.get_limit(symbol.clone(), limit.clone());
         }
         let mut filtered: Value = self.filter_by_since_limit(candles, &[since, limit, Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(symbol, timeframe, filtered);
+        return self.create_ohlcv_object(symbol.clone(), timeframe.clone(), filtered);
 
     Value::Null
 }
@@ -1004,10 +1004,10 @@ impl BackpackCore {
         let mut parts: Value = split(&stream, &Value::Str(".".into()));
         let mut timeframe: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1018,7 +1018,7 @@ impl BackpackCore {
         let mut parsed: Value = self.parse_ws_ohlcv(data, &[]);
         ohlcv.append(parsed);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe).into());
-        client.resolve(&[Value::from(vec![symbol, timeframe, ohlcv]), messageHash]);
+        client.resolve(&[Value::from(vec![symbol.clone(), timeframe.clone(), ohlcv]), messageHash.clone()]);
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -1046,7 +1046,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_trades_for_symbols(Value::from(vec![symbol]), &[since, limit, params]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since, limit, params]).await;
 
     Value::Null
 }
@@ -1065,7 +1065,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_trades_for_symbols(Value::from(vec![symbol]), &[params]).await;
+        return self.un_watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[params]).await;
 
     Value::Null
 }
@@ -1114,7 +1114,7 @@ impl BackpackCore {
             let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
             limit = trades.get_limit(tradeSymbol, limit.clone());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades.clone(), &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
 
     Value::Null
@@ -1187,14 +1187,14 @@ impl BackpackCore {
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored);
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
         let mut cache: Value = get_value(&self.trades, &symbol);
         let mut trade: Value = self.parse_ws_trade(data, &[market]);
         cache.append(trade);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-        client.resolve(&[cache.clone(), messageHash]);
-        client.resolve(&[cache, Value::Str("trades".into())]);
+        client.resolve(&[cache.clone(), messageHash.clone()]);
+        client.resolve(&[cache.clone(), Value::Str("trades".into())]);
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1240,7 +1240,7 @@ impl BackpackCore {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -1279,7 +1279,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_order_book_for_symbols(Value::from(vec![symbol]), &[limit, params]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit, params]).await;
 
     Value::Null
 }
@@ -1338,7 +1338,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol]), &[params]).await;
+        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[params]).await;
 
     Value::Null
 }
@@ -1406,7 +1406,7 @@ impl BackpackCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
         let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
@@ -1418,7 +1418,7 @@ impl BackpackCore {
             // usually it takes at least 9 deltas to resolve
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(10)]);
             if is_equal(&cacheLength, &snapshotDelay) {
-                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol, Value::Null, Value::Map({
+                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol.clone(), Value::Null, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1429,7 +1429,7 @@ impl BackpackCore {
             return;
         }
         self.handle_delta(storedOrderBook.clone(), data);
-        client.resolve(&[storedOrderBook, messageHash]);
+        client.resolve(&[storedOrderBook, messageHash.clone()]);
 }
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
@@ -1525,11 +1525,11 @@ impl BackpackCore {
             topic = Value::Str(format!("{}{}", Value::Str("account.orderUpdate.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
             messageHash = Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into());
         }
-        let mut orders: Value = self.watch_private(Value::from(vec![topic]), Value::from(vec![messageHash]), &[params]).await;
+        let mut orders: Value = self.watch_private(Value::from(vec![topic]), Value::from(vec![messageHash.clone()]), &[params]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1563,7 +1563,7 @@ impl BackpackCore {
             topic = Value::Str(format!("{}{}", Value::Str("account.orderUpdate.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
             messageHash = Value::Str(format!("{}{}", Value::Str("unsubscribe:orders:".into()), symbol).into());
         }
-        return self.watch_private(Value::from(vec![topic]), Value::from(vec![messageHash]), &[params, Value::Bool(true)]).await;
+        return self.watch_private(Value::from(vec![topic]), Value::from(vec![messageHash.clone()]), &[params, Value::Bool(true)]).await;
 
     Value::Null
 }
@@ -1611,7 +1611,7 @@ impl BackpackCore {
         orders.append(parsed);
         client.resolve(&[orders.clone(), messageHash.clone()]);
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
-        client.resolve(&[orders, symbolSpecificMessageHash]);
+        client.resolve(&[orders.clone(), symbolSpecificMessageHash]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1650,7 +1650,7 @@ impl BackpackCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "o", &[]);
+        let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("o".into()), &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
         let mut side: Value = self.parse_ws_order_side(self.safe_string_k(order.clone(), "S", &[]));
         let mut price: Value = self.safe_string_k(order.clone(), "p", &[]);
@@ -1670,13 +1670,13 @@ impl BackpackCore {
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone());
         m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("side".to_string(), side);
@@ -1759,7 +1759,7 @@ impl BackpackCore {
                 while { if !__for_first_53 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_53 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("positions".into()), Value::Str(":".into())).into()), symbol).into()));
-                append_to_array(&mut topics, Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol)).into()));
+                append_to_array(&mut topics, Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol.clone())).into()));
             }
             }
         }  else {
@@ -1803,7 +1803,7 @@ impl BackpackCore {
                 while { if !__for_first_54 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_54 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:positions".into()), Value::Str(":".into())).into()), symbol).into()));
-                append_to_array(&mut topics, Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol)).into()));
+                append_to_array(&mut topics, Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol.clone())).into()));
             }
             }
         }  else {
@@ -1855,7 +1855,7 @@ impl BackpackCore {
         add_element_to_object(&mut parsedPosition, &Value::Str("datetime".into()), self.iso8601(timestamp));
         cache.append(parsedPosition.clone());
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), parsedPosition.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        client.resolve(&[Value::from(vec![parsedPosition.clone()]), messageHash]);
+        client.resolve(&[Value::from(vec![parsedPosition.clone()]), messageHash.clone()]);
         client.resolve(&[Value::from(vec![parsedPosition]), symbolSpecificMessageHash]);
 }
 
@@ -1911,8 +1911,8 @@ impl BackpackCore {
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position);
-        m.insert("id".to_string(), id);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("id".to_string(), id.clone());
+        m.insert("symbol".to_string(), symbol.clone());
         m.insert("notional".to_string(), notional);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), liquidationPrice);
@@ -1959,7 +1959,7 @@ impl BackpackCore {
         }  else if (event.as_deref() == Some("orderAccepted")) || (event.as_deref() == Some("orderUpdate")) || (event.as_deref() == Some("orderFill")) || (event.as_deref() == Some("orderCancelled")) || (event.as_deref() == Some("orderExpired")) || (event.as_deref() == Some("orderModified")) || (event.as_deref() == Some("triggerPlaced")) || (event.as_deref() == Some("triggerFailed")) {
             self.handle_order(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("positionAdjusted")) || (event.as_deref() == Some("positionOpened")) || (event.as_deref() == Some("positionClosed")) || (event.as_deref() == Some("positionUpdated")) {
-            self.handle_positions(client, message);
+            self.handle_positions(client.clone(), message.clone());
         }
 }
 
@@ -1973,7 +1973,7 @@ impl BackpackCore {
         //         }
         //     }
         //
-        let mut error: Value = self.safe_dict_k(message, "error", &[Value::Map({
+        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

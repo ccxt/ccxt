@@ -607,7 +607,7 @@ impl P2bCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
         if (symbol != Value::Null) {
             if (stored == Value::Null) {
@@ -654,7 +654,7 @@ impl P2bCore {
         if (tradesArray == Value::Null) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             tradesArray = ArrayCache::new(tradesLimit);
-            add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -728,7 +728,7 @@ impl P2bCore {
             ticker = self.parse_ticker(tickerData, &[market]);
         }
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart, Value::Str("::".into())).into()), symbol).into());
         client.resolve(&[ticker, messageHash]);
         return message;
@@ -776,7 +776,7 @@ impl P2bCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             orderbook = get_value(&self.orderbooks, &symbol);
         }
         if (isFullUpdate.as_bool() == Some(true)) {
@@ -886,12 +886,12 @@ impl P2bCore {
 }
 
     pub fn on_error(&mut self, mut client: Value, mut error: Value) {
-        { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tickerSubs".to_string(), __be_tmp); } }
+        { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tickerSubs".into(), __be_tmp); } }
         self.parent.on_error(&[client, error]);
 }
 
     pub fn on_close(&mut self, mut client: Value, mut error: Value) {
-        { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tickerSubs".to_string(), __be_tmp); } }
+        { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tickerSubs".into(), __be_tmp); } }
         self.parent.on_close(&[client, error]);
 }
 }

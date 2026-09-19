@@ -1196,7 +1196,7 @@ impl DydxCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         let __ws_arg_1 = self.extend(request, &[params]);
         let mut response: Value = self.indexer_get_trades_perpetual_market_market(&[__ws_arg_1]).await;
@@ -1260,15 +1260,15 @@ impl DydxCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromIso".to_string(), self.iso8601(since.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromIso".into(), self.iso8601(since.clone())); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toIso".to_string(), self.iso8601(until)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toIso".into(), self.iso8601(until)); }
         }
         let __ws_arg_2 = self.extend(request, &[params]);
         let mut response: Value = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await;
@@ -1332,11 +1332,11 @@ impl DydxCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("effectiveBeforeOrAt".to_string(), self.iso8601(until)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("effectiveBeforeOrAt".into(), self.iso8601(until)); }
         }
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.indexer_get_historical_funding_market(&[__ws_arg_3]).await;
@@ -1563,10 +1563,10 @@ impl DydxCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.indexer_get_orders(&[__ws_arg_5]).await;
@@ -1873,7 +1873,7 @@ impl DydxCore {
         credentials = self.retrieve_dydx_credentials(privateKey);
         { let __be_tmp = self.binary_to_base16(crate::value::get_value_k(&credentials, "privateKey"), &[]); add_element_to_object(&mut credentials, &Value::Str("privateKey".into()), __be_tmp); };
         { let __be_tmp = self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[]); add_element_to_object(&mut credentials, &Value::Str("publicKey".into()), __be_tmp); };
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("dydxCredentials".to_string(), credentials.clone()); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials.clone()); }
         return credentials;
 
     Value::Null
@@ -1919,8 +1919,8 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&account, "pub_key"), "key"));
     m
-}); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("pub_key".to_string(), __be_tmp); } }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("dydxAccount".to_string(), account.clone()); }
+}); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("pub_key".into(), __be_tmp); } }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("dydxAccount".into(), account.clone()); }
         return account;
 
     Value::Null
@@ -3318,7 +3318,7 @@ impl DydxCore {
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
         let mut account: Value = self.account();
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(response.clone(), "freeCollateral", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(response.clone(), "freeCollateral", &[])); }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -3424,8 +3424,8 @@ impl DydxCore {
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable);
         // rewrite testnet parameters
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainName".to_string(), Value::Str("dydx-testnet-4".into())); }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".to_string(), Value::Int(11155111)); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainName".into(), Value::Str("dydx-testnet-4".into())); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), Value::Int(11155111)); }
         add_element_to_object(get_value_mut(&mut self.options, &Value::Str("feeDenom".into())), &Value::Str("CHAINTOKEN_DENOM".into()), Value::Str("adv4tnt".into()));
 }
 }

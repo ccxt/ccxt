@@ -412,10 +412,10 @@ impl WhitebitCore {
             let mut parsed: Value = self.parse_ohlcv(data, &[market]);
             // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if !(in_op(&self.ohlcvs, &symbol)) {
-                add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+                if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             }
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if !(matches!(&get_value(&self.ohlcvs, &symbol), Value::Dict(__d) if __d.contains_key("unknown"))) {
@@ -521,7 +521,7 @@ impl WhitebitCore {
         let mut timestamp: Value = self.safe_timestamp_k(data.clone(), "timestamp", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut ob: Value = self.order_book(&[]);
-            add_element_to_object(&mut self.orderbooks, &symbol, ob);
+            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
@@ -660,7 +660,7 @@ impl WhitebitCore {
         })]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str(":".into())).into()), symbol).into());
         let mut ticker: Value = self.parse_ticker(rawTicker, &[market]);
-        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         // watchTicker
         client.resolve(&[ticker.clone(), messageHash]);
         // watchTickers
@@ -759,7 +759,7 @@ impl WhitebitCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut data: Value = self.safe_list(params, Value::Int(1), &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data, &[market.clone()]);
@@ -1257,7 +1257,7 @@ impl WhitebitCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), balanceDict.clone()); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), balanceDict.clone()); }
             if isMargin {
                 let mut currencyId: Value = self.safe_string_k(balanceDict.clone(), "a", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1266,7 +1266,7 @@ impl WhitebitCore {
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(balanceDict.clone(), "B", &[]));
                 add_element_to_object(&mut account, &Value::Str("debt".into()), self.safe_string_k(balanceDict.clone(), "b", &[]));
                 if (code != Value::Null) {
-                    add_element_to_object(&mut self.balance, &code, account.clone());
+                    if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                 }
             }  else {
                 let mut keys: Value = object_keys(&balanceDict);
@@ -1284,7 +1284,7 @@ impl WhitebitCore {
                     add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(rawBalance.clone(), "available", &[]));
                     add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(rawBalance, "freeze", &[]));
                     if (code != Value::Null) {
-                        add_element_to_object(&mut self.balance, &code, account);
+                        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
                     }
                 }
                 }
@@ -1344,7 +1344,7 @@ impl WhitebitCore {
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             if (marketId != Value::Null) {
-                add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
+                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Bool(true)); }
             }
             marketIds = Value::from(vec![marketId.clone()]);
             if is_true(&isNested) {
@@ -1370,7 +1370,7 @@ impl WhitebitCore {
             let mut isSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
             if (isSubscribed.as_bool() != Some(true)) {
                 if (marketId != Value::Null) {
-                    add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
+                    if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Bool(true)); }
                 }
                 hasSymbolSubscription = false;
             }

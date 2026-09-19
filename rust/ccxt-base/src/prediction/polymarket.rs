@@ -1100,7 +1100,7 @@ impl PolymarketCore {
             let mut eventSlug: Value = self.safe_string_k(rawEvent, "slug", &[]);
             if (eventSlug != Value::Null) && (eventSlug.as_str() != Some("")) {
                 let mut eventKey: Value = self.shorten_slug(eventSlug);
-                add_element_to_object(&mut eventsDict, &eventKey, parsedEvent);
+                if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), parsedEvent); }
             }
         }
         }
@@ -1167,7 +1167,7 @@ impl PolymarketCore {
                 m
             });
             if (eventsStatus != Value::Null) {
-                if let Value::Dict(__d) = &mut baseRequest { std::sync::Arc::make_mut(__d).insert("events_status".to_string(), eventsStatus.clone()); }
+                if let Value::Dict(__d) = &mut baseRequest { std::sync::Arc::make_mut(__d).insert("events_status".into(), eventsStatus.clone()); }
             }
             let mut firstRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1252,7 +1252,7 @@ impl PolymarketCore {
                 let mut rawEvent: Value = allEvents.as_array().and_then(|__arr| match &ei { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
                 if ((eventId != Value::Null) && (eventId.as_str() != Some(""))) && !(in_op(&seen, &eventId)) {
-                    add_element_to_object(&mut seen, &eventId, Value::Bool(true));
+                    if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventId), Value::Bool(true)); }
                     append_to_array(&mut rawEvents, rawEvent);
                 }
             }
@@ -1371,7 +1371,7 @@ impl PolymarketCore {
                     let mut rawEvent: Value = tagEvents.as_array().and_then(|__arr| match &ei { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
                     if (eventId != Value::Null) && !(in_op(&seen, &eventId)) {
-                        add_element_to_object(&mut seen, &eventId, Value::Bool(true));
+                        if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventId), Value::Bool(true)); }
                         append_to_array(&mut unioned, rawEvent);
                     }
                 }
@@ -1898,7 +1898,7 @@ impl PolymarketCore {
             let mut outcomeObj: Value = self.outcome(targets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
             if (tokenId != Value::Null) && !(in_op(&outcomesByTokenId, &tokenId)) {
-                add_element_to_object(&mut outcomesByTokenId, &tokenId, outcomeObj.clone());
+                if let Value::Dict(__d) = &mut outcomesByTokenId { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tokenId), outcomeObj.clone()); }
                 append_to_array(&mut tokenIds, tokenId.clone());
             }
         }
@@ -1948,7 +1948,7 @@ impl PolymarketCore {
                 let mut lastTradeEntry: Value = lastTrades.as_array().and_then(|__arr| match &li { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut lastTradeTokenId: Value = self.safe_string_k(lastTradeEntry.clone(), "token_id", &[]);
                 if (lastTradeTokenId != Value::Null) {
-                    add_element_to_object(&mut lastTradesByTokenId, &lastTradeTokenId, lastTradeEntry);
+                    if let Value::Dict(__d) = &mut lastTradesByTokenId { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&lastTradeTokenId), lastTradeEntry); }
                 }
             }
             }
@@ -1981,7 +1981,7 @@ impl PolymarketCore {
                 });
                 let mut ticker: Value = self.parse_prediction_ticker(tickerInput, &[outcomeObj]);
                 let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[tokenId]);
-                add_element_to_object(&mut result, &symbolKey, ticker);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolKey), ticker); }
             }
             }
             startIndex = self.sum(&[startIndex.clone(), chunkSize.clone()]);
@@ -2250,7 +2250,7 @@ impl PolymarketCore {
             }
             let mut bucketKey: Value = to_string_val(&snappedMs);
             if !(in_op(&buckets, &bucketKey)) {
-                add_element_to_object(&mut buckets, &bucketKey, Value::from(vec![snappedMs, price.clone(), price.clone(), price.clone(), price.clone(), vol.clone()]));
+                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bucketKey), Value::from(vec![snappedMs, price.clone(), price.clone(), price.clone(), price.clone(), vol.clone()])); }
             }  else {
                 let mut candle: Value = get_value(&buckets, &bucketKey);
                 let mut candle: Value = get_value(&buckets, &bucketKey);
@@ -2261,7 +2261,7 @@ impl PolymarketCore {
                     let mut prevVol: Value = candle.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null);
                     add_element_to_object(&mut candle, &Value::Int(5), (if (prevVol == Value::Null) { vol.clone() } else { self.sum(&[prevVol, vol]) })); // volume
                 }
-                add_element_to_object(&mut buckets, &bucketKey, candle); // reassign after mutation, php arrays are value types
+                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bucketKey), candle); }; // reassign after mutation, php arrays are value types
             }
         }
         }
@@ -2500,7 +2500,7 @@ impl PolymarketCore {
                 m.insert("market".to_string(), conditionId);
             m
         });
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)])); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)])); }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.data_public_get_trades(&[__ws_arg_6]).await;
         let mut rawTrades: Value = (if (matches!(&response, Value::Arr(_))) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
@@ -2548,7 +2548,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome, &[]).await;
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset_id".into(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
         }
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.clob_private_get_data_trades(&[__ws_arg_7]).await;
@@ -2724,7 +2724,7 @@ impl PolymarketCore {
         if (raw != Value::Null) {
             total = self.parse_number(crate::precise::Precise::stringDiv(&raw, &Value::Str("1000000".into())), &[]);
         }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDC".to_string(), Value::Map({
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDC".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), total.clone());
         m.insert("used".to_string(), Value::Null);
@@ -2915,7 +2915,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome, &[]).await;
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset_id".into(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
         }
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.clob_private_get_data_orders(&[__ws_arg_10]).await;
@@ -3351,7 +3351,7 @@ impl PolymarketCore {
         });
         if (cost == Value::Null) {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill
-            if let Value::Dict(__d) = &mut requestEcho { std::sync::Arc::make_mut(__d).insert("original_size".to_string(), amount); }
+            if let Value::Dict(__d) = &mut requestEcho { std::sync::Arc::make_mut(__d).insert("original_size".into(), amount); }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3801,9 +3801,9 @@ impl PolymarketCore {
                 m
             });
             if (requestedEventId != Value::Null) {
-                if let Value::Dict(__d) = &mut lookup { std::sync::Arc::make_mut(__d).insert("id".to_string(), requestedEventId.clone()); }
+                if let Value::Dict(__d) = &mut lookup { std::sync::Arc::make_mut(__d).insert("id".into(), requestedEventId.clone()); }
             }  else {
-                if let Value::Dict(__d) = &mut lookup { std::sync::Arc::make_mut(__d).insert("slug".to_string(), requestedSlug.clone()); }
+                if let Value::Dict(__d) = &mut lookup { std::sync::Arc::make_mut(__d).insert("slug".into(), requestedSlug.clone()); }
             }
             let mut response: Value = self.gamma_public_get_events(&[lookup.clone()]).await;
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
@@ -4450,9 +4450,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2ApiKey".to_string(), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2Secret".to_string(), match &creds { Value::Dict(__m15) => __m15.get("secret").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2Passphrase".to_string(), match &creds { Value::Dict(__m15) => __m15.get("passphrase").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2ApiKey".into(), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2Secret".into(), match &creds { Value::Dict(__m15) => __m15.get("secret").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2Passphrase".into(), match &creds { Value::Dict(__m15) => __m15.get("passphrase").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
         return creds;
 
     Value::Null
@@ -4537,7 +4537,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            add_element_to_object(&mut self.orderbooks.clone(), &outcome, seededBook);
+            if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), seededBook); }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &outcome);
         let mut timestamp: Value = self.parse_poly_timestamp(self.safe_string_k(event.clone(), "timestamp", &[]));
@@ -4604,7 +4604,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             sideRef.store_array(Value::from(vec![price, size]));
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
-            add_element_to_object(&mut updated, &outcome, Value::Bool(true));
+            if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), Value::Bool(true)); }
         }
         }
         let mut updatedSymbols: Value = object_keys(&updated);
@@ -4660,7 +4660,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades.clone(), &outcome, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), stored.clone()); }
         }
         stored.append(trade);
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), outcome).into())]);
@@ -4767,7 +4767,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
             if (outcome != Value::Null) {
-                add_element_to_object(&mut self.orderbooks, &outcome, seededBook);
+                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), seededBook); }
             }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);

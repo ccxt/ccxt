@@ -647,12 +647,12 @@ impl BitmexCore {
                 { let __be_tmp = self.parse_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), &[]); add_element_to_object(&mut self.tickers, &symbol, __be_tmp); };
+}), &[]); if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut updatedTicker: Value = self.parse_ticker(update, &[]);
             let mut fullParsedTicker: Value = self.deep_extend(get_value(&self.tickers, &symbol), &[updatedTicker]);
-            add_element_to_object(&mut tickers, &symbol, fullParsedTicker.clone());
-            add_element_to_object(&mut self.tickers, &symbol, fullParsedTicker.clone());
+            if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fullParsedTicker.clone()); }
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fullParsedTicker.clone()); }
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
             client.resolve(&[fullParsedTicker.clone(), messageHash]);
             client.resolve(&[fullParsedTicker, Value::Str("alltickers".into())]);
@@ -1019,7 +1019,7 @@ impl BitmexCore {
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit);
-                add_element_to_object(&mut self.trades, &symbol, stored.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
             {
                                 let mut j: Value = Value::Int(0);
@@ -1580,7 +1580,7 @@ impl BitmexCore {
                 let mut order: Value = self.parse_order(rawOrder, &[]);
                 stored.append(order.clone());
                 let mut symbol: Value = order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
             }
             client.resolve(&[self.orders.clone(), messageHash.clone()]);
@@ -1723,7 +1723,7 @@ impl BitmexCore {
             let mut trade: Value = trades.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             stored.append(trade.clone());
-            add_element_to_object(&mut symbols, &symbol, trade);
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), trade); }
         }
         }
         let mut numTrades: f64 = ((trades.len() as i64) as f64);
@@ -2009,7 +2009,7 @@ impl BitmexCore {
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -2017,7 +2017,7 @@ impl BitmexCore {
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
             stored.append(result);
-            add_element_to_object(&mut results, &messageHash, stored);
+            if let Value::Dict(__d) = &mut results { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&messageHash), stored); }
         }
         }
         let mut messageHashes: Value = object_keys(&results);
@@ -2117,17 +2117,17 @@ impl BitmexCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (table.as_str() == Some("orderBookL2")) {
-                { let __be_tmp = self.indexed_order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+                { let __be_tmp = self.indexed_order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }  else if (table.as_str() == Some("orderBookL2_25")) {
                 { let __be_tmp = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Int(25)]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), Value::Int(25)]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }  else if (table.as_str() == Some("orderBook10")) {
                 { let __be_tmp = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Int(10)]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), Value::Int(10)]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
@@ -2164,9 +2164,9 @@ impl BitmexCore {
                     return;
                 }
                 if !(in_op(&numUpdatesByMarketId, &marketId)) {
-                    add_element_to_object(&mut numUpdatesByMarketId, &marketId, Value::Int(0));
+                    if let Value::Dict(__d) = &mut numUpdatesByMarketId { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Int(0)); }
                 }
-                { let __be_tmp = self.sum(&[get_value(&numUpdatesByMarketId, &marketId), Value::Int(1)]); add_element_to_object(&mut numUpdatesByMarketId, &marketId, __be_tmp); };
+                { let __be_tmp = self.sum(&[get_value(&numUpdatesByMarketId, &marketId), Value::Int(1)]); if let Value::Dict(__d) = &mut numUpdatesByMarketId { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), __be_tmp); } }
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);

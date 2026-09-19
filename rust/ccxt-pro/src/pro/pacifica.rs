@@ -368,10 +368,10 @@ impl PacificaCore {
             m
         });
         if (key != Value::Null) {
-            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".to_string(), key); }
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".into(), key); }
         }  else {
             if (self.handle_option(Value::Str("setupApiKeyHeaders".into()), Value::Str("apiKey".into()), &[]) != Value::Null) {
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".to_string(), self.options.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".into(), self.options.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null)); }
             }
         }
         add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), headers);
@@ -926,7 +926,7 @@ impl PacificaCore {
         }
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut ob: Value = self.order_book(&[snapshot.clone()]);
-            add_element_to_object(&mut self.orderbooks, &symbol, ob);
+            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         orderbook.reset(snapshot);
@@ -1171,7 +1171,7 @@ impl PacificaCore {
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ws_ticker(info, &[market]);
-            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             append_to_array(&mut parsedTickers, ticker);
         }
         }
@@ -1238,7 +1238,7 @@ impl PacificaCore {
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
             trades.append(parsed);
         }
@@ -1377,7 +1377,7 @@ impl PacificaCore {
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored);
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
         let mut trades: Value = get_value(&self.trades, &symbol);
         {
@@ -1614,10 +1614,10 @@ impl PacificaCore {
             return;
         }
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut symbolOhlcvs: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1627,7 +1627,7 @@ impl PacificaCore {
         if (ohlcv == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             ohlcv = ArrayCacheByTimestamp::new(limit);
-            add_element_to_object(&mut symbolOhlcvs, &timeframe, ohlcv.clone());
+            if let Value::Dict(__d) = &mut symbolOhlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timeframe), ohlcv.clone()); }
         }
         let mut parsed: Value = self.parse_ohlcv(data, &[]);
         ohlcv.append(parsed);
@@ -1790,7 +1790,7 @@ impl PacificaCore {
             stored.append(order.clone());
             let mut symbol: Value = self.safe_string_k(order, "symbol", &[]);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut marketSymbols, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut marketSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
         }
         }

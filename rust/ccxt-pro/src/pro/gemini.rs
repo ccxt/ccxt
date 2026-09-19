@@ -442,7 +442,7 @@ impl GeminiCore {
         if (stored == Value::Null) {
             stored = ArrayCache::new(tradesLimit);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.trades, &symbol, stored.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
         }
         stored.append(trade);
@@ -497,7 +497,7 @@ impl GeminiCore {
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (stored == Value::Null) {
                 stored = ArrayCache::new(tradesLimit);
-                add_element_to_object(&mut self.trades, &symbol, stored.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
             {
                                 let mut i: Value = Value::Int(0);
@@ -532,10 +532,10 @@ impl GeminiCore {
                 let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
                 if (stored == Value::Null) {
                     stored = ArrayCache::new(tradesLimit.clone());
-                    add_element_to_object(&mut self.trades, &symbol, stored.clone());
+                    if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
                 }
                 stored.append(trade);
-                add_element_to_object(&mut storesForSymbols, &symbol, stored.clone());
+                if let Value::Dict(__d) = &mut storesForSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
             }
             let mut symbols: Value = object_keys(&storesForSymbols);
@@ -637,10 +637,10 @@ impl GeminiCore {
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut ohlcvsBySymbol: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]);
         if (ohlcvsBySymbol == Value::Null) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
@@ -720,13 +720,13 @@ impl GeminiCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }  else if isInitial {
             // handle https://github.com/ccxt/ccxt/issues/29210
             if (in_op(&self.orderbooks, &symbol)) {
                 remove(&mut self.orderbooks, &symbol);
             }
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         {
@@ -744,7 +744,7 @@ impl GeminiCore {
         }
         }
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
-        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -825,7 +825,7 @@ impl GeminiCore {
             { let __be_tmp = self.parse_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), &[]); add_element_to_object(&mut self.bidsasks, &symbol, __be_tmp); };
+}), &[]); if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             add_element_to_object(get_value_mut(&mut self.bidsasks, &symbol), &Value::Str("symbol".into()), symbol.clone());
         }
         let mut currentBidAsk: Value = get_value(&self.bidsasks, &symbol);
@@ -858,8 +858,8 @@ impl GeminiCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        add_element_to_object(&mut bidsAsksDict, &symbol, currentBidAsk.clone());
-        add_element_to_object(&mut self.bidsasks, &symbol, currentBidAsk);
+        if let Value::Dict(__d) = &mut bidsAsksDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), currentBidAsk.clone()); }
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), currentBidAsk); }
         client.resolve(&[bidsAsksDict, messageHash]);
 }
 
@@ -929,7 +929,7 @@ impl GeminiCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut ob: Value = self.order_book(&[]);
-            add_element_to_object(&mut self.orderbooks, &symbol, ob);
+            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
@@ -955,7 +955,7 @@ impl GeminiCore {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
 }
 

@@ -362,7 +362,7 @@ impl CoinexCore {
     pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
         return requestId;
 
@@ -444,8 +444,8 @@ impl CoinexCore {
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, defaultType.clone()]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, defaultType.clone()]);
             let mut parsedTicker: Value = self.parse_ws_ticker(entry, &[market]);
-            add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
-            add_element_to_object(&mut newTickers, &symbol, parsedTicker);
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
+            if let Value::Dict(__d) = &mut newTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker); }
         }
         }
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("tickers::".into()));
@@ -682,13 +682,13 @@ impl CoinexCore {
         let mut messageHash: Value = Value::Null;
         if (account != Value::Null) {
             if (self.safe_dict(self.balance.clone(), account.clone(), &[]) == Value::Null) {
-                add_element_to_object(&mut self.balance, &account, Value::Map({
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             }
             add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("info".into()), info);
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); add_element_to_object(&mut self.balance, &account, __be_tmp); };
+            { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
             messageHash = Value::Str(format!("{}{}", Value::Str("balances:".into()), account).into());
             client.resolve(&[get_value(&self.balance, &account), messageHash]);
         }
@@ -722,21 +722,21 @@ impl CoinexCore {
         let mut account: Value = self.account();
         let mut currencyId: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "frozen", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "available", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "frozen", &[])); }
         if (accountType != Value::Null) {
             if (self.safe_dict(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
-                add_element_to_object(&mut self.balance, &accountType, Value::Map({
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             }
             if (accountType != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }  else {
             if (code != Value::Null) {
-                add_element_to_object(&mut self.balance, &code, account);
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
 }
@@ -841,11 +841,11 @@ impl CoinexCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut parsed: Value = self.parse_ws_trade(data, &[market]);
         stored.append(parsed);
-        add_element_to_object(&mut self.trades, &symbol, stored);
+        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         client.resolve(&[get_value(&self.trades, &symbol), messageWithType]);
         client.resolve(&[get_value(&self.trades, &symbol), messageHash]);
 }
@@ -905,7 +905,7 @@ impl CoinexCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -916,7 +916,7 @@ impl CoinexCore {
             stored.append(parsed);
         }
         }
-        add_element_to_object(&mut self.trades, &symbol, stored);
+        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         client.resolve(&[get_value(&self.trades, &symbol), messageHash]);
 }
 
@@ -1105,7 +1105,7 @@ impl CoinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchTrades".into())); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchTrades".into())); }
         return self.watch_trades_for_symbols(Value::from(vec![symbol]), &[since, limit, params]).await;
 
     Value::Null
@@ -1236,7 +1236,7 @@ impl CoinexCore {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             market = self.market(symbol.clone());
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
-            add_element_to_object(&mut watchOrderBookSubscriptions, &symbol, Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), limit.clone(), aggregation.clone(), Value::Bool(true)]));
+            if let Value::Dict(__d) = &mut watchOrderBookSubscriptions { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), limit.clone(), aggregation.clone(), Value::Bool(true)])); }
         }
         }
         { let __destr_tmp = self.handle_market_type_and_params(callerMethodName, &[market, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1281,7 +1281,7 @@ impl CoinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOrderBook".into())); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOrderBook".into())); }
         return self.watch_order_book_for_symbols(Value::from(vec![symbol]), &[limit, params]).await;
 
     Value::Null
@@ -1351,7 +1351,7 @@ impl CoinexCore {
         if (fullOrderBook.as_bool() == Some(true)) {
             let mut snapshot: Value = self.parse_order_book(depth.clone(), symbol.clone(), &[timestamp.clone()]);
             if (currentOrderBook == Value::Null) {
-                { let __be_tmp = self.order_book(&[snapshot.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+                { let __be_tmp = self.order_book(&[snapshot.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }  else {
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 orderbook.reset(snapshot);
@@ -1364,7 +1364,7 @@ impl CoinexCore {
             add_element_to_object(&mut currentOrderBook, &Value::Str("nonce".into()), timestamp.clone());
             add_element_to_object(&mut currentOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut currentOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-            add_element_to_object(&mut self.orderbooks, &symbol, currentOrderBook);
+            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), currentOrderBook); }
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
         client.resolve(&[get_value(&self.orderbooks, &symbol), messageHash]);
@@ -1828,7 +1828,7 @@ impl CoinexCore {
         })]);
         let mut parsedTicker: Value = self.parse_ws_bid_ask(data, &[]);
         let mut symbol: Value = parsedTicker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".into()), symbol).into());
         client.resolve(&[parsedTicker, messageHash]);
 }
