@@ -1418,7 +1418,7 @@ public partial class aster : ccxt.aster
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
-    public async virtual Task<object> authenticate(object type = null, object parameters = null)
+    public async virtual Task authenticate(object type = null, object parameters = null)
     {
         type ??= "spot";
         parameters ??= new Dictionary<string, object>();

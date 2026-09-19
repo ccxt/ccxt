@@ -1666,7 +1666,7 @@ public partial class bingx : ccxt.bingx
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();

@@ -3391,7 +3391,7 @@ public partial class binance : ccxt.binance
         await this.ensureUserDataStreamWsSubscribeListenToken(type, renewParams);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
