@@ -8159,7 +8159,7 @@ func (this *Binance) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Binance) ParseOrderTypeByMarket(typeVar *string, marketType any) any {
+func (this *Binance) ParseOrderTypeByMarket(typeVar *string, marketType any) *string {
 	var types map[string]any = map[string]any{}
 	if (marketType != nil) && (IsEqual(marketType, "spot")) {
 		types = map[string]any{
@@ -15819,7 +15819,7 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
 }
-func (this *Binance) ParseSettlement(settlement any, market any) any {
+func (this *Binance) ParseSettlement(settlement any, market any) map[string]any {
 	//
 	// fetchSettlementHistory
 	//

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import ts from 'typescript6';
 
 // CCXT-side extension of the Go printer's local-variable typing.
@@ -1626,6 +1628,10 @@ function collectReturnStatements (block) {
 // shapes leaves the emitted signature at `any`. An annotated TS return type is
 // deliberately NOT consulted: the emitted Go body is what has to compile.
 export function ccxtGoFamilyMethodReturnType (goTranspiler, node) {
+    const annotated = ccxtGoAnnotatedMethodReturnType (goTranspiler, node);
+    if (annotated !== undefined) {
+        return annotated;
+    }
     if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
         return undefined;
     }
@@ -1716,8 +1722,8 @@ export function ccxtGoFamilyCallType (goTranspiler, initializer, printedValue) {
         return undefined;
     }
     const name = callee.name?.escapedText;
-    if ((typeof name !== 'string') || !CCXT_GO_FAMILY_METHOD.test (name)) {
-        return undefined;
+    if ((typeof name !== 'string') || !CCXT_GO_PARSE_METHOD.test (name)) {
+        return undefined; // D-02: the internal parse* family is the one with native returns
     }
     let value = (printedValue ?? '').trim ();
     while (value.startsWith ('(') && goTranspiler.isWholePrintedCall (value, 0)) {
@@ -1733,6 +1739,217 @@ export function ccxtGoFamilyCallType (goTranspiler, initializer, printedValue) {
     }
     const methodNode = findClassMethod (enclosingClassDeclaration (initializer), name);
     return ccxtGoFamilyMethodReturnType (goTranspiler, methodNode);
+}
+
+// ---------------------------------------------------------------------------
+// D-02 — native return types for internal parse* methods (annotation-driven)
+//
+// Batch C annotated the internal `parseX (..): Str/Dict/List/Bool/number`
+// methods in ts/src. Their emitted Go body already builds one concrete value on
+// every return path — a *string from the Safe* layer, a map[string]any literal,
+// another generated parse* method's result — but the signature stays `any`, so
+// every caller's `var x any = this.ParseX (..)` keeps its box and none of the
+// printer's typed-local readers can fire. This rule reads the DECLARED
+// annotation off the checker and prints the native Go signature (and, through
+// the same predicate, the callers' locals) only when every return statement of
+// the emitted body provably produces that same type.
+//
+// Fail-closed conditions, each keeping the emitted `any` signature:
+//   * not a non-async method with a block body, or not named parse*;
+//   * an override / abstract-base member (goMethodKeepsBaseSignature): the
+//     generated base classes and derived exchanges compile against it (D8);
+//   * the name is listed on one of the go/v4 interface files: every generated
+//     constructor assigns `this.Exchange.DerivedExchange = this`, so the
+//     IDerivedExchange / IBaseExchange member signatures must match exactly;
+//   * a bare `return;`, a return path whose printed value the printer cannot
+//     name (Ternary / GetValue / SafeDict / an `any` local / ...), or a mix of
+//     a literal path and a pointer path — one signature cannot hold both.
+const CCXT_GO_ANNOTATED_RETURN_NATIVE = {
+    'Str': [ '*string', 'string' ],
+    'Dict': [ 'map[string]any' ],
+    'List': [ '[]any' ],
+    'Bool': [ 'bool' ],
+    'number': [ 'float64' ],
+};
+const CCXT_GO_PARSE_METHOD = /^parse[A-Za-z0-9]*$/;
+const CCXT_GO_RESERVED_METHOD_CACHE = new Map ();
+const CCXT_GO_RETURN_TYPE_IN_PROGRESS = new Set ();
+const CCXT_GO_RETURN_TYPE_CACHE = new Map ();
+
+// every method name declared on the interface files of this repo root. A
+// `*BaseExchange`-receiver method is not enough: the generated constructor's
+// `this.Exchange.DerivedExchange = this` assertion compares the whole method
+// set, so ANY listed name has to keep the emitted signature byte-identical.
+// In-memory sources (unit tests) have no tree: the set is empty there.
+function ccxtGoReservedMethodNames (node) {
+    const fileName = node?.getSourceFile?. ()?.fileName;
+    if (typeof fileName !== 'string') {
+        return undefined;
+    }
+    const marker = '/ts/src/';
+    const at = fileName.lastIndexOf (marker);
+    if (at < 0) {
+        return undefined;
+    }
+    const root = fileName.substring (0, at);
+    if (CCXT_GO_RESERVED_METHOD_CACHE.has (root)) {
+        return CCXT_GO_RESERVED_METHOD_CACHE.get (root);
+    }
+    const names = new Set ();
+    const files = [
+        'go/v4/exchange_interface.go',
+        'go/v4/exchange_typed_interface.go',
+        'go/v4/pro/exchange_interface.go',
+        'go/v4/pro/exchange_typed_interface.go',
+    ];
+    for (const relative of files) {
+        let text;
+        try {
+            text = fs.readFileSync (path.join (root, relative), 'utf8');
+        } catch (e) {
+            continue;
+        }
+        for (const line of text.split ('\n')) {
+            const match = /^\t([A-Za-z_]\w*)\s*\(/.exec (line);
+            if (match !== null) {
+                names.add (match[1]);
+            }
+        }
+    }
+    CCXT_GO_RESERVED_METHOD_CACHE.set (root, names);
+    return names;
+}
+
+// the native Go type(s) a declared return annotation may print, or undefined.
+// The alias is read off the checker — never from the method name — so `Str`
+// (string | undefined) and `Bool` (boolean | undefined) are told apart from a
+// same-shaped local union, and `Dict`/`List` keep their container mapping.
+function ccxtGoAnnotatedReturnTypes (goTranspiler, node) {
+    if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    let type;
+    try {
+        const checker = goTranspiler.getChecker ();
+        type = checker.getReturnTypeOfSignature (checker.getSignatureFromDeclaration (node));
+    } catch (e) {
+        return undefined;
+    }
+    const alias = type?.aliasSymbol?.escapedName;
+    const annotation = (node.type !== undefined) ? node.type.getText () : undefined;
+    const key = (typeof alias === 'string') ? alias : annotation;
+    if ((key === 'Str') || (key === 'Dict') || (key === 'List') || (key === 'Bool')) {
+        return CCXT_GO_ANNOTATED_RETURN_NATIVE[key];
+    }
+    // `number` is a builtin: no alias to read, so the annotation text and the
+    // checker's own Number flag have to agree
+    if ((key === 'number') && (type !== undefined) && ((type.flags & ts.TypeFlags.Number) !== 0)) {
+        return CCXT_GO_ANNOTATED_RETURN_NATIVE['number'];
+    }
+    return undefined;
+}
+
+// the concrete Go type one printed return expression produces, or undefined
+// when the printer cannot name it (Ternary / GetValue / SafeDict / Add / ...)
+function ccxtGoReturnExpressionType (goTranspiler, expression) {
+    if (expression.kind === ts.SyntaxKind.Identifier) {
+        // a local the printer typed itself, or a parameter B-02 proved
+        return goTranspiler.goDeclaredTypeOfIdentifier (expression);
+    }
+    if (ts.isNumericLiteral (expression)) {
+        return 'float64'; // an untyped Go constant, assignable to float64
+    }
+    if (isSafeStringCall (expression)) {
+        return CCXT_GO_FAMILY_RETURN_TYPE;
+    }
+    let printed;
+    try {
+        printed = goTranspiler.printNode (expression, 0);
+    } catch (e) {
+        return undefined;
+    }
+    return goTranspiler.goTypeOfInitializer (expression, printed);
+}
+
+function ccxtGoProveReturnPaths (goTranspiler, node, allowed) {
+    const goTypeIsNilable = (goType) => (goType.charAt (0) === '*') || (goType === 'map[string]any') || (goType === '[]any');
+    const returns = collectReturnStatements (node.body);
+    if (returns.length === 0) {
+        return undefined; // no return path to prove → leave the signature alone
+    }
+    let valueType;
+    let sawAbsent = false;
+    for (const statement of returns) {
+        const expression = statement.expression;
+        if (expression === undefined) {
+            return undefined; // bare `return;` prints a bare `return`, not a typed value
+        }
+        if (isAbsentExpression (expression)) {
+            if (!allowed.some (goTypeIsNilable)) {
+                return undefined; // TS `undefined` → Go nil, only a nilable type holds it
+            }
+            sawAbsent = true;
+            continue;
+        }
+        const goType = ccxtGoReturnExpressionType (goTranspiler, expression);
+        if ((typeof goType !== 'string') || (allowed.indexOf (goType) < 0)) {
+            return undefined;
+        }
+        if (valueType === undefined) {
+            valueType = goType;
+        } else if (valueType !== goType) {
+            return undefined; // one signature cannot hold two printed types
+        }
+    }
+    if (valueType === undefined) {
+        return allowed.find (goTypeIsNilable); // every path absent → the nil value type
+    }
+    if (sawAbsent && !goTypeIsNilable (valueType)) {
+        return undefined; // a nil path and a literal path cannot share a plain value type
+    }
+    return valueType;
+}
+
+function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
+    if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const name = node.name?.escapedText;
+    if ((typeof name !== 'string') || !CCXT_GO_PARSE_METHOD.test (name)) {
+        return undefined;
+    }
+    if (node.body?.kind !== ts.SyntaxKind.Block) {
+        return undefined;
+    }
+    if ((typeof goTranspiler.isAsyncFunction === 'function') && goTranspiler.isAsyncFunction (node)) {
+        return undefined; // channel-returning: the printer owns that signature
+    }
+    if ((typeof goTranspiler.goMethodKeepsBaseSignature === 'function') && goTranspiler.goMethodKeepsBaseSignature (node)) {
+        return undefined;
+    }
+    if (CCXT_GO_RETURN_TYPE_IN_PROGRESS.has (node)) {
+        return undefined; // a recursive parse* chain: fail closed, never cache
+    }
+    const reserved = ccxtGoReservedMethodNames (node);
+    if ((reserved !== undefined) && (reserved.has (name) || reserved.has (name.charAt (0).toUpperCase () + name.slice (1)))) {
+        return undefined; // the interface files list the emitted (capitalised) Go name
+    }
+    const allowed = ccxtGoAnnotatedReturnTypes (goTranspiler, node);
+    if (allowed === undefined) {
+        return undefined;
+    }
+    if (CCXT_GO_RETURN_TYPE_CACHE.has (node)) {
+        return CCXT_GO_RETURN_TYPE_CACHE.get (node);
+    }
+    CCXT_GO_RETURN_TYPE_IN_PROGRESS.add (node);
+    let result;
+    try {
+        result = ccxtGoProveReturnPaths (goTranspiler, node, allowed);
+    } finally {
+        CCXT_GO_RETURN_TYPE_IN_PROGRESS.delete (node);
+    }
+    CCXT_GO_RETURN_TYPE_CACHE.set (node, result);
+    return result;
 }
 
 // ---------------------------------------------------------------------------
