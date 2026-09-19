@@ -73,7 +73,7 @@ export default class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         //  subscribed
         //     {
@@ -160,7 +160,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //  subscribed
         //     {
@@ -232,7 +232,7 @@ export default class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         //  subscribed
         //     {
@@ -279,7 +279,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsUpdatedTicker (ticker: any, lastTicker: NullableDict = undefined, market: Market = undefined) {
+    parseWsUpdatedTicker (ticker: Dict, lastTicker: NullableDict = undefined, market: Market = undefined): Ticker {
         //
         //     {
         //         "seqnum": 2,
@@ -345,7 +345,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //  subscribed
         //     {
@@ -454,7 +454,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict): void {
         //
         //     {
         //         "seqnum": 1,
@@ -625,7 +625,7 @@ export default class blockchaincom extends blockchaincomRest {
         }, market);
     }
 
-    parseWsOrderStatus (status: any) {
+    parseWsOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'open',
             'open': 'open',
@@ -668,7 +668,7 @@ export default class blockchaincom extends blockchaincomRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //  subscribe
         //     {
@@ -764,7 +764,7 @@ export default class blockchaincom extends blockchaincomRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleAuthenticationMessage (client: Client, message: any) {
+    handleAuthenticationMessage (client: Client, message: Dict): void {
         //
         //     {
         //         "seqnum": 0,
@@ -783,7 +783,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';

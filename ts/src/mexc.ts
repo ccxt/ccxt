@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ExchangeNotAvailable, RequestTimeout, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
+import type { Account, BalanceAccount, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1254,7 +1254,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.spotPublicGetExchangeInfo (params);
         //
         //     {
@@ -1381,7 +1381,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const currentRl = this.rateLimit;
         this.setProperty (this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail (params);
@@ -2379,7 +2379,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    createSpotOrderRequest (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createSpotOrderRequest (market: MarketInterface, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params: Dict = {}): Dict {
         const symbol = market['symbol'];
         const orderSide = side.toUpperCase ();
         const request: Dict = {
@@ -2453,7 +2453,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
+    async createSpotOrder (market: MarketInterface, type: OrderType, side: Str, amount: Num, price: Num = undefined, marginMode: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2523,7 +2523,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSwapOrder (market: MarketInterface, type: any, side: Str, amount: Num, price: Num = undefined, marginMode: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3024,7 +3024,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByIds (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3211,7 +3211,7 @@ export default class mexc extends Exchange {
         return await this.fetchOrdersByState (4, symbol, since, limit, params);
     }
 
-    async fetchOrdersByState (state: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: number, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3692,7 +3692,7 @@ export default class mexc extends Exchange {
         }, market);
     }
 
-    parseOrderSide (status: any) {
+    parseOrderSide (status: Str): Str {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3703,7 +3703,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: any) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3715,7 +3715,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'open',
             'FILLED': 'closed',
@@ -3732,7 +3732,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderTimeInForce (status: any) {
+    parseOrderTimeInForce (status: Str): Str {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -3741,7 +3741,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    getTifFromRawOrderType (orderType:Str = undefined) {
+    getTifFromRawOrderType (orderType: Str = undefined): Str {
         const statuses: Dict = {
             'LIMIT': 'GTC',
             'LIMIT_MAKER': 'POST_ONLY',
@@ -3752,7 +3752,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, (orderType as string), orderType);
     }
 
-    async fetchAccountHelper (type: any, params: any) {
+    async fetchAccountHelper (type: Str, params: Dict): Promise<NullableDict> {
         if (type === 'spot') {
             return await this.spotPrivateGetAccount (params);
             //
@@ -3887,7 +3887,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    customParseBalance (response: any, marketType: any): Balances {
+    customParseBalance (response: Dict, marketType: Str): Balances {
         //
         // spot
         //
@@ -4001,7 +4001,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseBalanceHelper (entry: Dict) {
+    parseBalanceHelper (entry: Dict): BalanceAccount {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
@@ -4332,7 +4332,7 @@ export default class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit, query);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: Num, addOrReduce: Str, params: Dict = {}): Promise<MarginModification> {
         const positionId = this.safeInteger (params, 'positionId');
         if (positionId === undefined) {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
@@ -5213,7 +5213,7 @@ export default class mexc extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatusByType (status: any, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str, type: Str = undefined): Str {
         const statusesByType: Dict = {
             'deposit': {
                 '1': 'failed', // SMALL
@@ -5728,7 +5728,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseAccountId (status: any) {
+    parseAccountId (status: Str): Str {
         const statuses: Dict = {
             'SPOT': 'spot',
             'FUTURES': 'swap',
@@ -5909,7 +5909,7 @@ export default class mexc extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (response: any, codes: Strings = undefined) {
+    parseTransactionFees (response: any[], codes: Strings = undefined): Dict {
         const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -5927,7 +5927,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseTransactionFee (transaction: Dict, currency: Currency = undefined) {
+    parseTransactionFee (transaction: Dict, currency: Currency = undefined): Dict {
         //
         //    {
         //        "coin": "AGLD",
