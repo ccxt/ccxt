@@ -714,7 +714,7 @@ class bingx extends bingx$1["default"] {
                         'trailing': true,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -786,6 +786,7 @@ class bingx extends bingx$1["default"] {
                         'private': true,
                     },
                     'createOrder': {
+                        'marketBuyByCost': true,
                         'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': undefined,
                         'trailing': false,
