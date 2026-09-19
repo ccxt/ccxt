@@ -2272,7 +2272,7 @@ public class Bitso extends BitsoApi
             //     }
             //
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(payload, 0);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(payload, 0);
             return this.parseTransaction(first, currency);
         }).thenApply(Transaction::new);
 

@@ -966,7 +966,7 @@ public class Bitbank extends BitbankApi
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             Map<String, Object> response = (this.privatePostUserSpotOrder(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1077,7 +1077,7 @@ public class Bitbank extends BitbankApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 

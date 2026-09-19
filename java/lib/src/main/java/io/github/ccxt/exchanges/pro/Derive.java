@@ -543,7 +543,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Object topic = this.safeValue(parameters, "channel");
         List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
         String marketId = this.safeString(parsedTopic, 1);

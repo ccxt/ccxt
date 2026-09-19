@@ -4550,7 +4550,7 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            Object leverage = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> leverage = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(leverage, market);
         }).thenApply(Leverage::new);
 

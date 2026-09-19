@@ -709,7 +709,7 @@ public class Revolutx extends RevolutxApi
                 (this.loadMarkets()).join();
             }
             Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            Object ticker = this.safeDict(tickers, symbol);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
             if (java.util.Objects.equals(ticker, null))
             {
                 throw new ExchangeError(((this.id + " fetchTicker() could not find ticker for symbol ") + symbol)) ;

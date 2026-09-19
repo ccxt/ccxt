@@ -331,7 +331,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
             }
             Object orders = (this.tradeRequest("createOrder", this.extend(request, parameters))).join();
-            Object order = this.safeDict(orders, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0);
             return order;
         }).thenApply(Order::new);
 
@@ -362,7 +362,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 ((Map<String, Object>)parameters).put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
             }
             Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
-            Object order = this.safeDict(orders, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0);
             return order;
         }).thenApply(Order::new);
 

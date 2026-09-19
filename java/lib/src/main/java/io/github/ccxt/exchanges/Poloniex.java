@@ -947,7 +947,7 @@ public class Poloniex extends PoloniexApi
                 //             "1740770099999",
                 //           ],
                 //
-                Object data = this.safeList(responseRaw, "data");
+                List<Object> data = (List<Object>) this.safeList(responseRaw, "data");
                 return this.parseOHLCVs(data, market, timeframe, since, limit);
             }
             List<Object> response = (this.publicGetMarketsSymbolCandles(this.extend(request, parameters))).join();
@@ -4385,7 +4385,7 @@ public class Poloniex extends PoloniexApi
             {
                 amount = Precise.stringAbs(amount);
             }
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseMarginModification(data, market);
         });
 

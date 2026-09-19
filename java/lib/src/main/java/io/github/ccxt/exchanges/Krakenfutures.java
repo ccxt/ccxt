@@ -2174,7 +2174,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "orderIds", new ArrayList<Object>(Arrays.asList(id)) );
             }};
             Object orders = (this.fetchOrders((Object)(null), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
-            Object order = this.safeDict(orders, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0);
             if (java.util.Objects.equals(order, null))
             {
                 throw new OrderNotFound(((this.id + " fetchOrder could not find order id ") + id)) ;

@@ -9053,7 +9053,7 @@ final Object finalI = i;
         {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
-            Object settle = this.safeDict(parameters, 0);
+            Map<String, Object> settle = (Map<String, Object>) this.safeDict(parameters, 0);
             path = this.implodeParams(path, settle);
             // remove the first element from params
             List<Object> newParams = new ArrayList<Object>(Arrays.asList());

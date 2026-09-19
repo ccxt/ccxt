@@ -137,7 +137,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String topic = Helpers.add("recentlyTrade.H.", ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("trade:" + symbol);
@@ -298,7 +298,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if (java.util.Objects.equals(limit, null))
                 {
                     limit = 25;
@@ -476,7 +476,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object url = this.getWsPublicUrl();
             String messageHash = ("ticker:" + symbol);
@@ -514,7 +514,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 Object symbol = Helpers.GetValue((List<String>)(symbols), i);
-                Object market = this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add(("instrumentInfo" + ".H."), ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("ticker:" + symbol);
@@ -642,7 +642,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
-                Object market = this.market(symbolString);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 symbolString = ((Map<String, Object>)market).get("id2");
                 String unfiedTimeframe = this.safeString(data, 1, "1");
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);

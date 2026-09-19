@@ -1481,7 +1481,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object rates = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
-            Object rate = this.safeDict(rates, ((Map<String, Object>)market).get("symbol"));
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, ((Map<String, Object>)market).get("symbol"));
             if (java.util.Objects.equals(rate, null))
             {
                 throw new BadSymbol(((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;

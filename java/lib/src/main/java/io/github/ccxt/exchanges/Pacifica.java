@@ -3760,7 +3760,7 @@ public class Pacifica extends PacificaApi
             }
             symbol = this.symbol(symbol);
             Object ois = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            Object oi = this.safeDict(ois, symbol);
+            Map<String, Object> oi = (Map<String, Object>) this.safeDict(ois, symbol);
             if (java.util.Objects.equals(oi, null))
             {
                 throw new BadSymbol(((this.id + " fetchOpenInterest() could not find open interest for ") + symbol)) ;

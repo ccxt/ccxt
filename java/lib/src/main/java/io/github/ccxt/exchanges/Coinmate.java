@@ -714,7 +714,7 @@ public class Coinmate extends CoinmateApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
@@ -1571,7 +1571,7 @@ public class Coinmate extends CoinmateApi
                 market = this.market(symbol);
             }
             Map<String, Object> response = (this.privatePostOrderById(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1609,7 +1609,7 @@ public class Coinmate extends CoinmateApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseOrder(data);
         }).thenApply(Order::new);
 

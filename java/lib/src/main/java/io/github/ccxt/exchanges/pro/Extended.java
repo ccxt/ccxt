@@ -616,7 +616,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Object orders = this.orders;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object rawOrders = this.safeList(data, "orders");
+        List<Object> rawOrders = (List<Object>) this.safeList(data, "orders");
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         Map<String, Object> first = (Map<String, Object>) this.safeDict(rawOrders, 0);
         if (java.util.Objects.equals(first, null))
