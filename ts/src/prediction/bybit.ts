@@ -35,11 +35,11 @@ export default class bybit extends Exchange {
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
-                'fetchOutcome': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOutcome': true,
                 'fetchPositions': true,
                 'fetchSettlements': true,
                 'prediction': true,
@@ -380,7 +380,11 @@ export default class bybit extends Exchange {
         };
         const symbolParts = symbol.split ('-');
         const symbolPartsLength = symbolParts.length;
-        const eventId = (symbolPartsLength > 1) ? this.arraySlice (symbolParts, 0, symbolPartsLength - 1).join ('-') : symbol;
+        let eventId = symbol;
+        if (symbolPartsLength > 1) {
+            const eventParts = this.arraySlice (symbolParts, 0, symbolPartsLength - 1);
+            eventId = eventParts.join ('-');
+        }
         const label = this.parseOutcomeLabel (symbol, contractType);
         const outcomeHandle = symbol + ':' + label;
         const outcomes: any[] = [
