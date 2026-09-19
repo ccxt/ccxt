@@ -844,7 +844,7 @@ public partial class myriad : PredictionExchange
         };
     }
 
-    public override object signEvmTransaction(object tx, object privateKey)
+    public override object signEvmTransaction(IDictionary<string, object> tx, object privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -886,7 +886,7 @@ public partial class myriad : PredictionExchange
         return ("0x02" + (this.rlpEncodeList(signedFields)));
     }
 
-    public async override Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
+    public async override Task<object> ethRpc(object rpcUrl, object method, IList<object> rpcParams)
     {
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

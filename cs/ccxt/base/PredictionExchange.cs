@@ -1802,7 +1802,7 @@ public partial class PredictionExchange : BaseExchange
         throw new NotSupported ((string)(this.id + " parsePredictionPosition() is not supported yet")) ;
     }
 
-    public virtual object parsePredictionOpenInterest(object interest, object market = null)
+    public virtual object parsePredictionOpenInterest(IDictionary<string, object> interest, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parsePredictionOpenInterest() is not supported yet")) ;
     }
@@ -2047,12 +2047,12 @@ public partial class PredictionExchange : BaseExchange
     }
 
     // eslint-disable-next-line no-unused-vars
-    public virtual object signEvmTransaction(object tx, object privateKey)
+    public virtual object signEvmTransaction(IDictionary<string, object> tx, object privateKey)
     {
         throw new NotSupported ((string)(this.id + " signEvmTransaction() must be overridden by the exchange")) ;
     }
 
-    public async virtual Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
+    public async virtual Task<object> ethRpc(object rpcUrl, object method, IList<object> rpcParams)
     {
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

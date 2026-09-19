@@ -1835,7 +1835,7 @@ public partial class polymarket : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOpenInterest(this.parsePredictionOpenInterest(first, ((object)outcomeObj)));
     }
 
-    public override object parsePredictionOpenInterest(object interest, object market = null)
+    public override object parsePredictionOpenInterest(IDictionary<string, object> interest, object market = null)
     {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
