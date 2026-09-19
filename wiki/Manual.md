@@ -6379,7 +6379,7 @@ To cancel an existing order use
 - `cancelAllOrders ()` for all open orders
 - `cancelAllOrdersAfter ()` for all open orders after the given timeout
 
-Note: typically batch order-canceling methods return an array of orders. If you experience otherwise from an obsolete exchange implementation, feel free to report to us.
+Note: typically batch order-canceling methods return an array of orders. If you experience otherwise from an outdated exchange implementation, feel free to report to us.
 
 #### cancelOrder
 
