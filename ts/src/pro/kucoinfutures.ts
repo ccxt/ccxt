@@ -45,7 +45,7 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
-        const request = {
+        const request: Dict = {
             'method': 'futuresPublicGetAllTickers',
         };
         return await this.fetchTickers (symbols, this.extend (request, params));
