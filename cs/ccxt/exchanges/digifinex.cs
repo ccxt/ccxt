@@ -866,7 +866,7 @@ public partial class digifinex : Exchange
                 type = "swap";
                 symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
                 isInverse = this.safeBool(market, "is_inverse");
-                isLinear = ((bool) (!isEqual(isInverse, true))) ? true : false;
+                isLinear = ((bool) ((isInverse != true))) ? true : false;
                 bool? isTrading = this.safeBool(market, "isTrading");
                 if ((isTrading == true))
                 {
@@ -2203,7 +2203,7 @@ public partial class digifinex : Exchange
             parameters = this.omit(parameters, new List<object>() {"reduceOnly", "timeInForce"});
         } else
         {
-            postOnlyParsed = ((bool) (isEqual(postOnly, true))) ? 1 : 2;
+            postOnlyParsed = ((bool) ((postOnly == true))) ? 1 : 2;
             ((IDictionary<string,object>)request)["market"] = marketType;
             string suffix = "";
             if (isEqual(type, "market"))
@@ -2251,7 +2251,7 @@ public partial class digifinex : Exchange
         }
         if (postOnly)
         {
-            if ((!isEqual(postOnlyParsed, null)) && (!isEqual(postOnlyParsed, 0)))
+            if ((!isEqual(postOnlyParsed, null)) && ((postOnlyParsed != 0)))
             {
                 ((IDictionary<string,object>)request)["post_only"] = postOnlyParsed;
             } else

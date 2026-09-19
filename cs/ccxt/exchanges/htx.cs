@@ -2677,10 +2677,10 @@ public partial class htx : Exchange
             Int64? expiry = null;
             if (contract)
             {
-                if (isEqual(inverse, true))
+                if ((inverse == true))
                 {
                     symbol = add(symbol, (":" + (bs)));
-                } else if (isEqual(linear, true))
+                } else if ((linear == true))
                 {
                     symbol = add(symbol, (":" + quote));
                 }
@@ -2696,10 +2696,10 @@ public partial class htx : Exchange
             double? minAmount = this.safeNumber(market, "min-order-amt");
             if (contract)
             {
-                if (isEqual(linear, true))
+                if ((linear == true))
                 {
                     minAmount = contractSize;
-                } else if (isEqual(inverse, true))
+                } else if ((inverse == true))
                 {
                     minCost = contractSize;
                 }
@@ -6286,7 +6286,7 @@ public partial class htx : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((orderType == "market"), (orderType == "limit-maker"), parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             orderType = "limit-maker";
         }
@@ -6410,7 +6410,7 @@ public partial class htx : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, "post_only"), parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             type = "post_only";
         }

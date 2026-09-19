@@ -1522,7 +1522,7 @@ public partial class bingx : Exchange
             minAmount = this.safeNumber2(market, "minQty", "tradeMinQuantity");
         }
         Int64? timeOnline = this.safeInteger(market, "timeOnline");
-        if (isEqual(timeOnline, 0))
+        if ((timeOnline == 0))
         {
             timeOnline = null;
         }
@@ -1980,7 +1980,7 @@ public partial class bingx : Exchange
         {
             time = this.parse8601(datetimeId);
         }
-        if (isEqual(time, 0))
+        if ((time == 0))
         {
             time = null;
         }
@@ -2973,7 +2973,7 @@ public partial class bingx : Exchange
         }
         string? change = this.safeString(ticker, "priceChange");
         Int64? ts = this.safeInteger(ticker, "closeTime");
-        if (isEqual(ts, 0))
+        if ((ts == 0))
         {
             ts = null;
         }
@@ -3597,7 +3597,7 @@ public partial class bingx : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (timeInForce == "PostOnly"), parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if ((isEqual(postOnly, true)) || ((timeInForce == "PostOnly")))
+        if (((postOnly == true)) || ((timeInForce == "PostOnly")))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "PostOnly";
         } else if ((timeInForce == "IOC"))
@@ -3811,7 +3811,7 @@ public partial class bingx : Exchange
             if ((hedged == true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
-                if (isEqual(reduceOnly, true))
+                if ((reduceOnly == true))
                 {
                     positionSide = ((bool) (isEqual(side, "buy"))) ? "SHORT" : "LONG";
                 } else
@@ -7105,7 +7105,7 @@ public partial class bingx : Exchange
                 adjustedValue = (("[" + (arrStr)) + "]");
                 value = adjustedValue;
             }
-            if (isEqual(i, 0))
+            if ((i == 0))
             {
                 result = add(add(key, "="), value);
             } else

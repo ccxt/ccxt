@@ -3166,7 +3166,7 @@ public partial class nado : Exchange
             throw new BadRequest ((string)(this.id + " createOrder() only supports timeInForce values GTC, IOC, FOK, or PO")) ;
         }
         string? appendix = "1"; // version
-        if (!isEqual(orderType, 0))
+        if ((orderType != 0))
         {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), "512"));
         }

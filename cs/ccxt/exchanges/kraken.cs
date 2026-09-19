@@ -2556,7 +2556,7 @@ public partial class kraken : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             object extendedPostFlags = ((bool) ((flags != null))) ? add(flags, ",post") : "post";
             ((IDictionary<string,object>)request)["oflags"] = extendedPostFlags;
@@ -2619,7 +2619,7 @@ public partial class kraken : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             ((IDictionary<string,object>)request)["post_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }

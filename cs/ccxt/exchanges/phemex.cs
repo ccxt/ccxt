@@ -2965,7 +2965,7 @@ public partial class phemex : Exchange
         }
         double? cost = this.safeNumber2(order, "cumValue", "cumValueRv");
         Int64? lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
-        if (isEqual(lastTradeTimestamp, 0))
+        if ((lastTradeTimestamp == 0))
         {
             lastTradeTimestamp = null;
         }

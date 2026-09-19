@@ -1082,7 +1082,7 @@ public partial class myriad : PredictionExchange
         {
             if (isMarket)
             {
-                priceValue = ((bool) (isEqual(sideInt, 0))) ? 1 : 0;
+                priceValue = ((bool) ((sideInt == 0))) ? 1 : 0;
             } else
             {
                 throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price for limit orders")) ;
@@ -2784,7 +2784,7 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
             object o = outcomes[i];
-            if (isEqual(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
+            if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
             {
                 price = this.safeNumber(o, "price");
                 change = this.safeNumber(o, "priceChange24h");

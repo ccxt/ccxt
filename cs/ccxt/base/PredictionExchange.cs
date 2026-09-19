@@ -236,7 +236,7 @@ public partial class PredictionExchange : BaseExchange
         {
             queriesLength = getArrayLength(queries);
         }
-        if (((searchIn == null)) || ((queries == null)) || (isEqual(queriesLength, 0)))
+        if (((searchIn == null)) || ((queries == null)) || ((queriesLength == 0)))
         {
             return events;
         }
@@ -1590,7 +1590,7 @@ public partial class PredictionExchange : BaseExchange
             {
                 timeInForce = "IOC";
             }
-            if (isEqual(postOnly, true))
+            if ((postOnly == true))
             {
                 timeInForce = "PO";
             }
@@ -1970,11 +1970,11 @@ public partial class PredictionExchange : BaseExchange
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         Int64? byteLength = this.parseToInt(divide(((string)hex).Length, 2));
-        if (isEqual(byteLength, 0))
+        if ((byteLength == 0))
         {
             return "80";
         }
-        if ((isEqual(byteLength, 1)) && (isLessThan(hex, "80")))
+        if (((byteLength == 1)) && (isLessThan(hex, "80")))
         {
             return hex;
         }

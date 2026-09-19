@@ -138,7 +138,7 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         symbols = this.marketSymbols(symbols, null, false, true, true);
         int symbolsLength = ((bool) ((symbols == null))) ? 0 : getArrayLength(symbols);
-        if (isGenerationTwo && (isEqual(symbolsLength, 0)))
+        if (isGenerationTwo && ((symbolsLength == 0)))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTickers() requires symbols for the generation 2 API")) ;
         }

@@ -3163,7 +3163,7 @@ public partial class xt : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), (timeInForce == "GTX"), parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             timeInForce = "GTX";
         }
@@ -3205,7 +3205,7 @@ public partial class xt : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), (timeInForce == "GTX"), parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             timeInForce = "GTX";
         }

@@ -1636,7 +1636,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(result, "list", new List<object>() {});
         object parsed = this.parsePredictionPositions(positions);
-        if (isEqual(outcomesLength, 0))
+        if ((outcomesLength == 0))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
         }

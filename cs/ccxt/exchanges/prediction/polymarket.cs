@@ -1545,7 +1545,7 @@ public partial class polymarket : PredictionExchange
         // never-traded token, which also falls back to the mid
         IDictionary<string, object> lastTradeData = this.safeDict(ticker, "lastTrade", new Dictionary<string, object>() {});
         double? last = this.safeNumber(lastTradeData, "price");
-        if ((isEqual(last, null)) || (isEqual(last, 0)))
+        if ((isEqual(last, null)) || ((last == 0)))
         {
             last = mid;
         }
@@ -2140,7 +2140,7 @@ public partial class polymarket : PredictionExchange
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
         object parsed = this.parsePredictionPositions(positions);
-        if (isEqual(outcomesLength, 0))
+        if ((outcomesLength == 0))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
         }

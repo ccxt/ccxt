@@ -1755,7 +1755,7 @@ public partial class bigone : Exchange
                 {
                     ((IDictionary<string,object>)request)["immediate_or_cancel"] = true;
                 }
-                if (isEqual(postOnly, true))
+                if ((postOnly == true))
                 {
                     ((IDictionary<string,object>)request)["post_only"] = true;
                 }

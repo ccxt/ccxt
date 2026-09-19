@@ -5468,7 +5468,7 @@ public partial class bybit : Exchange
             IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, (timeInForce == "postonly"), parameters);
             postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
             parameters = ((IList<object>)postOnlyparametersVariable)[1];
-            if (isEqual(postOnly, true))
+            if ((postOnly == true))
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "PostOnly";
             } else if ((timeInForce == "gtc"))
@@ -6521,7 +6521,7 @@ public partial class bybit : Exchange
         IList<object> isTriggerparametersVariable = (IList<object>)this.handleParamBool2(parameters, "trigger", "stop", false);
         isTrigger = (bool?)((IList<object>)isTriggerparametersVariable)[0];
         parameters = ((IList<object>)isTriggerparametersVariable)[1];
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
@@ -6582,7 +6582,7 @@ public partial class bybit : Exchange
         int innerListLength = innerList.Count;
         if ((innerListLength == 0))
         {
-            string extra = ((bool) (isEqual(isTrigger, true))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = ((bool) ((isTrigger == true))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)((("Order " + ((object)id).ToString()) + " was not found.") + extra)) ;
         }
         IDictionary<string, object> order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
@@ -10935,7 +10935,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "category", subType },
         };
-        if (((symbols != null)) && (isEqual(symbolsLength, 1)))
+        if (((symbols != null)) && ((symbolsLength == 1)))
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }

@@ -1338,7 +1338,7 @@ public partial class gemini : Exchange
         if (((marketId != null)) && ((market == null)))
         {
             int idLength = (((string)marketId).Length - 0);
-            if (isEqual(idLength, 7))
+            if ((idLength == 7))
             {
                 baseId = ((marketId == null) ? null : ((string)marketId).Substring(0, Math.Min(4, ((string)marketId).Length)));
                 quoteId = ((marketId == null) ? null : ((string)marketId).Substring(Math.Min(4, ((string)marketId).Length), Math.Min(7, ((string)marketId).Length) - Math.Min(4, ((string)marketId).Length)));

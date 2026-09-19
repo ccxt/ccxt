@@ -3764,7 +3764,7 @@ public partial class krakenfutures : Exchange
             object tier = marginLevels[i];
             string? initialMargin = this.safeString(tier, "initialMargin");
             double? minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
-            if (!isEqual(i, 0))
+            if ((i != 0))
             {
                 int tiersLength = (tiers?.Count ?? 0);
                 object previousTier = getValue(tiers, (tiersLength - 1));

@@ -763,8 +763,8 @@ public partial class apex : Exchange
             { "taker", takerFee },
             { "maker", makerFee },
             { "contractSize", this.safeNumber(market, "minOrderSize") },
-            { "expiry", ((bool) (isEqual(expiry, 0))) ? null : expiry },
-            { "expiryDatetime", ((bool) (isEqual(expiry, 0))) ? null : this.iso8601(expiry) },
+            { "expiry", ((bool) ((expiry == 0))) ? null : expiry },
+            { "expiryDatetime", ((bool) ((expiry == 0))) ? null : this.iso8601(expiry) },
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {

@@ -1481,7 +1481,7 @@ public partial class phemex : ccxt.phemex
         Int64? timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
         string? cost = this.safeString(order, "cumValueRv", this.fromEv(this.safeString(order, "cumValueEv"), market));
         Int64? lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
-        if (isEqual(lastTradeTimestamp, 0))
+        if ((lastTradeTimestamp == 0))
         {
             lastTradeTimestamp = null;
         }

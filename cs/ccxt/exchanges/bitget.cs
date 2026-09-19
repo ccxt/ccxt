@@ -4360,7 +4360,7 @@ public partial class bitget : Exchange
                 { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))) },
             };
         }
-        bool active = (isEqual(withdraw, true)) && (isEqual(deposit, true));
+        bool active = ((withdraw == true)) && ((deposit == true));
         bool isFiat = this.inArray(code, fiatCurrencies);
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", entry },
@@ -7342,7 +7342,7 @@ public partial class bitget : Exchange
         }
         string? side = this.safeString(order, "side");
         string? posMode = this.safeString(order, "posMode");
-        if ((posMode == "hedge_mode") && (isEqual(reduceOnly, true)))
+        if ((posMode == "hedge_mode") && ((reduceOnly == true)))
         {
             side = ((bool) ((side == "buy"))) ? "sell" : "buy";
         }
@@ -7665,7 +7665,7 @@ public partial class bitget : Exchange
             {
                 timeInForce = ((string)timeInForce).ToUpper();
             }
-            if (isEqual(postOnly, true))
+            if ((postOnly == true))
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "post_only";
             } else if (isEqual(timeInForce, "GTC"))
@@ -7686,7 +7686,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)hedgedparametersVariable)[1];
         if ((reduceOnly == true))
         {
-            if ((isEqual(hedged, true)) || isStopLossOrTakeProfitTrigger)
+            if (((hedged == true)) || isStopLossOrTakeProfitTrigger)
             {
                 string reduceOnlyPosSide = ((bool) (isEqual(side, "sell"))) ? "long" : "short";
                 ((IDictionary<string,object>)request)["posSide"] = reduceOnlyPosSide;
@@ -7696,7 +7696,7 @@ public partial class bitget : Exchange
             }
         } else
         {
-            if (isEqual(hedged, true))
+            if ((hedged == true))
             {
                 string posSide = ((bool) (isEqual(side, "buy"))) ? "long" : "short";
                 ((IDictionary<string,object>)request)["posSide"] = posSide;
@@ -7790,7 +7790,7 @@ public partial class bitget : Exchange
         {
             timeInForce = ((string)timeInForce).ToUpper();
         }
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             ((IDictionary<string,object>)request)["force"] = "post_only";
         } else if (isEqual(timeInForce, "GTC"))
@@ -7870,7 +7870,7 @@ public partial class bitget : Exchange
                         ((IDictionary<string,object>)request).Remove((string)"price");
                     }
                 }
-                if (isEqual(hedged, true))
+                if ((hedged == true))
                 {
                     ((IDictionary<string,object>)request)["holdSide"] = ((bool) (isEqual(side, "sell"))) ? "long" : "short";
                 } else
@@ -7930,7 +7930,7 @@ public partial class bitget : Exchange
                 object requestSide = side;
                 if ((reduceOnly == true))
                 {
-                    if (!isEqual(hedged, true))
+                    if ((hedged != true))
                     {
                         ((IDictionary<string,object>)request)["reduceOnly"] = "YES";
                     } else
@@ -7941,7 +7941,7 @@ public partial class bitget : Exchange
                     }
                 } else
                 {
-                    if (isEqual(hedged, true))
+                    if ((hedged == true))
                     {
                         ((IDictionary<string,object>)request)["tradeSide"] = "Open";
                     }

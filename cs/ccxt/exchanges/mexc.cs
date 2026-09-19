@@ -2764,7 +2764,7 @@ public partial class mexc : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, "LIMIT_MAKER"), parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             ((IDictionary<string,object>)request)["type"] = "LIMIT_MAKER";
         }
@@ -2909,7 +2909,7 @@ public partial class mexc : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, 2), parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             type = 2;
         } else if (isEqual(type, "limit"))
@@ -2981,7 +2981,7 @@ public partial class mexc : Exchange
         double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         object response = null;
-        if ((!isEqual(triggerPrice, null)) && (!isEqual(triggerPrice, 0)))
+        if ((!isEqual(triggerPrice, null)) && ((triggerPrice != 0)))
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = this.safeInteger(parameters, "triggerType", 1);

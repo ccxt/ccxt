@@ -4302,13 +4302,13 @@ public partial class okx : Exchange
         }
         if (isEqual(spot, true))
         {
-            if (isEqual(margin, true))
+            if ((margin == true))
             {
                 object defaultCurrency = ((bool) (isEqual(side, "buy"))) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
                 string? currency = this.safeString(parameters, "ccy", defaultCurrency);
                 ((IDictionary<string,object>)request)["ccy"] = this.safeCurrencyCode(currency);
             }
-            string? tradeMode = ((bool) (isEqual(margin, true))) ? marginMode : "cash";
+            string? tradeMode = ((bool) ((margin == true))) ? marginMode : "cash";
             ((IDictionary<string,object>)request)["tdMode"] = tradeMode;
         } else if (isEqual(contract, true))
         {
@@ -4361,7 +4361,7 @@ public partial class okx : Exchange
         bool marketIOC = (isMarketOrder && ioc) || (isEqual(type, "optimal_limit_ioc"));
         string? defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         string? tgtCcy = this.safeString(parameters, "tgtCcy", defaultTgtCcy);
-        if ((!isEqual(contract, true)) && (!isEqual(margin, true)))
+        if ((!isEqual(contract, true)) && ((margin != true)))
         {
             ((IDictionary<string,object>)request)["tgtCcy"] = tgtCcy;
         }
@@ -10094,7 +10094,7 @@ public partial class okx : Exchange
         {
             symbolsLength = getArrayLength(symbols);
         }
-        if (((symbols == null)) || (!isEqual(symbolsLength, 1)))
+        if (((symbols == null)) || ((symbolsLength != 1)))
         {
             string? uly = this.safeString(parameters, "uly");
             if ((uly != null))
@@ -10114,7 +10114,7 @@ public partial class okx : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            if (isEqual(symbolsLength, 1))
+            if ((symbolsLength == 1))
             {
                 market = this.market(getValue(symbols, 0));
                 string? marketId = this.safeString(market, "id", "");
