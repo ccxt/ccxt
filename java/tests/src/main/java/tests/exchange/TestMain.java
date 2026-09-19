@@ -1880,7 +1880,7 @@ public class TestMain extends BaseTest
         {
             for (var i = 0; i < ((List<?>)value).size(); i++)
             {
-                if (!Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(value, i))))
+                if (!Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(value, i))))
                 {
                     return false;
                 }
@@ -1892,7 +1892,7 @@ public class TestMain extends BaseTest
             List<Object> keys = Helpers.objectKeys(value);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                if (!Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(value, Helpers.GetValue(keys, i)))))
+                if (!Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(value, Helpers.GetValue(keys, i)))))
                 {
                     return false;
                 }
@@ -1911,7 +1911,7 @@ public class TestMain extends BaseTest
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (!Helpers.isTrue((exchange.inArray(key, otherKeys))) && Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(target, key))))
+            if (!Helpers.isTrue((exchange.inArray(key, otherKeys))) && Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(target, key))))
             {
                 continue;
             }
@@ -1940,7 +1940,7 @@ public class TestMain extends BaseTest
             // field is null, and an absent `fees` as []. The stored fixture writes the
             // same thing as a bare null. Treat "carries no data" as equal on both
             // sides, but only when neither side carries data (see isVacantValue).
-            if (Helpers.isTrue(this.isVacantValue(exchange, newOutput)) && Helpers.isTrue(this.isVacantValue(exchange, storedOutput)))
+            if (Boolean.TRUE.equals(this.isVacantValue(exchange, newOutput)) && Boolean.TRUE.equals(this.isVacantValue(exchange, storedOutput)))
             {
                 return true;
             }
@@ -1976,7 +1976,7 @@ public class TestMain extends BaseTest
                 }
                 if (!Helpers.isTrue((exchange.inArray(key, newOutputKeys))))
                 {
-                    if ((java.util.Objects.equals(this.lang, "C#")) && Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(storedOutput, key))))
+                    if ((java.util.Objects.equals(this.lang, "C#")) && Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(storedOutput, key))))
                     {
                         continue;
                     }

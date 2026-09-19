@@ -1041,7 +1041,7 @@ public class Tokocrypto extends TokocryptoApi
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
             Object response = null;
-            if (Helpers.isTrue(this.isNativeMarket(market)))
+            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
             {
                 response = (this.publicGetOpenV1MarketDepth(this.extend(request, parameters))).join();
             } else
@@ -1275,7 +1275,7 @@ public class Tokocrypto extends TokocryptoApi
             // not by the quote currency: type 1 markets are served by the binance host
             // with the underscore-less id, every other type by open/v1 with the raw id
             ((Map<String, Object>)request).put("symbol", this.getMarketIdByType(market));
-            if (Helpers.isTrue(this.isNativeMarket(market)))
+            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
@@ -1526,7 +1526,7 @@ public class Tokocrypto extends TokocryptoApi
      */
     public String getMarketIdByType(Object market)
     {
-        if (Helpers.isTrue(this.isNativeMarket(market)))
+        if (Boolean.TRUE.equals(this.isNativeMarket(market)))
         {
             return this.safeString(market, "id");
         }
@@ -1553,7 +1553,7 @@ public class Tokocrypto extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (Helpers.isTrue(this.isNativeMarket(market)))
+            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
             {
                 throw new NotSupported((((this.id + " fetchTicker() does not support ") + symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
             }
@@ -1695,7 +1695,7 @@ public class Tokocrypto extends TokocryptoApi
                 ((Map<String, Object>)request).put("endTime", until);
             }
             Object response = null;
-            if (Helpers.isTrue(this.isNativeMarket(market)))
+            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
             {
                 response = (this.publicGetOpenV1MarketKlines(this.extend(request, parameters))).join();
             } else

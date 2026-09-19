@@ -1264,7 +1264,7 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; Helpers.isLessThan(i, responsesLength); i++)
                 {
                     Object response = Helpers.GetValue(responses, i);
-                    if (Helpers.isTrue(this.isDictionary(response)) && (Helpers.inOp(response, "data")) && (!java.util.Objects.equals(Helpers.GetValue(response, "data"), null)))
+                    if (Boolean.TRUE.equals(this.isDictionary(response)) && (Helpers.inOp(response, "data")) && (!java.util.Objects.equals(Helpers.GetValue(response, "data"), null)))
                     {
                         response = Helpers.GetValue(response, "data");
                     }
@@ -1279,7 +1279,7 @@ public class Bithumb extends BithumbApi
                     if ((response instanceof List))
                     {
                         tickers = response;
-                    } else if (Helpers.isTrue(this.isDictionary(response)))
+                    } else if (Boolean.TRUE.equals(this.isDictionary(response)))
                     {
                         if ((Helpers.inOp(response, "market")) || (Helpers.inOp(response, "trade_date")) || (Helpers.inOp(response, "trade_timestamp")))
                         {
