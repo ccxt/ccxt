@@ -1111,7 +1111,7 @@ public partial class bingx : Exchange
                         { "trailing", true },
                         { "leverage", false },
                         { "marketBuyRequiresPrice", false },
-                        { "marketBuyByCost", true },
+                        { "marketBuyByCost", false },
                         { "selfTradePrevention", false },
                         { "iceberg", false },
                     } },
@@ -1182,6 +1182,7 @@ public partial class bingx : Exchange
                         { "private", true },
                     } },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marketBuyByCost", true },
                         { "triggerPriceType", null },
                         { "attachedStopLossTakeProfit", null },
                         { "trailing", false },

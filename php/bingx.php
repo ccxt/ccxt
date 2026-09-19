@@ -708,7 +708,7 @@ class bingx extends Exchange {
                         'trailing' => true,
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
-                        'marketBuyByCost' => true,
+                        'marketBuyByCost' => false,
                         'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
@@ -780,6 +780,7 @@ class bingx extends Exchange {
                         'private' => true,
                     ),
                     'createOrder' => array(
+                        'marketBuyByCost' => true,
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => null,
                         'trailing' => false,

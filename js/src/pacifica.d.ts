@@ -161,6 +161,7 @@ export default class pacifica extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}

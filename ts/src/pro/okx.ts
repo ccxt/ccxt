@@ -615,12 +615,16 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        this.handleBidAsk (client, message);
         const arg = this.safeDict (message, 'arg', {});
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel');
+        if (channel === 'tickers') {
+            // of the five feeds routed here, only the plain one carries bidPx/askPx —
+            // mark-price and index frames lack them and must not overwrite the bid-ask cache
+            this.handleBidAsk (client, message);
+        }
         const data = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {

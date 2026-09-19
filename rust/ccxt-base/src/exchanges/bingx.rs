@@ -2020,7 +2020,7 @@ impl BingxCore {
         m.insert("trailing".to_string(), Value::Bool(true));
         m.insert("leverage".to_string(), Value::Bool(false));
         m.insert("marketBuyRequiresPrice".to_string(), Value::Bool(false));
-        m.insert("marketBuyByCost".to_string(), Value::Bool(true));
+        m.insert("marketBuyByCost".to_string(), Value::Bool(false));
         m.insert("selfTradePrevention".to_string(), Value::Bool(false));
         m.insert("iceberg".to_string(), Value::Bool(false));
     m
@@ -2117,6 +2117,7 @@ impl BingxCore {
 }));
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("marketBuyByCost".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Null);
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
         m.insert("trailing".to_string(), Value::Bool(false));

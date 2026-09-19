@@ -1477,6 +1477,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at(optional provide takeProfitCloid)
         :param str [params.timeInForce]: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB"(or "TOB" - PO by top of book)
         :param boolean [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param str [params.slippage]: the slippage for market orders in percent, defaults to options.defaultSlippage(0.5)
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -1486,8 +1487,9 @@ class pacifica(Exchange, ImplicitAPI):
         self.initialize_client()
         request, operationType = self.create_order_request(symbol, type, side, amount, price, params)
         params = self.omit(params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ])
         response = None
         if operationType == 'create_market_order':
@@ -1539,6 +1541,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at(optional provide takeProfitCloid)
         :param str [params.timeInForce]: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB"(or "TOB" - PO by top of book)
         :param boolean [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param str [params.slippage]: the slippage for market orders in percent, defaults to options.defaultSlippage(0.5)
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an [order structure]

@@ -764,7 +764,7 @@ func (this *Pacifica) HandleBuilderFeeApprovalAsync() <-chan any {
 func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if this.IsSandboxModeEnabled {
+	if EvalTruthy(this.IsSandboxModeEnabled) {
 
 		ch <- false
 		return nil
@@ -791,7 +791,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
 					}
 					ret_ = func(this *Pacifica) any {
 						// catch block:
-						this.Options.Store("builderFee", false) // disable builder fee if an error occurs
+						AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
 						return nil
 					}(this)
 				}
@@ -802,7 +802,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
 
 			retRes58112 := (<-this.ApproveBuilderCodeAsync(builder, maxFeeRate))
 			PanicOnError(retRes58112)
-			this.Options.Store("approvedBuilderFee", true)
+			AddElementToObject(this.Options, "approvedBuilderFee", true)
 			return nil
 		}(this)
 
@@ -952,7 +952,7 @@ func (this *Pacifica) ParseMarket(market any) any {
 	var crossMargin any = nil
 	var isolatedMargin any = nil
 	if id == nil {
-		panic(ExchangeError(this.Id + " parseMarket() missing id"))
+		panic(ExchangeError(Add(this.Id, " parseMarket() missing id")))
 	}
 	if isSpot {
 		var idParts []string = Split(id, "-")
@@ -1112,34 +1112,23 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var usdcAccount any = this.Account()
 	AddElementToObject(usdcAccount, "total", this.SafeString(data, "balance"))
 	AddElementToObject(usdcAccount, "used", this.SafeString(data, "total_margin_used"))
-	result["USDC"] = usdcAccount
-	var spotBalances []any = SafeListTyped(data, "spot_balances")
-	for i := 0; i < len(spotBalances); i++ {
-		var balance any = func() any {
-			if i >= 0 && i < len(spotBalances) {
-				return DerefScalar(spotBalances[i])
-			}
-			return nil
-		}()
+	AddElementToObject(result, "USDC", usdcAccount)
+	var spotBalances any = this.SafeList(data, "spot_balances", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(spotBalances)); i++ {
+		var balance any = GetValue(spotBalances, i)
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available_to_withdraw"))
 		// skip a spot USDC entry so it can't clobber the perp-collateral account above
-		if (code != nil) && !(func() bool {
-			if code == nil {
-				return false
-			}
-			_, ok := result[*code]
-			return ok
-		}()) {
+		if (code != nil) && !(InOp(result, code)) {
 			AddElementToObject(result, code, account)
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(data, "updated_at")
-	result["timestamp"] = timestamp
-	result["datetime"] = this.Iso8601(timestamp)
+	AddElementToObject(result, "timestamp", timestamp)
+	AddElementToObject(result, "datetime", this.Iso8601(timestamp))
 
 	ch <- this.SafeBalance(result)
 	return nil
@@ -1168,12 +1157,12 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes8828 := (<-this.LoadAccountSettingsAsync())
 	PanicOnError(retRes8828)
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes88412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes88412)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var userAccount any = nil
 	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchLeverage", params)
 	userAccount = GetValue(userAccountparamsVariable, 0)
@@ -1215,12 +1204,7 @@ func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting any) any {
 	// }
 	var isIsolated *bool = this.SafeBool(setting, "isolated", false)
 	var leverage *int64 = this.SafeInteger(setting, "leverage")
-	var marginMode string = func() string {
-		if isIsolated != nil && *isIsolated == true {
-			return "isolated"
-		}
-		return "cross"
-	}()
+	var marginMode string = Ternary((isIsolated != nil && *isIsolated == true), "isolated", "cross").(string)
 	return map[string]any{
 		"info":          setting,
 		"symbol":        symbol,
@@ -1229,9 +1213,9 @@ func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting any) any {
 		"shortLeverage": leverage,
 	}
 }
-func (this *Pacifica) ParseLeverageFromMarket(market map[string]any) any {
-	var marketLimits map[string]any = SafeMapTyped(market, "limits")
-	var leverageLimits map[string]any = SafeMapTyped(marketLimits, "leverage")
+func (this *Pacifica) ParseLeverageFromMarket(market any) any {
+	var marketLimits any = this.SafeDict(market, "limits", map[string]any{})
+	var leverageLimits any = this.SafeDict(marketLimits, "leverage", map[string]any{})
 	return map[string]any{
 		"info":          market,
 		"symbol":        this.SafeString(market, "symbol"),
@@ -1302,24 +1286,24 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	var settings any = this.HandleOption("loadAccountSettings", "settings")
 	if (IsEqual(settings, nil)) || (refresh == true) {
-		this.Options.Store("settings", this.CreateSafeDictionary())
+		AddElementToObject(this.Options, "settings", this.CreateSafeDictionary())
 
 		settings = (<-this.FetchAccountSettingsAsync(params))
 		PanicOnError(settings)
-		this.Options.Store("settings", settings)
+		AddElementToObject(this.Options, "settings", settings)
 	}
 	return nil
 }
-func (this *Pacifica) ParseAccountSettings(settings any) map[string]any {
+func (this *Pacifica) ParseAccountSettings(settings any) any {
 	var settingsLen int = GetArrayLength(settings)
 	if settingsLen == 0 {
 		return map[string]any{}
 	}
 	var settingsBySymbol map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(settings); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(settings)); i++ {
 		var marketId any = GetValue(GetValue(settings, i), "symbol")
-		var market map[string]any = MapTyped(this.SafeMarket(marketId))
-		var symbol any = market["symbol"]
+		var market any = this.SafeMarket(marketId)
+		var symbol any = GetValue(market, "symbol")
 		AddElementToObject(settingsBySymbol, symbol, GetValue(settings, i))
 	}
 	return settingsBySymbol
@@ -1399,12 +1383,7 @@ func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting any) any {
 	//
 	// }
 	var isIsolated *bool = this.SafeBool(setting, "isolated", false)
-	var marginMode string = func() string {
-		if isIsolated != nil && *isIsolated == true {
-			return "isolated"
-		}
-		return "cross"
-	}()
+	var marginMode string = Ternary((isIsolated != nil && *isIsolated == true), "isolated", "cross").(string)
 	return map[string]any{
 		"symbol":     symbol,
 		"marginMode": marginMode,
@@ -1435,18 +1414,18 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes107712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes107712)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var aggLevel any = nil
 	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
 	aggLevel = GetValue(aggLevelparamsVariable, 0)
 	params = GetValue(aggLevelparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol":    market["id"],
+		"symbol":    GetValue(market, "id"),
 		"agg_level": aggLevel,
 	}
 
@@ -1487,7 +1466,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//   "error": null,
 	//   "code": null
 	// }
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var levels any = this.SafeList(data, "l", []any{})
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
@@ -1574,7 +1553,7 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
 	var oraclePx *float64 = this.SafeNumber(info, "oracle")
 	var nextFundingRate *float64 = this.SafeNumber(info, "next_funding")
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
-	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor((this.Milliseconds()/60)/60/1000), 1)), 60), 60), 1000)
+	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor(Divide(Divide(Divide(this.Milliseconds(), 60), 60), 1000)), 1)), 60), 60), 1000)
 	return map[string]any{
 		"info":                     info,
 		"symbol":                   symbol,
@@ -1627,24 +1606,24 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if since == nil {
-		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"since\" argument"))
+	if IsEqual(since, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"since\" argument")))
 	}
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"symbol\" argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"symbol\" argument")))
 	}
 	var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes123712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes123712)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if EvalTruthy(paginate) {
 
 		retRes124319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
 		PanicOnError(retRes124319)
@@ -1653,7 +1632,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request any = map[string]any{
-		"symbol":     market["id"],
+		"symbol":     GetValue(market, "id"),
 		"interval":   tf,
 		"start_time": since,
 	}
@@ -1663,7 +1642,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var nowMillis int64 = this.Milliseconds()
 	var until any = DerefScalar(this.SafeInteger(request, "end_time"))
 	if IsEqual(until, nil) {
-		if limit != nil {
+		if !IsEqual(limit, nil) {
 			until = Subtract(Add(since, (Multiply(limit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
 		}
 		if IsEqual(until, nil) {
@@ -1748,14 +1727,14 @@ func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes133012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes133012)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 	}
 
 	response := (<-this.PublicGetTrades(this.Extend(request, params)))
@@ -1815,13 +1794,13 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes137612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes137612)
 	}
 	var market any = nil
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 	var paginate any = false
@@ -1833,7 +1812,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var defaultLimit int = 100 // Default max limit
-	if paginate == true {
+	if EvalTruthy(paginate) {
 
 		retRes138819 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
 		PanicOnError(retRes138819)
@@ -1845,13 +1824,13 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	AddElementToObject(request, "account", userAddress)
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 	}
-	if limit != nil {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
-	if since != nil {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start_time", since)
 	}
 
@@ -1939,12 +1918,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "order_id")
 	var takerOrMaker any = nil
 	if eventType != nil {
-		takerOrMaker = func() string {
-			if eventType != nil && *eventType == "fulfill_maker" {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = Ternary((eventType != nil && *eventType == "fulfill_maker"), "maker", "taker")
 	}
 	// public trades have no orderId
 	if orderId == nil {
@@ -1990,6 +1964,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
  * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+ * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
  * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2006,18 +1981,18 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes153412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes153412)
+		retRes153512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes153512)
 	}
 
-	retRes15368 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes15368)
+	retRes15378 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes15378)
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	request := GetValue(requestoperationTypeVariable, 0)
 	operationType := GetValue(requestoperationTypeVariable, 1)
-	params = this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow"})
+	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"})
 	var response any = nil
 	if IsEqual(operationType, "create_market_order") {
 
@@ -2051,7 +2026,7 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	} else {
 		status = "open"
 	}
-	var order map[string]any = SafeMapTyped(response, "data")
+	var order any = this.SafeDict(response, "data", map[string]any{})
 	var orderId *string = this.SafeString(order, "order_id")
 
 	ch <- this.SafeOrder(map[string]any{
@@ -2067,11 +2042,11 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if typeVar == nil {
-		panic(ArgumentsRequired(this.Id + " requires a type argument"))
+	if IsEqual(typeVar, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
 	}
-	if side == nil {
-		panic(ArgumentsRequired(this.Id + " requires a side argument"))
+	if IsEqual(side, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	/**
 	 * @method
@@ -2093,13 +2068,14 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	 * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
 	 * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
 	 * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+	 * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
 	 * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
 	 * @param {int} [params.expiryWindow] time to live in milliseconds
 	 * @returns {object} an [order structure]
 	 */
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var sigPayload map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 		"side":   this.MapSide(side),
 	}
 	var operationType string
@@ -2116,15 +2092,15 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var timeInForce any = this.MapTimeInForce(tifRaw)
 	if isMarket {
 		operationType = "create_market_order"
-		sigPayload["reduce_only"] = reduceOnly
+		AddElementToObject(sigPayload, "reduce_only", reduceOnly)
 		var defaultSlippage any = this.HandleOption("createOrder", "defaultSlippage", "0.5")
 		var slippage *string = this.SafeString2(params, "slippage", "slippage_percent", defaultSlippage)
-		sigPayload["slippage_percent"] = slippage
-	} else if (isTakeProfitOrder || isStopLossOrder) && (price == nil) {
+		AddElementToObject(sigPayload, "slippage_percent", slippage)
+	} else if (isTakeProfitOrder || isStopLossOrder) && (IsEqual(price, nil)) {
 		operationType = "set_position_tpsl"
 	} else if isStopOrder {
 		operationType = "create_stop_order"
-		sigPayload["reduce_only"] = reduceOnly
+		AddElementToObject(sigPayload, "reduce_only", reduceOnly)
 		var stopClientOrderId *string = this.SafeString(params, "clientOrderId")
 		params = this.Omit(params, []any{"clientOrderId"})
 		var stopPayload map[string]any = map[string]any{
@@ -2132,48 +2108,48 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 			"stop_price": this.PriceToPrecision(symbol, triggerPrice),
 		}
 		if stopClientOrderId != nil {
-			stopPayload["client_order_id"] = stopClientOrderId
+			AddElementToObject(stopPayload, "client_order_id", stopClientOrderId)
 		}
-		if price != nil {
-			stopPayload["limit_price"] = this.PriceToPrecision(symbol, price)
+		if !IsEqual(price, nil) {
+			AddElementToObject(stopPayload, "limit_price", this.PriceToPrecision(symbol, price))
 		}
-		sigPayload["stop_order"] = stopPayload
+		AddElementToObject(sigPayload, "stop_order", stopPayload)
 	} else {
 		operationType = "create_order"
-		sigPayload["reduce_only"] = reduceOnly
-		if timeInForce == nil {
-			sigPayload["tif"] = "GTC"
+		AddElementToObject(sigPayload, "reduce_only", reduceOnly)
+		if IsEqual(timeInForce, nil) {
+			AddElementToObject(sigPayload, "tif", "GTC")
 		} else {
-			sigPayload["tif"] = timeInForce
+			AddElementToObject(sigPayload, "tif", timeInForce)
 		}
 	}
 	if isTakeProfitOrder {
 		var tpPayload map[string]any = map[string]any{
 			"stop_price": this.PriceToPrecision(symbol, takeProfitPrice),
 		}
-		if price != nil {
-			tpPayload["limit_price"] = this.PriceToPrecision(symbol, price)
+		if !IsEqual(price, nil) {
+			AddElementToObject(tpPayload, "limit_price", this.PriceToPrecision(symbol, price))
 		}
-		sigPayload["take_profit"] = tpPayload
+		AddElementToObject(sigPayload, "take_profit", tpPayload)
 	}
 	if isStopLossOrder {
 		var slPayload map[string]any = map[string]any{
 			"stop_price": this.PriceToPrecision(symbol, stopLossPrice),
 		}
-		if price != nil {
-			slPayload["limit_price"] = this.PriceToPrecision(symbol, price)
+		if !IsEqual(price, nil) {
+			AddElementToObject(slPayload, "limit_price", this.PriceToPrecision(symbol, price))
 		}
-		sigPayload["stop_loss"] = slPayload
+		AddElementToObject(sigPayload, "stop_loss", slPayload)
 	}
-	if (price != nil) && (operationType == "create_order") {
-		sigPayload["price"] = this.PriceToPrecision(symbol, price)
+	if !IsEqual(price, nil) && (operationType == "create_order") {
+		AddElementToObject(sigPayload, "price", this.PriceToPrecision(symbol, price))
 	}
 	if !IsEqual(amount, nil) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
-		sigPayload["amount"] = this.AmountToPrecision(symbol, amount)
+		AddElementToObject(sigPayload, "amount", this.AmountToPrecision(symbol, amount))
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		sigPayload["client_order_id"] = clientOrderId
+		AddElementToObject(sigPayload, "client_order_id", clientOrderId)
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	return []any{request, operationType}
@@ -2217,7 +2193,7 @@ func (this *Pacifica) BatchOrdersRequest(actions any) any {
 	var maxLen any = this.HandleOption("batchOrdersRequest", "batchOrdersMax")
 	if !IsEqual(maxLen, nil) {
 		if IsGreaterThan(lenActions, maxLen) {
-			panic(ExchangeError(Add(this.Id+" batchOrdersRequest() too many orders to create/cancel. Limit is ", maxLen)))
+			panic(ExchangeError(Add(Add(this.Id, " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)))
 		}
 	}
 	return map[string]any{
@@ -2227,9 +2203,9 @@ func (this *Pacifica) BatchOrdersRequest(actions any) any {
 func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var actions []any = []any{}
+	var actions any = []any{}
 	var timestamp int64 = this.Milliseconds() // unified sequence
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var order any = GetValue(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
 		var side *string = this.SafeString(order, "side")
@@ -2241,14 +2217,14 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var amountNumber any = this.ParseNumber(amount)
 		var priceNumber any = this.ParseNumber(price)
 		if typeVar == nil || *typeVar != "limit" {
-			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
+			panic(NotSupported(Add(Add(this.Id, " createOrders() supports only type = \"limit\"! Your value type="), typeVar)))
 		}
 		var requestList any = this.CreateOrderRequest(symbol, typeVar, side, amountNumber, priceNumber, orderParams)
 		var action map[string]any = map[string]any{
 			"type": "Create",
 			"data": GetValue(requestList, 0),
 		}
-		actions = append(actions, action)
+		AppendToArray(&actions, action)
 	}
 	return this.BatchOrdersRequest(actions)
 }
@@ -2272,14 +2248,14 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes177012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes177012)
+		retRes177312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes177312)
 	}
 
-	retRes17728 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes17728)
+	retRes17758 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes17758)
 	var request any = this.CreateOrdersRequest(orders)
 
 	response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
@@ -2302,16 +2278,11 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	//     "code": null
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var results []any = SafeListTyped(data, "results")
-	var ordersToReturn []any = []any{}
-	for i := 0; i < len(results); i++ {
-		var order any = func() any {
-			if i >= 0 && i < len(results) {
-				return DerefScalar(results[i])
-			}
-			return nil
-		}()
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var results any = this.SafeList(data, "results", []any{})
+	var ordersToReturn any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
+		var order any = GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2321,7 +2292,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 			status = "open"
 		}
 		var orderId *string = this.SafeString(order, "order_id")
-		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
+		AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     orderId,
 			"status": status,
@@ -2356,16 +2327,16 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes182612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes182612)
+		retRes182912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes182912)
 	}
 
-	retRes18288 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes18288)
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a \"symbol\" argument!"))
+	retRes18318 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes18318)
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a \"symbol\" argument!")))
 	}
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 	params = this.Omit(params, []any{"expiryWindow", "clientOrderIds"})
@@ -2391,16 +2362,11 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	//     "code": null
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var results []any = SafeListTyped(data, "results")
-	var ordersToReturn []any = []any{}
-	for i := 0; i < len(results); i++ {
-		var order any = func() any {
-			if i >= 0 && i < len(results) {
-				return DerefScalar(results[i])
-			}
-			return nil
-		}()
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var results any = this.SafeList(data, "results", []any{})
+	var ordersToReturn any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
+		var order any = GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2409,7 +2375,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		} else {
 			status = "canceled"
 		}
-		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
+		AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
 			"info":   order,
 			"status": status,
 			"symbol": symbol,
@@ -2424,25 +2390,20 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var actions []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	var actions any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		var request any = this.CancelOrderRequest(id, symbol, params)
 		var action map[string]any = map[string]any{
 			"type": "Cancel",
 			"data": request,
 		}
-		actions = append(actions, action)
+		AppendToArray(&actions, action)
 	}
-	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
+	var clientOrderIds any = this.SafeList(params, "clientOrderIds", []any{})
 	params = this.Omit(params, "clientOrderIds")
-	for i := 0; i < len(clientOrderIds); i++ {
-		var cloid any = func() any {
-			if i >= 0 && i < len(clientOrderIds) {
-				return DerefScalar(clientOrderIds[i])
-			}
-			return nil
-		}()
+	for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
+		var cloid any = GetValue(clientOrderIds, i)
 		var cloidParams map[string]any = map[string]any{
 			"clientOrderId": cloid,
 		}
@@ -2451,7 +2412,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 			"type": "Cancel",
 			"data": request,
 		}
-		actions = append(actions, action)
+		AppendToArray(&actions, action)
 	}
 	return this.BatchOrdersRequest(actions)
 }
@@ -2479,14 +2440,14 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes191312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes191312)
+		retRes191612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes191612)
 	}
 
-	retRes19158 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes19158)
+	retRes19188 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes19188)
 	var request any = this.CancelAllOrdersRequest(symbol, params)
 	params = this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"})
 
@@ -2514,13 +2475,13 @@ func (this *Pacifica) CancelAllOrdersRequest(symbol any, optionalArgs ...any) an
 	var operationType string = "cancel_all_orders"
 	var sigPayload map[string]any = map[string]any{}
 	var excludeReduceOnly *bool = this.SafeBool(params, "excludeReduceOnly", false)
-	sigPayload["exclude_reduce_only"] = excludeReduceOnly
-	if symbol != nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
-		sigPayload["all_symbols"] = false
-		sigPayload["symbol"] = market["id"]
+	AddElementToObject(sigPayload, "exclude_reduce_only", excludeReduceOnly)
+	if !IsEqual(symbol, nil) {
+		var market any = this.Market(symbol)
+		AddElementToObject(sigPayload, "all_symbols", false)
+		AddElementToObject(sigPayload, "symbol", GetValue(market, "id"))
 	} else {
-		sigPayload["all_symbols"] = true
+		AddElementToObject(sigPayload, "all_symbols", true)
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	return request
@@ -2552,16 +2513,16 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes196812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes196812)
+		retRes197112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes197112)
 	}
 
-	retRes19708 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes19708)
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
+	retRes19738 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes19738)
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	var request any = this.CancelOrderRequest(id, symbol, params)
 	var isStopOrder *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -2584,12 +2545,7 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	// }
 	//
 	var success *bool = this.SafeBool(response, "success", false)
-	var status string = func() string {
-		if success != nil && *success == true {
-			return "canceled"
-		}
-		return "closed"
-	}()
+	var status string = Ternary((success != nil && *success == true), "canceled", "closed").(string)
 
 	ch <- this.SafeOrder(map[string]any{
 		"id":     id,
@@ -2604,7 +2560,7 @@ func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var isStopOrder *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var operationType string
 	if isStopOrder != nil && *isStopOrder == true {
@@ -2614,12 +2570,12 @@ func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) any {
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var sigPayload map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 	}
 	if clientOrderId != nil {
-		sigPayload["client_order_id"] = clientOrderId
+		AddElementToObject(sigPayload, "client_order_id", clientOrderId)
 	} else {
-		sigPayload["order_id"] = this.ParseToInt(id)
+		AddElementToObject(sigPayload, "order_id", this.ParseToInt(id))
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	return request
@@ -2655,15 +2611,15 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes203512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes203512)
+		retRes203812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes203812)
 	}
 
-	retRes20378 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes20378)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	retRes20408 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes20408)
+	var market any = this.Market(symbol)
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
 	params = this.Omit(params, []any{"expiryWindow", "clientOrderId"})
 
@@ -2676,7 +2632,7 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var orderId *string = this.SafeString(data, "order_id")
 
 	ch <- this.SafeOrder(map[string]any{
@@ -2689,14 +2645,14 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 func (this *Pacifica) EditOrderRequest(id any, symbol any, typeVar any, side any, amount any, price any, market any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if side == nil {
-		panic(ArgumentsRequired(this.Id + " requires a side argument"))
+	if IsEqual(side, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	if IsEqual(amount, nil) {
-		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount!"))
+		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an amount!")))
 	}
 	if IsEqual(price, nil) {
-		panic(ArgumentsRequired(this.Id + " editOrder() requires a price"))
+		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a price")))
 	}
 	var operationType string = "edit_order"
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -2707,13 +2663,13 @@ func (this *Pacifica) EditOrderRequest(id any, symbol any, typeVar any, side any
 		"price":  priceNormalized,
 		"amount": amountNormalized,
 	}
-	if (clientOrderId == nil) && (id == nil) {
-		panic(ArgumentsRequired("this.id" + "editOrder() requires either \"id\" or \"clientOrderId\""))
+	if (clientOrderId == nil) && (IsEqual(id, nil)) {
+		panic(ArgumentsRequired(Add("this.id", "editOrder() requires either \"id\" or \"clientOrderId\"")))
 	}
 	if clientOrderId != nil {
-		sigPayload["client_order_id"] = clientOrderId
+		AddElementToObject(sigPayload, "client_order_id", clientOrderId)
 	} else {
-		sigPayload["order_id"] = this.ParseToInt(id)
+		AddElementToObject(sigPayload, "order_id", this.ParseToInt(id))
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	return request
@@ -2748,32 +2704,32 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes210012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes210012)
+		retRes210312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes210312)
 	}
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var defaultLimit int = 100 // Default max limit
-	if paginate == true {
+	if EvalTruthy(paginate) {
 
-		retRes211019 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes211019)
-		ch <- retRes211019
+		retRes211319 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes211319)
+		ch <- retRes211319
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 	}
-	if limit != nil {
-		request["limit"] = limit
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit)
 	}
 
 	response := (<-this.PublicGetFundingRateHistory(this.Extend(request, params)))
@@ -2797,13 +2753,13 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	// }
 	//
 	var data any = this.AddPaginationCursorToResult(response)
-	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(entry, "created_at")
-		result = append(result, map[string]any{
+		AppendToArray(&result, map[string]any{
 			"info":        entry,
-			"symbol":      market["symbol"],
+			"symbol":      GetValue(market, "symbol"),
 			"fundingRate": this.SafeNumber(entry, "funding_rate"),
 			"timestamp":   timestamp,
 			"datetime":    this.Iso8601(timestamp),
@@ -2836,10 +2792,10 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes216512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes216512)
+		retRes216812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes216812)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -2866,15 +2822,10 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//   "code": null
 	// }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data any = this.SafeList(response, "data", []any{})
 	var result map[string]any = map[string]any{}
-	for i := 0; i < len(data); i++ {
-		var info any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var info any = GetValue(data, i)
 		var ticker any = this.ParseTicker(info)
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
@@ -2947,10 +2898,10 @@ func (this *Pacifica) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes224912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes224912)
+		retRes225212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes225212)
 	}
 
 	orders := (<-this.FetchOrdersAsync(symbol, nil, nil, params))
@@ -2989,10 +2940,10 @@ func (this *Pacifica) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes227012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes227012)
+		retRes227312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes227312)
 	}
 
 	orders := (<-this.FetchOrdersAsync(symbol, nil, nil, params))
@@ -3031,10 +2982,10 @@ func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes229112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes229112)
+		retRes229412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes229412)
 	}
 
 	orders := (<-this.FetchOrdersAsync(symbol, nil, nil, params))
@@ -3073,10 +3024,10 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes231212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes231212)
+		retRes231512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes231512)
 	}
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
@@ -3086,7 +3037,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		"account": userAddress,
 	}
 	var market any = nil
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 
@@ -3154,21 +3105,21 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes237012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes237012)
+		retRes237312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes237312)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var defaultLimit int = 100 // max default 100
-	if paginate == true {
+	if EvalTruthy(paginate) {
 
-		retRes237619 := (<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes237619)
-		ch <- retRes237619
+		retRes237919 := (<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes237919)
+		ch <- retRes237919
 		return nil
 	}
 	var userAddress any = nil
@@ -3176,14 +3127,14 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var market any = nil
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	if limit != nil {
-		request["limit"] = limit
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit)
 	}
 
 	response := (<-this.PublicGetOrdersHistory(this.Extend(request, params)))
@@ -3228,7 +3179,7 @@ func (this *Pacifica) AddPaginationCursorToResult(response any) any {
 	var hasMore *bool = this.SafeBool(response, "has_more", false)
 	var dataLength int = GetArrayLength(data)
 	if hasMore != nil && *hasMore == true {
-		if (paginationCursor != nil) && (dataLength > 0) {
+		if (paginationCursor != nil) && (IsGreaterThan(dataLength, 0)) {
 			var first any = GetValue(data, 0)
 			AddElementToObject(first, "next_cursor", paginationCursor)
 			AddElementToObject(first, "has_more", hasMore)
@@ -3260,13 +3211,13 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes245212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes245212)
+		retRes245512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes245512)
 	}
 	var market any = nil
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
@@ -3323,21 +3274,16 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var data any = this.SafeList(response, "data", []any{})
 	// return last state
 	var sorted []any = this.SortBy(data, "created_at", true)
-	var lastIdx int = len(sorted)
+	var lastIdx int = GetArrayLength(sorted)
 	var lastInfo any = map[string]any{}
-	if lastIdx > 0 {
-		lastInfo = func() any {
-			if 0 >= 0 && 0 < len(sorted) {
-				return DerefScalar(sorted[0])
-			}
-			return nil
-		}()
+	if IsGreaterThan(lastIdx, 0) {
+		lastInfo = GetValue(sorted, 0)
 	}
 
 	ch <- this.ParseOrder(lastInfo, market)
 	return nil
 }
-func (this *Pacifica) ParseOrderStatus(status *string) *string {
+func (this *Pacifica) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"open":             "open",
 		"partially_filled": "open",
@@ -3358,7 +3304,7 @@ func (this *Pacifica) MapTimeInForce(tifRaw any) any {
 		"ALO":       "ALO",
 	}
 	var tif any = nil
-	if tifRaw != nil {
+	if !IsEqual(tifRaw, nil) {
 		tif = ToUpper(tifRaw)
 	}
 	return this.SafeString(tifMap, tif)
@@ -3370,7 +3316,7 @@ func (this *Pacifica) MapSide(sideRaw any) any {
 	}
 	return this.SafeString(sideMap, sideRaw, sideRaw)
 }
-func (this *Pacifica) ParseOrderType(status *string) *string {
+func (this *Pacifica) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"stop_limit":         "limit",
 		"stop_market":        "market",
@@ -3477,12 +3423,7 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side any = DerefScalar(this.SafeString(order, "side", "d"))
 	if !IsEqual(side, nil) {
-		side = func() string {
-			if IsEqual(side, "bid") {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = Ternary((IsEqual(side, "bid")), "buy", "sell")
 	}
 	var totalAmount *string = this.SafeString2(order, "initial_amount", "a")
 	var filledAmount *string = this.SafeString2(order, "filled_amount", "f")
@@ -3564,10 +3505,10 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes271912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes271912)
+		retRes272212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes272212)
 	}
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
@@ -3599,15 +3540,10 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//   "code": null,
 	//   "last_order_id": 1557431179
 	// }
-	var data []any = SafeListTyped(response, "data")
-	var result []any = []any{}
-	for i := 0; i < len(data); i++ {
-		result = append(result, this.ParsePosition(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}(), nil))
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		AppendToArray(&result, this.ParsePosition(GetValue(data, i), nil))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -3633,21 +3569,11 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var margin *string = this.SafeString(position, "margin")
-	var marginMode string = func() string {
-		if (margin != nil) && (margin == nil || *margin != "0") {
-			return "isolated"
-		}
-		return "cross"
-	}()
+	var marginMode string = Ternary(((margin != nil) && (margin == nil || *margin != "0")), "isolated", "cross").(string)
 	var isIsolated bool = (marginMode == "isolated")
 	var side any = DerefScalar(this.SafeString(position, "side"))
 	if !IsEqual(side, nil) {
-		side = func() string {
-			if IsEqual(side, "bid") {
-				return "long"
-			}
-			return "short"
-		}()
+		side = Ternary((IsEqual(side, "bid")), "long", "short")
 	}
 	var createdAt *int64 = this.SafeInteger(position, "created_at")
 	return this.SafePosition(map[string]any{
@@ -3701,18 +3627,18 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var operationType string = "update_margin_mode"
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 	}
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes282412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes282412)
+		retRes282712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes282712)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var isIsolated bool = (IsEqual(marginMode, "isolated"))
 	var sigPayload map[string]any = map[string]any{
-		"symbol":      market["id"],
+		"symbol":      GetValue(market, "id"),
 		"is_isolated": isIsolated,
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
@@ -3752,17 +3678,17 @@ func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var operationType string = "update_leverage"
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 	}
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes285812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes285812)
+		retRes286112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes286112)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var sigPayload map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   GetValue(market, "id"),
 		"leverage": leverage,
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
@@ -3804,10 +3730,10 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var operationType string = "withdraw"
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes289012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes289012)
+		retRes289312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes289312)
 	}
 	this.CheckAddress(address)
 	var sigPayload map[string]any = map[string]any{
@@ -3845,16 +3771,16 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes291412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes291412)
+		retRes291712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes291712)
 	}
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
@@ -3943,10 +3869,10 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes299212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes299212)
+		retRes299512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes299512)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -3977,10 +3903,10 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes301112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes301112)
+		retRes301412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes301412)
 	}
 	symbol = this.Symbol(symbol)
 
@@ -3988,7 +3914,7 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	PanicOnError(ois)
 	var oi any = this.SafeDict(ois, symbol)
 	if IsEqual(oi, nil) {
-		panic(BadSymbol(Add(this.Id+" fetchOpenInterest() could not find open interest for ", symbol)))
+		panic(BadSymbol(Add(Add(this.Id, " fetchOpenInterest() could not find open interest for "), symbol)))
 	}
 
 	ch <- oi
@@ -4064,10 +3990,10 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes307612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes307612)
+		retRes307912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes307912)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
@@ -4078,18 +4004,18 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var defaultLimit int = 100 // Default max limit
-	if paginate == true {
+	if EvalTruthy(paginate) {
 
-		retRes308419 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes308419)
-		ch <- retRes308419
+		retRes308719 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes308719)
+		ch <- retRes308719
 		return nil
 	}
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	if limit != nil {
-		request["limit"] = limit
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit)
 	}
 
 	response := (<-this.PublicGetAccountBalanceHistory(this.Extend(request, params)))
@@ -4148,7 +4074,7 @@ func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Pacifica) ParseLedgerEntryType(typeVar *string) *string {
+func (this *Pacifica) ParseLedgerEntryType(typeVar any) *string {
 	var ledgerType map[string]any = map[string]any{
 		"subaccount_transfer":  "transfer",
 		"deposit":              "transaction",
@@ -4199,13 +4125,13 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes318212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes318212)
+		retRes318512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes318512)
 	}
 	var market any = nil
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 	var paginate any = false
@@ -4219,15 +4145,15 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	if limit != nil {
-		request["limit"] = limit
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit)
 	}
 	var defaultLimit int = 100
-	if paginate == true {
+	if EvalTruthy(paginate) {
 
-		retRes320019 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes320019)
-		ch <- retRes320019
+		retRes320319 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes320319)
+		ch <- retRes320319
 		return nil
 	}
 
@@ -4312,12 +4238,12 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
-		retRes327112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes327112)
+		retRes327412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes327412)
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency any = this.Currency(code)
 	var operationType string = "transfer_funds"
 	var sigPayload map[string]any = map[string]any{
 		"to_account": toAccount,
@@ -4365,12 +4291,7 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var success *bool = this.SafeBool(transfer, "success")
 	var status any = nil
 	if success != nil {
-		status = func() string {
-			if success != nil && *success == true {
-				return "ok"
-			}
-			return "failed"
-		}()
+		status = Ternary((success != nil && *success == true), "ok", "failed")
 	}
 	return map[string]any{
 		"info":        transfer,
@@ -4416,11 +4337,11 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	originAddressparamsVariable := this.HandleOriginAndSingleAddress("createSubAccount", params)
 	originAddress = GetValue(originAddressparamsVariable, 0)
 	params = GetValue(originAddressparamsVariable, 1)
-	if originAddress == nil {
-		panic(ArgumentsRequired(this.Id + " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials"))
+	if IsEqual(originAddress, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")))
 	}
-	if agentAddress != nil {
-		finalHeaders["agent_wallet"] = agentAddress
+	if !IsEqual(agentAddress, nil) {
+		AddElementToObject(finalHeaders, "agent_wallet", agentAddress)
 	}
 	var subAccountAddress any = nil
 	var subAccountAddressparamsVariable []any = this.HandleOptionAndParams(params, "createSubAccount", "subAccountAddress")
@@ -4430,11 +4351,11 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	var subAccountPrivateKeyparamsVariable []any = this.HandleOptionAndParams(params, "createSubAccount", "subAccountPrivateKey")
 	subAccountPrivateKey = GetValue(subAccountPrivateKeyparamsVariable, 0)
 	params = GetValue(subAccountPrivateKeyparamsVariable, 1)
-	if subAccountAddress == nil {
-		panic(ArgumentsRequired(this.Id + " createSubAccount() requires a \"subAccountAddress\"!"))
+	if IsEqual(subAccountAddress, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires a \"subAccountAddress\"!")))
 	}
-	if subAccountPrivateKey == nil {
-		panic(ArgumentsRequired(this.Id + " createSubAccount() requires a \"subAccountPrivateKey\"!"))
+	if IsEqual(subAccountPrivateKey, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires a \"subAccountPrivateKey\"!")))
 	}
 	var timestamp any = nil
 	timestampparamsVariable := this.HandleParamInteger(params, "timestamp", this.Milliseconds())
@@ -4462,12 +4383,12 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 		"signature": subaccountSignature,
 	}
 	var main_signature any = this.SignMessage(mainSignatureHeader, mainSigPayload, this.PrivateKey)
-	finalHeaders["main_account"] = originAddress
-	finalHeaders["subaccount"] = subAccountAddress
-	finalHeaders["sub_signature"] = subaccountSignature
-	finalHeaders["main_signature"] = main_signature
-	finalHeaders["timestamp"] = timestamp
-	finalHeaders["expiry_window"] = expiryWindow
+	AddElementToObject(finalHeaders, "main_account", originAddress)
+	AddElementToObject(finalHeaders, "subaccount", subAccountAddress)
+	AddElementToObject(finalHeaders, "sub_signature", subaccountSignature)
+	AddElementToObject(finalHeaders, "main_signature", main_signature)
+	AddElementToObject(finalHeaders, "timestamp", timestamp)
+	AddElementToObject(finalHeaders, "expiry_window", expiryWindow)
 	var request map[string]any = finalHeaders
 
 	response := (<-this.PrivatePostAccountSubaccountCreate(this.Extend(request, params)))
@@ -4500,9 +4421,9 @@ func (this *Pacifica) bindAgentWalletBody(ch chan any, agentAddress any, optiona
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes341215 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
-	PanicOnError(retRes341215)
-	ch <- retRes341215
+	retRes341515 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
+	PanicOnError(retRes341515)
+	ch <- retRes341515
 	return nil
 }
 func (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <-chan any {
@@ -4519,9 +4440,9 @@ func (this *Pacifica) createApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes341915 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
-	PanicOnError(retRes341915)
-	ch <- retRes341915
+	retRes342215 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
+	PanicOnError(retRes342215)
+	ch <- retRes342215
 	return nil
 }
 func (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <-chan any {
@@ -4540,9 +4461,9 @@ func (this *Pacifica) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes342815 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
-	PanicOnError(retRes342815)
-	ch <- retRes342815
+	retRes343115 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
+	PanicOnError(retRes343115)
+	ch <- retRes343115
 	return nil
 }
 func (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <-chan any {
@@ -4559,9 +4480,9 @@ func (this *Pacifica) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes343515 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
-	PanicOnError(retRes343515)
-	ch <- retRes343515
+	retRes343815 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
+	PanicOnError(retRes343815)
+	ch <- retRes343815
 	return nil
 }
 func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan any {
@@ -4581,9 +4502,9 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan any, builderCode any, maxFe
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes344515 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
-	PanicOnError(retRes344515)
-	ch <- retRes344515
+	retRes344815 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
+	PanicOnError(retRes344815)
+	ch <- retRes344815
 	return nil
 }
 func (this *Pacifica) FetchBuilderApprovalsAsync(address any) <-chan any {
@@ -4598,9 +4519,9 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan any, address any) any {
 		"account": address,
 	}
 
-	retRes345215 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
-	PanicOnError(retRes345215)
-	ch <- retRes345215
+	retRes345515 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
+	PanicOnError(retRes345515)
+	ch <- retRes345515
 	return nil
 }
 func (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <-chan any {
@@ -4619,9 +4540,9 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes346115 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
-	PanicOnError(retRes346115)
-	ch <- retRes346115
+	retRes346415 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
+	PanicOnError(retRes346415)
+	ch <- retRes346415
 	return nil
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {
@@ -4629,14 +4550,14 @@ func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) a
 	var addressparamsVariable []any = this.HandleParamString2(params, "account", "address", nil)
 	address = GetValue(addressparamsVariable, 0)
 	params = GetValue(addressparamsVariable, 1) // this is for get endpoints that accept account or address
-	if address != nil {
+	if !IsEqual(address, nil) {
 		return []any{address, params}
 	}
 	var address1 any = this.WalletAddress
-	if address1 != nil {
+	if !IsEqual(address1, nil) {
 		return []any{address1, params}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")))
 }
 func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(response, nil) {
@@ -4656,11 +4577,11 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 		error = true
 	}
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
-	if (error == true) || nonEmptyMessage {
-		var feedback any = Add(this.Id+" ", body)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback) // Try deeper catch first
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], inCode, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
+	if EvalTruthy(error) || nonEmptyMessage {
+		var feedback any = Add(Add(this.Id, " "), body)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback) // Try deeper catch first
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), inCode, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil
@@ -4677,21 +4598,16 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey string = func() string {
-		if isTestnet == true {
-			return "test"
-		}
-		return "api"
-	}()
+	var urlKey string = Ternary(EvalTruthy((isTestnet)), "test", "api").(string)
 	var host any = this.ImplodeHostname(GetValue(GetValue(this.Urls, urlKey), api))
 	var url any = Add(Add(Add(Add(host, "/api/"), this.Version), "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))
-	var paramsLen int = len(ObjectKeys(params))
+	var paramsLen int = GetArrayLength(ObjectKeys(params))
 	headers = map[string]any{
 		"Content-Type": "application/json",
 	}
-	if (IsEqual(method, "GET")) && (paramsLen > 0) {
-		url = Add(url, "?"+this.Urlencode(params))
+	if (IsEqual(method, "GET")) && (IsGreaterThan(paramsLen, 0)) {
+		url = Add(url, Add("?", this.Urlencode(params)))
 		AddElementToObject(headers, "Accept", "*/*")
 	}
 	if IsEqual(method, "POST") {
@@ -4726,20 +4642,15 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 		var result any = map[string]any{}
 		var keys []string = ObjectKeys(value)
 		var sortedKeys []any = this.Sort(keys)
-		for i := 0; i < len(sortedKeys); i++ {
-			var key any = func() any {
-				if i >= 0 && i < len(sortedKeys) {
-					return DerefScalar(sortedKeys[i])
-				}
-				return nil
-			}()
+		for i := 0; IsLessThan(i, GetArrayLength(sortedKeys)); i++ {
+			var key any = GetValue(sortedKeys, i)
 			AddElementToObject(result, key, this.SortJsonKeys(GetValue(value, key)))
 		}
 		return result
 	} else if IsArray(value) {
-		var result []any = []any{}
-		for i := 0; i < GetArrayLength(value); i++ {
-			result = append(result, this.SortJsonKeys(GetValue(value, i)))
+		var result any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(value)); i++ {
+			AppendToArray(&result, this.SortJsonKeys(GetValue(value, i)))
 		}
 		return result
 	} else {
@@ -4748,7 +4659,7 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 }
 func (this *Pacifica) PrepareMessage(header any, payload any) any {
 	if IsEqual(GetValue(header, "type"), nil) || IsEqual(GetValue(header, "timestamp"), nil) || IsEqual(GetValue(header, "expiry_window"), nil) {
-		panic(ArgumentsRequired(this.Id + " prepareMessage() requires type, timestamp, expiry_window in header"))
+		panic(ArgumentsRequired(Add(this.Id, " prepareMessage() requires type, timestamp, expiry_window in header")))
 	}
 	var data map[string]any = this.Extend(header, map[string]any{
 		"data": payload,
@@ -4769,15 +4680,15 @@ func (this *Pacifica) SignMessage(header any, payload any, privateKey any) any {
 func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, params any) any {
 	this.CheckRequiredCredentials() // check credentials every post action
 	if IsEqual(operationType, "undefined") {
-		panic(ArgumentsRequired(Add(Add(this.Id+" action: ", operationType), " postActionRequest() requires \"operationType\"")))
+		panic(ArgumentsRequired(Add(Add(Add(this.Id, " action: "), operationType), " postActionRequest() requires \"operationType\"")))
 	}
-	if !this.IsSandboxModeEnabled {
+	if !EvalTruthy(this.IsSandboxModeEnabled) {
 		var useBuilder any = this.HandleOption("postActionRequest", "builderFee", true)
 		var builderCode any = nil
-		if useBuilder == true {
+		if IsEqual(useBuilder, true) {
 			builderCode = this.HandleOption("postActionRequest", "builderCode")
 		}
-		if builderCode != nil {
+		if !IsEqual(builderCode, nil) {
 			var isOperationSupportBuilder *bool = this.SafeBool(GetValue(this.Options, "builderSupportOperations"), operationType, false)
 			if isOperationSupportBuilder != nil && *isOperationSupportBuilder == true {
 				AddElementToObject(sigPayload, "builder_code", builderCode)
@@ -4804,16 +4715,16 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 	originAddressparamsVariable := this.HandleOriginAndSingleAddress("postActionRequest", params)
 	originAddress = GetValue(originAddressparamsVariable, 0)
 	params = GetValue(originAddressparamsVariable, 1)
-	if originAddress == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" action: ", operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")))
+	if IsEqual(originAddress, nil) {
+		panic(ArgumentsRequired(Add(Add(Add(this.Id, " action: "), operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")))
 	}
-	finalHeaders["account"] = originAddress
-	if agentAddress != nil {
-		finalHeaders["agent_wallet"] = agentAddress
+	AddElementToObject(finalHeaders, "account", originAddress)
+	if !IsEqual(agentAddress, nil) {
+		AddElementToObject(finalHeaders, "agent_wallet", agentAddress)
 	}
-	finalHeaders["signature"] = signature
-	finalHeaders["timestamp"] = this.SafeInteger(signatureHeader, "timestamp")
-	finalHeaders["expiry_window"] = this.SafeInteger(signatureHeader, "expiry_window")
+	AddElementToObject(finalHeaders, "signature", signature)
+	AddElementToObject(finalHeaders, "timestamp", this.SafeInteger(signatureHeader, "timestamp"))
+	AddElementToObject(finalHeaders, "expiry_window", this.SafeInteger(signatureHeader, "expiry_window"))
 	var request map[string]any = this.Extend(finalHeaders, sigPayload)
 	return request
 }
@@ -5096,6 +5007,7 @@ func (this *Pacifica) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
  * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+ * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
  * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}

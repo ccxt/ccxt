@@ -1155,7 +1155,7 @@ public class Bingx extends BingxApi
                         put( "trailing", true );
                         put( "leverage", false );
                         put( "marketBuyRequiresPrice", false );
-                        put( "marketBuyByCost", true );
+                        put( "marketBuyByCost", false );
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
@@ -1226,6 +1226,7 @@ public class Bingx extends BingxApi
                         put( "private", true );
                     }} );
                     put( "createOrder", new HashMap<String, Object>() {{
+                        put( "marketBuyByCost", true );
                         put( "triggerPriceType", null );
                         put( "attachedStopLossTakeProfit", null );
                         put( "trailing", false );
