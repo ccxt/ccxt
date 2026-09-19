@@ -578,6 +578,120 @@ function safeDictLocalType (printer, initializer, name) {
     return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')' };
 }
 
+// ===== parse* structure locals (B-10) =====
+//
+// `const x = this.parseOrder (order, market)` prints `Object x = this.parseOrder (...)`
+// because the parse* Java signature is erased (every non-boolean return annotation prints
+// Object). The signature the checker resolves declares a structure interface — Order /
+// Trade / Ticker / Position / OrderBook / Balance / Market / Currency, all dict-shaped rows
+// in ts/src/base/types.ts — or a tuple/array (OHLCV, BidAsk[]), so the box the method hands
+// back is a `java.util.Map<String, Object>` / `java.util.List<Object>` on every path a
+// census of its generated declarations can return:
+//
+//   * a fresh HashMap / ArrayList literal (parseOrderBook, parseTradingFee, parseFundingRate,
+//     parseMarginLoan, parseTransaction, parseBorrowRate, parseOrderBookBidAsk, parseOHLCV);
+//   * a row handed back unchanged by the safe* producer the body delegates to — safeOrder /
+//     safeTicker / safeTrade / safePosition return `this.extend (<fresh row>, …)` or the
+//     caller's row, safeBalance returns the row it was given (parseOrder, parseTicker,
+//     parseTrade, parsePosition, parseBalance, parseWsOrder, parseWsTicker, parseWsPosition);
+//   * a peer name in the same table, `super.<peer>` or null (census of every declaration of
+//     the name in exchanges/*, exchanges/pro/*, exchanges/prediction/*: 0 other return shape).
+//
+// NOT admitted: the names that funnel through filterByArray (parseTickers, parsePositions,
+// parseDepositAddresses, parseBorrowInterests, parseSettlements, …) — it hands back a keyed
+// dictionary when `indexed` is true, so the box is argument-dependent (same exclusion the
+// C# port recorded); the numeric/string parse* names (parseNumber, parsePrecision,
+// parse8601, parse*Status/Type, …), which are other families' declarations.
+//
+// The declaration carries the checkcast the Object-declared call needs (same cast family as
+// the structure / safeDict locals above); the cast can only fire on a box the method never
+// returns. Every later write is audited by isSafeToNarrow (D2) — a local re-written with an
+// unrelated shape keeps its Object declaration.
+const JAVA_PARSE_MAP_TYPE = 'java.util.Map<String, Object>';
+const JAVA_PARSE_LIST_TYPE = 'java.util.List<Object>';
+
+const PARSE_MAP_LOCAL_NAMES = new Set ([
+    'parseOrder', 'parseOrderBook', 'parseTicker', 'parseTrade', 'parsePosition',
+    'parseTradingFee', 'parseFundingRate', 'parseMarginLoan', 'parseTransaction',
+    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance',
+    'parseWsOrder', 'parseWsTicker', 'parseWsPosition',
+]);
+
+const PARSE_LIST_LOCAL_NAMES = new Set ([
+    'parseOHLCV', 'parseOrderBookBidAsk', 'parseOrderBookBidsAsks',
+]);
+
+// the return type the checker gives the RESOLVED declaration of the call (never a name
+// heuristic): an unannotated override falls back to the signature's inferred return type
+function callDeclarationReturnType (printer, initializer) {
+    let signature;
+    try {
+        signature = printer.getChecker ().getResolvedSignature (initializer);
+    } catch (e) {
+        return undefined;
+    }
+    const declaration = signature?.declaration;
+    if (declaration?.type !== undefined) {
+        return printer.getChecker ().getTypeAtLocation (declaration.type);
+    }
+    return typeof signature?.getReturnType === 'function' ? signature.getReturnType () : undefined;
+}
+
+// the unit's condition: the callee's declared TS return type is a structure interface —
+// either the printer's own map-structure proof (index signature / ts/src/base/types.ts) or
+// any interface / type-literal / object alias. Classes, functions, arrays, scalars, unions
+// and `any` never classify (a class instance is not a Java Map).
+function isParseStructureReturnType (printer, type) {
+    if (type === undefined) {
+        return false;
+    }
+    if (typeof printer.isJavaMapStructureType === 'function' && printer.isJavaMapStructureType (type)) {
+        return true;
+    }
+    const excluded = ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Union | ts.TypeFlags.Intersection
+        | ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.TypeParameter | ts.TypeFlags.Conditional
+        | ts.TypeFlags.Never | ts.TypeFlags.StringLike | ts.TypeFlags.NumberLike | ts.TypeFlags.BooleanLike
+        | ts.TypeFlags.ESSymbolLike | ts.TypeFlags.EnumLike;
+    if ((type.flags & excluded) !== 0 || (type.flags & ts.TypeFlags.Object) === 0) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    if (checker.isArrayType (type) || checker.isTupleType (type)) {
+        return false;
+    }
+    const symbol = type.symbol ?? type.aliasSymbol;
+    if (symbol === undefined) {
+        return false;
+    }
+    if ((symbol.flags & (ts.SymbolFlags.Class | ts.SymbolFlags.Function | ts.SymbolFlags.Method)) !== 0) {
+        return false;
+    }
+    return (symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.TypeLiteral | ts.SymbolFlags.TypeAlias | ts.SymbolFlags.ObjectLiteral)) !== 0;
+}
+
+function parseStructureLocalType (printer, initializer, name) {
+    const isMap = PARSE_MAP_LOCAL_NAMES.has (name);
+    const isList = PARSE_LIST_LOCAL_NAMES.has (name);
+    if (!isMap && !isList) {
+        return undefined;
+    }
+    if (!resolvesToMethodNamed (printer, initializer, name)) {
+        return undefined;
+    }
+    const returnType = callDeclarationReturnType (printer, initializer);
+    if (isMap) {
+        if (!isParseStructureReturnType (printer, returnType)) {
+            return undefined;
+        }
+        return { type: JAVA_PARSE_MAP_TYPE, cast: '(' + JAVA_PARSE_MAP_TYPE + ')' };
+    }
+    const checker = printer.getChecker ();
+    if (returnType === undefined || !(checker.isArrayType (returnType) || checker.isTupleType (returnType))) {
+        return undefined;
+    }
+    return { type: JAVA_PARSE_LIST_TYPE, cast: '(' + JAVA_PARSE_LIST_TYPE + ')' };
+}
+
 // ts sources that may hold the resolved declaration of an admitted accessor call —
 // anything else (a venue override) never classifies
 const ACCESSOR_SOURCE_FILES = [
@@ -1643,6 +1757,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const dict = safeDictLocalType (printer, initializer, name);
     if (dict !== undefined) {
         return dict;
+    }
+    const parseStructure = parseStructureLocalType (printer, initializer, name);
+    if (parseStructure !== undefined) {
+        return parseStructure;
     }
     return undefined;
 }

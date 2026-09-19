@@ -6623,7 +6623,7 @@ final Object finalMinNotional = minNotional;
                 String marketId = this.safeString(entry, "symbol");
                 String symbol = this.safeSymbol(marketId, null, null, marketType);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object fee = this.parseTradingFee(entry, market);
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(entry, market);
                 ((Map<String, Object>)result).put((String)symbol, fee);
             }
             return result;

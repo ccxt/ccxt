@@ -1145,7 +1145,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String messageHash = this.safeString(message, "id");
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
         Long timestamp = this.safeInteger(result, "T");
-        Object orderbook = this.parseOrderBook(result, null, timestamp);
+        Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, null, timestamp);
         ((Map<String, Object>)orderbook).put("nonce", this.safeInteger2(result, "lastUpdateId", "u"));
         client.resolve(orderbook, messageHash);
     }
@@ -3242,7 +3242,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String messageHash = this.safeString(message, "id");
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsTicker(result, "future");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(result, "future");
         client.resolve(ticker, messageHash);
     }
 
@@ -3351,7 +3351,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object isSpot = this.isSpotUrl(client);
             String tickerFallbackType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
             Object tickerMarketType = (((!java.util.Objects.equals(tickerMarketById, null)))) ? ((Map<String, Object>)tickerMarketById).get("type") : tickerFallbackType;
-            Object parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(ticker, tickerMarketType);
             Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -4694,7 +4694,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String messageHash = this.safeString(message, "id");
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(result);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(result);
         client.resolve(order, messageHash);
     }
 
@@ -6239,7 +6239,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parseWsPosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
             Long timestamp = this.safeInteger(message, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
