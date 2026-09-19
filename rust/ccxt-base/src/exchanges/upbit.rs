@@ -2835,8 +2835,8 @@ impl UpbitCore {
         }
         let __ws_arg_21 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), crate::value::get_value_k(&currency, "id"));
-                m.insert("net_type".to_string(), self.network_code_to_id(networkCode, &[crate::value::get_value_k(&currency, "code")]));
+                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("net_type".to_string(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
             m
         }), &[params]);
         let mut response: Value = self.private_get_deposits_coin_address(&[__ws_arg_21]).await;

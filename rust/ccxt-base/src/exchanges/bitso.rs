@@ -2533,7 +2533,7 @@ impl BitsoCore {
             m
         });
         let mut currency: Value = self.currency(code.clone());
-        let mut method: Value = (if (in_op(&methods, &code)) { get_value(&methods, &code) } else { Value::Null });
+        let mut method: Value = (if (in_op(&methods, &code)) { methods.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { Value::Null });
         if (method == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" not valid withdraw coin: ".into())).into()), code)));
         }

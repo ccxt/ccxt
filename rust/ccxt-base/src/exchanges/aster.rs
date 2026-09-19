@@ -2754,7 +2754,7 @@ impl AsterCore {
             while { if !__for_first_222 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_222 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut marketId: Value = self.safe_string(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
             let mut safeMarket: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
-            let __ws_arg_14 = self.parse_last_price(get_value(&rows, &i), &[safeMarket]);
+            let __ws_arg_14 = self.parse_last_price(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[safeMarket]);
             let mut priceData: Value = self.extend(__ws_arg_14, &[params.clone()]);
             append_to_array(&mut results, priceData);
         }
@@ -4861,8 +4861,8 @@ impl AsterCore {
                 if (in_op(&balances, &code)) {
                     let __ws_arg_44 = self.extend(position.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("crossMargin".to_string(), crate::value::get_value_k(&get_value(&balances, &code), "crossMargin"));
-        m.insert("crossWalletBalance".to_string(), crate::value::get_value_k(&get_value(&balances, &code), "crossWalletBalance"));
+        m.insert("crossMargin".to_string(), crate::value::get_value_k(&balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "crossMargin"));
+        m.insert("crossWalletBalance".to_string(), crate::value::get_value_k(&balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "crossWalletBalance"));
     m
 })]);
                     let mut parsed: Value = self.parse_account_position(__ws_arg_44, &[market.clone()]);

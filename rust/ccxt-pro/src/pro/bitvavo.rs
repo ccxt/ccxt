@@ -974,7 +974,7 @@ impl BitvavoCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), name.clone());
                     m.insert("interval".to_string(), Value::from(vec![interval.clone()]));
-                    m.insert("markets".to_string(), get_value(&marketIdsByInterval, &interval));
+                    m.insert("markets".to_string(), marketIdsByInterval.as_map().and_then(|__m| interval.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
                 m
             }));
         }
@@ -1074,7 +1074,7 @@ impl BitvavoCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), name.clone());
                     m.insert("interval".to_string(), Value::from(vec![interval.clone()]));
-                    m.insert("markets".to_string(), get_value(&marketIdsByInterval, &interval));
+                    m.insert("markets".to_string(), marketIdsByInterval.as_map().and_then(|__m| interval.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
                 m
             }));
         }

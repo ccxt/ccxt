@@ -4439,7 +4439,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if !(in_op(&deduplicatedByOid, &oid)) {
                     add_element_to_object(&mut deduplicatedByOid, &oid, rawOrder.clone());
                 }  else {
-                    let mut existingTimestamp: Value = self.safe_integer_k(get_value(&deduplicatedByOid, &oid), "statusTimestamp", &[]);
+                    let mut existingTimestamp: Value = self.safe_integer(deduplicatedByOid.as_map().and_then(|__m| oid.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]);
                     let mut currentTimestamp: Value = self.safe_integer_k(rawOrder.clone(), "statusTimestamp", &[]);
                     if (currentTimestamp != Value::Null) && ((existingTimestamp == Value::Null) || currentTimestamp.as_f64().unwrap_or(f64::NAN) > existingTimestamp.as_f64().unwrap_or(f64::NAN)) {
                         add_element_to_object(&mut deduplicatedByOid, &oid, rawOrder.clone());

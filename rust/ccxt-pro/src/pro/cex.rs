@@ -712,7 +712,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("ticker".into()));
                 m.insert("oid".to_string(), messageHash.clone());
-                m.insert("data".to_string(), Value::from(vec![crate::value::get_value_k(&market, "base"), crate::value::get_value_k(&market, "quote")]));
+                m.insert("data".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)]));
             m
         }), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
@@ -1793,7 +1793,7 @@ impl CexCore {
         let mut messageHash: Value = self.request_id();
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from(vec![crate::value::get_value_k(&market, "baseId"), crate::value::get_value_k(&market, "quoteId")]));
+                m.insert("pair".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)]));
             m
         }), &[params.clone()]);
         let mut request: Value = Value::Map({
@@ -1841,7 +1841,7 @@ impl CexCore {
         let mut messageHash: Value = self.request_id();
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from(vec![crate::value::get_value_k(&market, "baseId"), crate::value::get_value_k(&market, "quoteId")]));
+                m.insert("pair".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)]));
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
                 m.insert("type".to_string(), side);
@@ -1894,7 +1894,7 @@ impl CexCore {
         let mut market: Value = self.market(symbol);
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from(vec![crate::value::get_value_k(&market, "baseId"), crate::value::get_value_k(&market, "quoteId")]));
+                m.insert("pair".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)]));
                 m.insert("type".to_string(), side);
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);

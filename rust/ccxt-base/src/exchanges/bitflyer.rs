@@ -1324,7 +1324,7 @@ impl BitflyerCore {
         let mut orders: Value = self.fetch_orders(&[symbol]).await;
         let mut ordersById: Value = self.index_by(orders, Value::Str("id".into()));
         if (in_op(&ordersById, &id)) {
-            return get_value(&ordersById, &id);
+            return ordersById.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }
         panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" No order found with id ".into())).into()), id)));
 

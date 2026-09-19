@@ -1142,8 +1142,7 @@ impl KrakenCore {
             if Value::Int(id.as_str().and_then(|__s| __s.find(":BTNL")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 isSynthetic = true;
             }
-            let mut market: Value = get_value(&markets, &id);
-            let mut market: Value = get_value(&markets, &id);
+            let mut market: Value = markets.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut baseIdRaw: Value = self.safe_string_k(market.clone(), "base", &[]);
             let mut quoteIdRaw: Value = self.safe_string_k(market.clone(), "quote", &[]);
             let mut baseId: Value = self.safe_currency_code(baseIdRaw, &[]);
@@ -1759,8 +1758,7 @@ impl KrakenCore {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = get_value(&tickers, &id);
-            let mut ticker: Value = get_value(&tickers, &id);
+            let mut ticker: Value = tickers.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut result, &symbol, self.parse_ticker(ticker, &[market.clone()]));
         }
         }
@@ -2484,7 +2482,7 @@ impl KrakenCore {
         let mut orderRequest: Value = self.order_request(Value::Str("createOrder".into()), symbol, type_var, request, amount, &[price, params]);
         let mut flags: Value = self.safe_string(orderRequest.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("oflags".into()), &[Value::Str("".into())]);
         let mut isUsingCost: Value = Value::Bool(Value::Int(flags.as_str().and_then(|__s| __s.find("viqc")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64));
-        let __ws_arg_8 = self.extend(get_value(&orderRequest, &Value::Int(0)), &[get_value(&orderRequest, &Value::Int(1))]);
+        let __ws_arg_8 = self.extend(orderRequest.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[orderRequest.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)]);
         let mut response: Value = self.private_post_add_order(&[__ws_arg_8]).await;
         //
         //     {
@@ -3277,7 +3275,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
     m
-}), &[get_value(&result, &id)]);
+}), &[result.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)]);
         return self.parse_order(__ws_arg_11, &[]);
 
     Value::Null
@@ -3435,8 +3433,7 @@ impl KrakenCore {
             let mut __for_first_852: bool = true;
             while { if !__for_first_852 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_852 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderIds.len() as i64) as f64) } {
             let mut id: Value = orderIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut item: Value = get_value(&result, &id);
-            let mut item: Value = get_value(&result, &id);
+            let mut item: Value = result.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let __ws_arg_13 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -3797,8 +3794,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_854: bool = true;
             while { if !__for_first_854 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_854 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderIds.len() as i64) as f64) } {
             let mut id: Value = orderIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut item: Value = get_value(&open, &id);
-            let mut item: Value = get_value(&open, &id);
+            let mut item: Value = open.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             append_to_array(&mut orders, self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -3914,8 +3910,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_855: bool = true;
             while { if !__for_first_855 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_855 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderIds.len() as i64) as f64) } {
             let mut id: Value = orderIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut item: Value = get_value(&closed, &id);
-            let mut item: Value = get_value(&closed, &id);
+            let mut item: Value = closed.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             append_to_array(&mut orders, self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -4085,7 +4080,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.clone());
     m
-}), &[get_value(&transactions, &i)]);
+}), &[transactions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             let mut transaction: Value = self.parse_transaction(__ws_arg_20, &[]);
             append_to_array(&mut result, transaction);
         }

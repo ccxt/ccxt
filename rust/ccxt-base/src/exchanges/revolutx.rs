@@ -896,7 +896,7 @@ impl RevolutxCore {
                 while { if !__for_first_1079 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1079 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut s: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (in_op(&result, &s)) {
-                    add_element_to_object(&mut filtered, &s, get_value(&result, &s));
+                    add_element_to_object(&mut filtered, &s, result.as_map().and_then(|__m| s.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
                 }
             }
             }
@@ -1472,7 +1472,7 @@ impl RevolutxCore {
         let __ws_arg_7 = self.extend(orderData, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), venueOrderId);
-        m.insert("symbol".to_string(), crate::value::get_value_k(&market, "id"));
+        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         m.insert("status".to_string(), state);
         m.insert("side".to_string(), side);
         m.insert("type".to_string(), type_var);
@@ -1999,7 +1999,7 @@ impl RevolutxCore {
         let __ws_arg_15 = self.extend(orderData, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), newVenueOrderId);
-        m.insert("symbol".to_string(), crate::value::get_value_k(&market, "id"));
+        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         m.insert("status".to_string(), state);
         m.insert("side".to_string(), side);
         m.insert("type".to_string(), type_var);

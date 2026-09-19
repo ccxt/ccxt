@@ -753,8 +753,7 @@ impl LimitlessCore {
     m
 }));
                 }
-                let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
-                let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
+                let mut eventGroup: Value = eventGroups.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -774,8 +773,7 @@ impl LimitlessCore {
             let mut __for_first_1265: bool = true;
             while { if !__for_first_1265 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1265 = false; i.as_f64().unwrap_or(f64::NAN) < ((eventKeys.len() as i64) as f64) } {
             let mut eventKey: Value = eventKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut g: Value = get_value(&eventGroups, &eventKey);
-            let mut g: Value = get_value(&eventGroups, &eventKey);
+            let mut g: Value = eventGroups.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut eventsDict, &eventKey, self.parse_event(g));
         }
         }
@@ -911,8 +909,7 @@ impl LimitlessCore {
             let mut __for_first_1266: bool = true;
             while { if !__for_first_1266 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1266 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenEntries.len() as i64) as f64) } {
             let mut outcomeLabel: Value = tokenEntries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut tokenData: Value = get_value(&tokens, &outcomeLabel);
-            let mut tokenData: Value = get_value(&tokens, &outcomeLabel);
+            let mut tokenData: Value = tokens.as_map().and_then(|__m| outcomeLabel.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut tokenId: Value = tokenData;
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(groupId.clone(), slug.clone(), outcomeLabel.clone());
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
@@ -1112,7 +1109,7 @@ impl LimitlessCore {
                     let mut __for_first_1267: bool = true;
                     while { if !__for_first_1267 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1267 = false; j.as_f64().unwrap_or(f64::NAN) < nestedMarketsLength } {
                     // extend copies — the raw child stays untouched
-                    let mut tagged: Value = self.extend(get_value(&nestedMarkets, &j), &[Value::Map({
+                    let mut tagged: Value = self.extend(nestedMarkets.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("groupSlug".to_string(), groupSlug.clone());
                             m.insert("groupTitle".to_string(), groupTitle.clone());
@@ -2155,8 +2152,7 @@ impl LimitlessCore {
                 add_element_to_object(&mut candles, &key, Value::from(vec![bucket, pPrice.clone(), pPrice.clone(), pPrice.clone(), pPrice.clone(), Value::Int(0)]));
                 append_to_array(&mut bucketOrder, key.clone());
             }  else {
-                let mut candle: Value = get_value(&candles, &key);
-                let mut candle: Value = get_value(&candles, &key);
+                let mut candle: Value = candles.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 let mut pPriceOrZero: Value = (if (pPrice == Value::Null) { Value::Int(0) } else { pPrice.clone() });
                 { let __be_tmp = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &pPriceOrZero); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); };
                 let mut candleLow: Value = (if (get_value(&candle, &Value::Int(3)) == Value::Null) { pPrice.clone() } else { get_value(&candle, &Value::Int(3)) });
@@ -3969,8 +3965,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
                 }
-                let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
-                let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
+                let mut eventGroup: Value = eventGroups.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go

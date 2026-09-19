@@ -609,8 +609,7 @@ impl HitbtcCore {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut item: Value = get_value(&data, &marketId);
-            let mut item: Value = get_value(&data, &marketId);
+            let mut item: Value = data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbooks::".into()), symbol).into());
             if !(in_op(&self.orderbooks, &symbol)) {
                 let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[Value::Map({
@@ -809,7 +808,7 @@ impl HitbtcCore {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = self.parse_ws_ticker(get_value(&data, &marketId), &[market]);
+            let mut ticker: Value = self.parse_ws_ticker(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
             add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             append_to_array(&mut result, ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -966,7 +965,7 @@ impl HitbtcCore {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = self.parse_ws_bid_ask(get_value(&data, &marketId), &[market]);
+            let mut ticker: Value = self.parse_ws_bid_ask(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
             add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
             append_to_array(&mut result, ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -1098,7 +1097,7 @@ impl HitbtcCore {
                 stored = ArrayCache::new(tradesLimit);
                 add_element_to_object(&mut self.trades, &symbol, stored.clone());
             }
-            let mut trades: Value = self.parse_ws_trades(get_value(&data, &marketId), &[market]);
+            let mut trades: Value = self.parse_ws_trades(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_384: bool = true;
@@ -1129,7 +1128,7 @@ impl HitbtcCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_386: bool = true;
             while { if !__for_first_386 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_386 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradesArray.len() as i64) as f64) } {
-            let __ws_arg_0 = self.parse_ws_trade(get_value(&tradesArray, &i), &[market.clone()]);
+            let __ws_arg_0 = self.parse_ws_trade(tradesArray.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             let mut trade: Value = self.extend(__ws_arg_0, &[params.clone()]);
             append_to_array(&mut result, trade);
         }
@@ -1281,7 +1280,7 @@ impl HitbtcCore {
                 stored = ArrayCacheByTimestamp::new(limit);
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
-            let mut ohlcvs: Value = self.parse_ws_ohlc_vs(get_value(&data, &marketId), &[market]);
+            let mut ohlcvs: Value = self.parse_ws_ohlc_vs(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_387: bool = true;

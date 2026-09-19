@@ -1065,8 +1065,7 @@ impl BithumbCore {
                     if (currencyId.as_str() == Some("date")) {
                         continue;
                     }
-                    let mut market: Value = get_value(&data, &currencyId);
-                    let mut market: Value = get_value(&data, &currencyId);
+                    let mut market: Value = data.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                     let mut base: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut active: Value = Value::Bool(true);
                     if (matches!(&market, Value::Arr(_))) {
@@ -1749,8 +1748,7 @@ impl BithumbCore {
                     let mut __for_first_378: bool = true;
                     while { if !__for_first_378 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_378 = false; j.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
                     let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                    let mut ticker: Value = get_value(&data, &currencyId);
-                    let mut ticker: Value = get_value(&data, &currencyId);
+                    let mut ticker: Value = data.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                     let mut base: Value = self.safe_currency_code(currencyId, &[]);
                     let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
                     let mut market: Value = self.safe_market(&[symbol.clone()]);

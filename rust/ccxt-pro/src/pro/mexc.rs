@@ -2761,8 +2761,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         if (channel != Value::Null) && (in_op(&methods, &channel)) {
-            let mut method: Value = get_value(&methods, &channel);
-            let mut method: Value = get_value(&methods, &channel);
+            let mut method: Value = methods.as_map().and_then(|__m| channel.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }

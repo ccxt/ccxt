@@ -3297,7 +3297,7 @@ impl OkxCore {
             while { if !__for_first_558 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_558 = false; i.as_f64().unwrap_or(f64::NAN) < idsLength } {
             let mut arg: Value = self.extend(instParams.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("ordId".to_string(), get_value(&ids, &i));
+                    m.insert("ordId".to_string(), ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 m
             })]);
             append_to_array(&mut args, arg);
@@ -3351,7 +3351,7 @@ impl OkxCore {
                 m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("instType".to_string(), Value::Str("OPTION".into()));
-        m.insert("instFamily".to_string(), crate::value::get_value_k(&market, "id"));
+        m.insert("instFamily".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
     m
 }), &[params])]));
             m

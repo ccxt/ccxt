@@ -4631,7 +4631,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut chainsIndexedByIdRaw: Value = self.fetch_deposit_addresses_by_network(code.clone(), &[params.clone()]).await;
         let mut chainsIndexedById: Value = chainsIndexedByIdRaw;
         let mut selectedNetworkIdOrCode: Value = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById.clone());
-        return get_value(&chainsIndexedById, &selectedNetworkIdOrCode);
+        return chainsIndexedById.as_map().and_then(|__m| selectedNetworkIdOrCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -4845,7 +4845,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut networkId: Value = networkIds.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
                     if (networkCode != Value::Null) {
-                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number(get_value(&withdrawFixOnChains, &networkId), &[]));
+                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number(withdrawFixOnChains.as_map().and_then(|__m| networkId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[]));
                     }
                 }
                 }
@@ -4944,7 +4944,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), self.parse_number(get_value(&withdrawFixOnChains, &chainKey), &[]));
+        m.insert("fee".to_string(), self.parse_number(withdrawFixOnChains.as_map().and_then(|__m| chainKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));

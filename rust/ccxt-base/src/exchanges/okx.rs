@@ -8268,7 +8268,7 @@ impl OkxCore {
         }
         let mut codeNetwork: Value = self.network_id_to_code(&[code.clone(), code.clone()]);
         if (codeNetwork != Value::Null) && (in_op(&response, &codeNetwork)) {
-            return get_value(&response, &codeNetwork);
+            return response.as_map().and_then(|__m| codeNetwork.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }
         // if the network is not specified, return the first address
         let mut keys: Value = object_keys(&response);

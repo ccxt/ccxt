@@ -3313,7 +3313,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut depositAddressesRaw: Value = self.fetch_deposit_addresses_by_network(code, &[params.clone()]).await;
         let mut depositAddresses: Value = depositAddressesRaw;
         if (in_op(&depositAddresses, &network)) {
-            return get_value(&depositAddresses, &network);
+            return depositAddresses.as_map().and_then(|__m| network.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }
         let mut keys: Value = object_keys(&depositAddresses);
         return get_value(&depositAddresses, &keys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));

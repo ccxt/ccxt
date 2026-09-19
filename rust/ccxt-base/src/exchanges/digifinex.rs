@@ -1899,7 +1899,7 @@ impl DigifinexCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("date".to_string(), date.clone());
                 m
-            }), &[get_value(&tickers, &i)]);
+            }), &[tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             let mut ticker: Value = self.parse_ticker(rawTicker, &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -5615,7 +5615,7 @@ impl DigifinexCore {
 })));
                     add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into()), Value::from(vec![]));
                 }
-                let mut depositWithdrawInfo: Value = crate::value::get_value_k(&get_value(&depositWithdrawFees, &code), "info");
+                let mut depositWithdrawInfo: Value = crate::value::get_value_k(&depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "info");
                 append_to_array(&mut depositWithdrawInfo, entry.clone());
                 let mut networkId: Value = self.safe_string_k(entry.clone(), "chain", &[]);
                 let mut withdrawFee: Value = self.safe_value_k(entry.clone(), "min_withdraw_fee", &[]);

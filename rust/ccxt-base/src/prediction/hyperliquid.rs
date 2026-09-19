@@ -2173,7 +2173,7 @@ impl HyperliquidCore {
                 if !(in_op(&deduped, &oid)) {
                     add_element_to_object(&mut deduped, &oid, raw.clone());
                 }  else {
-                    let mut existingTs: Value = self.safe_integer_k(get_value(&deduped, &oid), "statusTimestamp", &[]);
+                    let mut existingTs: Value = self.safe_integer(deduped.as_map().and_then(|__m| oid.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]);
                     let mut currentTs: Value = self.safe_integer_k(raw.clone(), "statusTimestamp", &[]);
                     if (currentTs != Value::Null) && ((existingTs == Value::Null) || currentTs.as_f64().unwrap_or(f64::NAN) > existingTs.as_f64().unwrap_or(f64::NAN)) {
                         add_element_to_object(&mut deduped, &oid, raw.clone());
@@ -2694,8 +2694,7 @@ impl HyperliquidCore {
             let mut __for_first_1215: bool = true;
             while { if !__for_first_1215 { gi = (match (&(gi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1215 = false; gi.as_f64().unwrap_or(f64::NAN) < ((groupKeys.len() as i64) as f64) } {
             let mut key: Value = groupKeys.as_array().and_then(|__arr| match &gi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut groupMarkets: Value = get_value(&groupMap, &key);
-            let mut groupMarkets: Value = get_value(&groupMap, &key);
+            let mut groupMarkets: Value = groupMap.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut event: Value = self.parse_event(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("parentSymbol".to_string(), key);

@@ -1156,8 +1156,7 @@ impl CoinspotCore {
             let mut market: Value = self.safe_market(&[id.clone()]);
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                let mut ticker: Value = get_value(&prices, &id);
-                let mut ticker: Value = get_value(&prices, &id);
+                let mut ticker: Value = prices.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut result, &symbol, self.parse_ticker(ticker.clone(), &[market.clone()]));
             }
         }

@@ -1917,7 +1917,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut previousOrder: Value = self.safe_dict(previousOrders, id.clone(), &[]);
                 let mut newOrder: Value = parsed;
                 if (previousOrder != Value::Null) {
-                    let mut newRawOrder: Value = self.extend(crate::value::get_value_k(&previousOrder, "info"), &[crate::value::get_value_k(&newOrder, "info")]);
+                    let mut newRawOrder: Value = self.extend(previousOrder.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), &[newOrder.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)]);
                     newOrder = self.parse_ws_order(newRawOrder, &[]);
                 }
                 let mut length: Value = get_array_length(&stored);

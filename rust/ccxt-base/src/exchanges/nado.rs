@@ -1074,7 +1074,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), &[get_value(&cancelledOrders, &i)]);
+}), &[cancelledOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_2, &[market.clone()]));
         }
         }
@@ -1193,7 +1193,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), &[get_value(&cancelledOrders, &i)]);
+}), &[cancelledOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_3, &[market.clone()]));
         }
         }

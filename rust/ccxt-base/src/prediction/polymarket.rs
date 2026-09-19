@@ -1962,8 +1962,7 @@ impl PolymarketCore {
                 if (tokenId == Value::Null) || !(in_op(&outcomesByTokenId, &tokenId)) {
                     continue;
                 }
-                let mut outcomeObj: Value = get_value(&outcomesByTokenId, &tokenId);
-                let mut outcomeObj: Value = get_value(&outcomesByTokenId, &tokenId);
+                let mut outcomeObj: Value = outcomesByTokenId.as_map().and_then(|__m| tokenId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 let mut mid: Value = self.safe_string(midpoints.clone(), tokenId.clone(), &[]);
                 let mut tickerInput: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2252,8 +2251,7 @@ impl PolymarketCore {
             if !(in_op(&buckets, &bucketKey)) {
                 add_element_to_object(&mut buckets, &bucketKey, Value::from(vec![snappedMs, price.clone(), price.clone(), price.clone(), price.clone(), vol.clone()]));
             }  else {
-                let mut candle: Value = get_value(&buckets, &bucketKey);
-                let mut candle: Value = get_value(&buckets, &bucketKey);
+                let mut candle: Value = buckets.as_map().and_then(|__m| bucketKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 { let __be_tmp = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &price); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); }; // high
                 { let __be_tmp = crate::runtime::Math::min(&get_value(&candle, &Value::Int(3)), &price); add_element_to_object(&mut candle, &Value::Int(3), __be_tmp); }; // low
                 add_element_to_object(&mut candle, &Value::Int(4), price); // close (last tick wins)
@@ -3169,7 +3167,7 @@ impl PolymarketCore {
                 let mut __for_first_1400: bool = true;
                 while { if !__for_first_1400 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1400 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 // request echo first so the response's real orderID/status win on overlap
-                let mut enriched: Value = self.extend(get_value(&requests, &i), &[get_value(&response, &i)]);
+                let mut enriched: Value = self.extend(requests.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
                 let mut parsedItem: Value = self.parse_prediction_order(enriched, &[outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
                 add_element_to_object(&mut parsedItem, &Value::Str("info".into()), response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); // keep info the raw exchange response
                 append_to_array(&mut result, parsedItem);

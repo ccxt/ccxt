@@ -796,8 +796,7 @@ impl KalshiCore {
     m
 }));
                         }
-                        let mut eventEntry: Value = get_value(&eventsDict, &eventKey);
-                        let mut eventEntry: Value = get_value(&eventsDict, &eventKey);
+                        let mut eventEntry: Value = eventsDict.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
@@ -1696,8 +1695,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (marketTicker == Value::Null) || !(in_op(&outcomesByTicker, &marketTicker)) {
                     continue;
                 }
-                let mut grouped: Value = get_value(&outcomesByTicker, &marketTicker);
-                let mut grouped: Value = get_value(&outcomesByTicker, &marketTicker);
+                let mut grouped: Value = outcomesByTicker.as_map().and_then(|__m| marketTicker.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1229: bool = true;
