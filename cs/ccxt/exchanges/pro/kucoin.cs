@@ -710,7 +710,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleContractTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleContractTicker(WebSocketClient client, object message)
     {
         //
         // ticker (v1)
@@ -2687,7 +2687,7 @@ public partial class kucoin : ccxt.kucoin
         return suffix;
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleMyTrade(WebSocketClient client, object message)
     {
         //
         //     {
@@ -3720,7 +3720,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription);
     }
 
-    public virtual void handleSubject(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubject(WebSocketClient client, object message)
     {
         //
         //     {

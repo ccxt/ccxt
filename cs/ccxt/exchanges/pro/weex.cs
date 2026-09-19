@@ -1277,7 +1277,7 @@ public partial class weex : ccxt.weex
         return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, parameters, subscription);
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleMyTrades(WebSocketClient client, object message)
     {
         //
         // spot
@@ -1511,7 +1511,7 @@ public partial class weex : ccxt.weex
         return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, parameters, subscription);
     }
 
-    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrders(WebSocketClient client, object message)
     {
         //
         //     {
@@ -2109,7 +2109,7 @@ public partial class weex : ccxt.weex
         return this.parsePosition(position, market);
     }
 
-    public virtual Dictionary<string, object> getMarketFromClientAndMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> getMarketFromClientAndMessage(WebSocketClient client, object message)
     {
         string url = client.url;
         string marketType = "spot";
@@ -2136,12 +2136,12 @@ public partial class weex : ccxt.weex
         await client.send(response);
     }
 
-    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handlePing(WebSocketClient client, object message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     { "result": true, "id": 2 }
@@ -2166,7 +2166,7 @@ public partial class weex : ccxt.weex
         return message;
     }
 
-    public virtual bool handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {

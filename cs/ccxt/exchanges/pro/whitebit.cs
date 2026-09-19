@@ -1267,7 +1267,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message, object id)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message, object id)
     {
         // not every method stores its subscription
         // as an object so we can't do indeById here
@@ -1292,7 +1292,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handlePong(WebSocketClient client, object message)
     {
         client.lastPong = this.milliseconds();
         return message;

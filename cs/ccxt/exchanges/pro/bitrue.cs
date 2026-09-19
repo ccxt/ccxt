@@ -893,7 +893,7 @@ public partial class bitrue : ccxt.bitrue
         return this.safeString(statuses, status, status);
     }
 
-    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handlePing(WebSocketClient client, object message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }

@@ -1380,7 +1380,7 @@ public partial class pacifica : ccxt.pacifica
         return ((bool?)((object)(false)));
     }
 
-    public virtual void handleOrderBookUnsubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleOrderBookUnsubscription(WebSocketClient client, object subscription)
     {
         string? marketId = this.safeString2(subscription, "symbol", "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1394,7 +1394,7 @@ public partial class pacifica : ccxt.pacifica
         }
     }
 
-    public virtual void handleTradesUnsubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleTradesUnsubscription(WebSocketClient client, object subscription)
     {
         string? marketId = this.safeString2(subscription, "symbol", "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1408,7 +1408,7 @@ public partial class pacifica : ccxt.pacifica
         }
     }
 
-    public virtual void handleTickersUnsubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleTickersUnsubscription(WebSocketClient client, object subscription)
     {
         string subMessageHash = "tickers";
         string messageHash = ("unsubscribe:" + subMessageHash);
@@ -1420,7 +1420,7 @@ public partial class pacifica : ccxt.pacifica
         }
     }
 
-    public virtual void handleOHLCVUnsubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleOHLCVUnsubscription(WebSocketClient client, object subscription)
     {
         string? marketId = this.safeString2(subscription, "symbol", "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1443,7 +1443,7 @@ public partial class pacifica : ccxt.pacifica
         }
     }
 
-    public virtual void handleOrderUnsubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleOrderUnsubscription(WebSocketClient client, object subscription)
     {
         string subHash = "order";
         string unSubHash = ("unsubscribe:" + subHash);
@@ -1454,7 +1454,7 @@ public partial class pacifica : ccxt.pacifica
         this.cleanCache(topicStructure);
     }
 
-    public virtual void handleMyTradesUnsubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleMyTradesUnsubscription(WebSocketClient client, object subscription)
     {
         string subHash = "myTrades";
         string unSubHash = ("unsubscribe:" + subHash);
@@ -1608,7 +1608,7 @@ public partial class pacifica : ccxt.pacifica
         return ((Dictionary<string, object>)((object)(payload)));
     }
 
-    public virtual void handleWsPost(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleWsPost(WebSocketClient client, object message)
     {
         //
         // market order

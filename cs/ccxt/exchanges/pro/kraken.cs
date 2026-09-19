@@ -1757,7 +1757,7 @@ public partial class kraken : ccxt.kraken
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {

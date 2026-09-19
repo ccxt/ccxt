@@ -1202,7 +1202,7 @@ public partial class mexc : ccxt.mexc
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
+    public virtual void handleMyTrade(WebSocketClient client, object message, object subscription = null)
     {
         //
         //    {
@@ -1698,7 +1698,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleBalance(WebSocketClient client, object message)
     {
         //
         // spot
@@ -2245,13 +2245,13 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handlePong(WebSocketClient client, object message)
     {
         client.lastPong = this.milliseconds();
         return message;
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2280,7 +2280,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual bool handleProtobufMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleProtobufMessage(WebSocketClient client, object message)
     {
         // protobuf message decoded
         //  {

@@ -971,7 +971,7 @@ public partial class lbank : ccxt.lbank
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {

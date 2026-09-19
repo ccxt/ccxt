@@ -844,7 +844,7 @@ public partial class bitstamp : ccxt.bitstamp
         }, market);
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message)
     {
         string? channel = this.safeString(message, "channel");
         if ((channel == null))
@@ -857,7 +857,7 @@ public partial class bitstamp : ccxt.bitstamp
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -882,7 +882,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public virtual void handleUnsubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleUnsubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -950,7 +950,7 @@ public partial class bitstamp : ccxt.bitstamp
         return newCache;
     }
 
-    public virtual void handleSubject(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubject(WebSocketClient client, object message)
     {
         //
         //     {

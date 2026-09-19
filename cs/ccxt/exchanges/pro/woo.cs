@@ -350,7 +350,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         IDictionary<string, object> data = this.safeDict(message, "data");
         this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "asks", new List<object>() {}));
@@ -1385,7 +1385,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleMyTrade(WebSocketClient client, object message)
     {
         //
         //    {

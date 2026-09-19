@@ -459,7 +459,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleTrade(WebSocketClient client, object message)
     {
         //
         //     {
@@ -501,7 +501,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return message;
     }
 
-    public virtual object handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleMyTrade(WebSocketClient client, object message)
     {
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))

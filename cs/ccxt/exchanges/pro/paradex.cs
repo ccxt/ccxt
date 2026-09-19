@@ -72,7 +72,7 @@ public partial class paradex : ccxt.paradex
         return await (future as Exchange.Future);
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
     {
         //
         //     {

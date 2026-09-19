@@ -759,7 +759,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         //
         // tickers
@@ -1019,7 +1019,7 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true));
     }
 
-    public virtual void handleMyLiquidation(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleMyLiquidation(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1573,7 +1573,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook, object messageHash, object market = null)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook, object messageHash, object market = null)
     {
         //
         //     {

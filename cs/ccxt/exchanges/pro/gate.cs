@@ -591,7 +591,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual void handleNewSpotOrderBook(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleNewSpotOrderBook(WebSocketClient client, object message)
     {
         //
         //   {
@@ -2119,7 +2119,7 @@ public partial class gate : ccxt.gate
         });
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2226,7 +2226,7 @@ public partial class gate : ccxt.gate
         this.balance = new Dictionary<string, object>() {};
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
         string channel = ((string)this.safeString(message, "channel"));
         Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -2256,7 +2256,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual void handleUnSubscribe(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleUnSubscribe(WebSocketClient client, object message)
     {
         //
         // {
@@ -2612,7 +2612,7 @@ public partial class gate : ccxt.gate
         return future;
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
     {
         string messageHash = "authenticated";
         var future = this.safeValue((client as WebSocketClient).futures, messageHash);

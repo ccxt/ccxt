@@ -407,7 +407,7 @@ public partial class derive : ccxt.derive
         (client as WebSocketClient).resolve(error, ("unwatch" + (topic)));
     }
 
-    public virtual object handleUnSubscribe(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleUnSubscribe(WebSocketClient client, object message)
     {
         //
         // {
@@ -767,7 +767,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {
@@ -775,7 +775,7 @@ public partial class derive : ccxt.derive
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if (!(message.ContainsKey("error")))
+        if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
         {
             return ((bool?)((object)(false)));
         }
@@ -868,7 +868,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual void handleAuth(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuth(WebSocketClient client, object message)
     {
         //
         // {

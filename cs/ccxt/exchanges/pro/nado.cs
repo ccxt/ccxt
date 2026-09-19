@@ -1937,7 +1937,7 @@ public partial class nado : ccxt.nado
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
-    public virtual void handleExecuteResponse(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleExecuteResponse(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1964,7 +1964,7 @@ public partial class nado : ccxt.nado
         (client as WebSocketClient).resolve(message, messageHash);
     }
 
-    public virtual void handleSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubscription(WebSocketClient client, object message)
     {
         string? id = this.safeString(message, "id");
         IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, ("subscription:" + id));
@@ -1976,7 +1976,7 @@ public partial class nado : ccxt.nado
         }
     }
 
-    public virtual void handleAuthentication(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuthentication(WebSocketClient client, object message)
     {
         string? id = this.safeString(message, "id");
         string? messageHash = this.safeString(((WebSocketClient)client).subscriptions, ("authentication:" + id));
@@ -1988,7 +1988,7 @@ public partial class nado : ccxt.nado
         }
     }
 
-    public virtual void handleUnsubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleUnsubscription(WebSocketClient client, object message)
     {
         string? id = this.safeString(message, "id");
         IDictionary<string, object> unsubscription = this.safeDict(((WebSocketClient)client).subscriptions, ("unsubscription:" + id));
@@ -2111,7 +2111,7 @@ public partial class nado : ccxt.nado
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handlePong(WebSocketClient client, object message)
     {
         //
         //     {

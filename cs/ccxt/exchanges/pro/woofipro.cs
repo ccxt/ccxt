@@ -1038,7 +1038,7 @@ public partial class woofipro : ccxt.woofipro
         }
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleMyTrade(WebSocketClient client, object message)
     {
         //
         // {

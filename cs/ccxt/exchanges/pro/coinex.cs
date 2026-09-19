@@ -1576,7 +1576,7 @@ public partial class coinex : ccxt.coinex
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
         object id = this.safeInteger(message, "id");
         IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, id);

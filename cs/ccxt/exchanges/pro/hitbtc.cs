@@ -1017,7 +1017,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public virtual void handleOrderHelper(WebSocketClient client, Dictionary<string, object> message, object order)
+    public virtual void handleOrderHelper(WebSocketClient client, object message, object order)
     {
         object orders = this.orders;
         if ((orders == null))
@@ -1423,7 +1423,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public virtual object handleOrderRequest(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleOrderRequest(WebSocketClient client, object message)
     {
         //
         // createOrderWs, cancelOrderWs
@@ -1561,7 +1561,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public virtual bool handleError(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleError(WebSocketClient client, object message)
     {
         //
         //    {

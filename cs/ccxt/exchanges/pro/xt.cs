@@ -1733,7 +1733,7 @@ public partial class xt : ccxt.xt
         return "ping";
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1765,7 +1765,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});

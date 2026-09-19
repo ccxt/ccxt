@@ -355,7 +355,7 @@ public partial class poloniex : ccxt.poloniex
         return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("cancelAllOrders", parameters));
     }
 
-    public virtual void handleOrderRequest(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderRequest(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1424,7 +1424,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1490,7 +1490,7 @@ public partial class poloniex : ccxt.poloniex
         return ((bool?)((object)(false)));
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleAuthenticate(WebSocketClient client, object message)
     {
         //
         //    {

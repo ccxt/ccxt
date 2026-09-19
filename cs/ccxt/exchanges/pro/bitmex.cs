@@ -753,7 +753,7 @@ public partial class bitmex : ccxt.bitmex
         return await (future as Exchange.Future);
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
     {
         bool? authenticated = this.safeBool(message, "success", false);
         string messageHash = "authenticated";

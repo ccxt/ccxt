@@ -462,7 +462,7 @@ public partial class bittrade : ccxt.bittrade
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         //
         //     {
@@ -562,7 +562,7 @@ public partial class bittrade : ccxt.bittrade
         this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -610,7 +610,7 @@ public partial class bittrade : ccxt.bittrade
         return message;
     }
 
-    public virtual void handleSubject(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubject(WebSocketClient client, object message)
     {
         //
         //     {
@@ -662,7 +662,7 @@ public partial class bittrade : ccxt.bittrade
         });
     }
 
-    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handlePing(WebSocketClient client, object message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }

@@ -1870,7 +1870,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleAuthenticate(WebSocketClient client, object message)
     {
         /**
          * @ignore

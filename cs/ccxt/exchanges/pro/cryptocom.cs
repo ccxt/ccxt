@@ -795,7 +795,7 @@ public partial class cryptocom : ccxt.cryptocom
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -967,7 +967,7 @@ public partial class cryptocom : ccxt.cryptocom
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
-    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
+    public virtual void handleOrders(WebSocketClient client, object message, object subscription = null)
     {
         //
         //    {

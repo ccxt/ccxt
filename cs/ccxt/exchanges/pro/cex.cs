@@ -246,7 +246,7 @@ public partial class cex : ccxt.cex
         this.handleTradesInner(client as WebSocketClient, message);
     }
 
-    public virtual void handleTradesInner(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTradesInner(WebSocketClient client, object message)
     {
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? symbol = this.safeString((this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
@@ -727,7 +727,7 @@ public partial class cex : ccxt.cex
         return this.safeTrade(parsedTrade, market);
     }
 
-    public virtual void handleOrderUpdate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderUpdate(WebSocketClient client, object message)
     {
         //
         //  partialExecution

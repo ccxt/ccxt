@@ -741,7 +741,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderBookMessage(WebSocketClient client, object message)
     {
         // spot markets
         //
@@ -1817,7 +1817,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbols, since, limit, false));
     }
 
-    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handlePositions(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2105,7 +2105,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams));
     }
 
-    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleBalance(WebSocketClient client, object message)
     {
         // spot
         //
@@ -2381,7 +2381,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -2422,7 +2422,7 @@ public partial class htx : ccxt.htx
                 }
             }
         }
-        if (message.ContainsKey("unsubbed"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("unsubbed")))
         {
             this.handleUnSubscription(client as WebSocketClient, subscription);
         }
@@ -2456,7 +2456,7 @@ public partial class htx : ccxt.htx
         return message;
     }
 
-    public virtual void handleSubject(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubject(WebSocketClient client, object message)
     {
         // spot
         //     {
@@ -2641,7 +2641,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handlePing(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handlePing(WebSocketClient client, object message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }

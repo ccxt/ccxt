@@ -141,7 +141,7 @@ public partial class lighter : ccxt.lighter
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         IDictionary<string, object> data = this.safeDict(message, "order_book", new Dictionary<string, object>() {});
         this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "asks", new List<object>() {}));
@@ -992,7 +992,7 @@ public partial class lighter : ccxt.lighter
         });
     }
 
-    public virtual void handleLiquidation(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleLiquidation(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1426,7 +1426,7 @@ public partial class lighter : ccxt.lighter
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {rawMessage}));
     }
 
-    public virtual void handleWsSendtxApi(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleWsSendtxApi(WebSocketClient client, object message)
     {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
@@ -1613,7 +1613,7 @@ public partial class lighter : ccxt.lighter
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1624,7 +1624,7 @@ public partial class lighter : ccxt.lighter
         return message;
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleUnSubscription(WebSocketClient client, object message)
     {
         //
         //     {

@@ -92,7 +92,7 @@ public partial class deepcoin : ccxt.deepcoin
         return "ping";
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handlePong(WebSocketClient client, object message)
     {
         client.lastPong = this.milliseconds();
         return message;
@@ -459,7 +459,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.unWatchPublic(market, messageHash, "2", parameters, subscription);
     }
 
-    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
         //     {
@@ -861,7 +861,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message)
     {
         List<object> entries = this.safeList(message, "r", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(entries, 0, new Dictionary<string, object>() {});
@@ -905,7 +905,7 @@ public partial class deepcoin : ccxt.deepcoin
         (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
+    public virtual void handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         //     {
         //         "a": "PMO",
@@ -1237,7 +1237,7 @@ public partial class deepcoin : ccxt.deepcoin
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
     }
 
-    public virtual void handlePosition(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handlePosition(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1402,7 +1402,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1437,7 +1437,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, Dictionary<string, object> subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
     {
         string? subHash = this.safeString(subscription, "subHash");
         string? unsubHash = this.safeString(subscription, "unsubHash");
@@ -1445,7 +1445,7 @@ public partial class deepcoin : ccxt.deepcoin
         this.cleanCache(subscription);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {

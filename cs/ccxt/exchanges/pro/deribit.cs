@@ -1161,7 +1161,7 @@ public partial class deribit : ccxt.deribit
         }
     }
 
-    public virtual object handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleAuthenticationMessage(WebSocketClient client, object message)
     {
         //
         //     {
