@@ -5313,7 +5313,7 @@ public partial class binance : Exchange
         bool contract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractType")));
         Int64? expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
         string? settleId = this.safeString(market, "marginAsset");
-        if (((contractType == "PERPETUAL")) || (isEqual(expiry, 4133404800000)))
+        if (((contractType == "PERPETUAL")) || ((expiry == 4133404800000)))
         {
             expiry = null;
             swap = true;
@@ -5379,7 +5379,7 @@ public partial class binance : Exchange
                 { "cross", hasCrossMargin },
                 { "isolated", hasIsolatedMargin },
             };
-        } else if ((isEqual(linear, true)) || (isEqual(inverse, true)))
+        } else if (((linear == true)) || ((inverse == true)))
         {
             marginModes = new Dictionary<string, object>() {
                 { "cross", true },
@@ -13475,7 +13475,7 @@ public partial class binance : Exchange
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");
         double? unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Int64? timestamp = this.safeInteger(position, "updateTime");
-        if (isEqual(timestamp, 0))
+        if ((timestamp == 0))
         {
             timestamp = null;
         }
@@ -13794,7 +13794,7 @@ public partial class binance : Exchange
         double? collateral = this.parseNumber(collateralString);
         double? markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Int64? timestamp = this.safeInteger(position, "updateTime");
-        if (isEqual(timestamp, 0))
+        if ((timestamp == 0))
         {
             timestamp = null;
         }

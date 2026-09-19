@@ -3101,7 +3101,7 @@ public partial class binance : ccxt.binance
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            IDictionary<string, object> tickerMarketById = ((bool) (isEqual(numTickerMarkets, 1))) ? this.safeDict(tickerMarketsByIdList, 0) : null;
+            IDictionary<string, object> tickerMarketById = ((bool) ((numTickerMarkets == 1))) ? this.safeDict(tickerMarketsByIdList, 0) : null;
             bool isSpot = this.isSpotUrl(client);
             string tickerFallbackType = ((bool) isSpot) ? "spot" : "contract";
             object tickerMarketType = ((bool) ((tickerMarketById != null))) ? getValue(tickerMarketById, "type") : tickerFallbackType;

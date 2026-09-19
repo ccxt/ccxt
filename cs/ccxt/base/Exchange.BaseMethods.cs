@@ -3970,7 +3970,7 @@ public partial class BaseExchange
         {
             symbolsLength = getArrayLength(symbols);
         }
-        bool noSymbols = ((symbols == null)) || (isEqual(symbolsLength, 0));
+        bool noSymbols = ((symbols == null)) || ((symbolsLength == 0));
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < getArrayLength(response); i++)
