@@ -1870,7 +1870,7 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 	}
 	return this.SafeBalance(result)
 }
-func (this *Tokocrypto) ParseOrderStatus(status any) *string {
+func (this *Tokocrypto) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"-2":               "open",
 		"0":                "open",

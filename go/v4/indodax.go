@@ -929,7 +929,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 	return nil
 }
-func (this *Indodax) ParseOrderStatus(status any) *string {
+func (this *Indodax) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"open":      "open",
 		"filled":    "closed",
@@ -1745,7 +1745,7 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"info":     transaction,
 	}
 }
-func (this *Indodax) ParseTransactionStatus(status any) *string {
+func (this *Indodax) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"success": "ok",
 	}

@@ -2116,7 +2116,7 @@ func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) any
 		"fee":         fee,
 	}
 }
-func (this *Backpack) ParseTransactionStatus(status any) *string {
+func (this *Backpack) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"cancelled":            "cancelled",
 		"confirmed":            "ok",
@@ -2760,7 +2760,7 @@ func (this *Backpack) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Backpack) ParseOrderStatus(status any) *string {
+func (this *Backpack) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"New":             "open",
 		"Filled":          "closed",
@@ -2772,7 +2772,7 @@ func (this *Backpack) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Backpack) ParseOrderSide(side any) *string {
+func (this *Backpack) ParseOrderSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"Bid": "buy",
 		"Ask": "sell",

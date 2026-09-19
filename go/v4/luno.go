@@ -892,7 +892,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "volume")
 	return nil
 }
-func (this *Luno) ParseOrderStatus(status any) *string {
+func (this *Luno) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING": "open",
 	}

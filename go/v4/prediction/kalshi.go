@@ -2647,7 +2647,7 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
  * @param {string} status the raw kalshi order status
  * @returns {string} the unified order status
  */
-func (this *Kalshi) ParseOrderStatus(status any) *string {
+func (this *Kalshi) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"resting":  "open",
 		"executed": "closed",

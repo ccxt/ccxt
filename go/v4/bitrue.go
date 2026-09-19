@@ -2089,7 +2089,7 @@ func (this *Bitrue) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
 }
-func (this *Bitrue) ParseOrderStatus(status any) *string {
+func (this *Bitrue) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"INIT":             "open",
 		"PENDING_CREATE":   "open",

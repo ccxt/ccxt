@@ -1014,7 +1014,7 @@ func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Bydfi) ParseTradeType(typeVar any) *string {
+func (this *Bydfi) ParseTradeType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"1": "limit",
 		"2": "market",
@@ -2413,7 +2413,7 @@ func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) any {
 		"average":   this.OmitZero(this.SafeString(order, "avgPrice")),
 	}, market)
 }
-func (this *Bydfi) ParseOrderType(typeVar any) *string {
+func (this *Bydfi) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":                "limit",
 		"MARKET":               "market",
@@ -2425,7 +2425,7 @@ func (this *Bydfi) ParseOrderType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bydfi) ParseOrderTimeInForce(timeInForce any) *string {
+func (this *Bydfi) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GTC":           "GTC",
 		"FOK":           "FOK",
@@ -2435,7 +2435,7 @@ func (this *Bydfi) ParseOrderTimeInForce(timeInForce any) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Bydfi) ParseOrderStatus(status any) *string {
+func (this *Bydfi) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                   "open",
 		"PARTIALLY_FILLED":      "open",
@@ -2784,7 +2784,7 @@ func (this *Bydfi) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Bydfi) ParsePositionSide(side any) *string {
+func (this *Bydfi) ParsePositionSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"BUY":  "long",
 		"SELL": "short",
@@ -3794,7 +3794,7 @@ func (this *Bydfi) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal":    false,
 	}
 }
-func (this *Bydfi) ParseTransactionStatus(status any) *string {
+func (this *Bydfi) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"success": "ok",
 		"wait":    "pending",

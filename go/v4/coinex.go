@@ -2557,7 +2557,7 @@ func (this *Coinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 }
-func (this *Coinex) ParseOrderStatus(status any) *string {
+func (this *Coinex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"rejected":  "rejected",
 		"open":      "open",
@@ -5219,7 +5219,7 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 	ch <- this.ParseTransaction(transaction, currency)
 	return nil
 }
-func (this *Coinex) ParseTransactionStatus(status any) *string {
+func (this *Coinex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"audit":          "pending",
 		"pass":           "pending",
@@ -5519,7 +5519,7 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 	})
 	return nil
 }
-func (this *Coinex) ParseTransferStatus(status any) *string {
+func (this *Coinex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0":        "ok",
 		"SUCCESS":  "ok",

@@ -516,7 +516,7 @@ func (this *Btcmarkets) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	ch <- retRes37015
 	return nil
 }
-func (this *Btcmarkets) ParseTransactionStatus(status any) *string {
+func (this *Btcmarkets) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Accepted":              "pending",
 		"Pending Authorization": "pending",
@@ -1470,7 +1470,7 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 		"cost":     ParseFloat(feeCost),
 	}
 }
-func (this *Btcmarkets) ParseOrderStatus(status any) *string {
+func (this *Btcmarkets) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Accepted":            "open",
 		"Placed":              "open",

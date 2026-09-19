@@ -1249,7 +1249,7 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		"trades":             []any{},
 	}, outcomeObj)
 }
-func (this *Binance) ParseOrderStatus(status any) any {
+func (this *Binance) ParseOrderStatus(status *string) any {
 	var statuses map[string]any = map[string]any{
 		"OPENING": "open",
 		"FILLED":  "closed",

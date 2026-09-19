@@ -2359,7 +2359,7 @@ func (this *Foxbit) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Foxbit) ParseOrderStatus(status any) *string {
+func (this *Foxbit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PARTIALLY_CANCELED": "open",
 		"ACTIVE":             "open",
@@ -2445,7 +2445,7 @@ func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 		"info":     depositAddress,
 	}
 }
-func (this *Foxbit) ParseTransactionStatus(status any) *string {
+func (this *Foxbit) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUBMITTING": "pending",
 		"SUBMITTED":  "pending",

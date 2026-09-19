@@ -1499,7 +1499,7 @@ func (this *Onetrading) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Onetrading) ParseOrderStatus(status any) *string {
+func (this *Onetrading) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"OPEN":                          "open",
 		"BOOKED":                        "open",
@@ -1622,7 +1622,7 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             rawTrades,
 	}, market)
 }
-func (this *Onetrading) ParseTimeInForce(timeInForce any) *string {
+func (this *Onetrading) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GOOD_TILL_CANCELLED":    "GTC",
 		"GOOD_TILL_TIME":         "GTT",

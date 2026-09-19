@@ -1211,7 +1211,7 @@ func (this *Deepcoin) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Deepcoin) ParseTakerOrMaker(execType any) any {
+func (this *Deepcoin) ParseTakerOrMaker(execType *string) any {
 	var types map[string]any = map[string]any{
 		"T": "taker",
 		"M": "maker",
@@ -1488,7 +1488,7 @@ func (this *Deepcoin) ParseTransaction(transaction any, optionalArgs ...any) any
 		},
 	}
 }
-func (this *Deepcoin) ParseTransactionStatus(status any) *string {
+func (this *Deepcoin) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"confirming": "pending",
 		"succeed":    "ok",
@@ -1911,8 +1911,8 @@ func (this *Deepcoin) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Deepcoin) ParseTransferStatus(status any) string {
-	if IsEqual(status, "0") {
+func (this *Deepcoin) ParseTransferStatus(status *string) string {
+	if status != nil && *status == "0" {
 		return "ok"
 	}
 	return "failed"
@@ -3254,7 +3254,7 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Deepcoin) ParseOrderStatus(status any) *string {
+func (this *Deepcoin) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"live":             "open",
 		"filled":           "closed",
@@ -3263,7 +3263,7 @@ func (this *Deepcoin) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Deepcoin) ParseOrderType(typeVar any) *string {
+func (this *Deepcoin) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"limit":     "limit",
 		"market":    "market",
@@ -3273,7 +3273,7 @@ func (this *Deepcoin) ParseOrderType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Deepcoin) ParseOrderTimeInForce(typeVar any) *string {
+func (this *Deepcoin) ParseOrderTimeInForce(typeVar *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"post_only": "PO",
 		"ioc":       "IOC",

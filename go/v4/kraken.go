@@ -2308,7 +2308,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	AddElementToObject(GetValue(this.Options, "delistedMarketsById"), id, market)
 	return market
 }
-func (this *Kraken) ParseOrderStatus(status any) *string {
+func (this *Kraken) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":          "open",
 		"open":             "open",
@@ -3658,7 +3658,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
 }
-func (this *Kraken) ParseTransactionStatus(status any) *string {
+func (this *Kraken) ParseTransactionStatus(status *string) *string {
 	// IFEX transaction states
 	var statuses map[string]any = map[string]any{
 		"Initial": "pending",

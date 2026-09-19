@@ -2386,7 +2386,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(parsedOrder, market)
 	return nil
 }
-func (this *Bithumb) ParseOrderStatus(status any) *string {
+func (this *Bithumb) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Pending":   "open",
 		"Completed": "closed",
@@ -3299,7 +3299,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"info": transaction,
 	}
 }
-func (this *Bithumb) ParseTransactionStatusByType(status any, optionalArgs ...any) any {
+func (this *Bithumb) ParseTransactionStatusByType(status *string, optionalArgs ...any) any {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	if typeVar == nil {

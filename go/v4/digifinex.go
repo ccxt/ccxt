@@ -2674,7 +2674,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	ch <- this.ParseCancelOrders(response)
 	return nil
 }
-func (this *Digifinex) ParseOrderStatus(status any) *string {
+func (this *Digifinex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "open",
 		"1": "open",
@@ -3770,7 +3770,7 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes295815
 	return nil
 }
-func (this *Digifinex) ParseTransactionStatus(status any) *string {
+func (this *Digifinex) ParseTransactionStatus(status *string) *string {
 	// deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
 	// withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
 	var statuses map[string]any = map[string]any{
@@ -3850,7 +3850,7 @@ func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) an
 		"fee":         fee,
 	}
 }
-func (this *Digifinex) ParseTransferStatus(status any) *string {
+func (this *Digifinex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "ok",
 	}

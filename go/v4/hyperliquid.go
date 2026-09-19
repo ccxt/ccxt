@@ -4524,7 +4524,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Hyperliquid) ParseOrderStatus(status any) any {
+func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 	if status == nil {
 		return nil
 	}

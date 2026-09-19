@@ -5772,7 +5772,7 @@ func (this *Gate) withdrawBody(ch chan any, code any, amount any, address any, o
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Gate) ParseTransactionStatus(status any) *string {
+func (this *Gate) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PEND":      "pending",
 		"REQUEST":   "pending",
@@ -6636,7 +6636,7 @@ func (this *Gate) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Gate) ParseOrderStatus(status any) *string {
+func (this *Gate) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"open":       "open",
 		"_new":       "open",

@@ -1089,7 +1089,7 @@ func (this *Mudrex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Mudrex) ParseOrderStatus(status any) *string {
+func (this *Mudrex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"open":             "open",
 		"created":          "open",

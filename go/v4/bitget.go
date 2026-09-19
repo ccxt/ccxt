@@ -5215,14 +5215,14 @@ func (this *Bitget) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"fee":         fee,
 	}
 }
-func (this *Bitget) ParseTransactionType(typeVar any) *string {
+func (this *Bitget) ParseTransactionType(typeVar *string) *string {
 	// the wire says withdraw, and a unified transaction says withdrawal
 	var types map[string]any = map[string]any{
 		"withdraw": "withdrawal",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitget) ParseTransactionStatus(status any) *string {
+func (this *Bitget) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"success":             "ok",
 		"Pending":             "pending",
@@ -7268,7 +7268,7 @@ func (this *Bitget) ParseBalance(balance any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Bitget) ParseOrderStatus(status any) *string {
+func (this *Bitget) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":              "open",
 		"init":             "open",
@@ -13073,7 +13073,7 @@ func (this *Bitget) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Bitget) ParseTransferStatus(status any) *string {
+func (this *Bitget) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"successful": "ok",
 	}

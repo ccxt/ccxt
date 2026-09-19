@@ -1777,7 +1777,7 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan any, types any, code any
 	ch <- this.ParseTransactions(response, currency, since, limit, params)
 	return nil
 }
-func (this *Hitbtc) ParseTransactionStatus(status any) *string {
+func (this *Hitbtc) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CREATED":     "pending",
 		"PENDING":     "pending",
@@ -3178,7 +3178,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 	}
 	return []any{request, params}
 }
-func (this *Hitbtc) ParseOrderStatus(status any) *string {
+func (this *Hitbtc) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":             "open",
 		"suspended":       "open",

@@ -1466,7 +1466,7 @@ func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"info":        result,
 	}
 }
-func (this *Bitfinex) ParseTransferStatus(status any) *string {
+func (this *Bitfinex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS": "ok",
 		"ERROR":   "failed",
@@ -2092,7 +2092,7 @@ func (this *Bitfinex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
 }
-func (this *Bitfinex) ParseOrderStatus(status any) *string {
+func (this *Bitfinex) ParseOrderStatus(status *string) *string {
 	if status == nil {
 		return nil
 	}
@@ -3244,7 +3244,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	}
 	return nil
 }
-func (this *Bitfinex) ParseTransactionStatus(status any) *string {
+func (this *Bitfinex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS":              "ok",
 		"COMPLETED":            "ok",
@@ -3955,20 +3955,65 @@ func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, meth
 	}
 	return response
 }
-func (this *Bitfinex) ParseLedgerEntryType(typeVar any) any {
+func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 	if typeVar == nil {
 		return nil
-	} else if (GetIndexOf(typeVar, "fee") >= 0) || (GetIndexOf(typeVar, "charged") >= 0) {
+	} else if (func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "fee")
+	}() >= 0) || (func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "charged")
+	}() >= 0) {
 		return "fee"
-	} else if GetIndexOf(typeVar, "rebate") >= 0 {
+	} else if func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "rebate")
+	}() >= 0 {
 		return "rebate"
-	} else if (GetIndexOf(typeVar, "deposit") >= 0) || (GetIndexOf(typeVar, "withdrawal") >= 0) {
+	} else if (func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "deposit")
+	}() >= 0) || (func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "withdrawal")
+	}() >= 0) {
 		return "transaction"
-	} else if GetIndexOf(typeVar, "transfer") >= 0 {
+	} else if func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "transfer")
+	}() >= 0 {
 		return "transfer"
-	} else if GetIndexOf(typeVar, "payment") >= 0 {
+	} else if func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "payment")
+	}() >= 0 {
 		return "payout"
-	} else if (GetIndexOf(typeVar, "exchange") >= 0) || (GetIndexOf(typeVar, "position") >= 0) {
+	} else if (func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "exchange")
+	}() >= 0) || (func() int {
+		if typeVar == nil {
+			return -1
+		}
+		return strings.Index(*typeVar, "position")
+	}() >= 0) {
 		return "trade"
 	} else {
 		return typeVar

@@ -2575,7 +2575,7 @@ func (this *Woo) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes210315
 	return nil
 }
-func (this *Woo) ParseTimeInForce(timeInForce any) *string {
+func (this *Woo) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2750,7 +2750,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Woo) ParseOrderStatus(status any) *string {
+func (this *Woo) ParseOrderStatus(status *string) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
@@ -3941,7 +3941,7 @@ func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 	}
 }
-func (this *Woo) ParseTransactionStatus(status any) *string {
+func (this *Woo) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",

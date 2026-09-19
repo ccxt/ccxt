@@ -2142,7 +2142,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	}, market)
 	return nil
 }
-func (this *Lbank) ParseOrderStatus(status any) *string {
+func (this *Lbank) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"-1": "canceled",
 		"0":  "open",
@@ -3059,7 +3059,7 @@ func (this *Lbank) withdrawBody(ch chan any, code any, amount any, address any, 
 	}
 	return nil
 }
-func (this *Lbank) ParseTransactionStatus(status any, typeVar any) *string {
+func (this *Lbank) ParseTransactionStatus(status *string, typeVar any) *string {
 	var statuses map[string]any = map[string]any{
 		"deposit": map[string]any{
 			"1": "pending",

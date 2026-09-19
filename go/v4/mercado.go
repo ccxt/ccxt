@@ -845,7 +845,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	ch <- this.ParseOrder(order, market)
 	return nil
 }
-func (this *Mercado) ParseOrderStatus(status any) *string {
+func (this *Mercado) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"2": "open",
 		"3": "canceled",

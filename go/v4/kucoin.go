@@ -8405,7 +8405,7 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Kucoin) ParseOrderTimeInForce(timeInForce any) *string {
+func (this *Kucoin) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GTC": "GTC",
 		"IOC": "IOC",
@@ -8417,7 +8417,7 @@ func (this *Kucoin) ParseOrderTimeInForce(timeInForce any) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Kucoin) ParseOrderStatus(status any) *string {
+func (this *Kucoin) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "open",
 		"1": "open",
@@ -9639,7 +9639,7 @@ func (this *Kucoin) withdrawBody(ch chan any, code any, amount any, address any,
 	ch <- this.ParseTransaction(data, currency)
 	return nil
 }
-func (this *Kucoin) ParseTransactionStatus(status any) *string {
+func (this *Kucoin) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS":           "ok",
 		"PROCESSING":        "pending",
@@ -11071,7 +11071,7 @@ func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"info":        transfer,
 	}
 }
-func (this *Kucoin) ParseTransferStatus(status any) *string {
+func (this *Kucoin) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
 	}

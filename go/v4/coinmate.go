@@ -887,7 +887,7 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	ch <- this.ParseTransactions(items, nil, since, limit)
 	return nil
 }
-func (this *Coinmate) ParseTransactionStatus(status any) *string {
+func (this *Coinmate) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"COMPLETED": "ok",
 		"WAITING":   "pending",
@@ -1421,7 +1421,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Coinmate) ParseOrderStatus(status any) *string {
+func (this *Coinmate) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"FILLED":           "closed",
 		"CANCELLED":        "canceled",
@@ -1430,7 +1430,7 @@ func (this *Coinmate) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinmate) ParseOrderType(typeVar any) *string {
+func (this *Coinmate) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":  "limit",
 		"MARKET": "market",

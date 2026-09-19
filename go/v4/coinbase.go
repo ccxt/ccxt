@@ -1390,7 +1390,7 @@ func (this *Coinbase) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	ch <- this.FilterByArray(results, "type", []any{"deposit", "withdrawal"}, false)
 	return nil
 }
-func (this *Coinbase) ParseTransactionStatus(status any) *string {
+func (this *Coinbase) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"created":   "pending",
 		"completed": "ok",
@@ -4233,7 +4233,7 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	}, market)
 }
-func (this *Coinbase) ParseOrderStatus(status any) *string {
+func (this *Coinbase) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"OPEN":                 "open",
 		"FILLED":               "closed",
@@ -4244,8 +4244,8 @@ func (this *Coinbase) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinbase) ParseOrderType(typeVar any) *string {
-	if IsEqual(typeVar, "UNKNOWN_ORDER_TYPE") {
+func (this *Coinbase) ParseOrderType(typeVar *string) *string {
+	if typeVar != nil && *typeVar == "UNKNOWN_ORDER_TYPE" {
 		return nil
 	}
 	var types map[string]any = map[string]any{
@@ -4256,7 +4256,7 @@ func (this *Coinbase) ParseOrderType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Coinbase) ParseTimeInForce(timeInForce any) *string {
+func (this *Coinbase) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GOOD_UNTIL_CANCELLED":  "GTC",
 		"GOOD_UNTIL_DATE_TIME":  "GTD",

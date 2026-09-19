@@ -797,7 +797,7 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Btcbox) ParseOrderStatus(status any) *string {
+func (this *Btcbox) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"part":      "open",
 		"all":       "closed",

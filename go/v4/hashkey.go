@@ -4211,7 +4211,7 @@ func (this *Hashkey) ParseOrderSideAndReduceOnly(unparsed any) any {
 	}
 	return []any{side, reduceOnly}
 }
-func (this *Hashkey) ParseOrderStatus(status any) *string {
+func (this *Hashkey) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"PARTIALLY_FILLED":   "open",

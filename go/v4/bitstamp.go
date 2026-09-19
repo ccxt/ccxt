@@ -2641,7 +2641,7 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseOrders(canceled)
 	return nil
 }
-func (this *Bitstamp) ParseOrderStatus(status any) *string {
+func (this *Bitstamp) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"In Queue":       "open",
 		"Open":           "open",
@@ -3174,7 +3174,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 		"fee":         fee,
 	}
 }
-func (this *Bitstamp) ParseTransactionStatus(status any) *string {
+func (this *Bitstamp) ParseTransactionStatus(status *string) *string {
 	//
 	//   withdrawals:
 	//   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -3812,7 +3812,7 @@ func (this *Bitstamp) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Bitstamp) ParseTransferStatus(status any) *string {
+func (this *Bitstamp) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"ok":    "ok",
 		"error": "failed",

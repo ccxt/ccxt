@@ -1051,7 +1051,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {string} status the exchange-specific order status
  * @returns {string|undefined} the unified order status
  */
-func (this *Revolutx) ParseOrderStatus(status any) *string {
+func (this *Revolutx) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending_new":      "open",
 		"new":              "open",

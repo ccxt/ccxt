@@ -1506,7 +1506,7 @@ func (this *Cex) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...any) 
 	ch <- GetValue(result, 0)
 	return nil
 }
-func (this *Cex) ParseOrderStatus(status any) *string {
+func (this *Cex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING_NEW":      "open",
 		"NEW":              "open",
@@ -2060,7 +2060,7 @@ func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal": nil,
 	}
 }
-func (this *Cex) ParseTransactionStatus(status any) *string {
+func (this *Cex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"rejected": "rejected",
 		"pending":  "pending",

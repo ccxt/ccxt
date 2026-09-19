@@ -2540,7 +2540,7 @@ func (this *Gemini) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"fee":         fee,
 	}
 }
-func (this *Gemini) ParseTransactionStatus(status any) *string {
+func (this *Gemini) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Advanced": "ok",
 		"Complete": "ok",

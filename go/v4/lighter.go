@@ -3102,7 +3102,7 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Lighter) ParseOrderStatus(status any) *string {
+func (this *Lighter) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"in-progress":                   "open",
 		"pending":                       "open",
@@ -3666,7 +3666,7 @@ func (this *Lighter) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"internal":    nil,
 	}
 }
-func (this *Lighter) ParseTransactionStatus(status any) *string {
+func (this *Lighter) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"failed":    "failed",
 		"pending":   "pending",

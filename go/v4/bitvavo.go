@@ -1744,7 +1744,7 @@ func (this *Bitvavo) fetchTransferBody(ch chan any, id any, optionalArgs ...any)
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Bitvavo) ParseTransferStatus(status any) *string {
+func (this *Bitvavo) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"completed": "ok",
 		"pending":   "pending",
@@ -2578,7 +2578,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
 }
-func (this *Bitvavo) ParseOrderStatus(status any) *string {
+func (this *Bitvavo) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":                         "open",
 		"canceled":                    "canceled",
@@ -2879,7 +2879,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(items, currency, since, limit)
 	return nil
 }
-func (this *Bitvavo) ParseLedgerEntryType(typeVar any) *string {
+func (this *Bitvavo) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"buy":                        "trade",
 		"sell":                       "trade",
@@ -3167,7 +3167,7 @@ func (this *Bitvavo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	})
 	return nil
 }
-func (this *Bitvavo) ParseTransactionStatus(status any) *string {
+func (this *Bitvavo) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"awaiting_processing":         "pending",
 		"awaiting_email_confirmation": "pending",

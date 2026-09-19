@@ -2420,7 +2420,7 @@ func (this *Toobit) ParseOrder(order any, optionalArgs ...any) any {
 		"hedged":              nil,
 	}, market)
 }
-func (this *Toobit) ParseOrderStatus(status any) *string {
+func (this *Toobit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING_NEW":      "open",
 		"NEW":              "open",
@@ -3440,7 +3440,7 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal":    nil,
 	}
 }
-func (this *Toobit) ParseTransactionStatus(status any) *string {
+func (this *Toobit) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"2":  "pending",
 		"12": "pending",

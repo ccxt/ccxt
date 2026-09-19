@@ -2673,7 +2673,7 @@ func (this *Bullish) ParseOrder(order any, optionalArgs ...any) any {
 		"average":            average,
 	}, market)
 }
-func (this *Bullish) ParseOrderStatus(status any) *string {
+func (this *Bullish) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"OPEN":      "open",
 		"CLOSED":    "closed",
@@ -2682,7 +2682,7 @@ func (this *Bullish) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bullish) ParseOrderType(typeVar any) *string {
+func (this *Bullish) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LMT":        "limit",
 		"MKT":        "market",
@@ -2929,7 +2929,7 @@ func (this *Bullish) ParseTransactionType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bullish) ParseTransactionStatus(status any) *string {
+func (this *Bullish) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"COMPLETE":  "ok",
 		"FAILED":    "failed",
@@ -3244,7 +3244,7 @@ func (this *Bullish) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 }
-func (this *Bullish) ParseBalanceForSingleCurrency(response any, code any) any {
+func (this *Bullish) ParseBalanceForSingleCurrency(response any, code *string) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3390,7 +3390,7 @@ func (this *Bullish) ParsePosition(position any, optionalArgs ...any) any {
 		"takeProfitPrice":             nil,
 	})
 }
-func (this *Bullish) ParsePositionSide(side any) *string {
+func (this *Bullish) ParsePositionSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"BUY":  "long",
 		"SELL": "short",
@@ -3588,7 +3588,7 @@ func (this *Bullish) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"info":        transfer,
 	}
 }
-func (this *Bullish) ParseTransferStatus(status any) *string {
+func (this *Bullish) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CLOSED":                               "ok",
 		"OPEN":                                 "pending",

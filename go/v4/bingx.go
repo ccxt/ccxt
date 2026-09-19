@@ -4487,7 +4487,7 @@ func (this *Bingx) ParseOrderSide(side any) *string {
 	}
 	return this.SafeString(sides, side, side)
 }
-func (this *Bingx) ParseOrderType(typeVar any) *string {
+func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"trigger_market":     "market",
 		"trigger_limit":      "limit",
@@ -4899,7 +4899,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 		"reduceOnly": this.SafeBool2(order, "reduceOnly", "ro"),
 	}, market)
 }
-func (this *Bingx) ParseOrderStatus(status any) *string {
+func (this *Bingx) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PENDING":          "open",
@@ -6161,7 +6161,7 @@ func (this *Bingx) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Bingx) ParseTransferStatus(status any) *string {
+func (this *Bingx) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CONFIRMED": "ok",
 	}
@@ -6567,7 +6567,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal": nil,
 	}
 }
-func (this *Bingx) ParseTransactionStatus(status any) *string {
+func (this *Bingx) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0":  "pending",
 		"1":  "ok",

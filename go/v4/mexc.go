@@ -4495,7 +4495,7 @@ func (this *Mexc) ParseOrderType(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseOrderStatus(status any) *string {
+func (this *Mexc) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"FILLED":             "closed",
@@ -6912,7 +6912,7 @@ func (this *Mexc) ParseAccountId(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseTransferStatus(status any) *string {
+func (this *Mexc) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS": "ok",
 		"FAILED":  "failed",

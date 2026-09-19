@@ -2524,7 +2524,7 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes191815
 	return nil
 }
-func (this *Derive) ParseTimeInForce(timeInForce any) *string {
+func (this *Derive) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2533,7 +2533,7 @@ func (this *Derive) ParseTimeInForce(timeInForce any) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Derive) ParseOrderStatus(status any) *string {
+func (this *Derive) ParseOrderStatus(status *string) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"open":        "open",
@@ -3490,7 +3490,7 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"network":     nil,
 	}
 }
-func (this *Derive) ParseTransactionStatus(status any) *string {
+func (this *Derive) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"settled":  "ok",
 		"reverted": "failed",

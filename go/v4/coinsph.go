@@ -2260,7 +2260,7 @@ func (this *Coinsph) EncodeOrderType(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderStatus(status any) *string {
+func (this *Coinsph) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"FILLED":             "closed",
@@ -2734,7 +2734,7 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Coinsph) ParseTransactionStatus(status any) *string {
+func (this *Coinsph) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "ok",

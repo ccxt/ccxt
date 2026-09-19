@@ -2241,7 +2241,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Paradex) ParseTimeInForce(timeInForce any) *string {
+func (this *Paradex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"IOC":       "IOC",
 		"GTC":       "GTC",
@@ -2261,7 +2261,7 @@ func (this *Paradex) ParseOrderStatus(status any) *string {
 	}
 	return nil
 }
-func (this *Paradex) ParseOrderType(typeVar any) *string {
+func (this *Paradex) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":       "limit",
 		"MARKET":      "market",
@@ -3981,7 +3981,7 @@ func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         nil,
 	}
 }
-func (this *Paradex) ParseTransactionStatus(status any) *string {
+func (this *Paradex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"AVAILABLE": "pending",

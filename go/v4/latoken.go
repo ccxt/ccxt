@@ -1404,7 +1404,7 @@ func (this *Latoken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
 }
-func (this *Latoken) ParseOrderStatus(status any) *string {
+func (this *Latoken) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"ORDER_STATUS_PLACED":    "open",
 		"ORDER_STATUS_CLOSED":    "closed",
@@ -1419,7 +1419,7 @@ func (this *Latoken) ParseOrderType(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Latoken) ParseTimeInForce(timeInForce any) *string {
+func (this *Latoken) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ORDER_CONDITION_GOOD_TILL_CANCELLED": "GTC",
 		"ORDER_CONDITION_IMMEDIATE_OR_CANCEL": "IOC",
@@ -2139,7 +2139,7 @@ func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Latoken) ParseTransactionStatus(status any) *string {
+func (this *Latoken) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"TRANSACTION_STATUS_CONFIRMED": "ok",
 		"TRANSACTION_STATUS_EXECUTED":  "ok",
@@ -2346,7 +2346,7 @@ func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Latoken) ParseTransferStatus(status any) *string {
+func (this *Latoken) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"TRANSFER_STATUS_COMPLETED":  "ok",
 		"TRANSFER_STATUS_PENDING":    "pending",
