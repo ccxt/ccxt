@@ -3904,8 +3904,8 @@ export function installJavaLocalTypes (transpiler) {
             }
             const head = at + marker.length;
             const rest = printed.slice (head);
-            if (rest.startsWith ('(')) {
-                return printed; // already cast (never expected for a ws read)
+            if (rest.startsWith ('(' + javaType + ')')) {
+                return printed; // already cast
             }
             return printed.slice (0, head) + '(' + javaType + ') ' + printed.slice (head);
         }
