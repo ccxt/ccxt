@@ -1047,7 +1047,7 @@ public class Deribit extends DeribitApi
         }}));
     }
 
-    public Object codeFromOptions(String methodName, Object... optionalArgs)
+    public String codeFromOptions(String methodName, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String defaultCode = this.safeString(this.options, "code", "BTC");
@@ -2232,8 +2232,8 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object code = this.codeFromOptions("fetchTradingFees", parameters);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            String code = this.codeFromOptions("fetchTradingFees", parameters);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "extended", true );
@@ -3003,8 +3003,8 @@ public class Deribit extends DeribitApi
             Object response = null;
             if (java.util.Objects.equals(symbol, null))
             {
-                Object code = this.codeFromOptions("fetchOpenOrders", parameters);
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+                String code = this.codeFromOptions("fetchOpenOrders", parameters);
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
                 response = (this.privateGetGetOpenOrdersByCurrency(this.extend(request, parameters))).join();
             } else
@@ -3056,8 +3056,8 @@ public class Deribit extends DeribitApi
             }
             if (java.util.Objects.equals(symbol, null))
             {
-                Object code = this.codeFromOptions("fetchClosedOrders", parameters);
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+                String code = this.codeFromOptions("fetchClosedOrders", parameters);
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
                 response = (this.privateGetGetOrderHistoryByCurrency(this.extend(request, parameters))).join();
             } else
@@ -3178,8 +3178,8 @@ public class Deribit extends DeribitApi
             Object response = null;
             if (java.util.Objects.equals(symbol, null))
             {
-                Object code = this.codeFromOptions("fetchMyTrades", parameters);
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+                String code = this.codeFromOptions("fetchMyTrades", parameters);
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
                 if (java.util.Objects.equals(since, null))
                 {

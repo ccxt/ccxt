@@ -2236,7 +2236,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "transfer", "transfer" );
@@ -2292,7 +2292,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Object after = this.parseNumber(afterString);
         Object before = this.parseNumber(beforeString);
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
-        Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
+        String type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String code = this.safeCurrencyCode((String) (null), currency);
         Map<String, Object> details = (Map<String, Object>) this.safeDict(item, "details", new HashMap<String, Object>() {{}});
         String account = null;

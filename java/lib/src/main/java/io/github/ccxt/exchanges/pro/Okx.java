@@ -175,7 +175,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
                 }
-                Object marketId = this.marketId((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -192,7 +192,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", args );
             }};
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -294,7 +294,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
-                Object marketId = this.marketId(symbol);
+                Object marketId = this.marketId((String) (symbol));
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -316,7 +316,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 }})).join();
             }
             Object url = this.getUrl((String) (channel), access);
-            Object trades = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            Object trades = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -358,7 +358,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((("unsubscribe:" + channel) + ":") + symbol));
-                Object marketId = this.marketId(symbol);
+                Object marketId = this.marketId((String) (symbol));
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -380,7 +380,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 }})).join();
             }
             Object url = this.getUrl((String) (channel), access);
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -513,7 +513,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
-                Object marketId = this.marketId(symbol);
+                Object marketId = this.marketId((String) (symbol));
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -526,7 +526,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             Object url = this.getUrl(channel, "public");
-            Object fundingRate = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            Object fundingRate = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 String symbol = this.safeString(fundingRate, "symbol");
@@ -760,7 +760,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
-                Object marketId = this.marketId(symbol);
+                Object marketId = this.marketId((String) (symbol));
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -773,7 +773,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             Object url = this.getUrl((String) (channel), "public");
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -815,7 +815,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((Map<String, Object>)newTickers).put((String)symbol, ticker);
         }
@@ -855,7 +855,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = this.marketId((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -868,7 +868,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", args );
             }};
-            Object newTickers = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            Object newTickers = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -1041,7 +1041,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     }})) );
             }};
             Object url = this.getUrl(channel, "public");
-            Object newLiquidations = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -1149,7 +1149,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     }})) );
             }};
             Object url = this.getUrl(channel, "private");
-            Object newLiquidations = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
+            Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -1255,7 +1255,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(firstPosData, "uTIme");
         final Object finalMarket = market;
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Okx.this.safeSymbol(marketId, finalMarket) );
             put( "contracts", Okx.this.safeNumber(firstPosData, "pos") );
@@ -1265,7 +1265,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
-        }});
+        }}));
     }
 
     public Object parseWsLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
@@ -1297,7 +1297,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(liquidationDetails, "ts");
         final Object finalMarket = market;
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Okx.this.safeSymbol(marketId, finalMarket) );
             put( "contracts", Okx.this.safeNumber(liquidationDetails, "sz") );
@@ -1308,7 +1308,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
-        }});
+        }}));
     }
 
     /**
@@ -1406,7 +1406,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
-                Object marketId = this.marketId(sym);
+                Object marketId = this.marketId((String) (sym));
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
                 Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1421,7 +1421,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             Object url = this.getUrl("candle", "public");
-            var symboltimeframecandlesVariable = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            var symboltimeframecandlesVariable = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
@@ -1466,7 +1466,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
-                Object marketId = this.marketId(sym);
+                Object marketId = this.marketId((String) (sym));
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
                 Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1481,7 +1481,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             Object url = this.getUrl("candle", "public");
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -1628,7 +1628,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((depth + ":") + symbol));
-                Object marketId = this.marketId(symbol);
+                Object marketId = this.marketId((String) (symbol));
                 final Object finalDepth = depth;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalDepth );
@@ -1641,7 +1641,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             Object url = this.getUrl((String) (depth), "public");
-            Object orderbook = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            Object orderbook = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1698,7 +1698,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)subMessageHashes).add(((depth + ":") + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
-                Object marketId = this.marketId(symbol);
+                Object marketId = this.marketId((String) (symbol));
                 final Object finalDepth = depth;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalDepth );
@@ -1711,7 +1711,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             Object url = this.getUrl((String) (depth), "public");
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -1816,7 +1816,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return orderbook;
     }
 
-    public Object handleOrderBook(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -2161,7 +2161,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long timestamp = this.safeInteger(info, "fillTime");
         String feeMarketId = this.safeString(info, "fillFeeCcy");
         Boolean isTaker = java.util.Objects.equals(this.safeString(info, "execType", ""), "T");
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", info );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
@@ -2176,9 +2176,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "cost", Okx.this.safeNumber(order, "cost") );
             put( "fee", new HashMap<String, Object>() {{
                 put( "cost", Okx.this.safeNumber(info, "fillFee") );
-                put( "currency", Okx.this.safeCurrencyCode(feeMarketId) );
+                put( "currency", Okx.this.safeCurrencyCode((String) (feeMarketId)) );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -2403,7 +2403,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             if (Helpers.isEqual(((Map<String, Object>)position).get("contracts"), 0) && java.util.Objects.equals(Helpers.GetValue(rawPosition, "posSide"), "net"))
             {
                 Helpers.addElementToObject(position, "side", "long");
@@ -3029,7 +3029,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         client.resolve(data, messageHash);
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
@@ -3061,7 +3061,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }

@@ -623,7 +623,7 @@ public class Coinspot extends CoinspotApi
                 {
                     Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                     Object balance = Helpers.GetValue(currencies, currencyId);
-                    String code = this.safeCurrencyCode(currencyId);
+                    String code = this.safeCurrencyCode((String) (currencyId));
                     Object account = this.account();
                     ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
@@ -638,7 +638,7 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-                String code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode((String) (currencyId));
                 Object account = this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
@@ -729,7 +729,7 @@ public class Coinspot extends CoinspotApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -804,7 +804,7 @@ public class Coinspot extends CoinspotApi
             //     }
             //
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(prices, id, new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, market);
+            return this.parseTicker((Map<String, Object>) (ticker), market);
         }).thenApply(Ticker::new);
 
     }
@@ -858,7 +858,7 @@ public class Coinspot extends CoinspotApi
                 {
                     Object symbol = ((Map<String, Object>)market).get("symbol");
                     Object ticker = (prices == null || id == null ? null : prices.get(id));
-                    ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
+                    ((Map<String, Object>)result).put((String)symbol, this.parseTicker((Map<String, Object>) (ticker), market));
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1045,7 +1045,7 @@ public class Coinspot extends CoinspotApi
         final Object finalTimestamp = timestamp;
         final Object finalPriceString = priceString;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "symbol", symbol );
@@ -1059,7 +1059,7 @@ public class Coinspot extends CoinspotApi
             put( "amount", Coinspot.this.parseNumber(amountString) );
             put( "cost", Coinspot.this.parseNumber(costString) );
             put( "fee", finalFee );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1118,9 +1118,9 @@ public class Coinspot extends CoinspotApi
             // status - ok, error
             //
             final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }
@@ -1164,9 +1164,9 @@ public class Coinspot extends CoinspotApi
             // status - ok, error
             //
             final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
+            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
-            }});
+            }}));
         }).thenApply(Order::new);
 
     }

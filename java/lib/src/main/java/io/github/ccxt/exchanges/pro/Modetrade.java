@@ -270,7 +270,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }}, market);
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -616,9 +616,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object trade = this.parseWsTrade(this.extend(data, new HashMap<String, Object>() {{
+        Object trade = this.parseWsTrade((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
-        }}), market);
+        }})), market);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -631,7 +631,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         client.resolve(trades, topic);
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -696,7 +696,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Modetrade.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Modetrade.this.iso8601(timestamp) );
@@ -710,7 +710,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "type", Modetrade.this.safeStringLower(trade, "type") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}, market);
+        }}), market);
     }
 
     public void handleAuth(Client client, Map<String, Object> message)
@@ -812,7 +812,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "id", requestId );
             }};
             Map<String, Object> request = this.extend(subscribe, message);
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscribe)).join();
         });
 
     }
@@ -919,7 +919,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -1020,7 +1020,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Object finalPrice = price;
         final Object finalRemaining = remaining;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", orderId );
@@ -1043,7 +1043,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "status", status );
             put( "fee", fee );
             put( "trades", trades );
-        }});
+        }}));
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)
@@ -1107,7 +1107,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     public void handleOrder(Client client, Map<String, Object> message, String topic)
     {
-        Object parsed = this.parseWsOrder(message);
+        Object parsed = this.parseWsOrder((Map<String, Object>) (message));
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (!java.util.Objects.equals(symbol, null))
@@ -1177,7 +1177,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object trade = this.parseWsTrade(message, market);
+        Object trade = this.parseWsTrade((Map<String, Object>) (message), market);
         Object trades = this.myTrades;
         if (java.util.Objects.equals(trades, null))
         {
@@ -1403,7 +1403,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Modetrade.this.safeString(finalMarket, "symbol") );
@@ -1432,7 +1432,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "hedged", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }});
+        }}));
     }
 
     /**
@@ -1505,7 +1505,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = (balances == null || key == null ? null : balances.get(key));
-            String code = this.safeCurrencyCode(key);
+            String code = this.safeCurrencyCode((String) (key));
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {
@@ -1525,7 +1525,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         client.resolve(this.balance, "balance");
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -1659,7 +1659,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         // { event: "pong", ts: 1614667590000 }
@@ -1668,7 +1668,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return message;
     }
 
-    public Object handleSubscribe(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscribe(Client client, Map<String, Object> message)
     {
         //
         //     {

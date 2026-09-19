@@ -148,7 +148,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "method", finalMethod );
                 put( "params", channels );
             }};
-            return (this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, this.extend(subscriptionParams, subscription))).join();
+            return (this.watchMultiple((String) (url), messageHashes, this.deepExtend(message, parameters), messageHashes, this.extend(subscriptionParams, subscription))).join();
         });
 
     }
@@ -183,7 +183,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 parameters = this.deepExtend(request, parameters);
                 ((Map<String, Object>)subscription).put("id", id);
             }
-            return (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), subscription)).join();
+            return (this.watchMultiple((String) (url), messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), subscription)).join();
         });
 
     }
@@ -271,7 +271,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                    Object marketId = this.marketId(symbol);
+                    Object marketId = this.marketId((String) (symbol));
                     ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
@@ -324,7 +324,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                         {
                             continue;
                         }
-                        Object marketId = this.marketId(symbol);
+                        Object marketId = this.marketId((String) (symbol));
                         ((List<Object>)channels).add((marketId + channel));
                     }
                 }
@@ -335,7 +335,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                    Object marketId = this.marketId(symbol);
+                    Object marketId = this.marketId((String) (symbol));
                     ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
@@ -381,7 +381,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         "o": 0.04657
         //     }
         //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (message));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         String messageHash = ("ticker::" + symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -868,7 +868,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(rawOrder, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), market);
         Long lastUpdateTimestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp);
         Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -876,7 +876,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         client.resolve(orders, symbolMessageHash);
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -919,7 +919,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
         final Object finalMarket_2 = market;
         final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bydfi.this.safeString(order, "o") );
             put( "clientOrderId", Bydfi.this.safeString(order, "cid") );
@@ -945,7 +945,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "trades", null );
             put( "fee", finalFee );
             put( "average", Bydfi.this.omitZero(Bydfi.this.safeString(order, "ap")) );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1089,7 +1089,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String positionMode = this.safeString(position, "pt");
         final Object finalMarket = market;
         final Object finalPositionMode = positionMode;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bydfi.this.safeString(position, "id") );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -1116,7 +1116,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "marginRatio", null );
             put( "marginMode", Bydfi.this.safeStringLower(position, "mt") );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     public String parseWsPositionSide(String rawPositionSide)
@@ -1253,7 +1253,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(balance, "a");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode((String) (currencyId));
                 Object account = this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "wb"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "tfm"));
@@ -1268,7 +1268,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1295,12 +1295,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         {
             Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             Object subHash = Helpers.replace(((String)unsubHash), "unsubscribe::", "");
-            this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
+            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), subHashIsPrefix);
         }
         this.cleanCache(subscription);
     }
 
-    public Object handlePong(Client client, Map<String, Object> message)
+    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {
