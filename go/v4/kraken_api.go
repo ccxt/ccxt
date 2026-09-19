@@ -9,42 +9,42 @@ package ccxt
 
 // ZendeskGet201893608 returns a channel that yields a JSON object.
 func (this *Kraken) ZendeskGet201893608(args ...any) <-chan any {
-	return this.callEndpointAsync("zendeskGet201893608", args...)
+	return this.Fetch2Async("201893608", "zendesk", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ZendeskGet360000292886 returns a channel that yields a JSON object.
 func (this *Kraken) ZendeskGet360000292886(args ...any) <-chan any {
-	return this.callEndpointAsync("zendeskGet360000292886", args...)
+	return this.Fetch2Async("360000292886", "zendesk", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTime returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTime", args...)
+	return this.Fetch2Async("Time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSystemStatus returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetSystemStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSystemStatus", args...)
+	return this.Fetch2Async("SystemStatus", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetMaintenanceSchedule returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetMaintenanceSchedule(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMaintenanceSchedule", args...)
+	return this.Fetch2Async("MaintenanceSchedule", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAssets returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssets", args...)
+	return this.Fetch2Async("Assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAssetPairs returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetAssetPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetPairs", args...)
+	return this.Fetch2Async("AssetPairs", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+	return this.Fetch2Async("Ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOHLC returns a channel that yields a JSON object.
@@ -69,17 +69,17 @@ func (this *Kraken) PublicGetTrades(args ...any) <-chan any {
 
 // PublicGetSpread returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetSpread(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpread", args...)
+	return this.Fetch2Async("Spread", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetPreTrade returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetPreTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPreTrade", args...)
+	return this.Fetch2Async("PreTrade", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetPostTrade returns a channel that yields a JSON object.
 func (this *Kraken) PublicGetPostTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPostTrade", args...)
+	return this.Fetch2Async("PostTrade", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLevel3 returns a channel that yields a JSON object.
@@ -89,235 +89,235 @@ func (this *Kraken) PrivatePostLevel3(args ...any) <-chan any {
 
 // PrivatePostBalance returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBalance", args...)
+	return this.Fetch2Async("Balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostBalanceEx returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostBalanceEx(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBalanceEx", args...)
+	return this.Fetch2Async("BalanceEx", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostCreditLines returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostCreditLines(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCreditLines", args...)
+	return this.Fetch2Async("CreditLines", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostTradeBalance returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostTradeBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeBalance", args...)
+	return this.Fetch2Async("TradeBalance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostOpenOrders returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenOrders", args...)
+	return this.Fetch2Async("OpenOrders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostClosedOrders returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostClosedOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostClosedOrders", args...)
+	return this.Fetch2Async("ClosedOrders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostQueryOrders returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostQueryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostQueryOrders", args...)
+	return this.Fetch2Async("QueryOrders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostOrderAmends returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostOrderAmends(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderAmends", args...)
+	return this.Fetch2Async("OrderAmends", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostTradesHistory returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostTradesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradesHistory", args...)
+	return this.Fetch2Async("TradesHistory", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PrivatePostQueryTrades returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostQueryTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostQueryTrades", args...)
+	return this.Fetch2Async("QueryTrades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostOpenPositions returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostOpenPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenPositions", args...)
+	return this.Fetch2Async("OpenPositions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostLedgers returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostLedgers(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLedgers", args...)
+	return this.Fetch2Async("Ledgers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PrivatePostQueryLedgers returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostQueryLedgers(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostQueryLedgers", args...)
+	return this.Fetch2Async("QueryLedgers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostTradeVolume returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostTradeVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeVolume", args...)
+	return this.Fetch2Async("TradeVolume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostAddExport returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostAddExport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAddExport", args...)
+	return this.Fetch2Async("AddExport", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostExportStatus returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostExportStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostExportStatus", args...)
+	return this.Fetch2Async("ExportStatus", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostRetrieveExport returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostRetrieveExport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRetrieveExport", args...)
+	return this.Fetch2Async("RetrieveExport", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostRemoveExport returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostRemoveExport(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRemoveExport", args...)
+	return this.Fetch2Async("RemoveExport", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostGetApiKeyInfo returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostGetApiKeyInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetApiKeyInfo", args...)
+	return this.Fetch2Async("GetApiKeyInfo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostListWalletAccounts returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostListWalletAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostListWalletAccounts", args...)
+	return this.Fetch2Async("ListWalletAccounts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostAddOrder returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostAddOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAddOrder", args...)
+	return this.Fetch2Async("AddOrder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(0)})
 }
 
 // PrivatePostAmendOrder returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostAmendOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAmendOrder", args...)
+	return this.Fetch2Async("AmendOrder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(0)})
 }
 
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+	return this.Fetch2Async("CancelOrder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(0)})
 }
 
 // PrivatePostCancelAll returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelAll", args...)
+	return this.Fetch2Async("CancelAll", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostCancelAllOrdersAfter returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostCancelAllOrdersAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelAllOrdersAfter", args...)
+	return this.Fetch2Async("CancelAllOrdersAfter", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostGetWebSocketsToken returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostGetWebSocketsToken(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetWebSocketsToken", args...)
+	return this.Fetch2Async("GetWebSocketsToken", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostAddOrderBatch returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostAddOrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAddOrderBatch", args...)
+	return this.Fetch2Async("AddOrderBatch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(0)})
 }
 
 // PrivatePostCancelOrderBatch returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostCancelOrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrderBatch", args...)
+	return this.Fetch2Async("CancelOrderBatch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(0)})
 }
 
 // PrivatePostEditOrder returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostEditOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEditOrder", args...)
+	return this.Fetch2Async("EditOrder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(0)})
 }
 
 // PrivatePostDepositMethods returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostDepositMethods(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDepositMethods", args...)
+	return this.Fetch2Async("DepositMethods", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostDepositAddresses returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostDepositAddresses(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDepositAddresses", args...)
+	return this.Fetch2Async("DepositAddresses", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostDepositStatus returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostDepositStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDepositStatus", args...)
+	return this.Fetch2Async("DepositStatus", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostWithdrawMethods returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostWithdrawMethods(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawMethods", args...)
+	return this.Fetch2Async("WithdrawMethods", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostWithdrawAddresses returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostWithdrawAddresses(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawAddresses", args...)
+	return this.Fetch2Async("WithdrawAddresses", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostWithdrawInfo returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostWithdrawInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawInfo", args...)
+	return this.Fetch2Async("WithdrawInfo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostWithdraw returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdraw", args...)
+	return this.Fetch2Async("Withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostWithdrawStatus returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostWithdrawStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawStatus", args...)
+	return this.Fetch2Async("WithdrawStatus", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostWithdrawCancel returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostWithdrawCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawCancel", args...)
+	return this.Fetch2Async("WithdrawCancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostWalletTransfer returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostWalletTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletTransfer", args...)
+	return this.Fetch2Async("WalletTransfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostCreateSubaccount returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostCreateSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCreateSubaccount", args...)
+	return this.Fetch2Async("CreateSubaccount", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostAccountTransfer returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostAccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountTransfer", args...)
+	return this.Fetch2Async("AccountTransfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostEarnAllocate returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostEarnAllocate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEarnAllocate", args...)
+	return this.Fetch2Async("Earn/Allocate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostEarnDeallocate returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostEarnDeallocate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEarnDeallocate", args...)
+	return this.Fetch2Async("Earn/Deallocate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostEarnAllocateStatus returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostEarnAllocateStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEarnAllocateStatus", args...)
+	return this.Fetch2Async("Earn/AllocateStatus", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostEarnDeallocateStatus returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostEarnDeallocateStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEarnDeallocateStatus", args...)
+	return this.Fetch2Async("Earn/DeallocateStatus", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostEarnStrategies returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostEarnStrategies(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEarnStrategies", args...)
+	return this.Fetch2Async("Earn/Strategies", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivatePostEarnAllocations returns a channel that yields a JSON object.
 func (this *Kraken) PrivatePostEarnAllocations(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEarnAllocations", args...)
+	return this.Fetch2Async("Earn/Allocations", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
