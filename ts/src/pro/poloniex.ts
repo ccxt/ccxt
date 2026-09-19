@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market, List } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 
@@ -84,7 +84,7 @@ export default class poloniex extends poloniexRest {
      * @see https://api-docs.poloniex.com/spot/websocket/authentication
      * @returns {object} response from exchange
      */
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         const timestamp = this.numberToString (this.milliseconds ());
         const url = this.urls['api']['ws']['private'];
@@ -144,7 +144,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params = {}) {
+    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const publicOrPrivate = isPrivate ? 'private' : 'public';
         const url = this.urls['api']['ws'][publicOrPrivate];
         const subscribe: Dict = {
@@ -179,7 +179,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    async tradeRequest (name: string, params = {}) {
+    async tradeRequest (name: string, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
         const subscribe: Dict = {
@@ -212,7 +212,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -297,7 +297,7 @@ export default class poloniex extends poloniexRest {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -317,7 +317,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -325,7 +325,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('cancelAllOrders', params);
     }
 
-    handleOrderRequest (client: Client, message: any) {
+    handleOrderRequest (client: Client, message: Dict): void {
         //
         //    {
         //        "id": "1234567",
@@ -360,7 +360,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -385,7 +385,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -403,7 +403,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -427,7 +427,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -442,7 +442,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -483,7 +483,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -505,7 +505,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -533,7 +533,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex strean
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -559,7 +559,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -568,7 +568,7 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, name, true, undefined, params);
     }
 
-    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -594,7 +594,7 @@ export default class poloniex extends poloniexRest {
         ];
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): Dict {
         //
         //    {
         //        "channel": "candles_minute_1",
@@ -641,7 +641,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict): Dict {
         //
         //    {
         //        "channel": "trades",
@@ -751,7 +751,7 @@ export default class poloniex extends poloniexRest {
         }, market);
     }
 
-    parseStatus (status: any) {
+    parseStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -816,7 +816,7 @@ export default class poloniex extends poloniexRest {
         }, market);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict): Dict {
         //
         // Order is created
         //
@@ -1015,7 +1015,7 @@ export default class poloniex extends poloniexRest {
         });
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //    {
         //        "channel": "ticker",
@@ -1069,7 +1069,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // snapshot
         //
@@ -1164,7 +1164,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         //    {
         //       "channel": "balances",
@@ -1190,7 +1190,7 @@ export default class poloniex extends poloniexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    parseWsBalance (response: any) {
+    parseWsBalance (response: List): Balances {
         //
         //    [
         //        {
@@ -1228,7 +1228,7 @@ export default class poloniex extends poloniexRest {
         return this.safeBalance (result);
     }
 
-    handleMyTrades (client: Client, parsedTrade: any) {
+    handleMyTrades (client: Client, parsedTrade: Trade): void {
         // emulated using the orders' stream
         const messageHash = 'myTrades';
         const symbol = parsedTrade['symbol'];
@@ -1243,11 +1243,11 @@ export default class poloniex extends poloniexRest {
         client.resolve (trades, symbolMessageHash);
     }
 
-    handlePong (client: Client) {
+    handlePong (client: Client): void {
         client.lastPong = this.milliseconds ();
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -1296,7 +1296,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',
@@ -1355,7 +1355,7 @@ export default class poloniex extends poloniexRest {
         return false;
     }
 
-    handleAuthenticate (client: Client, message: any) {
+    handleAuthenticate (client: Client, message: Dict): Dict {
         //
         //    {
         //        "success": true,
@@ -1379,7 +1379,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return {
             'event': 'ping',
         };
