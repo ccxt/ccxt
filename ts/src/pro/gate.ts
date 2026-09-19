@@ -264,7 +264,7 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const trigger = this.safeValueN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
+        const trigger = this.safeBoolN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
         params = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, trigger, query) : this.prepareRequest (market, type, query);
@@ -641,7 +641,7 @@ export default class gate extends gateRest {
         const rawMarketType = this.safeString (channelParts, 0);
         const isSpot = rawMarketType === 'spot';
         const marketType = isSpot ? 'spot' : 'contract';
-        const delta = this.safeValue (message, 'result');
+        const delta = this.safeDict (message, 'result');
         const deltaStart = this.safeInteger (delta, 'U');
         const deltaEnd = this.safeInteger (delta, 'u');
         const marketId = this.safeString (delta, 's');
@@ -716,8 +716,8 @@ export default class gate extends gateRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = this.safeInteger (delta, 'u');
-        const bids = this.safeValue (delta, 'b', []);
-        const asks = this.safeValue (delta, 'a', []);
+        const bids = this.safeList (delta, 'b', []);
+        const asks = this.safeList (delta, 'a', []);
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
         this.handleBidAsks (storedBids, bids);
@@ -935,7 +935,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1641,7 +1641,7 @@ export default class gate extends gateRest {
         //         ]
         //     }
         //
-        const orders = this.safeValue (message, 'result', []);
+        const orders = this.safeList (message, 'result', []);
         const channel = this.safeString (message, 'channel', '');
         const isTrigger = (channel.indexOf ('autoorders') >= 0) || (channel.indexOf ('priceorders') >= 0);
         const hashPrefix = isTrigger ? 'triggerOrders' : 'orders';
@@ -1656,7 +1656,7 @@ export default class gate extends gateRest {
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
             // inject order status
-            const info = this.safeValue (parsed, 'info');
+            const info = this.safeDict (parsed, 'info');
             const event = this.safeString (info, 'event');
             if (event === 'put' || event === 'update') {
                 parsed['status'] = 'open';
@@ -1810,7 +1810,7 @@ export default class gate extends gateRest {
             const liquidation = this.parseWsLiquidation (rawLiquidation);
             cache.append (liquidation);
             const symbol = this.safeString (liquidation, 'symbol');
-            const symbolLiquidations = this.safeValue (cache, symbol, []);
+            const symbolLiquidations = this.safeList (cache, symbol, []);
             client.resolve (symbolLiquidations, 'myLiquidations::' + symbol);
         }
         client.resolve (newLiquidations, 'myLiquidations');
@@ -2140,7 +2140,7 @@ export default class gate extends gateRest {
             return;
         }
         const channelParts = channel.split ('.');
-        const channelType = this.safeValue (channelParts, 1);
+        const channelType = this.safeString (channelParts, 1);
         const v4Methods: Dict = {
             'usertrades': this.handleMyTrades,
             'candlesticks': this.handleOHLCV,
