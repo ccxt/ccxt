@@ -5559,7 +5559,7 @@ final Object finalMinNotional = minNotional;
         String percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
         final Object finalMarketType = marketType;
         final Object finalMarkPrice = markPrice;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Bitget.this.safeSymbol(marketId, market, null, finalMarketType) );
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
@@ -5582,7 +5582,7 @@ final Object finalMinNotional = minNotional;
             put( "indexPrice", Bitget.this.safeString(ticker, "indexPrice") );
             put( "markPrice", finalMarkPrice );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**

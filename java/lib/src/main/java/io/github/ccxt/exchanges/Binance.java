@@ -6381,7 +6381,7 @@ public class Binance extends BinanceApi
         }
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
@@ -6404,7 +6404,7 @@ public class Binance extends BinanceApi
             put( "markPrice", Binance.this.safeString(ticker, "markPrice") );
             put( "indexPrice", Binance.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
-        }}), market);
+        }}, market);
     }
 
     /**

@@ -7340,7 +7340,7 @@ public Object describe()
         return result;
     }
 
-    public Object safeTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object safeTicker(Object ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object open = this.omitZero(this.safeString(ticker, "open"));
